@@ -62,7 +62,7 @@ function createBrowserSocket(): WebSocket {
 			pendingMessages.splice(0);
 			dispatchHostMessage({
 				type: "error",
-				text: "Received an invalid message from the Cline Hub server.",
+				text: "Received an invalid message from the Zenuxs Hub server.",
 			});
 		}
 	});
@@ -70,14 +70,14 @@ function createBrowserSocket(): WebSocket {
 		pendingMessages.splice(0);
 		dispatchHostMessage({
 			type: "status",
-			text: "Disconnected from the Cline Hub server.",
+			text: "Disconnected from the Zenuxs Hub server.",
 		});
 	});
 	browserSocket.addEventListener("error", () => {
 		pendingMessages.splice(0);
 		dispatchHostMessage({
 			type: "error",
-			text: "Failed to connect to the Cline Hub server.",
+			text: "Failed to connect to the Zenuxs Hub server.",
 		});
 	});
 	return browserSocket;

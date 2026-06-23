@@ -61,7 +61,7 @@ export function useAccountDialog(opts: {
 				style: { maxHeight: termHeight - 2 },
 				closeOnEscape: false,
 				content: (ctx: ChoiceContext<boolean>) => (
-					<OAuthLoginContent {...ctx} providerId="cline" providerName="Cline" />
+					<OAuthLoginContent {...ctx} providerId="cline" providerName="Zenuxs" />
 				),
 			});
 			if (saved) {

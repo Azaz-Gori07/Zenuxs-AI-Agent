@@ -483,7 +483,7 @@ function createClineLikeSpec(
 	return {
 		id: input.id,
 		name: input.name,
-		description: input.description ?? "Cline API endpoint",
+		description: input.description ?? "Zenuxs API endpoint",
 		family: "openai-compatible",
 		popular: input.popular,
 		capabilities: ["reasoning", "prompt-cache", "tools", "oauth"],
@@ -506,7 +506,7 @@ function createClineLikeSpec(
 
 const cline = createClineLikeSpec({
 	id: "cline",
-	name: "Cline",
+	name: "Zenuxs",
 	popular: 1,
 	modelsFactory: buildClineModels,
 	defaultModelId: CLINE_DEFAULT_MODEL_ID,
@@ -516,7 +516,7 @@ const clinePass = createClineLikeSpec({
 	id: CLINE_PASS_PROVIDER_ID,
 	name: "ClinePass",
 	popular: 2,
-	description: "Cline API endpoint with ClinePass models",
+	description: "Zenuxs API endpoint with ClinePass models",
 	modelsProviderId: CLINE_PASS_PROVIDER_ID,
 	defaultModelId: firstGeneratedModelId(CLINE_PASS_PROVIDER_ID),
 	metadata: { usageCostDisplay: "hide" },

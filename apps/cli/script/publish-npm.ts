@@ -312,7 +312,7 @@ const bugs = "bugs" in mainPkgRecord ? mainPkgRecord.bugs : undefined;
 const wrapperPackageJson = {
 	name: wrapperPackageName,
 	version,
-	description: description || "Cline CLI",
+	description: description || "Zenuxs CLI",
 	license: license || "Apache-2.0",
 	...(keywords ? { keywords } : {}),
 	...(author ? { author } : {}),

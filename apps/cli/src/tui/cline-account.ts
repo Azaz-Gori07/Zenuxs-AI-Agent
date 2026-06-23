@@ -99,7 +99,7 @@ async function resolveValidClineAccountAuthToken(input: {
 		});
 		if (!nextCredentials) {
 			throw new Error(
-				"Cline account requires re-authentication. Run cline auth cline.",
+				"Zenuxs account requires re-authentication. Run cline auth cline.",
 			);
 		}
 		const nextAccessToken = formatProviderOAuthApiKey("cline", nextCredentials);
@@ -154,7 +154,7 @@ export async function loadClineAccountSnapshot(input: {
 }): Promise<ClineAccountSnapshot> {
 	const service = await createClineAccountService(input);
 	if (!service) {
-		throw new Error("No Cline account auth token found");
+		throw new Error("No Zenuxs account auth token found");
 	}
 
 	const user = await service.fetchMe();
@@ -198,7 +198,7 @@ export async function switchClineAccount(input: {
 }): Promise<void> {
 	const service = await createClineAccountService(input);
 	if (!service) {
-		throw new Error("No Cline account auth token found");
+		throw new Error("No Zenuxs account auth token found");
 	}
 	await service.switchAccount(input.organizationId);
 }

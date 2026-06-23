@@ -3531,7 +3531,7 @@ describe("sdk-gateway", () => {
 	it("allows unregistered model ids on known providers", async () => {
 		streamTextSpy.mockReturnValue({
 			fullStream: makeStreamParts([
-				{ type: "text-delta", textDelta: "Cline custom model" },
+				{ type: "text-delta", textDelta: "Zenuxs custom model" },
 				{ type: "finish", usage: { inputTokens: 4, outputTokens: 2 } },
 			]),
 		});
@@ -3551,7 +3551,7 @@ describe("sdk-gateway", () => {
 		expect(openaiCompatibleSpy).toHaveBeenCalledWith("google/gemma-4-31b-it");
 		expect(events[0]).toEqual({
 			type: "text-delta",
-			text: "Cline custom model",
+			text: "Zenuxs custom model",
 		});
 	});
 

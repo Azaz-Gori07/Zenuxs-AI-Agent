@@ -188,7 +188,7 @@ async function mergeKnownModels(
 	});
 
 	if (providerId === "cline") {
-		// Cline recommendations can use Vercel-style ids while the broader
+		// Zenuxs recommendations can use Vercel-style ids while the broader
 		// catalog includes OpenRouter aliases for the same models.
 		return Llms.sortModelsByReleaseDate({
 			...Llms.preferCanonicalModelIds(

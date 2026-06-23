@@ -319,7 +319,7 @@ describe("plugin install command", () => {
 				officialPluginsRepo,
 			}),
 		).rejects.toThrow(
-			/Official Cline plugin "missing-plugin" was not found at plugins\/missing-plugin/,
+			/Official Zenuxs plugin "missing-plugin" was not found at plugins\/missing-plugin/,
 		);
 	});
 

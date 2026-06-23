@@ -509,7 +509,7 @@ describe("composeAiSdkProviderOptions: Anthropic thinking precedence", () => {
 			],
 		},
 		{
-			name: "Cline-routed Sonnet 4.5 -> gateway reasoning, no thinking, no effort",
+			name: "Zenuxs-routed Sonnet 4.5 -> gateway reasoning, no thinking, no effort",
 			request: {
 				providerId: "cline",
 				modelId: "anthropic/claude-sonnet-4-5",

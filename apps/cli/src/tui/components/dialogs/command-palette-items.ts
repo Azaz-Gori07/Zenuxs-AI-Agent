@@ -75,7 +75,7 @@ const ACTION_ITEMS: Array<{
 		action: "account",
 		label: "Open Account",
 		shortcut: "Opt+A",
-		description: "View or switch your Cline account",
+		description: "View or switch your Zenuxs account",
 		keywords: ["account", "login", "auth", "cline"],
 	},
 	{
@@ -130,7 +130,7 @@ const ACTION_ITEMS: Array<{
 	},
 	{
 		action: "quit",
-		label: "Exit Cline",
+		label: "Exit Zenuxs",
 		shortcut: "Opt+Q",
 		description: "Close the interactive CLI",
 		keywords: ["quit", "exit"],

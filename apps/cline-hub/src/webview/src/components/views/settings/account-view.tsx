@@ -250,7 +250,7 @@ export function AccountView() {
 			});
 			resetAccountData();
 			setActiveTab("overview");
-			setOverviewError("No Cline account auth token found");
+			setOverviewError("No Zenuxs account auth token found");
 		} catch (err) {
 			const message = normalizeAccountViewError(err).message;
 			setOverviewError(message);
@@ -376,11 +376,11 @@ export function AccountView() {
 				</div>
 				<div>
 					<h3 className="text-lg font-semibold text-foreground">
-						Sign in to Cline
+						Sign in to Zenuxs
 					</h3>
 					<p className="mt-2 text-sm text-muted-foreground">
-						Connect your Cline account to review credits, usage, billing, and
-						organization details from Cline Hub.
+						Connect your Zenuxs account to review credits, usage, billing, and
+						organization details from Zenuxs Hub.
 					</p>
 				</div>
 				<div className="flex flex-wrap items-center justify-center gap-2">

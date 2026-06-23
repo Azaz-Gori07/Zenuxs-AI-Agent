@@ -305,7 +305,7 @@ export class ClineAccountService {
 							),
 						);
 					}
-					throw new Error("Cline account response was not valid JSON");
+					throw new Error("Zenuxs account response was not valid JSON");
 				}
 			}
 
@@ -319,7 +319,7 @@ export class ClineAccountService {
 				const envelope = parsed as ClineApiEnvelope<T>;
 				if (typeof envelope.success === "boolean") {
 					if (!envelope.success) {
-						throw new Error(envelope.error || "Cline account request failed");
+						throw new Error(envelope.error || "Zenuxs account request failed");
 					}
 					if (envelope.data !== undefined) {
 						return envelope.data;
@@ -328,7 +328,7 @@ export class ClineAccountService {
 			}
 
 			if (parsed === undefined || parsed === null) {
-				throw new Error("Cline account response payload was empty");
+				throw new Error("Zenuxs account response payload was empty");
 			}
 			return parsed as T;
 		} finally {

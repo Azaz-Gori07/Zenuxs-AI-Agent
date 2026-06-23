@@ -13,6 +13,10 @@ interface EncodedRobotFrames {
 	frames: [rows: string[], colorRuns: number[]][];
 }
 
+interface LogoFrames {
+	logo: string[];
+}
+
 function decodeRunLengthColors(
 	colorRuns: number[],
 	palette: string[],
@@ -52,6 +56,21 @@ function decodeRunLengthColors(
 	return colors;
 }
 
+function decodeLogoFrames(logo: LogoFrames): CroppedFrame[] {
+	const rows = logo.logo;
+	const height = rows.length;
+	const width = Math.max(...rows.map((r) => r.length));
+	const colors: Record<string, string> = {};
+	for (let y = 0; y < height; y++) {
+		for (let x = 0; x < rows[y].length; x++) {
+			if (rows[y][x] !== " ") {
+				colors[`${x},${y}`] = "cyan";
+			}
+		}
+	}
+	return [{ rows, colors }];
+}
+
 function decodeRobotFrames(encoded: EncodedRobotFrames): CroppedFrame[] {
 	if (encoded.schema !== 1) {
 		throw new Error(`Unsupported robot frame schema ${encoded.schema}`);
@@ -68,6 +87,6 @@ function decodeRobotFrames(encoded: EncodedRobotFrames): CroppedFrame[] {
 	}));
 }
 
-export const FRAMES: CroppedFrame[] = decodeRobotFrames(
-	encodedFrames as EncodedRobotFrames,
-);
+export const FRAMES: CroppedFrame[] = "logo" in encodedFrames
+	? decodeLogoFrames(encodedFrames as unknown as LogoFrames)
+	: decodeRobotFrames(encodedFrames as EncodedRobotFrames);

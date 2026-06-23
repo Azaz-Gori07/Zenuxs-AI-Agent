@@ -742,14 +742,14 @@ async function installSkill(
 	}
 	if (!isGlobalSkillInstalled(entry)) {
 		throw new Error(
-			`Skill install completed, but ${entry.name ?? entry.id} was not found in Cline's global skills directories.`,
+			`Skill install completed, but ${entry.name ?? entry.id} was not found in Zenuxs's global skills directories.`,
 		);
 	}
 	return {
 		id: entry.id,
 		type: entry.type,
 		status: "installed",
-		message: `Installed ${entry.name ?? entry.id} globally for Cline.`,
+		message: `Installed ${entry.name ?? entry.id} globally for Zenuxs.`,
 		output,
 	};
 }
@@ -786,7 +786,7 @@ async function uninstallSkill(
 	const output = commandOutput(result);
 	if (isGlobalSkillInstalled(entry)) {
 		throw new Error(
-			`Skill uninstall completed, but ${entry.name ?? entry.id} is still present in Cline's global skills directories.`,
+			`Skill uninstall completed, but ${entry.name ?? entry.id} is still present in Zenuxs's global skills directories.`,
 		);
 	}
 	return {

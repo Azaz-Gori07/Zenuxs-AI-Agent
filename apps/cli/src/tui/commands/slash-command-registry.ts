@@ -69,7 +69,7 @@ const TUI_LOCAL_COMMANDS: Array<{
 	},
 	{
 		name: "account",
-		description: "View Cline account",
+		description: "View Zenuxs account",
 	},
 	{
 		name: "mcp",
@@ -110,7 +110,7 @@ const TUI_LOCAL_COMMANDS: Array<{
 	},
 	{
 		name: "quit",
-		description: "Exit Cline",
+		description: "Exit Zenuxs",
 	},
 ];
 

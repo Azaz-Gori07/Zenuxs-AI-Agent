@@ -279,7 +279,7 @@ function ClineCreditsErrorView(props: { defaultFg?: string }) {
 				<text
 					fg={props.defaultFg}
 					selectable
-					content="You have run out of Cline credits. Add credits in the dashboard to continue."
+					content="You have run out of Zenuxs credits. Add credits in the dashboard to continue."
 				/>
 				<box flexDirection="row">
 					<text fg="gray">Dashboard: </text>

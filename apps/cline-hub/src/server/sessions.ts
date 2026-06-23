@@ -64,7 +64,7 @@ export function resolveLaunchContext(
 		workspaceRoot;
 	if (!providerId || !modelId) {
 		throw new Error(
-			"No provider/model available. Start a session in another Cline client first, or set CLINE_PROVIDER and CLINE_MODEL.",
+			"No provider/model available. Start a session in another Zenuxs client first, or set CLINE_PROVIDER and CLINE_MODEL.",
 		);
 	}
 	return {
@@ -474,7 +474,7 @@ export async function initializePeer(
 	syncHubClientsAndSessions: () => Promise<void>,
 ): Promise<void> {
 	await syncHubClientsAndSessions();
-	ctx.send(peer, { type: "status", text: "Cline Hub is ready." });
+	ctx.send(peer, { type: "status", text: "Zenuxs Hub is ready." });
 	ctx.send(peer, { type: "defaults", defaults: resolveBrowserDefaults(ctx) });
 	await loadProviders(ctx, peer);
 	await sendProviderCatalog(ctx, peer);

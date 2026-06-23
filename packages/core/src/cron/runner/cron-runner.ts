@@ -477,7 +477,7 @@ export class CronRunner {
 		const additional = mergeRulesForSystemPrompt(undefined, notes);
 		const metadata = await buildWorkspaceMetadata(workspaceRoot);
 		const base = buildClineSystemPrompt({
-			ide: "Cline Cron",
+			ide: "Zenuxs Cron",
 			workspaceRoot,
 			workspaceName: basename(workspaceRoot),
 			metadata,

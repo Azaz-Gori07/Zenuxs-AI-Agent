@@ -9,7 +9,7 @@ import {
 } from "./model";
 
 describe("onboarding model helpers", () => {
-	it("hides ClinePass from the main menu unless its feature flag is enabled", () => {
+	it("	hides ZenuxsPass from the main menu unless its feature flag is enabled", () => {
 		expect(
 			getMainMenuOptions().some((option) => option.value === "cline-pass"),
 		).toBe(false);
@@ -29,7 +29,7 @@ describe("onboarding model helpers", () => {
 		expect(
 			toProviderEntry({
 				id: "cline",
-				name: "Cline",
+				name: "Zenuxs",
 				apiKey: "",
 				oauthAccessTokenPresent: true,
 				models: 12,
@@ -37,7 +37,7 @@ describe("onboarding model helpers", () => {
 			}),
 		).toEqual({
 			id: "cline",
-			name: "Cline",
+			name: "Zenuxs",
 			isOAuth: true,
 			isLocalAuth: false,
 			hasAuth: true,
@@ -129,13 +129,13 @@ describe("onboarding model helpers", () => {
 	});
 
 	it("formats OAuth provider labels for onboarding status views", () => {
-		expect(getOAuthProviderLabel("cline")).toBe("Cline");
-		expect(getOAuthProviderLabel("cline-pass")).toBe("ClinePass");
+		expect(getOAuthProviderLabel("cline")).toBe("Zenuxs");
+		expect(getOAuthProviderLabel("cline-pass")).toBe("ZenuxsPass");
 		expect(getOAuthProviderLabel("openai-codex")).toBe("ChatGPT");
 		expect(getOAuthProviderLabel("oca")).toBe("oca");
 	});
 
-	it("uses the featured Cline model picker only for the Cline provider", () => {
+	it("	uses the featured Zenuxs model picker only for the Zenuxs provider", () => {
 		expect(shouldUseFeaturedClineModelPicker("cline")).toBe(true);
 		expect(shouldUseFeaturedClineModelPicker("cline-pass")).toBe(false);
 		expect(shouldUseFeaturedClineModelPicker("anthropic")).toBe(false);

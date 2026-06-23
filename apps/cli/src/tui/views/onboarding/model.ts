@@ -38,7 +38,7 @@ export interface MenuOption {
 
 export const MAIN_MENU: MenuOption[] = [
 	{
-		label: "Sign in with Cline",
+		label: "Sign in with Zenuxs",
 		value: "cline",
 		detail: "Latest models with regular free promos",
 		icon: "\u263a",
@@ -157,7 +157,7 @@ export function getOAuthProviderLabel(providerId: string): string {
 		return "ClinePass";
 	}
 	if (providerId === "cline") {
-		return "Cline";
+		return "Zenuxs";
 	}
 	if (providerId === "openai-codex") {
 		return "ChatGPT";

@@ -79,7 +79,7 @@ async function resolveHubClineAccountAuthToken(input: {
 	});
 	if (!nextCredentials) {
 		throw new Error(
-			"Cline account requires re-authentication. Run cline auth cline.",
+			"Zenuxs account requires re-authentication. Run cline auth cline.",
 		);
 	}
 
@@ -179,7 +179,7 @@ export async function handleDesktopCommand(
 			apiBaseUrl,
 		});
 		if (!authToken) {
-			throw new Error("No Cline account auth token found");
+			throw new Error("No Zenuxs account auth token found");
 		}
 		const accountService = new ClineAccountService({
 			apiBaseUrl,

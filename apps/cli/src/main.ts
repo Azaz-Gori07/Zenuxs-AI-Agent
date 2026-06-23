@@ -246,7 +246,7 @@ export async function runCli(): Promise<void> {
 
 	const pluginCmd = program
 		.command("plugin")
-		.description("Manage Cline Plugins")
+		.description("Manage Zenuxs Plugins")
 		.action(() => {
 			pluginCmd.help();
 		});
@@ -254,7 +254,7 @@ export async function runCli(): Promise<void> {
 		.command("install")
 		.alias("i")
 		.description(
-			"Install a Cline Plugin from an official keyword, npm, git, URL, or a local path",
+			"Install a Zenuxs Plugin from an official keyword, npm, git, URL, or a local path",
 		)
 		.argument(
 			"<source>",
@@ -296,7 +296,7 @@ export async function runCli(): Promise<void> {
 		.command("uninstall")
 		.alias("remove")
 		.alias("rm")
-		.description("Uninstall a Cline Plugin by name or path")
+		.description("Uninstall a Zenuxs Plugin by name or path")
 		.argument("<name>", "plugin package name, installed slug, or plugin path")
 		.option("--json", "Output as JSON")
 		.option(
@@ -318,14 +318,14 @@ export async function runCli(): Promise<void> {
 		});
 	const skillCmd = program
 		.command("skill")
-		.description("Manage Cline Skills via the open skills CLI (npx skills)")
+		.description("Manage Zenuxs Skills via the open skills CLI (npx skills)")
 		.allowUnknownOption()
 		.passThroughOptions()
 		.argument("[args...]", "arguments forwarded to the skills CLI")
 		.addHelpText(
 			"after",
 			"\nForwards to the open skills CLI via npx. Examples:\n" +
-				"  cline skill add <owner/repo>       Add a skill into Cline\n" +
+				"  cline skill add <owner/repo>       Add a skill into Zenuxs\n" +
 				"  cline skill install <owner/repo>   Alias for add\n" +
 				"  cline skill list                   List installed skills\n" +
 				"  cline skill remove                 Remove installed skills\n" +
@@ -341,7 +341,7 @@ export async function runCli(): Promise<void> {
 	const connectCmd = program
 		.command("connect")
 		.description("Connect to an external channel")
-		.argument("[channel]", "Channel to connect Cline CLI to")
+		.argument("[channel]", "Channel to connect Zenuxs CLI to")
 		.option("--stop", "Kill all current channel connections")
 		.allowUnknownOption()
 		.passThroughOptions()
@@ -595,7 +595,7 @@ export async function runCli(): Promise<void> {
 
 	const dashboardCmd = program
 		.command("dashboard")
-		.description("Start the Cline Hub dashboard and open it in a browser")
+		.description("Start the Zenuxs Hub dashboard and open it in a browser")
 		.option("--config <dir>", "configuration directory")
 		.option("-c, --cwd <path>", "Workspace root", process.cwd())
 		.option(
@@ -648,7 +648,7 @@ export async function runCli(): Promise<void> {
 
 	program
 		.command("version")
-		.description("Show Cline CLI version number")
+		.description("Show Zenuxs CLI version number")
 		.action(async () => {
 			const { showVersion } = await import("./commands/help");
 			showVersion();

@@ -183,7 +183,7 @@ The keyboard input triggers are routed inside the interactive loop.
   - `Opt+L`: "Start New Session" -> clears current thread.
   - `Opt+H`: "Session History" -> opens session history picker.
   - `Opt+K`: "Open Help" -> reveals shortcuts overlay.
-  - `Opt+Q`: "Exit Cline" -> exits the terminal interface.
+  - `Opt+Q`: "Exit Zenuxs" -> exits the terminal interface.
 
 ---
 

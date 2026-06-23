@@ -1,4 +1,4 @@
-# Cline CLI
+# Zenuxs CLI
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/7123f9d1-afeb-48d5-93fa-e750dec0ebba" width="70%" />
@@ -29,7 +29,7 @@
 </table>
 </div>
 
-Run Cline in your terminal. Interactive chat for paired sessions, or fully headless for CI/CD and scripting. The CLI shares its agent core with the [Cline VS Code extension](https://marketplace.visualstudio.com/items?itemName=saoudrizwan.claude-dev), JetBrains plugin, and SDK, so plan/act modes, MCP servers, checkpoints, rules, skills, and provider configuration all behave the same across surfaces.
+Run Zenuxs in your terminal. Interactive chat for paired sessions, or fully headless for CI/CD and scripting. The CLI shares its agent core with the [Cline VS Code extension](https://marketplace.visualstudio.com/items?itemName=saoudrizwan.claude-dev), JetBrains plugin, and SDK, so plan/act modes, MCP servers, checkpoints, rules, skills, and provider configuration all behave the same across surfaces.
 
 ## Install
 
@@ -69,7 +69,7 @@ See `cline --help` for the full flag reference.
 
 ## Use any provider
 
-Cline supports the same providers as the VS Code extension. You can sign in to Cline directly, use your ChatGPT Subscription through `openai-codex`, or bring an API key from Anthropic, OpenAI, Google Gemini, OpenRouter, AWS Bedrock, GCP Vertex, Cerebras, Groq, and any OpenAI-compatible endpoint.
+Zenuxs supports the same providers as the VS Code extension. You can sign in to Zenuxs directly, use your ChatGPT Subscription through `openai-codex`, or bring an API key from Anthropic, OpenAI, Google Gemini, OpenRouter, AWS Bedrock, GCP Vertex, Cerebras, Groq, and any OpenAI-compatible endpoint.
 
 ```sh
 cline auth                              # interactive sign-in
@@ -77,13 +77,13 @@ cline auth cline                        # OAuth sign-in
 cline auth --provider anthropic --apikey sk-... --modelid claude-sonnet-4-6
 ```
 
-`cline auth` without a provider opens the interactive auth setup TUI with the same options as the old CLI flow (Sign in with Cline, Sign in with ChatGPT Subscription, Sign in with OCA, or use your own API key).
+`cline auth` without a provider opens the interactive auth setup TUI with the same options as the old CLI flow (Sign in with Zenuxs, Sign in with ChatGPT Subscription, Sign in with OCA, or use your own API key).
 
 OAuth-supported providers (`cline`, `openai-codex`, `oca`) do not auto-launch a browser on normal startup. Authenticate explicitly first with `cline auth <provider>`. For non-interactive runs, if an OAuth provider is selected and no saved credentials are available, `cline` fails fast with an authentication message instead of launching a hidden browser flow.
 
 ## Modes
 
-Cline CLI runs in a few different shapes depending on what you need:
+Zenuxs CLI runs in a few different shapes depending on what you need:
 
 - Interactive TUI: `cline` or `cline -i` opens a full terminal UI with plan/act toggle, slash commands, file mentions, and live tool approvals
 - One-shot: `cline "your prompt"` runs a single turn and exits
@@ -93,7 +93,7 @@ Cline CLI runs in a few different shapes depending on what you need:
 
 ## Headless mode for CI/CD
 
-Run Cline with zero interaction for scripting and automation. Pipe input, get JSON output, chain commands, integrate into CI/CD pipelines.
+Run Zenuxs with zero interaction for scripting and automation. Pipe input, get JSON output, chain commands, integrate into CI/CD pipelines.
 
 ```sh
 # One-shot prompt, auto-approve all tools
@@ -113,7 +113,7 @@ cline --json "List all TODO comments" | jq -r 'select(.type == "agent_event" and
 - Native MCP support for connecting custom tools
 - Checkpoints with `/undo` to rewind workspace state
 - Sub-agent spawning and agent teams for parallel work
-- OAuth login for Cline, ChatGPT Subscription (`openai-codex`), and OCA
+- OAuth login for Zenuxs, ChatGPT Subscription (`openai-codex`), and OCA
 - Configurable thinking budgets per run
 - Cron and event-driven schedules for recurring agent work
 - Chat connectors for Telegram, Google Chat, and WhatsApp
@@ -121,7 +121,7 @@ cline --json "List all TODO comments" | jq -r 'select(.type == "agent_event" and
 ## Usage
 
 ```sh
-# Start Cline CLI without a prompt to enter interactive mode
+# Start Zenuxs CLI without a prompt to enter interactive mode
 cline
 
 # Single prompt (one-shot) - includes tools, spawn, and teams
@@ -189,7 +189,7 @@ Because this command opens the wizard, it requires a TTY.
 
 ### Connectors
 
-Bridge a chat surface into RPC-backed Cline sessions. Each conversation thread maps to a session with full context. Supported platforms: Telegram, Slack, Google Chat, WhatsApp, and Linear.
+Bridge a chat surface into RPC-backed Zenuxs sessions. Each conversation thread maps to a session with full context. Supported platforms: Telegram, Slack, Google Chat, WhatsApp, and Linear.
 
 ```sh
 # Telegram (polling mode)
@@ -301,7 +301,7 @@ Behavior:
 
 - The CLI starts (or reuses) the local hub daemon, submits the task, then exits. It does not stream output or stay attached to the session.
 - Because there is no human in the loop once the CLI exits, zen sessions run with full tool auto-approval (same semantics as `--yolo`). `spawn`/`team` tools are disabled by default for safety, consistent with yolo-mode defaults.
-- If the Cline menubar app is running, it subscribes to hub `ui.notify` events and will surface a system notification when the task completes.
+- If the Zenuxs menubar app is running, it subscribes to hub `ui.notify` events and will surface a system notification when the task completes.
 - If the menubar app is not running, there is no live UI for the task. Use `cline history` later to find the session and inspect the result.
 - `--zen` is incompatible with `--data-dir` (the implicit sandbox requires a local backend that exits with the CLI) and with `--tui` (there is no terminal UI to render into).
 
@@ -328,12 +328,12 @@ Desktop-integrated approval mode is also supported via env wiring (`CLINE_TOOL_A
 ## Environment variables
 
 - `ANTHROPIC_API_KEY` - API key for Anthropic
-- `CLINE_API_KEY` - API key for Cline (when using `-P cline`)
+- `CLINE_API_KEY` - API key for Zenuxs (when using `-P cline`)
 - `OPENAI_API_KEY` - API key for OpenAI (when using `-P openai`)
 - `OPENROUTER_API_KEY` - API key for OpenRouter (when using `-P openrouter`)
 - `AI_GATEWAY_API_KEY` - API key for Vercel AI Gateway (when using `-P vercel-ai-gateway`)
 - `V0_API_KEY` - API key for v0 (when using `-P v0`)
-- `CLINE_DATA_DIR` - Base data directory for sessions/settings/teams/hooks
+- `CLINE_DATA_DIR` - Base data directory for sessions/settings/teams/hooks (default `~/.zenuxs`)
 - `CLINE_SANDBOX` - Set to `1` to force sandbox mode
 - `CLINE_SANDBOX_DATA_DIR` - Override sandbox state directory
 - `CLINE_TEAM_DATA_DIR` - Override team persistence directory
@@ -355,4 +355,4 @@ See [DEVELOPMENT.md](./DEVELOPMENT.md) for local development setup, monorepo str
 
 ## License
 
-[Apache 2.0 © Cline Bot Inc.](https://github.com/cline/cline/blob/main/LICENSE)
+[Apache 2.0 © Zenuxs Inc.](https://github.com/anomalyco/zenuxs-code/blob/main/LICENSE)

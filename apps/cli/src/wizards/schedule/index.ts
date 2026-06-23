@@ -112,7 +112,7 @@ async function actionCreate(client: HubScheduleClient): Promise<void> {
 	}
 
 	const prompt = await p.text({
-		message: "What should Cline do?",
+		message: "What should Zenuxs do?",
 		placeholder: "Review open PRs and post summaries",
 		validate: (v) => {
 			if (!v?.trim()) return "Prompt is required";

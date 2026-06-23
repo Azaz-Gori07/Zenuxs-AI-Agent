@@ -404,7 +404,7 @@ export async function checkForUpdates(
 	const currentVersion = version;
 	const includeKanban = options.includeKanban ?? true;
 	writeln(
-		`${c.cyan}Checking for updates${includeKanban ? " to Cline CLI and kanban" : ""}…${c.reset}`,
+		`${c.cyan}Checking for updates${includeKanban ? " to Zenuxs CLI and kanban" : ""}…${c.reset}`,
 	);
 
 	const { packageName, updateCommand, packageManager } =

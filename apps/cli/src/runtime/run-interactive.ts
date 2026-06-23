@@ -667,7 +667,7 @@ export async function runInteractive(
 			}).catch((error) => {
 				logCliError(
 					config.logger,
-					"Cline account refresh after account change failed",
+					"Zenuxs account refresh after account change failed",
 					{ error },
 				);
 			});

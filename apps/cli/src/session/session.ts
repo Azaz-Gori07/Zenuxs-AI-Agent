@@ -54,7 +54,7 @@ export async function createCliCore(options?: {
 						cwd,
 						workspaceRoot,
 						clientType: "cli",
-						displayName: "Cline CLI",
+						displayName: "Zenuxs CLI",
 					},
 				}
 			: {}),

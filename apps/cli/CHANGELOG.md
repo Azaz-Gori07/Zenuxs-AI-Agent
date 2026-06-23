@@ -1,4 +1,4 @@
-# Cline CLI Changelog
+# Zenuxs CLI Changelog
 
 ## 3.0.29
 

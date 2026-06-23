@@ -107,7 +107,7 @@ function renderDevIndexHtml(devServerUrl: string): string {
   </script>
   <script type="module" src="${devServerUrl}/@vite/client"></script>
   <link rel="icon" type="image/svg+xml" href="${devServerUrl}/cline-logo-filled.svg" />
-  <title>Cline Hub</title>
+  <title>Zenuxs Hub</title>
 </head>
 <body>
   <div id="root"></div>
@@ -151,7 +151,7 @@ export class WebviewAssets {
 			});
 		}
 		return createTextResponse(
-			"Cline Hub webview is not built. Run `bun run build:webview` from apps/cline-hub.",
+			"Zenuxs Hub webview is not built. Run `bun run build:webview` from apps/cline-hub.",
 			503,
 		);
 	}

@@ -264,7 +264,7 @@ const genericProviderFanoutRule: ProviderOptionRule = {
 const clineGatewayReasoningRule: ProviderOptionRule = {
 	id: "provider.cline.reasoning",
 	phase: "provider-reasoning",
-	description: "Cline gateway accepts the shared gateway reasoning shape.",
+	description: "Zenuxs gateway accepts the shared gateway reasoning shape.",
 	applies: (input) => isClineProvider(input.request.providerId),
 	build: (input) =>
 		buildReasoningPatchForProvider(
@@ -291,7 +291,7 @@ const clineMiniMaxM3GatewayReasoningRule: ProviderOptionRule = {
 	id: "provider.cline.minimax-m3.gateway-reasoning",
 	phase: "provider-reasoning",
 	description:
-		"Cline-routed MiniMax M3 keeps the gateway reasoning shape instead of leaking generic thinking.",
+		"Zenuxs-routed MiniMax M3 keeps the gateway reasoning shape instead of leaking generic thinking.",
 	applies: (input) =>
 		isClineProvider(input.request.providerId) && isMiniMaxM3(input),
 	suppresses: { genericThinking: true, genericEffort: true },
@@ -345,7 +345,7 @@ const clineReasoningDisabledThinkingRule: ProviderOptionRule = {
 	id: "provider.cline.disable-thinking",
 	phase: "provider",
 	description:
-		"Cline-routed non-Kimi-K2.6 Moonshot Kimi models use thinking.type=disabled when reasoning is disabled.",
+		"Zenuxs-routed non-Kimi-K2.6 Moonshot Kimi models use thinking.type=disabled when reasoning is disabled.",
 	applies: (input) =>
 		isClineProvider(input.request.providerId) &&
 		isMoonshotKimiModel(input) &&

@@ -1,6 +1,6 @@
-# Cline Hub
+# Zenuxs Hub
 
-A browser dashboard for the local Cline hub. Open it to see who's connected, what sessions are running, drive a session from a chat box, and restart the hub when you need a fresh daemon.
+A browser dashboard for the local Zenuxs hub. Open it to see who's connected, what sessions are running, drive a session from a chat box, and restart the hub when you need a fresh daemon.
 
 ## Capabilities
 

@@ -842,7 +842,7 @@ async function installOfficialPlugin(
 	const sourceRoot = join(repoRoot, "plugins", parsed.slug);
 	if (!existsSync(sourceRoot) || !statSync(sourceRoot).isDirectory()) {
 		throw new Error(
-			`Official Cline plugin "${parsed.slug}" was not found at plugins/${parsed.slug} in ${officialPluginsRepo}`,
+			`Official Zenuxs plugin "${parsed.slug}" was not found at plugins/${parsed.slug} in ${officialPluginsRepo}`,
 		);
 	}
 

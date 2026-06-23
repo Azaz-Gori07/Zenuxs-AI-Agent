@@ -83,7 +83,7 @@ export function formatUptime(ms: number): string {
 export function formatClientLabel(clientType: string | undefined): string {
 	const normalized = clientType?.trim().toLowerCase() ?? "";
 	if (!normalized || normalized === "unknown") return "Client";
-	if (normalized.includes("cline")) return "Cline";
+	if (normalized.includes("cline")) return "Zenuxs";
 	return normalized
 		.split(/[-_\s]+/)
 		.filter(Boolean)

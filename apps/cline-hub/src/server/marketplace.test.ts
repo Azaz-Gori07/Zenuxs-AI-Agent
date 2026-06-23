@@ -242,7 +242,7 @@ describe("marketplace installer", () => {
 			),
 		).resolves.toMatchObject({
 			status: "installed",
-			message: "Installed Cline SDK globally for Cline.",
+			message: "Installed Cline SDK globally for Zenuxs.",
 		});
 	});
 
@@ -434,7 +434,7 @@ describe("marketplace installer", () => {
 				},
 				{ spawnCommand },
 			),
-		).rejects.toThrow("was not found in Cline's global skills directories");
+		).rejects.toThrow("was not found in Zenuxs's global skills directories");
 	});
 
 	it("runs official plugin installs through the current Cline CLI", async () => {

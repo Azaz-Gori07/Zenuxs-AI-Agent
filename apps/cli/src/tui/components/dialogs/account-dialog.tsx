@@ -48,7 +48,7 @@ const LOADED_ACTIONS: AccountAction[] = [
 	{
 		id: "change-model",
 		label: "Change model",
-		description: "Open the Cline model selector",
+		description: "Open the Zenuxs model selector",
 		enabled: true,
 	},
 	{
@@ -424,7 +424,7 @@ export function AccountDialogContent(
 	if (state.status === "loading") {
 		return (
 			<box flexDirection="column" paddingX={1} gap={1}>
-				<text fg="cyan">Cline Account</text>
+				<text fg="cyan">Zenuxs Account</text>
 				<text fg="gray">{state.message}</text>
 				<text fg="gray">Esc to close</text>
 			</box>
@@ -434,7 +434,7 @@ export function AccountDialogContent(
 	if (state.status === "error") {
 		return (
 			<box flexDirection="column" paddingX={1} gap={1}>
-				<text fg="cyan">Cline Account</text>
+				<text fg="cyan">Zenuxs Account</text>
 				<text fg="red">{state.message}</text>
 				<text fg="gray">Esc to close</text>
 			</box>
@@ -444,8 +444,8 @@ export function AccountDialogContent(
 	if (state.status === "unauthenticated") {
 		return (
 			<box flexDirection="column" paddingX={1} gap={1}>
-				<text fg="cyan">Cline Account</text>
-				<text>Sign in or create a Cline account.</text>
+				<text fg="cyan">Zenuxs Account</text>
+				<text>Sign in or create a Zenuxs account.</text>
 				<text fg="gray">
 					Get access to the latest models with regular free promos and
 					discounts.
@@ -498,12 +498,12 @@ export function AccountDialogContent(
 	const displayName =
 		loaded.user.displayName?.trim() ||
 		loaded.user.email?.trim() ||
-		"Cline user";
+		"Zenuxs user";
 	const activeAccount = loaded.activeOrganization?.name ?? "Personal account";
 
 	return (
 		<box flexDirection="column" paddingX={1} gap={1}>
-			<text fg="cyan">Cline Account</text>
+			<text fg="cyan">Zenuxs Account</text>
 
 			<box flexDirection="row" gap={2}>
 				<box

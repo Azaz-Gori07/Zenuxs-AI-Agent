@@ -37,7 +37,7 @@ export type CustomizationSection =
 	| "Tools";
 
 const sectionDescriptions: Record<CustomizationSection, string> = {
-	Rules: "Review project and global rule files that shape Cline behavior.",
+	Rules: "Review project and global rule files that shape Zenuxs behavior.",
 	Hooks: "Inspect hook configuration and recent execution status.",
 	MCP: "Manage installed MCP servers and add new servers from the marketplace.",
 	Skills: "Manage installed skills and add new skills from the marketplace.",

@@ -46,11 +46,11 @@ describe("HubDesktopClient", () => {
 		const pending = client.invoke("list_marketplace_installed_entries");
 
 		client.handleMessage({
-			data: { type: "status", text: "Disconnected from the Cline Hub server." },
+			data: { type: "status", text: "Disconnected from the Zenuxs Hub server." },
 		});
 
 		await expect(pending).rejects.toThrow(
-			"Disconnected from the Cline Hub server.",
+			"Disconnected from the Zenuxs Hub server.",
 		);
 	});
 
@@ -58,7 +58,7 @@ describe("HubDesktopClient", () => {
 		expect(
 			isBrowserTransportFailure({
 				type: "error",
-				text: "Failed to connect to the Cline Hub server.",
+				text: "Failed to connect to the Zenuxs Hub server.",
 			}),
 		).toBe(true);
 		expect(

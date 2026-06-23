@@ -213,7 +213,7 @@ export function ClineModelSelectorDialogContent(
 	const { dismiss, dialogId, loadEntries } = props;
 	const [state, setState] = useState<ClineModelEntriesState>({
 		status: "loading",
-		message: "Loading Cline models...",
+		message: "Loading Zenuxs models...",
 	});
 	const generation = useRef(0);
 

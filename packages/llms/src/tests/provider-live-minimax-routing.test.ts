@@ -195,7 +195,7 @@ function buildCases(): LiveCase[] {
 		unexpectedBodyKeys: ["thinking"],
 	});
 	addCase({
-		label: "Cline Gateway MiniMax M3 reasoning enabled",
+		label: "Zenuxs Gateway MiniMax M3 reasoning enabled",
 		providerId: "cline",
 		modelId: "minimax/minimax-m3",
 		apiKeyEnv: "CLINE_API_KEY",
@@ -204,7 +204,7 @@ function buildCases(): LiveCase[] {
 		unexpectedBodyKeys: ["thinking"],
 	});
 	addCase({
-		label: "Cline Gateway MiniMax M3 reasoning disabled",
+		label: "Zenuxs Gateway MiniMax M3 reasoning disabled",
 		providerId: "cline",
 		modelId: "minimax/minimax-m3",
 		apiKeyEnv: "CLINE_API_KEY",
