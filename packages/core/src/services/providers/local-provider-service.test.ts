@@ -683,7 +683,7 @@ describe("models.json model overlays", () => {
 			const provider = await LlmsModels.getProvider("cline");
 			expect(provider).toMatchObject({
 				id: "cline",
-				baseUrl: "https://api.cline.bot/api/v1",
+				baseUrl: "http://127.0.0.1:8787/api/v1",
 				defaultModelId: "anthropic/claude-sonnet-4.6",
 			});
 
@@ -1218,7 +1218,7 @@ describe("listLocalProviders", () => {
 			{
 				provider: "cline",
 				apiKey: "test-key",
-				baseUrl: "https://api.cline.bot/api/v1",
+				baseUrl: "http://127.0.0.1:8787/api/v1",
 				model: "anthropic/claude-sonnet-4.6",
 			},
 			{ setLastUsed: false },

@@ -18,7 +18,7 @@ export const CLINE_ENVIRONMENTS: Readonly<
 		environment: "production",
 		appBaseUrl: "https://app.cline.bot",
 		apiBaseUrl: "https://api.cline.bot",
-		mcpBaseUrl: "https://api.cline.bot/v1/mcp",
+		mcpBaseUrl: "http://127.0.0.1:8787/v1/mcp",
 		workOsClientId: "client_01K3A541FN8TA3EPPHTD2325AR",
 	},
 	staging: {

@@ -10,7 +10,7 @@ describe("ClineAccountService.fetchFeaturebaseToken", () => {
 	it("returns featurebaseJwt on success", async () => {
 		const fetchImpl = vi.fn(async (input: unknown, init?: RequestInit) => {
 			expect(String(input)).toBe(
-				"https://api.cline.bot/api/v1/users/me/featurebase-token",
+				"http://127.0.0.1:8787/api/v1/users/me/featurebase-token",
 			);
 			expect(init?.headers).toMatchObject({
 				Authorization: "Bearer workos:token-123",

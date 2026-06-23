@@ -1,6 +1,8 @@
 import { join } from "node:path";
 import process from "node:process";
 
+const BUN = "C:\\nvm4w\\nodejs\\bun.cmd";
+
 const webviewHost =
 	process.env.CLINE_HUB_WEBVIEW_DEV_HOST?.trim() || "127.0.0.1";
 const webviewPort = process.env.CLINE_HUB_WEBVIEW_DEV_PORT?.trim() || "5173";
@@ -59,7 +61,7 @@ console.log("[cline-hub:dev] Hub dashboard: http://127.0.0.1:8787/");
 spawn(
 	"webview",
 	[
-		"bun",
+		BUN,
 		"run",
 		"dev",
 		"--host",
@@ -74,7 +76,7 @@ spawn(
 	},
 );
 
-spawn("server", ["bun", "run", "src/server.ts"], {
+spawn("server", [BUN, "run", "src/server.ts"], {
 	cwd,
 	env: {
 		...process.env,

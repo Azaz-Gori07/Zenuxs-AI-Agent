@@ -555,7 +555,7 @@ describe("createGatewayApiHandler.createMessage", () => {
 			| undefined;
 
 		await expect(
-			factoryConfig?.fetch?.("https://api.cline.bot/api/v1/chat/completions", {
+			factoryConfig?.fetch?.("http://127.0.0.1:8787/api/v1/chat/completions", {
 				method: "POST",
 			}),
 		).rejects.toBeInstanceOf(ClineNotSubscribedError);

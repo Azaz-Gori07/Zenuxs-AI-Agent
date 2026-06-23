@@ -5,7 +5,7 @@ describe("ClineAccountService", () => {
 	it("fetches current user balance and sends auth header", async () => {
 		const fetchImpl = vi.fn(async (input: unknown, init?: RequestInit) => {
 			expect(String(input)).toBe(
-				"https://api.cline.bot/api/v1/users/user-1/balance",
+				"http://127.0.0.1:8787/api/v1/users/user-1/balance",
 			);
 			expect(init?.headers).toMatchObject({
 				Authorization: "Bearer workos:token-123",
@@ -77,7 +77,7 @@ describe("ClineAccountService", () => {
 
 		expect(fetchImpl).toHaveBeenCalledTimes(2);
 		expect(String(fetchImpl.mock.calls[1][0])).toBe(
-			"https://api.cline.bot/api/v1/organizations/org-1/members/member-9/usages",
+			"http://127.0.0.1:8787/api/v1/organizations/org-1/members/member-9/usages",
 		);
 		expect(transactions).toEqual([{ id: "tx-1" }]);
 	});
@@ -95,7 +95,7 @@ describe("ClineAccountService", () => {
 
 		const fetchImpl = vi.fn(async (input: unknown) => {
 			expect(String(input)).toBe(
-				"https://api.cline.bot/api/v1/users/me/remote-config",
+				"http://127.0.0.1:8787/api/v1/users/me/remote-config",
 			);
 			return new Response(
 				JSON.stringify({ success: true, data: remoteConfigPayload }),
