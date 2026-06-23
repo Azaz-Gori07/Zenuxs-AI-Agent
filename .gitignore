@@ -1,0 +1,41 @@
+# Dependency directories
+node_modules/
+
+# Build outputs
+dist/
+build/
+**/dist/
+**/build/
+.turbo/
+
+# Logs
+*.log
+logs/
+**/logs/
+
+# Local env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+
+# IDE / Editor configuration
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Runtime caches and temporary directories
+.bun/
+.cache/
+.tmp/
+tmp/

@@ -1,0 +1,28 @@
+{
+  "name": "@zenuxs/workspace",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*",
+    "apps/cline-hub/src/webview"
+  ],
+  "scripts": {
+    "build": "bun run build:sdk && bun -F zenuxs build",
+    "build:sdk": "bun --production -F './packages/*' build",
+    "dev": "bun --conditions=development run build:sdk && bun run cli",
+    "cli": "bun --conditions=development --cwd apps/cli dev"
+  },
+  "type": "module",
+  "engines": {
+    "bun": ">=1.0.0",
+    "node": ">=22"
+  },
+  "dependencies": {
+    "nanoid": "^5.1.7"
+  },
+  "devDependencies": {
+    "@types/node": "^20.x",
+    "typescript": "^5.4.5",
+    "vitest": "^4.0.18"
+  }
+}
