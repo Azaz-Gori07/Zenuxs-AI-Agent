@@ -514,10 +514,15 @@ export class AcpAgent implements Agent {
 		// Resolve credentials: env vars take precedence, then session provider.
 		const providerId = process.env.CLINE_PROVIDER ?? session.currentProviderId;
 		const apiKey = process.env.CLINE_API_KEY ?? this.authResult?.apiKey ?? "";
+
+		// Check for zenuxs AI token in environment
+		const zenuxsToken = process.env.ZENUXS_TOKEN?.trim() || undefined;
+
 		const systemPrompt = await resolveSystemPrompt({
 			cwd,
 			providerId,
 			mode: session.currentMode,
+			zenuxsAuthToken: zenuxsToken,
 		});
 
 		return {

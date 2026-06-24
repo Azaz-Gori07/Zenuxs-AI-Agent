@@ -13,6 +13,7 @@ import {
 	type UserInstructionConfigService,
 } from "@cline/core";
 import type { Message } from "@cline/shared";
+import { syncSessionConversation } from "../../utils/conversation-sync";
 import { createCliCore } from "../../session/session";
 import { submitAndExitInTerminal } from "../../utils/approval";
 import type {
@@ -649,6 +650,12 @@ export function createInteractiveSessionRuntime(input: {
 			}
 			try {
 				exitSummary = await getExitSummary();
+				// Sync conversation before session is destroyed
+				const sid = activeSessionId;
+				if (sid) {
+					const msgs = await readCurrentMessages().catch(() => []);
+					syncSessionConversation(sid, msgs, configRef.current.workspaceRoot || configRef.current.cwd).catch(() => {});
+				}
 				// Mark hooks shut down before session disposal so late abort/stop
 				// emissions cannot dispatch over a closing hub transport.
 				await runtimeHooks?.shutdown();

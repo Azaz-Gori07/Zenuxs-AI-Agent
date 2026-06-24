@@ -51,26 +51,42 @@ export async function syncHubHealth(ctx: HubContext): Promise<void> {
 export async function syncHubClientsAndSessions(
 	ctx: HubContext,
 ): Promise<void> {
-	if (!ctx.uiClient) return;
-	const [knownClients, knownSessions] = await Promise.all([
-		ctx.uiClient.listClients(),
-		ctx.uiClient.listSessions(10),
-	]);
-	ctx.clients.clear();
-	for (const client of knownClients) {
-		if (!client.clientId || !isVisibleClient(client.clientType)) continue;
-		ctx.clients.set(client.clientId, {
-			clientId: client.clientId,
-			displayName: client.displayName,
-			clientType: client.clientType,
-			connectedAt: client.connectedAt,
-		});
+	// First hydrate from the persistent backend (MongoDB via API)
+	await ctx.refreshFromApi();
+
+	// Then overlay real-time data from the live hub connection
+	if (ctx.uiClient) {
+		try {
+			const [knownClients, knownSessions] = await Promise.all([
+				ctx.uiClient.listClients(),
+				ctx.uiClient.listSessions(10),
+			]);
+			for (const client of knownClients) {
+				if (!client.clientId || !isVisibleClient(client.clientType)) continue;
+				ctx.clients.set(client.clientId, {
+					clientId: client.clientId,
+					displayName: client.displayName,
+					clientType: client.clientType,
+					connectedAt: client.connectedAt,
+				});
+				ctx.registerClient({
+					clientId: client.clientId,
+					displayName: client.displayName,
+					clientType: client.clientType,
+				});
+			}
+			for (const session of knownSessions) {
+				const tracked = trackSession(session);
+				if (tracked) {
+					ctx.sessions.set(tracked.sessionId, tracked);
+					ctx.createSession(tracked as unknown as Record<string, unknown>);
+				}
+			}
+		} catch (err) {
+			console.warn("[syncHubClientsAndSessions] live sync failed:", err);
+		}
 	}
-	ctx.sessions.clear();
-	for (const session of knownSessions) {
-		const tracked = trackSession(session);
-		if (tracked) ctx.sessions.set(tracked.sessionId, tracked);
-	}
+
 	if (!ctx.initialHubEventEmitted) {
 		const activeSessionCount = [...ctx.sessions.values()].filter((session) =>
 			isActiveSession(session.title, session.status, session.participantCount),
@@ -82,9 +98,8 @@ export async function syncHubClientsAndSessions(
 		);
 		ctx.initialHubEventEmitted = true;
 	}
-	const mostRecent = [...knownSessions]
+	const mostRecent = [...ctx.sessions.values()]
 		.sort((a, b) => b.updatedAt - a.updatedAt)
-		.map((s) => parseSessionContext(s))
 		.find((c): c is SessionContext => Boolean(c));
 	if (mostRecent) ctx.lastSessionContext = mostRecent;
 }
@@ -146,6 +161,7 @@ export async function attachHub(ctx: HubContext): Promise<void> {
 				clientType,
 				connectedAt: Date.now(),
 			});
+			ctx.registerClient({ clientId, displayName: asString(payload.displayName), clientType });
 			ctx.pushEvent(
 				"Client connected",
 				`${asString(payload.displayName) ?? clientType} joined the hub`,
@@ -158,6 +174,7 @@ export async function attachHub(ctx: HubContext): Promise<void> {
 			if (!clientId) return;
 			const client = ctx.clients.get(clientId);
 			ctx.clients.delete(clientId);
+			ctx.deleteClient(clientId);
 			if (client) {
 				ctx.pushEvent(
 					"Client disconnected",
@@ -175,6 +192,7 @@ export async function attachHub(ctx: HubContext): Promise<void> {
 			const tracked = trackSession(record);
 			if (tracked) {
 				ctx.sessions.set(tracked.sessionId, tracked);
+				ctx.createSession(tracked as unknown as Record<string, unknown>);
 				const context = parseSessionContext(record);
 				if (context) ctx.lastSessionContext = context;
 				ctx.pushEvent(
@@ -193,6 +211,7 @@ export async function attachHub(ctx: HubContext): Promise<void> {
 			const tracked = trackSession(record);
 			if (tracked) {
 				ctx.sessions.set(tracked.sessionId, tracked);
+				ctx.updateSession(tracked.sessionId, tracked as unknown as Record<string, unknown>);
 				const context = parseSessionContext(record);
 				if (context) ctx.lastSessionContext = context;
 				broadcastHubState(ctx);
@@ -210,6 +229,7 @@ export async function attachHub(ctx: HubContext): Promise<void> {
 				);
 			if (sessionId) {
 				ctx.sessions.delete(sessionId);
+				ctx.deleteSession(sessionId);
 				broadcastHubState(ctx);
 			}
 		},

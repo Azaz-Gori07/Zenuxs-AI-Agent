@@ -9,20 +9,13 @@ import {
 } from "./model";
 
 describe("onboarding model helpers", () => {
-	it("	hides ZenuxsPass from the main menu unless its feature flag is enabled", () => {
-		expect(
-			getMainMenuOptions().some((option) => option.value === "cline-pass"),
-		).toBe(false);
-		expect(
-			getMainMenuOptions({ isClinePassEnabled: false }).some(
-				(option) => option.value === "cline-pass",
-			),
-		).toBe(false);
-		expect(
-			getMainMenuOptions({ isClinePassEnabled: true }).some(
-				(option) => option.value === "cline-pass",
-			),
-		).toBe(true);
+	it("includes all 4 main menu options (ClinePass always visible)", () => {
+		const options = getMainMenuOptions();
+		expect(options).toHaveLength(4);
+		expect(options.some((o) => o.value === "cline-pass")).toBe(true);
+		expect(options.some((o) => o.value === "zenuxs")).toBe(true);
+		expect(options.some((o) => o.value === "openai-codex")).toBe(true);
+		expect(options.some((o) => o.value === "byo")).toBe(true);
 	});
 
 	it("maps provider catalog entries into onboarding provider entries", () => {

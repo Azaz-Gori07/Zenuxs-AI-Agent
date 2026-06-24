@@ -6,6 +6,13 @@ import {
 	ProviderSettingsManager,
 	SqliteSessionStore,
 } from "@cline/core";
+import {
+	readLegacyClineProviders,
+	registerCliClient,
+	syncSessionToZenuxsCode,
+	deleteSessionOnZenuxsCode,
+	syncProvidersToZenuxsCode,
+} from "../utils/zenuxs-code-api";
 import type { Thread } from "chat";
 import {
 	ensureOAuthProviderApiKey,
@@ -96,12 +103,16 @@ export async function buildConnectorStartRequest(input: {
 		apiKey = oauthResult.apiKey ?? "";
 	}
 
+	const zenuxsSettings = providerSettingsManager.getProviderSettings("zenuxs");
+	const zenuxsToken = zenuxsSettings?.auth?.accessToken?.trim() || undefined;
+
 	const cwd = input.options.cwd;
 	const systemPrompt = await resolveSystemPrompt({
 		cwd,
 		explicitSystemPrompt: input.options.systemPrompt,
 		providerId: provider,
 		rules: input.systemRules,
+		zenuxsAuthToken: zenuxsToken,
 	});
 
 	return {
@@ -221,6 +232,36 @@ export async function getOrCreateSessionId<
 	if (!sessionId) {
 		throw new Error("runtime start returned an empty session id");
 	}
+
+	// Sync session to zenuxs-code backend
+	try {
+		const psm = new ProviderSettingsManager();
+		const token = psm.getProviderSettings("zenuxs")?.auth?.accessToken?.trim();
+		if (token) {
+			await registerCliClient(token);
+			// Sync local cline providers to zenuxs-code backend
+			try {
+				let fullState = psm.read();
+				// Fallback: if .zenuxs path has no providers, try old .cline/data/GlobalState.json
+				if (!fullState.providers || Object.keys(fullState.providers).length === 0) {
+					const legacy = readLegacyClineProviders();
+					if (legacy.providers && Object.keys(legacy.providers).length > 0) {
+						fullState = legacy as typeof fullState;
+					}
+				}
+				await syncProvidersToZenuxsCode(token, fullState);
+			} catch { /* best-effort */ }
+			await syncSessionToZenuxsCode(token, sessionId, {
+				status: "running",
+				title: (input.startRequest as Record<string, unknown>).systemPrompt as string || "CLI session",
+				provider: input.startRequest.provider,
+				model: input.startRequest.model,
+				workspaceRoot: input.startRequest.workspaceRoot,
+				cwd: input.startRequest.cwd,
+			});
+		}
+	} catch { /* best-effort */ }
+
 	const remoteConfigMetadata = await resolveCliSessionMetadata(sessionId).catch(
 		() => undefined,
 	);
@@ -304,6 +345,12 @@ export async function clearSession<TState extends ConnectorThreadState>(input: {
 		} catch {}
 		try {
 			await input.client.deleteSession(sessionId, true);
+		} catch {}
+		// Clean up from zenuxs-code backend
+		try {
+			const psm = new ProviderSettingsManager();
+			const token = psm.getProviderSettings("zenuxs")?.auth?.accessToken?.trim();
+			if (token) await deleteSessionOnZenuxsCode(token, sessionId);
 		} catch {}
 	}
 	await persistMergedThreadState(

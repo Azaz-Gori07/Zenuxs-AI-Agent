@@ -67,6 +67,9 @@ export function hubStatusPayload(ctx: HubContext) {
 }
 
 export function broadcastHubState(ctx: HubContext): void {
-	ctx.broadcast(hubStatePayload(ctx));
-	ctx.broadcast(webviewSessionsPayload(ctx));
+	// Refresh from persistent backend in the background
+	void ctx.refreshFromApi().then(() => {
+		ctx.broadcast(hubStatePayload(ctx));
+		ctx.broadcast(webviewSessionsPayload(ctx));
+	});
 }

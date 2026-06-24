@@ -9,6 +9,7 @@ export type OnboardingStep =
 	| "byo_apikey"
 	| "codex_cli_setup"
 	| "cline_model"
+	| "link_zenuxs"
 	| "model_picker"
 	| "custom_model_id"
 	| "thinking_level"
@@ -39,7 +40,7 @@ export interface MenuOption {
 export const MAIN_MENU: MenuOption[] = [
 	{
 		label: "Sign in with Zenuxs",
-		value: "cline",
+		value: "zenuxs",
 		detail: "Latest models with regular free promos",
 		icon: "\u263a",
 	},
@@ -63,12 +64,8 @@ export const MAIN_MENU: MenuOption[] = [
 	},
 ];
 
-export function getMainMenuOptions(options?: {
-	isClinePassEnabled?: boolean;
-}): MenuOption[] {
-	return MAIN_MENU.filter(
-		(option) => option.value !== "cline-pass" || options?.isClinePassEnabled,
-	);
+export function getMainMenuOptions(): MenuOption[] {
+	return [...MAIN_MENU];
 }
 
 export interface OnboardingResult {

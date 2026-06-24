@@ -257,6 +257,7 @@ export async function handleDesktopCommand(
 		command === "list_cli_sessions" ||
 		command === "list_discovered_sessions"
 	) {
+		await ctx.refreshFromApi();
 		return [...ctx.sessions.values()].map(toWebviewSessionSummary);
 	}
 	if (command === "read_session_hooks") {

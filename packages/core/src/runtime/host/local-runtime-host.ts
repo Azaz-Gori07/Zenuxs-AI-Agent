@@ -472,6 +472,10 @@ export class LocalRuntimeHost implements RuntimeHost {
 			maxIterations: configWithProvider.maxIterations,
 			execution: configWithProvider.execution,
 			prepareTurn: createContextCompactionPrepareTurn(configWithProvider),
+			zenuxsAuthToken:
+				this.providerSettingsManager
+					.getProviderSettings("zenuxs")
+					?.auth?.accessToken?.trim() || undefined,
 			tools,
 			hooks: bootstrap.hooks,
 			extensions,

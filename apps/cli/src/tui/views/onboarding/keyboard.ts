@@ -52,6 +52,8 @@ export function useOnboardingKeyboard(input: {
 	saveByoConfig: () => void;
 	saveModelSelection: () => void;
 	saveThinkingLevel: (level: ThinkingLevel) => void;
+	handleLinkZenuxs: () => void;
+	handleSkipLink: () => void;
 }) {
 	useKeyboard((key) => {
 		if (input.step === "done") return;
@@ -129,6 +131,16 @@ export function useOnboardingKeyboard(input: {
 				input.abortOAuth();
 				input.resetAuth();
 				input.startDeviceCodeFlow("cline");
+			}
+			return;
+		}
+
+		if (input.step === "link_zenuxs") {
+			if (key.name === "escape") {
+				input.handleSkipLink();
+			}
+			if (key.name === "return") {
+				input.handleLinkZenuxs();
 			}
 			return;
 		}

@@ -81,6 +81,36 @@ export function OnboardingDoneScreen(props: { mouse: MouseTrackerState }) {
 	);
 }
 
+export function OnboardingLinkZenuxsScreen(props: {
+	compact: boolean;
+	contentWidth: number;
+	mouse: MouseTrackerState;
+}) {
+	const { compact, contentWidth, mouse } = props;
+	return (
+		<OnboardingFrame compact={compact} contentWidth={contentWidth} mouse={mouse}>
+			<box flexDirection="column" gap={1} paddingLeft={2} paddingRight={2}>
+			<text fg={palette.plan}>
+				{"\u2726"} Link your Zenuxs account?
+			</text>
+			<text fg="gray">
+				Link your account for more credits, higher rate limits, and shared memory across Zenuxs AI &amp; Code.
+			</text>
+			<box flexDirection="row" gap={2} marginTop={1}>
+				<box>
+					<text fg={palette.success}>[Enter]</text>
+					<text> Link Account</text>
+				</box>
+				<box>
+					<text fg="gray">[Esc]</text>
+					<text> Skip</text>
+				</box>
+			</box>
+			</box>
+		</OnboardingFrame>
+	);
+}
+
 export function OnboardingOAuthPendingScreen(props: {
 	authError: string;
 	authStatus: string;

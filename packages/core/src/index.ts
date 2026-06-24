@@ -148,6 +148,12 @@ export {
 	refreshOcaToken,
 } from "./auth/oca";
 export {
+	loginZenuxsAuth,
+	refreshZenuxsAuth,
+	getValidZenuxsCredentials,
+	type ZenuxsAuthOptions,
+} from "./auth/zenuxs";
+export {
 	formatProviderOAuthApiKey,
 	getPersistedProviderApiKey,
 	getProviderAuthHandler,
@@ -533,6 +539,15 @@ export {
 	SqliteTeamStore,
 	type SqliteTeamStoreOptions,
 } from "./services/storage/team-store";
+export {
+	fetchZenuxsMemory,
+	type ZenuxsMemoryContext,
+} from "./services/zenuxs-memory";
+export {
+	createRemoteConversation,
+	addRemoteMessages,
+	messagesToSyncMessages,
+} from "./services/zenuxs-conversation-sync";
 export { resolveCoreDistinctId } from "./services/telemetry";
 export type {
 	CaptureCompactionExecutedProperties,

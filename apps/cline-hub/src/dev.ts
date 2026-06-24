@@ -15,7 +15,7 @@ const webviewCwd = join(cwd, "src", "webview");
 
 const children: Bun.Subprocess[] = [];
 let shuttingDown = false;
-
+	
 function spawn(
 	name: string,
 	command: string[],

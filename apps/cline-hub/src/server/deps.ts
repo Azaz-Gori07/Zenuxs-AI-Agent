@@ -20,6 +20,16 @@ export const cliIndexPath = normalize(
 
 export const providerSettingsManager = new ProviderSettingsManager();
 
+export function resolveZenuxsApiToken(): string | undefined {
+	try {
+		return providerSettingsManager
+			.getProviderSettings("zenuxs")
+			?.auth?.accessToken?.trim() || undefined;
+	} catch {
+		return undefined;
+	}
+}
+
 export const browserConfig: BrowserConfig = {
 	inviteRequired: Boolean(roomSecret),
 	publicUrl,

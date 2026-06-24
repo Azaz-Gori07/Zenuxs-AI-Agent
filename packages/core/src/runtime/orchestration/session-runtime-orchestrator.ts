@@ -66,6 +66,11 @@ import {
 import { createAgentRuntimeConfig } from "../config/agent-runtime-config-builder";
 import { LoopDetectionTracker } from "../safety/loop-detection";
 import { MistakeTracker } from "../safety/mistake-tracker";
+import {
+	createRemoteConversation,
+	addRemoteMessages,
+	messagesToSyncMessages,
+} from "../../services/zenuxs-conversation-sync";
 import { RuntimeEventAdapter } from "./runtime-event-adapter";
 
 function formatToolResultError(output: unknown): string {
@@ -364,6 +369,9 @@ export class SessionRuntime {
 	private activeTrackerWork: Promise<void> = Promise.resolve();
 	/** True when tracker logic has issued an abort for the active run. */
 	private trackerAbortInFlight = false;
+
+	/** Remote conversation ID on Zenuxs AI backend, if sync is active. */
+	private zenuxsRemoteConvId: string | null = null;
 
 	constructor(config: AgentConfig, deps: SessionRuntimeOrchestratorDeps = {}) {
 		this.config = config;
@@ -1013,6 +1021,7 @@ export class SessionRuntime {
 				this.syncConversationFromRuntimeMessage(event.snapshot.messages, [
 					event.message,
 				]);
+				this.syncToZenuxsRemote(event.message);
 				break;
 			}
 			case "turn-started": {
@@ -1160,6 +1169,48 @@ export class SessionRuntime {
 			...this.conversation.getMessages(),
 			...newMessages,
 		]);
+	}
+
+	private syncToZenuxsRemote(message: AgentMessage): void {
+		const token = this.config.zenuxsAuthToken;
+		if (!token) return;
+
+		const messages = this.conversation.getMessages();
+		if (messages.length === 0) return;
+
+		const textContent = Array.isArray(message.content)
+			? message.content
+					.map((part) => {
+						if (part && typeof part === "object" && "type" in part && part.type === "text" && "text" in part) {
+							return (part as { text: string }).text;
+						}
+						return "";
+					})
+					.filter(Boolean)
+					.join("")
+			: typeof message.content === "string"
+				? message.content
+				: "";
+
+		if (!this.zenuxsRemoteConvId) {
+			console.log("[zenuxs-sync] creating remote conversation...");
+			createRemoteConversation(token, {
+				messages: messagesToSyncMessages(messages),
+			}).then((id) => {
+				if (id) {
+					this.zenuxsRemoteConvId = id;
+					console.log(`[zenuxs-sync] remote conversation created: ${id}`);
+				} else {
+					console.warn("[zenuxs-sync] failed to create remote conversation");
+				}
+			});
+		} else if (textContent) {
+			addRemoteMessages(token, this.zenuxsRemoteConvId, [
+				{ role: message.role === "user" ? "user" : "assistant", content: textContent },
+			]).then((ok) => {
+				if (!ok) console.warn("[zenuxs-sync] failed to push message");
+			});
+		}
 	}
 
 	private emitLegacyEvent(event: AgentEvent): void {

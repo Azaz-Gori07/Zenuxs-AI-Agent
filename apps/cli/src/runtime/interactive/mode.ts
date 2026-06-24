@@ -31,6 +31,19 @@ export function createInteractiveModeSwitchTool(input: {
 	});
 }
 
+function resolveZenuxsToken(): string | undefined {
+	try {
+		// Dynamic require to avoid circular dependency at module level
+		// eslint-disable-next-line @typescript-eslint/no-require-imports
+		const { ProviderSettingsManager } = require("@cline/core") as typeof import("@cline/core");
+		const psm = new ProviderSettingsManager();
+		const zenuxsSettings = psm.getProviderSettings("zenuxs");
+		return zenuxsSettings?.auth?.accessToken?.trim() || undefined;
+	} catch {
+		return undefined;
+	}
+}
+
 export async function applyInteractiveModeConfig(input: {
 	config: Config;
 	mode: InteractiveUiMode;
@@ -43,5 +56,6 @@ export async function applyInteractiveModeConfig(input: {
 		cwd: input.config.cwd,
 		providerId: input.config.providerId,
 		mode: input.mode,
+		zenuxsAuthToken: resolveZenuxsToken(),
 	});
 }

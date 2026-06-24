@@ -16,7 +16,6 @@ import {
 	checkCodexCliInstalled,
 	isOpenAICodexCliProvider,
 } from "../../../utils/codex-cli";
-import { getCliFeatureFlagsService } from "../../../utils/feature-flags";
 import { getPersistedProviderApiKey } from "../../../utils/provider-auth";
 import { listLocalProviders } from "../../../utils/provider-catalog";
 import { getCliTelemetryService } from "../../../utils/telemetry";
@@ -75,14 +74,7 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 		() => props.providerSettingsManager ?? new ProviderSettingsManager(),
 		[props.providerSettingsManager],
 	);
-	const menuOptions = useMemo(
-		() =>
-			getMainMenuOptions({
-				isClinePassEnabled:
-					getCliFeatureFlagsService().getBooleanFlagEnabled("ext-cline-pass"),
-			}),
-		[],
-	);
+	const menuOptions = useMemo(() => getMainMenuOptions(), []);
 	const [step, setStep] = useState<OnboardingStep>("menu");
 	const [menuSelected, setMenuSelected] = useState(0);
 	const [oauthProvider, setOauthProvider] = useState("");
@@ -295,6 +287,44 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 		authAbortRef.current = false;
 	}, []);
 
+	// Link Zenuxs prompt state (must be before startDeviceCodeFlow)
+	const [linkZenuxsProvider, setLinkZenuxsProvider] = useState("");
+
+	const handleDeviceCodeComplete = useCallback(
+		(providerId: string) => {
+			if (providerId === "cline" || providerId === "cline-pass") {
+				setLinkZenuxsProvider(providerId);
+				setStep("link_zenuxs");
+			} else {
+				transitionToModelPicker(providerId);
+			}
+		},
+		[transitionToModelPicker],
+	);
+
+	const handleSkipLink = useCallback(() => {
+		transitionToModelPicker(linkZenuxsProvider);
+	}, [linkZenuxsProvider, transitionToModelPicker]);
+
+	const handleLinkZenuxs = useCallback(() => {
+		const originalProvider = linkZenuxsProvider;
+		resetAuth();
+		setOauthProvider("zenuxs");
+		setStep("oauth_pending");
+		setAuthStatus("Opening browser to link Zenuxs account...");
+
+		runOAuthAuthFlow({
+			providerId: "zenuxs",
+			providerSettingsManager,
+			isAborted: () => authAbortRef.current,
+			setStatus: setAuthStatus,
+			setAuthUrl,
+			setError: setAuthError,
+			onComplete: () => transitionToModelPicker(originalProvider),
+			telemetry: getCliTelemetryService(),
+		});
+	}, [linkZenuxsProvider, providerSettingsManager, resetAuth, transitionToModelPicker]);
+
 	const startDeviceCodeFlow = useCallback(
 		(providerId: OnboardingOAuthProviderId) => {
 			deviceAbortRef.current = false;
@@ -313,11 +343,11 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 				setVerifyUrl: setDeviceVerifyUrl,
 				setStatus: setDeviceStatus,
 				setError: setDeviceError,
-				onComplete: transitionToModelPicker,
+				onComplete: handleDeviceCodeComplete,
 				telemetry: getCliTelemetryService(),
 			});
 		},
-		[providerSettingsManager, transitionToModelPicker],
+		[providerSettingsManager, handleDeviceCodeComplete],
 	);
 
 	const startOAuthFlow = useCallback(
@@ -666,6 +696,8 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 		saveByoConfig,
 		saveModelSelection,
 		saveThinkingLevel,
+		handleLinkZenuxs,
+		handleSkipLink,
 	});
 
 	return {
@@ -699,7 +731,10 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 			setCustomModelId(value);
 			setCustomModelError("");
 		},
+		handleLinkZenuxs,
 		handleModelItemSelect: selectModelItem,
+		handleSkipLink,
+		linkZenuxsProvider,
 		menuSelected,
 		menuOptions,
 		modelItems,

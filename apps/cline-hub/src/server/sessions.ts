@@ -227,7 +227,7 @@ export async function createSession(
 		}),
 	);
 	peer.selectedSessionId = result.sessionId;
-	ctx.sessions.set(result.sessionId, {
+	const newSession = {
 		sessionId: result.sessionId,
 		status: "running",
 		title: prompt.length > 34 ? `${prompt.slice(0, 31)}...` : prompt,
@@ -241,7 +241,9 @@ export async function createSession(
 		prompt,
 		agentCount: 1,
 		participantCount: 1,
-	});
+	};
+	ctx.sessions.set(result.sessionId, newSession);
+	ctx.createSession(newSession);
 	const tracked = ctx.sessions.get(result.sessionId);
 	ctx.send(peer, { type: "session_started", sessionId: result.sessionId });
 	ctx.send(peer, {
@@ -296,6 +298,7 @@ export async function deleteSession(
 		return;
 	}
 	ctx.sessions.delete(sessionId);
+	ctx.deleteSession(sessionId);
 	if (peer.selectedSessionId === sessionId) {
 		peer.selectedSessionId = undefined;
 		ctx.send(peer, { type: "reset_done" });
@@ -384,7 +387,10 @@ export async function forkPeerSession(
 		peer.selectedSessionId = result.sessionId;
 		const newSession = await ctx.cline.get(result.sessionId);
 		const tracked = newSession ? trackSession(newSession) : undefined;
-		if (tracked) ctx.sessions.set(tracked.sessionId, tracked);
+		if (tracked) {
+			ctx.sessions.set(tracked.sessionId, tracked);
+			ctx.createSession(tracked as unknown as Record<string, unknown>);
+		}
 		ctx.send(peer, { type: "session_started", sessionId: result.sessionId });
 		ctx.send(peer, {
 			type: "session_hydrated",

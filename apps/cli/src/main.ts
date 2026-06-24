@@ -932,7 +932,7 @@ export async function runCli(): Promise<void> {
 				isClinePassEnabled:
 					getCliFeatureFlagsService().getBooleanFlagEnabled("ext-cline-pass"),
 			});
-		const provider = normalizeProviderId(
+		let provider = normalizeProviderId(
 			args.provider?.trim() || lastUsedProviderSettings?.provider || "cline",
 		);
 		let selectedProviderSettings =
@@ -943,6 +943,24 @@ export async function runCli(): Promise<void> {
 		);
 		const providedApiKey = args.key?.trim() || undefined;
 		let apiKey = providedApiKey || persistedApiKey || undefined;
+
+		// "zenuxs" is an identity/auth provider, not an LLM provider.
+		// If the user passes -p zenuxs (or it's the last-used provider),
+		// redirect to the real LLM provider.
+		if (provider === "zenuxs") {
+			const fallbackProvider =
+				lastUsedProviderSettings?.provider &&
+				lastUsedProviderSettings.provider !== "zenuxs"
+					? lastUsedProviderSettings.provider
+					: undefined;
+			provider = normalizeProviderId(fallbackProvider || "cline");
+			selectedProviderSettings =
+				providerSettingsManager.getProviderSettings(provider);
+			apiKey =
+				providedApiKey ||
+				getPersistedProviderApiKey(provider, selectedProviderSettings) ||
+				undefined;
+		}
 
 		const isYoloMode = args.mode === "yolo";
 		const isZenMode = args.mode === "zen";
@@ -1022,6 +1040,14 @@ export async function runCli(): Promise<void> {
 			cwd,
 		});
 
+		// Resolve Zenuxs AI auth token for shared memory injection.
+		// Check both zenuxs-specific provider settings and a global zenuxs-account store
+		const zenuxsSettings = providerSettingsManager.getProviderSettings("zenuxs");
+		const zenuxsToken =
+			zenuxsSettings?.auth?.accessToken?.trim()
+			|| selectedProviderSettings?.auth?.accessToken?.trim()
+			|| undefined;
+
 		const config: Config = {
 			providerId: provider,
 			modelId:
@@ -1036,6 +1062,7 @@ export async function runCli(): Promise<void> {
 				explicitSystemPrompt: args.systemPrompt,
 				providerId: provider,
 				mode: args.mode ?? "act",
+				zenuxsAuthToken: zenuxsToken,
 			}),
 			execution: {
 				maxConsecutiveMistakes: args.retries ?? 3,

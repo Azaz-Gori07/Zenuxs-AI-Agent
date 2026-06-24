@@ -3,6 +3,7 @@ import { homedir } from "node:os";
 import { basename, resolve } from "node:path";
 import {
 	buildWorkspaceMetadata,
+	fetchZenuxsMemory,
 	mergeRulesForSystemPrompt,
 	type UserInstructionConfigService,
 } from "@cline/core";
@@ -28,6 +29,8 @@ export async function resolveSystemPrompt(input: {
 	providerId?: string;
 	rules?: string;
 	mode?: AgentMode;
+	/** Zenuxs AI JWT token for fetching shared memory */
+	zenuxsAuthToken?: string;
 }): Promise<string> {
 	const metadata = await buildWorkspaceMetadata(input.cwd);
 	let rules = mergeRulesForSystemPrompt(undefined, input.rules);
@@ -36,7 +39,7 @@ export async function resolveSystemPrompt(input: {
 			? `${rules}\n\n${PLAN_MODE_INSTRUCTIONS}`
 			: PLAN_MODE_INSTRUCTIONS;
 	}
-	return buildClineSystemPrompt({
+	let systemPrompt = buildClineSystemPrompt({
 		ide: "Terminal Shell",
 		workspaceRoot: input.cwd,
 		workspaceName: basename(input.cwd),
@@ -48,6 +51,17 @@ export async function resolveSystemPrompt(input: {
 		platform:
 			(typeof process !== "undefined" && process?.platform) || "unknown",
 	});
+
+	// Inject Zenuxs AI memory context if available
+	const zenuxsToken = input.zenuxsAuthToken?.trim();
+	if (zenuxsToken) {
+		const memoryContext = await fetchZenuxsMemory(zenuxsToken);
+		if (memoryContext.hasMemories) {
+			systemPrompt = systemPrompt + memoryContext.promptBlock;
+		}
+	}
+
+	return systemPrompt;
 }
 
 const FILE_MENTION_PREFIX = String.raw`(?:\/|~\/|\.{1,2}\/)`;

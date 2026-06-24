@@ -10,6 +10,7 @@ import {
 	inviteUrl,
 	port,
 	publicUrl,
+	resolveZenuxsApiToken,
 	roomSecret,
 	webviewDistDir,
 } from "./server/deps";
@@ -64,6 +65,8 @@ export async function startClineHubDashboardServer(): Promise<ClineHubDashboardS
 		return url.searchParams.get("roomSecret") === roomSecret;
 	}
 
+	const zenuxsToken = resolveZenuxsApiToken();
+	if (zenuxsToken) ctx.setApiToken(zenuxsToken);
 	await attachHub(ctx);
 	const healthInterval = setInterval(() => {
 		void (async () => {

@@ -11,6 +11,7 @@ import {
 } from "./cline";
 import { getValidOpenAICodexCredentials, loginOpenAICodex } from "./codex";
 import { getValidOcaCredentials, loginOcaOAuth } from "./oca";
+import { loginZenuxsAuth, refreshZenuxsAuth } from "./zenuxs";
 import type { OAuthCredentials, OAuthLoginCallbacks } from "./types";
 import { decodeJwtPayload } from "./utils";
 
@@ -147,10 +148,10 @@ function saveOAuthCredentials(input: {
 		auth,
 	};
 	if (input.save !== false) {
+		const setLastUsed =
+			input.setLastUsed ?? input.storageProviderId !== "zenuxs";
 		input.manager.saveProviderSettings(merged, {
-			...(input.setLastUsed === undefined
-				? {}
-				: { setLastUsed: input.setLastUsed }),
+			setLastUsed,
 			tokenSource: "oauth",
 		});
 	}
@@ -256,6 +257,17 @@ const providerAuthHandlers = [
 			}),
 		refresh: ({ credentials, forceRefresh, telemetry }) =>
 			getValidOpenAICodexCredentials(credentials, { forceRefresh, telemetry }),
+	}),
+	createOAuthHandler({
+		providerId: "zenuxs",
+		login: ({ settings, callbacks, telemetry }) =>
+			loginZenuxsAuth({
+				apiBaseUrl: settings?.baseUrl?.trim(),
+				callbacks,
+				telemetry,
+			}),
+		refresh: ({ credentials, forceRefresh, telemetry }) =>
+			refreshZenuxsAuth(credentials, { forceRefresh, telemetry }),
 	}),
 ] as const satisfies readonly ProviderAuthHandler[];
 

@@ -35,6 +35,7 @@ import {
 } from "../utils/output";
 import type { Config } from "../utils/types";
 import { shouldShowCliUsageCost } from "../utils/usage-cost-display";
+import { syncSessionConversation } from "../utils/conversation-sync";
 import { setActiveRuntimeAbort } from "./active-runtime";
 import {
 	CLI_DEFAULT_CHECKPOINT_CONFIG,
@@ -397,6 +398,18 @@ export async function runAgent(
 			}
 			process.exitCode = 1;
 			return;
+		}
+
+		// Sync conversation to zenuxs-code backend
+		if (activeSessionId) {
+			sessionManager.readMessages(activeSessionId).then((messages) => {
+				console.warn(`[zenuxs] run-agent: ${messages.length} messages for session ${activeSessionId}`);
+				syncSessionConversation(activeSessionId, messages, config.workspaceRoot || config.cwd).catch(() => {});
+			}).catch(() => {
+				console.warn("[zenuxs] run-agent: readMessages failed");
+			});
+		} else {
+			console.warn("[zenuxs] run-agent: no activeSessionId");
 		}
 
 		printRunStats(

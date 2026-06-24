@@ -746,6 +746,11 @@ export interface AgentConfig {
 	 */
 	thinking?: boolean;
 
+	/**
+	 * Zenuxs AI auth token for cross-product memory and conversation sync.
+	 */
+	zenuxsAuthToken?: string;
+
 	// -------------------------------------------------------------------------
 	// Callbacks
 	// -------------------------------------------------------------------------

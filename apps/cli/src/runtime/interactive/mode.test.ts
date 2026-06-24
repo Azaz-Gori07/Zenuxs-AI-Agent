@@ -5,7 +5,7 @@ import { resolveSystemPrompt } from "../prompt";
 import { applyInteractiveModeConfig } from "./mode";
 
 vi.mock("../prompt", () => ({
-	resolveSystemPrompt: vi.fn(async (input: { mode?: string }) => {
+	resolveSystemPrompt: vi.fn(async (input: { mode?: string; zenuxsAuthToken?: string }) => {
 		return `system prompt for ${input.mode ?? "unknown"}`;
 	}),
 }));
@@ -57,11 +57,13 @@ describe("applyInteractiveModeConfig", () => {
 		expect(config.mode).toBe("plan");
 		expect(config.extraTools).toEqual([switchToActModeTool]);
 		expect(config.systemPrompt).toBe("system prompt for plan");
-		expect(resolveSystemPrompt).toHaveBeenCalledWith({
-			cwd: config.cwd,
-			providerId: config.providerId,
-			mode: "plan",
-		});
+		expect(resolveSystemPrompt).toHaveBeenCalledWith(
+			expect.objectContaining({
+				cwd: config.cwd,
+				providerId: config.providerId,
+				mode: "plan",
+			}),
+		);
 	});
 
 	it("removes the mode switch tool when entering act mode", async () => {

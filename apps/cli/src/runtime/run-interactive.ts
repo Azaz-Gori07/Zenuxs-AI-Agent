@@ -53,7 +53,10 @@ import { createMistakeLimitDecisionResolver } from "./interactive/mistakes";
 import { createInteractiveModeSwitchTool } from "./interactive/mode";
 import { assertInteractivePreflight } from "./interactive/preflight";
 import { createInteractiveSessionRuntime } from "./interactive/session-runtime";
-import { buildUserInputMessage } from "./prompt";
+import {
+	buildUserInputMessage,
+	resolveSystemPrompt,
+} from "./prompt";
 import { getUIEventEmitter } from "./session-events";
 
 export async function runInteractive(
@@ -260,7 +263,7 @@ export async function runInteractive(
 				exitSummary = await sessionRuntime.cleanup();
 			} finally {
 				await pluginChatCommandHostPromise?.catch(() => []);
-				await pluginChatCommandHostShutdown?.().catch(() => {
+				await pluginChatCommandHostShutdown?.catch(() => {
 					// Best effort cleanup for plugin command discovery sandbox.
 				});
 				pluginChatCommandHostShutdown = undefined;
@@ -629,6 +632,21 @@ export async function runInteractive(
 			if (!config.providerId) {
 				return;
 			}
+
+			// Rebuild system prompt to include latest Zenuxs AI memory.
+			// This is needed after onboarding links a Zenuxs account — the
+			// initial prompt was built before the token was saved.
+			const zenuxsSettings =
+				providerSettingsManager.getProviderSettings("zenuxs");
+			const zenuxsToken =
+				zenuxsSettings?.auth?.accessToken?.trim() || undefined;
+			config.systemPrompt = await resolveSystemPrompt({
+				cwd: config.cwd,
+				providerId: config.providerId,
+				mode: config.mode,
+				zenuxsAuthToken: zenuxsToken,
+			});
+
 			await sessionRuntime.ensureReady();
 
 			// Model-only change must NOT run provider-change logic and must NOT

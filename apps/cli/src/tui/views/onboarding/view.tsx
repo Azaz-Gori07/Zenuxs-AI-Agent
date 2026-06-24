@@ -10,6 +10,7 @@ import {
 	OnboardingCustomModelIdScreen,
 	OnboardingDeviceCodeScreen,
 	OnboardingDoneScreen,
+	OnboardingLinkZenuxsScreen,
 	OnboardingMainMenuScreen,
 	OnboardingModelPickerScreen,
 	OnboardingOAuthPendingScreen,
@@ -60,6 +61,16 @@ export function OnboardingView(props: OnboardingViewProps) {
 				deviceUserCode={state.deviceUserCode}
 				deviceVerifyUrl={state.deviceVerifyUrl}
 				label={getOAuthProviderLabel(state.oauthProvider)}
+				mouse={mouse}
+			/>
+		);
+	}
+
+	if (state.step === "link_zenuxs") {
+		return (
+			<OnboardingLinkZenuxsScreen
+				compact={compact}
+				contentWidth={contentWidth}
 				mouse={mouse}
 			/>
 		);

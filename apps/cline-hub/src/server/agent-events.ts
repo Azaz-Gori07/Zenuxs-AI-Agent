@@ -145,6 +145,7 @@ export function handleSessionEvent(
 		if (tracked && status) {
 			tracked.status = status;
 			tracked.updatedAt = Date.now();
+			ctx.updateSession(sessionId, { status, updatedAt: Date.now() });
 		}
 		for (const peer of ctx.peers) {
 			if (peer.selectedSessionId === sessionId) {
@@ -165,6 +166,7 @@ export function handleSessionEvent(
 		if (tracked) {
 			tracked.status = "completed";
 			tracked.updatedAt = Date.now();
+			ctx.updateSession(sessionId, { status: "completed", updatedAt: Date.now() });
 		}
 		for (const peer of ctx.peers) {
 			if (peer.selectedSessionId === sessionId) {
