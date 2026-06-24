@@ -35,6 +35,7 @@ import {
 
 export type InteractiveConfigTab =
 	| "general"
+	| "usage"
 	| "tools"
 	| "workflows"
 	| "agents"

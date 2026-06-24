@@ -17,6 +17,7 @@ import {
 	OnboardingProviderConfigScreen,
 	OnboardingProviderPickerScreen,
 	OnboardingThinkingLevelScreen,
+	OnboardingZenuxsProvidersScreen,
 } from "./screens";
 
 export interface OnboardingViewProps {
@@ -72,6 +73,20 @@ export function OnboardingView(props: OnboardingViewProps) {
 				compact={compact}
 				contentWidth={contentWidth}
 				mouse={mouse}
+			/>
+		);
+	}
+
+	if (state.step === "zenuxs_providers") {
+		return (
+			<OnboardingZenuxsProvidersScreen
+				compact={compact}
+				contentWidth={contentWidth}
+				mouse={mouse}
+				providers={state.cloudProviders}
+				loading={state.cloudProvidersLoading}
+				error={state.cloudProviderError}
+				selected={state.cloudProviderSelected}
 			/>
 		);
 	}

@@ -10,6 +10,7 @@ export type OnboardingStep =
 	| "codex_cli_setup"
 	| "cline_model"
 	| "link_zenuxs"
+	| "zenuxs_providers"
 	| "model_picker"
 	| "custom_model_id"
 	| "thinking_level"

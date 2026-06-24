@@ -60,6 +60,7 @@ export function runOAuthAuthFlow(input: {
 				input.providerId,
 				existing,
 				credentials,
+				{ setLastUsed: false },
 			);
 			if (isClineAccountOAuthProvider(input.providerId)) {
 				void identifyFeatureFlagsAccount({
@@ -128,6 +129,7 @@ export function runDeviceCodeAuthFlow(input: {
 						input.providerId,
 						existing,
 						credentials,
+						{ setLastUsed: false },
 					);
 					if (isClineAccountOAuthProvider(input.providerId)) {
 						void identifyFeatureFlagsAccount({

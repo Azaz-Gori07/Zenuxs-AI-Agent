@@ -1114,19 +1114,37 @@ export async function runCli(): Promise<void> {
 					: apiKey && !isOAuthProvider(provider)
 						? { apiKey }
 						: {};
-			providerSettingsManager.saveProviderSettings({
-				...(selectedProviderSettings ?? {}),
-				provider,
-				model: config.modelId,
-				...persistApiKey,
-			});
+			providerSettingsManager.saveProviderSettings(
+				{
+					...(selectedProviderSettings ?? {}),
+					provider,
+					model: config.modelId,
+					...persistApiKey,
+				},
+				{ setLastUsed: false },
+			);
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);
 			writeln(
 				`${c.dim}[provider-settings] failed to persist selection (${message})${c.reset}`,
 			);
 		}
-		// Check for piped input (skip when stdin is not a real pipe/file, e.g. headless CI).
+			// Best-effort token balance check for authenticated Zenuxs users
+		if (zenuxsToken && (provider === "nvidia" || config.modelId?.includes("deepseek-v4-flash"))) {
+			const { checkTokenBalance } = await import("./utils/zenuxs-code-api");
+			checkTokenBalance(zenuxsToken, provider, config.modelId)
+				.then((balance) => {
+					if (balance?.deepseek && balance.deepseek.remaining < balance.deepseek.limit * 0.1) {
+						const pct = Math.round((balance.deepseek.totalUsed / balance.deepseek.limit) * 100);
+						writeln(
+							`${c.yellow}⚠  DeepSeek tokens: ${pct}% used (${balance.deepseek.remaining.toLocaleString()} / ${balance.deepseek.limit.toLocaleString()} remaining, resets every ${balance.deepseek.windowDays} days)${c.reset}`,
+						);
+					}
+				})
+				.catch(() => {});
+		}
+
+	// Check for piped input (skip when stdin is not a real real pipe/file, e.g. headless CI).
 		// Guard `isTTY` first so we never block on fd 0 when stdin is a terminal (and avoid
 		// redundant fstat work). `stdinHasPipedInput` also checks `isTTY`, but callers may hit
 		// inconsistent state in tests or embedded hosts.

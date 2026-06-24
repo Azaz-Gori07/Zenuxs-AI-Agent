@@ -657,13 +657,16 @@ export async function runInteractive(
 				provider: config.providerId,
 			};
 
-			providerSettingsManager.saveProviderSettings({
-				...existing,
-				model: config.modelId,
-				reasoning: config.reasoningEffort
-					? { enabled: true, effort: config.reasoningEffort }
-					: { enabled: false },
-			});
+			providerSettingsManager.saveProviderSettings(
+				{
+					...existing,
+					model: config.modelId,
+					reasoning: config.reasoningEffort
+						? { enabled: true, effort: config.reasoningEffort }
+						: { enabled: false },
+				},
+				{ setLastUsed: false },
+			);
 
 			// Update runtime config for subsequent turns; keep active session alive.
 			await sessionRuntime.applyModelChange({

@@ -21,6 +21,7 @@ import { useTerminalBackground } from "../../hooks/use-terminal-background";
 import { getDefaultForeground, palette } from "../../palette";
 import { FIELD_ORDER } from "./fields";
 import { type MenuOption, THINKING_LEVELS } from "./model";
+import type { AiModelEntry } from "../../../utils/zenuxs-code-api";
 
 type MouseTrackerState = ReturnType<typeof useMouseTracker>;
 
@@ -106,6 +107,79 @@ export function OnboardingLinkZenuxsScreen(props: {
 					<text> Skip</text>
 				</box>
 			</box>
+			</box>
+		</OnboardingFrame>
+	);
+}
+
+export function OnboardingZenuxsProvidersScreen(props: {
+	compact: boolean;
+	contentWidth: number;
+	mouse: MouseTrackerState;
+	providers: AiModelEntry[];
+	loading: boolean;
+	error: string;
+	selected: number;
+}) {
+	const defaultFg = useDefaultFg();
+	const { compact, contentWidth, mouse, providers, loading, error, selected } = props;
+	return (
+		<OnboardingFrame compact={compact} contentWidth={contentWidth} mouse={mouse}>
+			<box flexDirection="column" gap={1} paddingLeft={2} paddingRight={2}>
+				<text fg={defaultFg}>Choose a model from your Zenuxs account</text>
+				<text fg="gray">These models are available with your Zenuxs account.</text>
+
+				{loading && (
+					<box flexDirection="row" gap={1} marginTop={1}>
+						<spinner name="dots" color="gray" />
+						<text fg="gray">Loading models...</text>
+					</box>
+				)}
+
+				{error && <text fg="red">{error}</text>}
+
+				{!loading && !error && providers.length === 0 && (
+					<text fg="gray" marginTop={1}>No models available in your Zenuxs account.</text>
+				)}
+
+				{!loading && providers.length > 0 && (
+					<box flexDirection="column" marginTop={1}>
+						{providers.map((p, i) => {
+							const isSel = i === selected;
+							return (
+								<box
+									key={p.id}
+									flexDirection="row"
+									gap={1}
+									height={1}
+									backgroundColor={isSel ? palette.selection : undefined}
+								>
+									<text fg={isSel ? palette.textOnSelection : "gray"} flexShrink={0}>
+										{isSel ? "\u276f" : " "}
+									</text>
+									<text fg={isSel ? palette.textOnSelection : defaultFg}>
+										{p.name}
+									</text>
+									{p.description && (
+										<text fg={isSel ? palette.textOnSelection : "gray"}>
+											{p.description}
+										</text>
+									)}
+								</box>
+							);
+						})}
+					</box>
+				)}
+
+				<text fg="gray" marginTop={1}>
+					<em>
+						{loading
+							? ""
+							: providers.length > 0
+								? "\u2191/\u2193 navigate, Enter to select, Esc to go back"
+								: "Esc to go back"}
+					</em>
+				</text>
 			</box>
 		</OnboardingFrame>
 	);

@@ -1,8 +1,9 @@
-import { readGlobalSettings, setAutoUpdateEnabledGlobally } from "@cline/core";
+import { ProviderSettingsManager, readGlobalSettings, setAutoUpdateEnabledGlobally } from "@cline/core";
 import { useTerminalDimensions } from "@opentui/react";
 import type { ChoiceContext } from "@opentui-ui/dialog";
 import { useDialogKeyboard } from "@opentui-ui/dialog/react";
 import { useEffect, useMemo, useState, useRef } from "react";
+import { checkTokenBalance, type TokenBalance } from "../../utils/zenuxs-code-api";
 import type {
 	InteractiveConfigData,
 	InteractiveConfigItem,
@@ -406,6 +407,12 @@ export function ConfigPanelContent(props: ConfigPanelProps) {
 	const [togglingItemId, setTogglingItemId] = useState<string | null>(null);
 	const [toggleError, setToggleError] = useState<string | undefined>();
 	const [navPos, setNavPos] = useState(0);
+	const [tokenBalance, setTokenBalance] = useState<TokenBalance | null>(null);
+	const [tokenBalanceLoading, setTokenBalanceLoading] = useState(false);
+	const [tokenBalanceError, setTokenBalanceError] = useState<
+		string | undefined
+	>();
+	const psmRef = useRef(new ProviderSettingsManager());
 
 	const displayName = resolveModelDisplayName(config);
 
@@ -452,6 +459,44 @@ export function ConfigPanelContent(props: ConfigPanelProps) {
 		};
 	}, [activeTab, pluginToolsError, pluginToolsLoaded, loadConfigData]);
 
+	useEffect(() => {
+		if (activeTab !== "usage") return;
+
+		let cancelled = false;
+		setTokenBalanceLoading(true);
+		setTokenBalanceError(undefined);
+		setTokenBalance(null);
+
+		const settings = psmRef.current.getProviderSettings("zenuxs");
+		const token = settings?.auth?.accessToken as string | undefined;
+		if (!token) {
+			setTokenBalanceError("Not signed in with Zenuxs. Sign in to see usage.");
+			setTokenBalanceLoading(false);
+			return;
+		}
+
+		checkTokenBalance(token)
+			.then((result) => {
+				if (cancelled) return;
+				if (result && result.success && result.deepseek) {
+					setTokenBalance(result as TokenBalance);
+				} else {
+					setTokenBalanceError("Could not fetch usage data.");
+				}
+			})
+			.catch(() => {
+				if (cancelled) return;
+				setTokenBalanceError("Failed to load usage data.");
+			})
+			.finally(() => {
+				if (!cancelled) setTokenBalanceLoading(false);
+			});
+
+		return () => {
+			cancelled = true;
+		};
+	}, [activeTab]);
+
 	const rows = useMemo(() => {
 		const r: ConfigRow[] = [];
 
@@ -467,6 +512,31 @@ export function ConfigPanelContent(props: ConfigPanelProps) {
 			});
 			r.push({ kind: "toggle", id: "auto-update", label: "Auto update" });
 			r.push({ kind: "toggle", id: "verbose", label: "Verbose" });
+		} else if (activeTab === "usage") {
+			r.push({ kind: "head", label: "Token Usage" });
+
+			if (tokenBalanceLoading) {
+				r.push({ kind: "detail", text: "Loading usage data..." });
+			} else if (tokenBalanceError) {
+				r.push({ kind: "detail", text: tokenBalanceError });
+			} else if (tokenBalance) {
+				const ds = tokenBalance.deepseek;
+				if (ds) {
+					const used = ds.totalUsed.toLocaleString();
+					const limit = ds.limit.toLocaleString();
+					const remaining = ds.remaining.toLocaleString();
+					const pct = ds.limit > 0
+						? Math.round((ds.totalUsed / ds.limit) * 100)
+						: 0;
+					r.push({ kind: "detail", text: `DeepSeek V4 Flash: ${used} / ${limit} used (${pct}%)` });
+					r.push({ kind: "detail", text: `Remaining: ${remaining} tokens` });
+					r.push({ kind: "detail", text: `Resets every ${ds.windowDays} days` });
+				}
+				r.push({ kind: "spacer" });
+				r.push({ kind: "detail", text: "Sarvam: Unlimited" });
+			} else if (!tokenBalanceLoading) {
+				r.push({ kind: "detail", text: "Sign in with Zenuxs to see usage." });
+			}
 		} else {
 			const activeItems = resolveActiveConfigItems(configData, activeTab);
 			r.push({
@@ -536,7 +606,7 @@ export function ConfigPanelContent(props: ConfigPanelProps) {
 		}
 
 		return r;
-	}, [activeTab, configData, pluginToolsError, pluginToolsLoading]);
+	}, [activeTab, configData, pluginToolsError, pluginToolsLoading, tokenBalance, tokenBalanceLoading, tokenBalanceError]);
 
 	const navIndices = useMemo(
 		() => rows.map((r, i) => (isNavigable(r) ? i : -1)).filter((i) => i >= 0),

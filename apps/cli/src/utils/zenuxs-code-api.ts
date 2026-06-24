@@ -260,6 +260,99 @@ export async function deleteSessionOnZenuxsCode(
 	}
 }
 
+export interface TokenBalance {
+	success?: boolean;
+	deepseek: {
+		totalUsed: number;
+		remaining: number;
+		limit: number;
+		windowDays: number;
+		windowStart: string;
+	};
+	sarvam: { unlimited: true };
+}
+
+interface TokenCheckResult {
+	success: boolean;
+	canProceed?: boolean;
+	deepseek?: TokenBalance["deepseek"];
+	sarvam?: TokenBalance["sarvam"];
+	fallbackAvailable?: boolean;
+}
+
+export async function checkTokenBalance(
+	token: string,
+	provider?: string,
+	model?: string,
+	estimatedTokens?: number,
+): Promise<TokenCheckResult | null> {
+	if (!token) return null;
+	try {
+		if (estimatedTokens) {
+			const res = await fetch(apiUrl("/tokens/check"), {
+				method: "POST",
+				headers: headers(token),
+				body: JSON.stringify({ estimatedTokens, provider, model }),
+			});
+			return (await res.json()) as TokenCheckResult;
+		}
+		const res = await fetch(apiUrl("/tokens/balance"), {
+			headers: headers(token),
+		});
+		return (await res.json()) as TokenCheckResult;
+	} catch {
+		return null;
+	}
+}
+
+export async function consumeTokensFromPool(
+	token: string,
+	inputTokens: number,
+	outputTokens: number,
+	provider?: string,
+	model?: string,
+): Promise<{ success: boolean; deepseek?: TokenBalance["deepseek"] } | null> {
+	if (!token || (!inputTokens && !outputTokens)) return null;
+	try {
+		const res = await fetch(apiUrl("/tokens/consume"), {
+			method: "POST",
+			headers: headers(token),
+			body: JSON.stringify({ inputTokens, outputTokens, provider, model }),
+		});
+		return (await res.json()) as { success: boolean; deepseek?: TokenBalance["deepseek"] };
+	} catch {
+		return null;
+	}
+}
+
+export interface AiModelEntry {
+	id: string;
+	name: string;
+	provider: string;
+	type: "builtin" | "proxy";
+	proxyEndpoint?: string;
+	unlimited?: boolean;
+	tokenTracking?: boolean;
+	modelId?: string;
+	description?: string;
+}
+
+export async function fetchAiModels(
+	token: string,
+): Promise<AiModelEntry[]> {
+	if (!token) return [];
+	try {
+		const res = await fetch(apiUrl("/ai-models"), {
+			headers: headers(token),
+		});
+		if (!res.ok) return [];
+		const body = (await res.json()) as { models: AiModelEntry[] };
+		return body.models ?? [];
+	} catch {
+		return [];
+	}
+}
+
 export async function syncProvidersToZenuxsCode(
 	token: string,
 	providersJson: { version?: number; lastUsedProvider?: string; providers: Record<string, unknown> },

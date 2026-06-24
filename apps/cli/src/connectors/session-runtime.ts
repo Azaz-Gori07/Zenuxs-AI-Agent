@@ -106,6 +106,20 @@ export async function buildConnectorStartRequest(input: {
 	const zenuxsSettings = providerSettingsManager.getProviderSettings("zenuxs");
 	const zenuxsToken = zenuxsSettings?.auth?.accessToken?.trim() || undefined;
 
+	// Best-effort token balance check for shared DeepSeek pool
+	if (zenuxsToken && (provider === "nvidia" || input.options.model?.includes("deepseek-v4-flash"))) {
+		const { checkTokenBalance } = await import("../utils/zenuxs-code-api");
+		checkTokenBalance(zenuxsToken, provider, input.options.model)
+			.then((balance) => {
+				if (balance?.deepseek && balance.deepseek.remaining < balance.deepseek.limit * 0.1) {
+					console.warn(
+						`[Token] DeepSeek tokens: ${balance.deepseek.totalUsed}/${balance.deepseek.limit} used, ${balance.deepseek.remaining} remaining (resets every ${balance.deepseek.windowDays} days)`,
+					);
+				}
+			})
+			.catch(() => {});
+	}
+
 	const cwd = input.options.cwd;
 	const systemPrompt = await resolveSystemPrompt({
 		cwd,

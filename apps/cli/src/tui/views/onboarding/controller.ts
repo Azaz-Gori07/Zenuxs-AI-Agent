@@ -11,6 +11,7 @@ import {
 } from "@cline/core";
 import { isClineProvider } from "@cline/shared";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { fetchAiModels, type AiModelEntry } from "../../../utils/zenuxs-code-api";
 import {
 	type CodexCliStatus,
 	checkCodexCliInstalled,
@@ -95,6 +96,12 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 	>();
 	const [codexCliChecking, setCodexCliChecking] = useState(false);
 	const authAbortRef = useRef(false);
+
+	// Zenuxs AI models
+	const [cloudProviders, setCloudProviders] = useState<AiModelEntry[]>([]);
+	const [cloudProvidersLoading, setCloudProvidersLoading] = useState(false);
+	const [cloudProviderError, setCloudProviderError] = useState("");
+	const [cloudProviderSelected, setCloudProviderSelected] = useState(0);
 
 	// Device code flow
 	const [deviceUserCode, setDeviceUserCode] = useState("");
@@ -325,6 +332,67 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 		});
 	}, [linkZenuxsProvider, providerSettingsManager, resetAuth, transitionToModelPicker]);
 
+	const handleZenuxsOAuthComplete = useCallback(() => {
+		setCloudProviders([]);
+		setCloudProvidersLoading(true);
+		setCloudProviderError("");
+		setCloudProviderSelected(0);
+		setStep("zenuxs_providers");
+
+		const settings = providerSettingsManager.getProviderSettings("zenuxs");
+		const token = settings?.auth?.accessToken as string | undefined;
+		if (!token) {
+			setCloudProviderError("No Zenuxs token found. Try again.");
+			setCloudProvidersLoading(false);
+			return;
+		}
+
+		fetchAiModels(token)
+			.then((models) => {
+				if (models.length > 0) {
+					setCloudProviders(models);
+				} else {
+					setStep("byo_provider");
+				}
+			})
+			.catch(() => {
+				setStep("byo_provider");
+			})
+			.finally(() => setCloudProvidersLoading(false));
+	}, [providerSettingsManager]);
+
+	const selectCloudProvider = useCallback(() => {
+		const model = cloudProviders[cloudProviderSelected];
+		if (!model) return;
+
+		// All Zenuxs AI models are proxied through the backend
+		const zenuxsSettings = providerSettingsManager.getProviderSettings("zenuxs");
+		const token = (zenuxsSettings?.auth?.accessToken as string) || zenuxsSettings?.apiKey || "";
+		const apiBase = process.env.ZENUXS_CODE_API_URL?.trim() || "http://localhost:5000";
+		const proxyBaseUrl = `${apiBase}/api/zenuxs-code/proxy`;
+
+		// Use "openai-compatible" as the actual CLI provider pointing to our proxy
+		const providerId = "openai-compatible";
+		providerSettingsManager.saveProviderSettings(
+			{
+				provider: providerId,
+				baseUrl: proxyBaseUrl,
+				apiKey: token,
+				model: model.id,
+			},
+			{ setLastUsed: true },
+		);
+
+		// Skip model picker — go straight to done
+		setActiveProviderId(providerId);
+		setActiveProviderName("Zenuxs AI");
+		setSelectedModelId(model.id);
+		setSelectedModelName(model.name);
+		setSelectedThinking(false);
+		setSelectedReasoningEffort(undefined);
+		setStep("done");
+	}, [cloudProviders, cloudProviderSelected, providerSettingsManager]);
+
 	const startDeviceCodeFlow = useCallback(
 		(providerId: OnboardingOAuthProviderId) => {
 			deviceAbortRef.current = false;
@@ -362,6 +430,11 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 			setStep("oauth_pending");
 			setAuthStatus("Opening browser...");
 
+			const onComplete =
+				providerId === "zenuxs"
+					? handleZenuxsOAuthComplete
+					: transitionToModelPicker;
+
 			runOAuthAuthFlow({
 				providerId,
 				providerSettingsManager,
@@ -369,7 +442,7 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 				setStatus: setAuthStatus,
 				setAuthUrl,
 				setError: setAuthError,
-				onComplete: transitionToModelPicker,
+				onComplete,
 				telemetry: getCliTelemetryService(),
 			});
 		},
@@ -378,6 +451,7 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 			resetAuth,
 			transitionToModelPicker,
 			startDeviceCodeFlow,
+			handleZenuxsOAuthComplete,
 		],
 	);
 
@@ -698,6 +772,10 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 		saveThinkingLevel,
 		handleLinkZenuxs,
 		handleSkipLink,
+		cloudProviderSelected,
+		setCloudProviderSelected,
+		cloudProviders,
+		selectCloudProvider,
 	});
 
 	return {
@@ -709,6 +787,10 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 		byoFields,
 		byoFocusedField,
 		byoValues,
+		cloudProviderError,
+		cloudProviderSelected,
+		cloudProviders,
+		cloudProvidersLoading,
 		codexCliChecking,
 		codexCliStatus,
 		clineEntries,
@@ -747,6 +829,7 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 		saveByoConfig,
 		saveCodexCliConfig,
 		saveCustomModelId,
+		selectCloudProvider,
 		selectedModelName,
 		step,
 		thinkingSelected,

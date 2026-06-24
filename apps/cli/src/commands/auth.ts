@@ -250,6 +250,7 @@ export function saveOAuthProviderSettings(
 		providerId,
 		settings: existing,
 		credentials,
+		setLastUsed: false,
 	});
 }
 

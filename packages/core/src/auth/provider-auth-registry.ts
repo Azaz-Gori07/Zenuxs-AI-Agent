@@ -149,7 +149,7 @@ function saveOAuthCredentials(input: {
 	};
 	if (input.save !== false) {
 		const setLastUsed =
-			input.setLastUsed ?? input.storageProviderId !== "zenuxs";
+			input.setLastUsed ?? false;
 		input.manager.saveProviderSettings(merged, {
 			setLastUsed,
 			tokenSource: "oauth",

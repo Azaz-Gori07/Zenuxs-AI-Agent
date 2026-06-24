@@ -8,6 +8,7 @@ import {
 	type OnboardingOAuthProviderId,
 } from "./auth";
 import { FIELD_ORDER } from "./fields";
+import type { AiModelEntry } from "../../../utils/zenuxs-code-api";
 import {
 	type MenuOption,
 	type OnboardingStep,
@@ -54,6 +55,10 @@ export function useOnboardingKeyboard(input: {
 	saveThinkingLevel: (level: ThinkingLevel) => void;
 	handleLinkZenuxs: () => void;
 	handleSkipLink: () => void;
+	cloudProviderSelected: number;
+	setCloudProviderSelected: Dispatch<SetStateAction<number>>;
+	cloudProviders: AiModelEntry[];
+	selectCloudProvider: () => void;
 }) {
 	useKeyboard((key) => {
 		if (input.step === "done") return;
@@ -141,6 +146,30 @@ export function useOnboardingKeyboard(input: {
 			}
 			if (key.name === "return") {
 				input.handleLinkZenuxs();
+			}
+			return;
+		}
+
+		if (input.step === "zenuxs_providers") {
+			if (input.cloudProviders.length === 0) return;
+			if (key.name === "up" || (key.ctrl && key.name === "p")) {
+				input.setCloudProviderSelected((s) =>
+					s <= 0 ? input.cloudProviders.length - 1 : s - 1,
+				);
+				return;
+			}
+			if (key.name === "down" || (key.ctrl && key.name === "n")) {
+				input.setCloudProviderSelected((s) =>
+					s >= input.cloudProviders.length - 1 ? 0 : s + 1,
+				);
+				return;
+			}
+			if (key.name === "return") {
+				input.selectCloudProvider();
+			}
+			if (key.name === "escape") {
+				input.setStep("menu");
+				input.setMenuSelected(0);
 			}
 			return;
 		}
