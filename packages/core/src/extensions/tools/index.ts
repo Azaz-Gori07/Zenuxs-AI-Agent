@@ -172,7 +172,13 @@ export function createBuiltinTools(
 	} = options;
 
 	const executors = {
-		...createDefaultExecutors(executorOptions),
+		...createDefaultExecutors({
+			...executorOptions,
+			fileRead: {
+				cwd: toolsConfig.cwd,
+				...executorOptions.fileRead,
+			},
+		}),
 		...(executorOverrides ?? {}),
 	};
 

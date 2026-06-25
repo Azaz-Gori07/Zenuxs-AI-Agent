@@ -8,6 +8,8 @@ import {
 	setHomeDir,
 } from "@cline/shared/storage";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
+const isWindows = process.platform === "win32";
 import {
 	createHookAuditHooks,
 	createHookConfigFileExtension,
@@ -163,7 +165,7 @@ describe("createHookConfigFileHooks", () => {
 		}
 	});
 
-	it("executes extensionless legacy hook files via bash fallback", async () => {
+	(isWindows ? it.skip : it)("executes extensionless legacy hook files via bash fallback", async () => {
 		const { workspace } = await createWorkspaceWithHook(
 			"PreToolUse",
 			'echo \'HOOK_CONTROL\t{"cancel":true,"context":"legacy-ok"}\'\nexit 0\n',
@@ -186,7 +188,7 @@ describe("createHookConfigFileHooks", () => {
 		}
 	});
 
-	it("adapts file hooks into an AgentExtension", async () => {
+	(isWindows ? it.skip : it)("adapts file hooks into an AgentExtension", async () => {
 		const { workspace } = await createWorkspaceWithHook(
 			"PreToolUse",
 			'echo \'HOOK_CONTROL\t{"cancel":true,"context":"extension-ok"}\'\nexit 0\n',
@@ -240,7 +242,7 @@ describe("createHookConfigFileHooks", () => {
 		}
 	});
 
-	it("honors shebang interpreter when present", async () => {
+	(isWindows ? it.skip : it)("honors shebang interpreter when present", async () => {
 		const { workspace } = await createWorkspaceWithHook(
 			"PreToolUse",
 			'#!/usr/bin/env bash\necho \'HOOK_CONTROL\t{"cancel":false,"context":"shebang-ok"}\'\n',

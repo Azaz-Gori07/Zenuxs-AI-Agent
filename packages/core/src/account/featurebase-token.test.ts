@@ -25,7 +25,7 @@ describe("ClineAccountService.fetchFeaturebaseToken", () => {
 		});
 
 		const service = new ClineAccountService({
-			apiBaseUrl: "https://api.cline.bot",
+			apiBaseUrl: "http://127.0.0.1:8787",
 			getAuthToken: async () => "workos:token-123",
 			fetchImpl: fetchImpl as unknown as typeof fetch,
 		});
@@ -43,7 +43,7 @@ describe("ClineAccountService.fetchFeaturebaseToken", () => {
 		});
 
 		const service = new ClineAccountService({
-			apiBaseUrl: "https://api.cline.bot",
+			apiBaseUrl: "http://127.0.0.1:8787",
 			getAuthToken: async () => "workos:token-123",
 			fetchImpl: fetchImpl as unknown as typeof fetch,
 		});
@@ -56,7 +56,7 @@ describe("ClineAccountService.fetchFeaturebaseToken", () => {
 		const fetchImpl = vi.fn();
 
 		const service = new ClineAccountService({
-			apiBaseUrl: "https://api.cline.bot",
+			apiBaseUrl: "http://127.0.0.1:8787",
 			getAuthToken: async () => undefined,
 			fetchImpl: fetchImpl as unknown as typeof fetch,
 		});
@@ -75,7 +75,7 @@ describe("ClineAccountService.fetchFeaturebaseToken", () => {
 		});
 
 		const service = new ClineAccountService({
-			apiBaseUrl: "https://api.cline.bot",
+			apiBaseUrl: "http://127.0.0.1:8787",
 			getAuthToken: async () => "workos:token-123",
 			fetchImpl: fetchImpl as unknown as typeof fetch,
 		});

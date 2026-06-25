@@ -12,6 +12,7 @@ import type { AgentToolContext } from "@cline/shared";
 import { resolveExistingFilePath } from "@cline/shared/storage";
 import type { ReadFileRequest } from "../schemas";
 import type { FileReadExecutor } from "../types";
+import { assertPathSafe } from "./safety";
 import {
 	MAX_LINE_CHARS,
 	MAX_READ_LINES,
@@ -47,9 +48,14 @@ export interface FileReadExecutorOptions {
 	 * @default false
 	 */
 	includeLineNumbers?: boolean;
+
+	/**
+	 * Current working directory / workspace root
+	 */
+	cwd?: string;
 }
 
-const DEFAULT_FILE_READ_OPTIONS: Required<FileReadExecutorOptions> = {
+const DEFAULT_FILE_READ_OPTIONS: Required<Omit<FileReadExecutorOptions, "cwd">> & { cwd?: string } = {
 	maxFileSizeBytes: 10_000_000, // 10MB default limit
 	encoding: "utf-8", // Default to UTF-8 encoding
 	includeLineNumbers: true, // Include line numbers by default
@@ -204,20 +210,25 @@ async function readTextWindow(
 export function createFileReadExecutor(
 	options: FileReadExecutorOptions = {},
 ): FileReadExecutor {
-	const { maxFileSizeBytes, encoding, includeLineNumbers } = {
+	const { maxFileSizeBytes, encoding, includeLineNumbers, cwd } = {
 		...DEFAULT_FILE_READ_OPTIONS,
 		...options,
 	};
+	const workspaceRoot = cwd ?? process.cwd();
 
 	return async (request: ReadFileRequest, context: AgentToolContext) => {
 		const { path: filePath, start_line, end_line } = request;
 		const initialPath = path.isAbsolute(filePath)
 			? path.normalize(filePath)
-			: path.resolve(process.cwd(), filePath);
+			: path.resolve(workspaceRoot, filePath);
 		// Tolerate Unicode-whitespace mismatches (e.g. macOS Sonoma+
 		// screenshot paths where the on-disk filename contains U+202F but
 		// the caller's string has a regular space).
 		const resolvedPath = resolveExistingFilePath(initialPath) ?? initialPath;
+
+		// Perform path safety checks
+		await assertPathSafe(resolvedPath, workspaceRoot);
+
 		const extension = path.extname(resolvedPath).toLowerCase();
 		const imageMediaType = IMAGE_MEDIA_TYPES.get(extension);
 

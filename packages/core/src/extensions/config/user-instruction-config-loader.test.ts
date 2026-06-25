@@ -74,13 +74,13 @@ describe("user instruction config loader", () => {
 		expect(paths).toContain(join(workspacePath, ".clinerules", "workflows"));
 		expect(paths).toContain(join(workspacePath, ".cline", "workflows"));
 		expect(
-			paths.some(
-				(p) =>
-					p.includes("Documents") &&
-					p.includes("Cline") &&
-					p.includes("Workflows"),
-			),
-		).toBe(true);
+            paths.some(
+                (p) =>
+                    p.includes("Documents") &&
+                    p.includes("Zenuxs") &&
+                    p.includes("Workflows"),
+            ),
+        ).toBe(true);
 		expect(paths).not.toContain(
 			join(process.env.HOME ?? "~", ".cline", "data", "workflows"),
 		);

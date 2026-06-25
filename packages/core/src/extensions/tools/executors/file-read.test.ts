@@ -26,7 +26,7 @@ describe("createFileReadExecutor", () => {
 		try {
 			const filePath = path.join(dir, "example.txt");
 			await fs.writeFile(filePath, content, "utf-8");
-			const readFile = createFileReadExecutor();
+			const readFile = createFileReadExecutor({ cwd: dir });
 			return (await readFile(
 				{ path: filePath, ...range },
 				{ agentId: "agent-1", conversationId: "conv-1", iteration: 1 },
@@ -90,7 +90,7 @@ describe("createFileReadExecutor", () => {
 		await fs.writeFile(filePath, numberedLines(100), "utf-8");
 
 		try {
-			const readFile = createFileReadExecutor({ maxFileSizeBytes: 10 });
+			const readFile = createFileReadExecutor({ maxFileSizeBytes: 10, cwd: dir });
 			const result = (await readFile(
 				{ path: filePath, start_line: 50, end_line: 52 },
 				{ agentId: "agent-1", conversationId: "conv-1", iteration: 1 },
@@ -108,7 +108,7 @@ describe("createFileReadExecutor", () => {
 		await fs.writeFile(filePath, numberedLines(2500), "utf-8");
 
 		try {
-			const readFile = createFileReadExecutor({ maxFileSizeBytes: 10 });
+			const readFile = createFileReadExecutor({ maxFileSizeBytes: 10, cwd: dir });
 			const result = (await readFile(
 				{ path: filePath },
 				{ agentId: "agent-1", conversationId: "conv-1", iteration: 1 },
@@ -140,7 +140,7 @@ describe("createFileReadExecutor", () => {
 		await fs.truncate(filePath, 100_000_001);
 
 		try {
-			const readFile = createFileReadExecutor();
+			const readFile = createFileReadExecutor({ cwd: dir });
 
 			await expect(
 				readFile(
@@ -161,7 +161,7 @@ describe("createFileReadExecutor", () => {
 		try {
 			const controller = new AbortController();
 			controller.abort(new Error("stop reading"));
-			const readFile = createFileReadExecutor();
+			const readFile = createFileReadExecutor({ cwd: dir });
 
 			await expect(
 				readFile(
@@ -212,7 +212,7 @@ describe("createFileReadExecutor", () => {
 		await fs.writeFile(filePath, pngBytes);
 
 		try {
-			const readFile = createFileReadExecutor();
+			const readFile = createFileReadExecutor({ cwd: dir });
 			const result = await readFile(
 				{ path: filePath },
 				{
@@ -250,7 +250,7 @@ describe("createFileReadExecutor", () => {
 		await fs.writeFile(filePath, gifBytes);
 
 		try {
-			const readFile = createFileReadExecutor();
+			const readFile = createFileReadExecutor({ cwd: dir });
 			const result = await readFile(
 				{ path: filePath },
 				{
@@ -296,7 +296,7 @@ describe("createFileReadExecutor", () => {
 		await fs.writeFile(path.join(dir, onDisk), pngBytes);
 
 		try {
-			const readFile = createFileReadExecutor();
+			const readFile = createFileReadExecutor({ cwd: dir });
 			const result = await readFile(
 				// Request with a regular space instead of U+202F.
 				{ path: path.join(dir, "Screenshot 2026-05-12 at 4.42.48 PM.png") },
@@ -317,6 +317,26 @@ describe("createFileReadExecutor", () => {
 			]);
 		} finally {
 			await fs.rm(dir, { recursive: true, force: true });
+		}
+	});
+
+	it("rejects path traversal escaping the workspace", async () => {
+		const tempDir = await fs.realpath(os.tmpdir());
+		const workspace = await fs.mkdtemp(path.join(tempDir, "read-safety-ws-"));
+		const outsideFile = path.join(tempDir, "forbidden-file.txt");
+		await fs.writeFile(outsideFile, "secrets", "utf-8");
+
+		try {
+			const readFile = createFileReadExecutor({ cwd: workspace });
+			await expect(
+				readFile(
+					{ path: outsideFile },
+					{ agentId: "agent-1", conversationId: "conv-1", iteration: 1 },
+				),
+			).rejects.toThrow("Access denied: path escapes the workspace root");
+		} finally {
+			await fs.rm(workspace, { recursive: true, force: true });
+			await fs.rm(outsideFile, { force: true });
 		}
 	});
 });

@@ -265,6 +265,8 @@ function agentPartToContentBlock(
 				is_error: part.isError,
 			} satisfies ToolResultContent;
 		}
+		default:
+			return undefined;
 	}
 }
 

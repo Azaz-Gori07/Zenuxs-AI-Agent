@@ -76,7 +76,38 @@ export async function createOpenCodeProviderModule(
 	// calling process.exit() from signal handlers.
 	const provider = await stripRogueSignalHandlers(async () => {
 		const { createOpencode } = await import("ai-sdk-provider-opencode-sdk");
-		return createOpencode(readOptions(config));
+		const options = readOptions(config);
+		const apiKey = await resolveApiKey(config);
+
+		const settings: any = {
+			...options,
+		};
+
+		if (config.baseUrl) {
+			settings.baseUrl = config.baseUrl;
+		}
+
+		if (apiKey || config.fetch || config.headers) {
+			settings.clientOptions = {
+				...settings.clientOptions,
+				...(apiKey ? {
+					auth: apiKey,
+					headers: {
+						"x-api-key": apiKey,
+						...config.headers,
+						...settings.clientOptions?.headers,
+					}
+				} : config.headers ? {
+					headers: {
+						...config.headers,
+						...settings.clientOptions?.headers,
+					}
+				} : {}),
+				...(config.fetch ? { fetch: config.fetch } : {}),
+			};
+		}
+
+		return createOpencode(settings);
 	});
 	return {
 		model: (modelId) => provider(modelId),

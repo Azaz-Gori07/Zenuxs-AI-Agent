@@ -18,6 +18,7 @@ export enum BUILT_IN_PROVIDER {
 	OPENAI_CODEX_CLI = "openai-codex-cli",
 	// CLI / Subscription-based providers
 	OPENCODE = "opencode",
+	OPENCODE_ZEN = "opencode-zen",
 	// Cloud providers
 	BEDROCK = "bedrock",
 	VERTEX = "vertex",
