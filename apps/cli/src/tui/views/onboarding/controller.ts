@@ -368,7 +368,7 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 		// All Zenuxs AI models are proxied through the backend
 		const zenuxsSettings = providerSettingsManager.getProviderSettings("zenuxs");
 		const token = (zenuxsSettings?.auth?.accessToken as string) || zenuxsSettings?.apiKey || "";
-		const apiBase = process.env.ZENUXS_CODE_API_URL?.trim() || "http://localhost:5000";
+		const apiBase = process.env.ZENUXS_CODE_API_URL?.trim() || "https://aiapi.zenuxs.in";
 		const proxyBaseUrl = `${apiBase}/api/zenuxs-code/proxy`;
 
 		// Use "openai-compatible" as the actual CLI provider pointing to our proxy

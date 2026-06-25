@@ -1,4 +1,4 @@
-const DEFAULT_API_BASE_URL = "http://localhost:5000";
+const DEFAULT_API_BASE_URL = "https://aiapi.zenuxs.in";
 
 function getApiBaseUrl(inputBaseUrl?: string): string {
 	const url = inputBaseUrl?.trim();

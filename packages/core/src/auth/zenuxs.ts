@@ -42,7 +42,7 @@ function getApiBaseUrl(inputBaseUrl?: string): string {
 	if (typeof process !== "undefined" && process.env?.ZENUXS_API_URL?.trim()) {
 		return process.env.ZENUXS_API_URL.trim().replace(/\/+$/, "");
 	}
-	return "http://localhost:5000";
+	return "https://aiapi.zenuxs.in";
 }
 
 export async function loginZenuxsAuth(

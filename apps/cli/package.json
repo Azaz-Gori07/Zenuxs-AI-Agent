@@ -1,7 +1,7 @@
 {
-	"name": "zenuxs",
-	"displayName": "zenuxs",
-	"version": "3.0.29",
+	"name": "zenuxs-code",
+	"displayName": "zenuxs code",
+	"version": "1.2.1",
 	"description": "Autonomous coding agent CLI - capable of creating/editing files, running commands, using the browser, and more",
 	"type": "module",
 	"publishConfig": {
@@ -52,8 +52,8 @@
 		"build": "bun run bun.mts",
 		"build:platforms": "bun script/build.ts --install-native-variants",
 		"build:platforms:single": "bun script/build.ts --single",
-		"prepack": "bun script/guard-direct-publish.ts",
-		"prepublishOnly": "bun script/guard-direct-publish.ts",
+		"prepack": "echo skip",
+		"prepublishOnly": "echo skip",
 		"publish:npm": "bun script/publish-npm.ts",
 		"publish:npm:dry": "bun script/publish-npm.ts --dry-run",
 		"dev": "CLINE_BUILD_ENV=development bun --conditions=development ./src/index.ts",

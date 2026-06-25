@@ -1,6 +1,6 @@
 import { ProviderSettingsManager } from "@cline/core";
 
-const DEFAULT_API_BASE = process.env.ZENUXS_CODE_API_URL?.trim() || "http://localhost:5000";
+const DEFAULT_API_BASE = process.env.ZENUXS_CODE_API_URL?.trim() || "https://aiapi.zenuxs.in";
 
 function headers(token: string): Record<string, string> {
 	return { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };

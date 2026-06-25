@@ -1,4 +1,4 @@
-const DEFAULT_API_BASE = "http://localhost:5000";
+const DEFAULT_API_BASE = "https://aiapi.zenuxs.in";
 
 export function resolveApiBase(): string {
 	return process.env.ZENUXS_CODE_API_URL?.trim() || DEFAULT_API_BASE;

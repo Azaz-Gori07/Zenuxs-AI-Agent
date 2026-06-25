@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
-const DEFAULT_API_BASE = process.env.ZENUXS_CODE_API_URL?.trim() || "http://localhost:5000";
+const DEFAULT_API_BASE = process.env.ZENUXS_CODE_API_URL?.trim() || "https://aiapi.zenuxs.in";
 
 function headers(token: string): Record<string, string> {
 	return {
