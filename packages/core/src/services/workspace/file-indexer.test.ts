@@ -153,4 +153,31 @@ describe("file indexer", () => {
 			await rm(secondWorkspace, { recursive: true, force: true });
 		}
 	});
+
+	it("ignores protected directories during indexing", async () => {
+		const cwd = await createTempWorkspace();
+		const homedirSpy = vi.spyOn(os, "homedir").mockReturnValue(cwd);
+		try {
+			const protectedName = process.platform === "win32" ? "AppData" : process.platform === "darwin" ? "Library" : "Desktop";
+			const protectedDir = path.join(cwd, protectedName);
+			await mkdir(protectedDir, { recursive: true });
+			await writeFile(
+				path.join(protectedDir, "secret.ts"),
+				"export const secret = 1\n",
+				"utf8",
+			);
+			await writeFile(
+				path.join(cwd, "visible.ts"),
+				"export const ok = 1\n",
+				"utf8",
+			);
+
+			const index = await getFileIndex(cwd, { ttlMs: 0 });
+			expect(index.has("visible.ts")).toBe(true);
+			expect(index.has(`${protectedName}/secret.ts`)).toBe(false);
+		} finally {
+			homedirSpy.mockRestore();
+			await rm(cwd, { recursive: true, force: true });
+		}
+	});
 });

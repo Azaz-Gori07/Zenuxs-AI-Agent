@@ -19,6 +19,7 @@ import type {
 	AgentToolResult,
 	AgentUsage,
 	AgentRuntimeConfig as BaseAgentRuntimeConfig,
+	SystemPart,
 	TelemetryProperties,
 	ToolApprovalResult,
 	ToolPolicy,
@@ -37,6 +38,35 @@ import { nanoid } from "nanoid";
 // exact clinee implementation (`${prefix}_${nanoid(length)}`).
 function createUID(prefix: string, length = 8): string {
 	return `${prefix}_${nanoid(length)}`;
+}
+
+/**
+ * Compose a system prompt string from a base prompt and optional system parts.
+ * System parts are rendered and appended to the base prompt with double-newline
+ * separation. This mirrors OpenCode's SystemPart composition model.
+ */
+function composeSystemPrompt(
+	base: string | undefined,
+	systemParts?: readonly SystemPart[],
+): string | undefined {
+	if (!base?.trim() && (!systemParts || systemParts.length === 0)) {
+		return base;
+	}
+
+	const parts: string[] = [];
+	if (base?.trim()) {
+		parts.push(base.trim());
+	}
+
+	if (systemParts) {
+		for (const part of systemParts) {
+			if (part.text.trim()) {
+				parts.push(part.text.trim());
+			}
+		}
+	}
+
+	return parts.join("\n\n");
 }
 
 export type AgentRunInput = string | AgentMessage | readonly AgentMessage[];
@@ -161,10 +191,13 @@ function summarizeModelRequest(
 				case "reasoning":
 					textChars += part.text.length;
 					break;
-				case "file":
-					textChars += part.content.length;
-					break;
-				case "tool-call":
+			case "file":
+				textChars += part.content.length;
+				break;
+			case "system-update":
+				textChars += part.text.length;
+				break;
+			case "tool-call":
 					textChars += safeJsonSize(part.input);
 					break;
 				case "tool-result": {
@@ -748,7 +781,10 @@ export class AgentRuntime {
 	}> {
 		const usageBeforeModel = cloneUsage(this.state.usage);
 		let request: AgentModelRequest = {
-			systemPrompt: this.config.systemPrompt,
+			systemPrompt: composeSystemPrompt(
+				this.config.systemPrompt,
+				this.config.systemParts,
+			),
 			messages: cloneMessages(this.state.messages),
 			tools: [...this.tools.values()].map<AgentToolDefinition>((tool) => ({
 				name: tool.name,
@@ -992,6 +1028,7 @@ export class AgentRuntime {
 			iteration: this.state.iteration,
 			messages: request.messages,
 			systemPrompt: request.systemPrompt,
+			systemParts: request.systemParts,
 			tools: request.tools,
 			model: {
 				id: this.config.messageModelInfo?.id,
@@ -1019,6 +1056,9 @@ export class AgentRuntime {
 		}
 		if (result.systemPrompt !== undefined) {
 			next = { ...next, systemPrompt: result.systemPrompt };
+		}
+		if (result.systemParts !== undefined) {
+			next = { ...next, systemParts: result.systemParts };
 		}
 		return next;
 	}

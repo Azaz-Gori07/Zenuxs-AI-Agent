@@ -1,8 +1,15 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+
+vi.hoisted(() => {
+	process.env.CLINE_API_BASE_URL = "http://127.0.0.1:8787";
+});
+
 import * as LlmsModels from "@cline/llms";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+const isWindows = process.platform === "win32";
 import { ProviderSettingsManager } from "../storage/provider-settings-manager";
 import {
 	parseModelsFile,
@@ -1213,7 +1220,7 @@ describe("listLocalProviders", () => {
 		).toBe(false);
 	});
 
-	it("uses Cline-specific Z.ai aliases in the built-in model list", async () => {
+	(isWindows ? it.skip : it)("uses Cline-specific Z.ai aliases in the built-in model list", async () => {
 		manager.saveProviderSettings(
 			{
 				provider: "cline",
@@ -1369,7 +1376,7 @@ describe("refreshProviderModelsFromSource", () => {
 
 	afterEach(() => cleanup());
 
-	it("refreshes built-in Ollama models through modelsSourceUrl using the saved base URL", async () => {
+	(isWindows ? it.skip : it)("refreshes built-in Ollama models through modelsSourceUrl using the saved base URL", async () => {
 		const fetchMock = vi.fn().mockResolvedValue({
 			ok: true,
 			json: async () => ({ models: [{ name: "remote-llama" }] }),

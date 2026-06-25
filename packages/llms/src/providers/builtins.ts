@@ -957,6 +957,7 @@ function buildNvidiaModels(): Record<string, ModelInfo> {
 	};
 }
 
+
 export const BUILTIN_SPECS: BuiltinSpec[] = [
 	{
 		id: "openai-native",
@@ -1102,6 +1103,23 @@ export const BUILTIN_SPECS: BuiltinSpec[] = [
 		modelsProviderId: "opencode",
 		defaults: { baseUrl: "" },
 		configFields: [],
+	},
+	{
+		id: "opencode-zen",
+		name: "OpenCode Zen",
+		description:
+			"Curated models including Claude, GPT, Gemini and more via OpenCode's managed gateway",
+		family: "openai",
+		protocol: "openai-responses",
+		popular: 15,
+		capabilities: ["tools", "reasoning", "prompt-cache"],
+		defaultModelId: "gpt-5.5",
+		apiKeyEnv: ["OPENCODE_API_KEY"],
+		docsUrl: "https://opencode.ai/zen",
+		defaults: {
+			baseUrl: "https://opencode.ai/zen/v1/responses",
+		},
+		metadata: {},
 	},
 	{
 		id: "dify",

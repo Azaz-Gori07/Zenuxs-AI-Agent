@@ -20,7 +20,7 @@ describe("ClineAccountService", () => {
 		});
 
 		const service = new ClineAccountService({
-			apiBaseUrl: "https://api.cline.bot",
+			apiBaseUrl: "http://127.0.0.1:8787",
 			getAuthToken: async () => "workos:token-123",
 			getCurrentUserId: () => "user-1",
 			fetchImpl: fetchImpl as unknown as typeof fetch,
@@ -66,7 +66,7 @@ describe("ClineAccountService", () => {
 			);
 
 		const service = new ClineAccountService({
-			apiBaseUrl: "https://api.cline.bot",
+			apiBaseUrl: "http://127.0.0.1:8787",
 			getAuthToken: async () => "workos:token-123",
 			fetchImpl: fetchImpl as unknown as typeof fetch,
 		});
@@ -104,7 +104,7 @@ describe("ClineAccountService", () => {
 		});
 
 		const service = new ClineAccountService({
-			apiBaseUrl: "https://api.cline.bot",
+			apiBaseUrl: "http://127.0.0.1:8787",
 			getAuthToken: async () => "workos:token-123",
 			fetchImpl: fetchImpl as unknown as typeof fetch,
 		});
@@ -134,7 +134,7 @@ describe("ClineAccountService", () => {
 		});
 
 		const service = new ClineAccountService({
-			apiBaseUrl: "https://api.cline.bot",
+			apiBaseUrl: "http://127.0.0.1:8787",
 			getAuthToken: async () => "workos:token-123",
 			fetchImpl: fetchImpl as unknown as typeof fetch,
 		});
@@ -157,7 +157,7 @@ describe("ClineAccountService", () => {
 		});
 
 		const service = new ClineAccountService({
-			apiBaseUrl: "https://api.cline.bot",
+			apiBaseUrl: "http://127.0.0.1:8787",
 			getAuthToken: async () => "workos:token-123",
 			fetchImpl: fetchImpl as unknown as typeof fetch,
 		});
@@ -172,7 +172,7 @@ describe("ClineAccountService", () => {
 		});
 
 		const service = new ClineAccountService({
-			apiBaseUrl: "https://api.cline.bot",
+			apiBaseUrl: "http://127.0.0.1:8787",
 			getAuthToken: async () => "workos:token-123",
 			fetchImpl: fetchImpl as unknown as typeof fetch,
 		});
@@ -188,13 +188,13 @@ describe("ClineAccountService", () => {
 		});
 
 		const service = new ClineAccountService({
-			apiBaseUrl: "https://api.cline.bot",
+			apiBaseUrl: "http://127.0.0.1:8787",
 			getAuthToken: async () => "workos:token-123",
 			fetchImpl: fetchImpl as unknown as typeof fetch,
 		});
 
 		await expect(service.fetchMe()).rejects.toThrow(
-			"Cline account response was not valid JSON",
+			"Zenuxs account response was not valid JSON",
 		);
 	});
 
@@ -206,7 +206,7 @@ describe("ClineAccountService", () => {
 		});
 
 		const service = new ClineAccountService({
-			apiBaseUrl: "https://api.cline.bot",
+			apiBaseUrl: "http://127.0.0.1:8787",
 			getAuthToken: async () => "workos:token-123",
 			fetchImpl: fetchImpl as unknown as typeof fetch,
 		});

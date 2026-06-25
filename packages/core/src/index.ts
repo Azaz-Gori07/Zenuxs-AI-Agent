@@ -223,6 +223,57 @@ export {
 	resolvePluginConfigSearchPaths,
 	resolvePluginSkillDirectoriesFromPaths,
 } from "./extensions";
+
+// =============================================================================
+// Ported OpenCode Components - All new systems
+// =============================================================================
+export {
+	AgentService,
+	createBuiltinAgents,
+	deriveSubagentSessionPermission,
+	evaluatePermission,
+	PROMPT_EXPLORE,
+	PROMPT_COMPACTION,
+	PROMPT_TITLE,
+	PROMPT_SUMMARY,
+	PROMPT_GENERATE,
+	SUMMARY_TEMPLATE,
+} from "./extensions";
+export type { AgentConfigEntry } from "./extensions";
+export {
+	SystemContext,
+	createEnvironmentSource,
+	createDateSource,
+	buildCompactionPrompt,
+	buildSystemPrompt,
+	createContextEpoch,
+	estimateTokens,
+	truncateToolOutput,
+	isOverflow,
+	usableContext,
+	selectTail,
+} from "./extensions";
+export type { ContextSource, ContextGeneration, CompactionConfig, CompactionInput, OverflowConfig } from "./extensions";
+export {
+	ToolRegistry,
+	DoomLoopDetector,
+	PermissionChecker,
+	isExternalDirectory,
+	getRelativePatterns,
+	formatPermissionRequest,
+	createAllEnhancedTools,
+	createEnhancedFileReadTool,
+	createEnhancedWriteTool,
+	createEnhancedEditorTool,
+	createEnhancedGlobTool,
+	createEnhancedGrepTool,
+	createEnhancedShellTool,
+	createWebFetchTool,
+	createWebSearchTool,
+	createTodoWriteTool,
+	createPlanExitTool,
+} from "./extensions";
+export type { ToolRegistration, ToolRegistrySnapshot, ToolFilterContext, CreateAllEnhancedToolsOptions } from "./extensions";
 export type {
 	AvailableRuntimeCommand,
 	CreateInstructionWatcherOptions,

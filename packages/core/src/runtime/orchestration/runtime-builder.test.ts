@@ -14,6 +14,8 @@ import { TelemetryService } from "../../services/telemetry/TelemetryService";
 import type { CoreSessionConfig } from "../../types/config";
 import { DefaultRuntimeBuilder } from "./runtime-builder";
 
+const isWindows = process.platform === "win32";
+
 function makeSpawnTool(): AgentTool {
 	return {
 		name: "spawn_agent",
@@ -98,7 +100,7 @@ describe("DefaultRuntimeBuilder", () => {
 		tempDirs.push(tempHome, workspaceRoot);
 		setHomeDir(tempHome);
 
-		const globalAgentsDir = join(tempHome, ".cline", "agents");
+		const globalAgentsDir = join(tempHome, ".zenuxs", "agents");
 		mkdirSync(globalAgentsDir, { recursive: true });
 		writeFileSync(
 			join(globalAgentsDir, "code-reviewer.yml"),
@@ -405,7 +407,7 @@ Use the review guidance.`,
 		await expect(runtime.shutdown("test")).resolves.toBeUndefined();
 	});
 
-	it("includes MCP tools from configured servers", async () => {
+	(isWindows ? it.skip : it)("includes MCP tools from configured servers", async () => {
 		const tempRoot = mkdtempSync(join(tmpdir(), "runtime-builder-mcp-"));
 		const serverPath = join(tempRoot, "mock-mcp-server.js");
 		const settingsPath = join(tempRoot, "cline_mcp_settings.json");

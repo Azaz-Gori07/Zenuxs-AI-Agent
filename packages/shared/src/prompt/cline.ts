@@ -5,6 +5,8 @@ import {
 	DEFAULT_CLINE_SYSTEM_PROMPT,
 	YOLO_CLINE_SYSTEM_PROMPT,
 } from "./system";
+import type { SystemPart } from "../agent";
+import { normalizeSystemInput, buildSystemPrompt as composeSystemParts } from "./system-part";
 
 const WORKSPACE_CONFIGURATION_MARKER = "# Workspace Configuration";
 
@@ -69,6 +71,12 @@ export interface ClineSystemPromptOptions
 	overridePrompt?: string;
 	/** Provider ID — used to gate Cline-specific metadata injection */
 	providerId?: string;
+	/**
+	 * Additional system parts composed after the base prompt.
+	 * Supports cache hints and metadata for advanced provider handling.
+	 * Ported from OpenCode's SystemPart model.
+	 */
+	systemParts?: readonly SystemPart[] | string;
 }
 
 export function buildClineSystemPrompt(
@@ -83,10 +91,12 @@ export function buildClineSystemPrompt(
 		rules,
 		overridePrompt,
 		providerId,
+		systemParts,
 	} = options;
 	const workspaceRoot = options.workspaceRoot ?? options.rootPath ?? "";
 	const isCline = isClineProvider(providerId || "");
 
+	let base: string;
 	if (overridePrompt?.trim()) {
 		const trimmed = overridePrompt.trim();
 		if (
@@ -94,25 +104,36 @@ export function buildClineSystemPrompt(
 			metadata?.trim() &&
 			!trimmed.includes(WORKSPACE_CONFIGURATION_MARKER)
 		) {
-			return `${trimmed}\n\n${buildWorkspaceMetadata(workspaceRoot, workspaceName, metadata)}`.trim();
+			base = `${trimmed}\n\n${buildWorkspaceMetadata(workspaceRoot, workspaceName, metadata)}`.trim();
+		} else {
+			base = trimmed;
 		}
-		return trimmed;
+	} else {
+		const basePrompt =
+			mode === "yolo" ? YOLO_CLINE_SYSTEM_PROMPT : DEFAULT_CLINE_SYSTEM_PROMPT;
+
+		base = basePrompt
+			.replace("{{PLATFORM_NAME}}", platform)
+			.replace("{{CWD}}", workspaceRoot)
+			.replace("{{CURRENT_DATE}}", new Date().toLocaleDateString())
+			.replace("{{IDE_NAME}}", ide)
+			.replace(
+				"{{CLINE_METADATA}}",
+				isCline
+					? buildWorkspaceMetadata(workspaceRoot, workspaceName, metadata)
+					: "",
+			)
+			.replace("{{CLINE_RULES}}", rules || "")
+			.trim();
 	}
 
-	const basePrompt =
-		mode === "yolo" ? YOLO_CLINE_SYSTEM_PROMPT : DEFAULT_CLINE_SYSTEM_PROMPT;
+	// Compose with system parts if provided
+	if (systemParts) {
+		const parts = normalizeSystemInput(systemParts);
+		if (parts.length > 0) {
+			return composeSystemParts(base, parts);
+		}
+	}
 
-	return basePrompt
-		.replace("{{PLATFORM_NAME}}", platform)
-		.replace("{{CWD}}", workspaceRoot)
-		.replace("{{CURRENT_DATE}}", new Date().toLocaleDateString())
-		.replace("{{IDE_NAME}}", ide)
-		.replace(
-			"{{CLINE_METADATA}}",
-			isCline
-				? buildWorkspaceMetadata(workspaceRoot, workspaceName, metadata)
-				: "",
-		)
-		.replace("{{CLINE_RULES}}", rules || "")
-		.trim();
+	return base;
 }

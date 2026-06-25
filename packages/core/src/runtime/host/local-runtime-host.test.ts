@@ -1546,12 +1546,14 @@ describe("LocalRuntimeHost", () => {
 					cacheWriteTokens: 0,
 					totalCost: 0.42,
 				},
+				model: "mock-model",
+				provider: "mock-provider",
 			},
 		});
-		expect(writeSessionManifest).toHaveBeenCalledWith(
+			expect(writeSessionManifest).toHaveBeenCalledWith(
 			"/tmp/manifest-history-meta.json",
 			expect.objectContaining({
-				metadata: {
+				metadata: expect.objectContaining({
 					checkpoint: {
 						latest: {
 							ref: "abc123",
@@ -1582,7 +1584,7 @@ describe("LocalRuntimeHost", () => {
 						cacheWriteTokens: 0,
 						totalCost: 0.42,
 					},
-				},
+				}),
 				status: "completed",
 			}),
 		);
@@ -1696,6 +1698,8 @@ describe("LocalRuntimeHost", () => {
 					cacheWriteTokens: 0,
 					totalCost: 0,
 				},
+				model: "mock-model",
+				provider: "mock-provider",
 			},
 		});
 	});

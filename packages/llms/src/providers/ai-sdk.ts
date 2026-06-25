@@ -17,6 +17,7 @@ import {
 import { jsonSchema, streamText } from "ai";
 import { nanoid } from "nanoid";
 import { z } from "zod";
+import { wrapFetchWithRetry } from "./http";
 import { extractErrorMessage } from "./format";
 import { isAnthropicCompatibleModel, resolveModelFamily } from "./model-facts";
 import {
@@ -38,6 +39,16 @@ import type {
 	AiSdkStreamUsage,
 	ProviderFactoryResult,
 } from "./vendors/types";
+
+/** @internal XML-escaping for chronological system-update wrapper. */
+function escapeXml(str: string): string {
+	return str
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;")
+		.replace(/'/g, "&#39;");
+}
 
 interface GatewayNormalizedUsage {
 	inputTokens: number;
@@ -97,6 +108,17 @@ function toAiSdkMessages(
 		for (const part of message.content) {
 			if (part.type === "text") {
 				content.push({ type: "text", text: sanitizeSurrogates(part.text) });
+				continue;
+			}
+
+			// Chronological system update — wrap in stable text representation
+			// for providers that do not natively support mid-conversation
+			// system messages. Ported from OpenCode's `<system-update>` protocol.
+			if (part.type === "system-update") {
+				content.push({
+					type: "text",
+					text: `<system-update>\n${escapeXml(part.text)}\n</system-update>`,
+				});
 				continue;
 			}
 
@@ -888,11 +910,14 @@ function createAiSdkProvider(kind: ProviderModuleKind): GatewayProviderFactory {
 				current: undefined,
 			};
 			try {
+				const defaultMaxRetries = process.env.VITEST ? 0 : 5;
+				const customMaxRetries = typeof config.options?.maxRetries === "number" ? config.options.maxRetries : defaultMaxRetries;
+				const retryFetch = wrapFetchWithRetry(config.fetch, context.logger, customMaxRetries);
 				const provider = await createProviderModule(
 					kind,
 					{
 						...config,
-						fetch: wrapFetchForProviderRequestCapture(config.fetch, request),
+						fetch: wrapFetchForProviderRequestCapture(retryFetch, request),
 					},
 					context,
 				);

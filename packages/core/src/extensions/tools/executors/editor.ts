@@ -9,6 +9,7 @@ import * as path from "node:path";
 import type { AgentToolContext } from "@cline/shared";
 import type { EditFileInput } from "../schemas";
 import type { EditorExecutor } from "../types";
+import { assertPathSafe } from "./safety";
 
 /**
  * Options for the editor executor
@@ -34,11 +35,11 @@ export interface EditorExecutorOptions {
 	maxDiffLines?: number;
 }
 
-function resolveFilePath(
+async function resolveFilePath(
 	cwd: string,
 	inputPath: string,
 	restrictToCwd: boolean,
-): string {
+): Promise<string> {
 	const isAbsoluteInput = path.isAbsolute(inputPath);
 	const resolved = isAbsoluteInput
 		? path.normalize(inputPath)
@@ -47,16 +48,7 @@ function resolveFilePath(
 		return resolved;
 	}
 
-	// Absolute paths are accepted directly; cwd restriction applies to relative inputs.
-	if (isAbsoluteInput) {
-		return resolved;
-	}
-
-	const rel = path.relative(cwd, resolved);
-	if (rel.startsWith("..") || path.isAbsolute(rel)) {
-		throw new Error(`Path must stay within cwd: ${inputPath}`);
-	}
-	return resolved;
+	return await assertPathSafe(resolved, cwd);
 }
 
 function countOccurrences(content: string, needle: string): number {
@@ -189,7 +181,7 @@ export function createEditorExecutor(
 		cwd: string,
 		_context: AgentToolContext,
 	): Promise<string> => {
-		const filePath = resolveFilePath(cwd, input.path, restrictToCwd);
+		const filePath = await resolveFilePath(cwd, input.path, restrictToCwd);
 
 		if (input.insert_line != null) {
 			return insertInFile(

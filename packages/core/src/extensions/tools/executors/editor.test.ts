@@ -110,4 +110,31 @@ describe("createEditorExecutor", () => {
 			await fs.rm(dir, { recursive: true, force: true });
 		}
 	});
+
+	it("rejects file edits that escape the workspace CWD", async () => {
+		const tempDir = await fs.realpath(os.tmpdir());
+		const workspace = await fs.mkdtemp(path.join(tempDir, "editor-safety-ws-"));
+		const outsideFile = path.join(tempDir, "forbidden-edit-file.txt");
+
+		try {
+			const editor = createEditorExecutor();
+			await expect(
+				editor(
+					{
+						path: outsideFile,
+						new_text: "unsafe content",
+					},
+					workspace,
+					{
+						agentId: "agent-1",
+						conversationId: "conv-1",
+						iteration: 1,
+					},
+				),
+			).rejects.toThrow("Access denied: path escapes the workspace root");
+		} finally {
+			await fs.rm(workspace, { recursive: true, force: true });
+			await fs.rm(outsideFile, { force: true });
+		}
+	});
 });

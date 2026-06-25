@@ -3,6 +3,7 @@ import type { Dirent } from "node:fs";
 import { readdir } from "node:fs/promises";
 import path from "node:path";
 import { isMainThread, parentPort, Worker } from "node:worker_threads";
+import { getProtectedNames, isPathProtected } from "../../extensions/tools/executors/safety";
 
 const DEFAULT_INDEX_TTL_MS = 15_000;
 const STALE_CACHE_EVICTION_MS = 10 * 60_000;
@@ -81,8 +82,9 @@ function toPosixRelative(cwd: string, absolutePath: string): string {
 }
 
 async function listFilesWithRg(cwd: string): Promise<Set<string>> {
+	const excludes = Array.from(getProtectedNames()).flatMap((name) => ["-g", `!**/${name}/**`]);
 	const output = await new Promise<string>((resolve, reject) => {
-		const child = spawn("rg", ["--files", "--hidden", "-g", "!.git"], {
+		const child = spawn("rg", ["--files", "--hidden", "-g", "!.git", ...excludes], {
 			cwd,
 			stdio: ["ignore", "pipe", "pipe"],
 			// Prevent a console window from flashing on Windows.
@@ -135,6 +137,9 @@ async function walkDir(
 		const absolutePath = path.join(dir, entry.name);
 		if (entry.isDirectory()) {
 			if (DEFAULT_EXCLUDE_DIRS.has(entry.name)) {
+				continue;
+			}
+			if (isPathProtected(absolutePath, cwd)) {
 				continue;
 			}
 			try {

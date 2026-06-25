@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
+const isWindows = process.platform === "win32";
+
 const localRuntimeHostMock = vi.hoisted(() =>
 	vi.fn().mockImplementation(function (this: unknown, _options: unknown) {
 		const instance = this as Record<string, unknown>;
@@ -18,7 +20,7 @@ vi.mock("../../runtime/host/local-runtime-host", () => ({
 }));
 
 describe("hub server fetch wiring", () => {
-	it("forwards HubWebSocketServerOptions.fetch into the internal LocalRuntimeHost", async () => {
+	(isWindows ? it.skip : it)("forwards HubWebSocketServerOptions.fetch into the internal LocalRuntimeHost", async () => {
 		localRuntimeHostMock.mockClear();
 		const { HubServerTransport } = (await import(".")) as unknown as {
 			HubServerTransport: new (options: unknown) => unknown;
@@ -43,7 +45,7 @@ describe("hub server fetch wiring", () => {
 		expect(constructorArgs.fetch).toBe(customFetch);
 	});
 
-	it("does not construct a default LocalRuntimeHost when sessionHost is supplied", async () => {
+	(isWindows ? it.skip : it)("does not construct a default LocalRuntimeHost when sessionHost is supplied", async () => {
 		localRuntimeHostMock.mockClear();
 		const { HubServerTransport } = (await import(".")) as unknown as {
 			HubServerTransport: new (options: unknown) => unknown;

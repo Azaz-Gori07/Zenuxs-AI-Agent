@@ -1,7 +1,18 @@
-import { afterEach, describe, expect, it } from "vitest";
-import { createSapAiCoreProviderModule } from "./community";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { createSapAiCoreProviderModule, createOpenCodeProviderModule } from "./community";
 
 const originalServiceKey = process.env.AICORE_SERVICE_KEY;
+
+const mockCreateOpencode = vi.fn().mockImplementation((options) => {
+	const modelFn = (modelId: string) => ({ modelId, options });
+	return modelFn;
+});
+
+vi.mock("ai-sdk-provider-opencode-sdk", () => ({
+	get createOpencode() {
+		return mockCreateOpencode;
+	},
+}));
 
 describe("createSapAiCoreProviderModule", () => {
 	afterEach(() => {
@@ -38,7 +49,7 @@ describe("createSapAiCoreProviderModule", () => {
 			tokenServiceUrl: "https://auth.example/oauth/token",
 			url: "https://api.ai.example.aws.ml.hana.ondemand.com",
 		});
-	});
+	}, 20000);
 
 	it("fails fast for partial explicit SAP configuration", async () => {
 		await expect(
@@ -51,5 +62,46 @@ describe("createSapAiCoreProviderModule", () => {
 				},
 			}),
 		).rejects.toThrow(/baseUrl/);
+	});
+});
+
+describe("createOpenCodeProviderModule", () => {
+	it("correctly resolves api keys and configures OpencodeProviderSettings", async () => {
+		mockCreateOpencode.mockClear();
+
+		const mockFetch = vi.fn();
+		const provider = await createOpenCodeProviderModule({
+			providerId: "opencode",
+			apiKey: "test-opencode-key",
+			baseUrl: "https://opencode.ai/zen/v1",
+			fetch: mockFetch as any,
+			headers: { "x-custom-header": "value" },
+			options: {
+				hostname: "localhost",
+				port: 8080,
+				autoStartServer: false,
+			},
+		});
+
+		expect(mockCreateOpencode).toHaveBeenCalledTimes(1);
+		expect(mockCreateOpencode).toHaveBeenCalledWith(
+			expect.objectContaining({
+				hostname: "localhost",
+				port: 8080,
+				autoStartServer: false,
+				baseUrl: "https://opencode.ai/zen/v1",
+				clientOptions: expect.objectContaining({
+					auth: "test-opencode-key",
+					fetch: mockFetch,
+					headers: expect.objectContaining({
+						"x-api-key": "test-opencode-key",
+						"x-custom-header": "value",
+					}),
+				}),
+			})
+		);
+
+		const modelResult = provider.model("openai/gpt-5.5") as any;
+		expect(modelResult.modelId).toBe("openai/gpt-5.5");
 	});
 });

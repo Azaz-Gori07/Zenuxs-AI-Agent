@@ -68,7 +68,9 @@ export type AgentMessagePart =
 	| AgentImagePart
 	| AgentFilePart
 	| AgentToolCallPart
-	| AgentToolResultPart;
+	| AgentToolResultPart
+	/** @see AgentSystemUpdatePart */
+	| AgentSystemUpdatePart;
 
 // =============================================================================
 // Messages and token usage
@@ -189,10 +191,45 @@ export interface AgentTool<TInput = unknown, TOutput = unknown>
 
 export interface AgentModelRequest {
 	systemPrompt?: string;
+	/**
+	 * Additional system parts that are composed with `systemPrompt` at
+	 * request time. Each part can carry cache hints and metadata for
+	 * advanced provider-specific behaviour.
+	 *
+	 * Ported from OpenCode's SystemPart model.
+	 */
+	systemParts?: readonly SystemPart[];
 	messages: readonly AgentMessage[];
 	tools: readonly AgentToolDefinition[];
 	signal?: AbortSignal;
 	options?: Record<string, unknown>;
+}
+
+/**
+ * A structured system prompt part — ported from OpenCode's LLM prompt model.
+ *
+ * Supports text parts with optional cache hints and metadata for
+ * provider-native system prompt handling.
+ */
+export interface SystemPart {
+	type: "text";
+	text: string;
+	cache?: "ephemeral" | "persistent";
+	metadata?: Record<string, unknown>;
+}
+
+/**
+ * A chronological system update content block that applies from its
+ * position in history onward.
+ *
+ * On providers that natively support chronological system messages
+ * (e.g. Anthropic Claude Opus 4.8), these are sent as native system
+ * messages. Otherwise they are rendered as a stable wrapped text
+ * representation: `<system-update>...</system-update>`.
+ */
+export interface AgentSystemUpdatePart {
+	type: "system-update";
+	text: string;
 }
 
 export interface AgentRuntimePrepareTurnContext {
@@ -202,6 +239,8 @@ export interface AgentRuntimePrepareTurnContext {
 	iteration: number;
 	messages: readonly AgentMessage[];
 	systemPrompt?: string;
+	/** Optional system parts for advanced prompt composition. */
+	systemParts?: readonly SystemPart[];
 	tools: readonly AgentToolDefinition[];
 	model: {
 		id?: string;
@@ -218,6 +257,8 @@ export interface AgentRuntimePrepareTurnContext {
 export interface AgentRuntimePrepareTurnResult {
 	messages?: readonly AgentMessage[];
 	systemPrompt?: string;
+	/** System parts to include in the next model request. */
+	systemParts?: readonly SystemPart[];
 }
 
 export type AgentModelFinishReason =
@@ -279,6 +320,7 @@ export interface AgentBeforeModelResult {
 	reason?: string;
 	messages?: readonly AgentMessage[];
 	tools?: readonly AgentToolDefinition[];
+	systemParts?: readonly SystemPart[];
 	options?: Record<string, unknown>;
 }
 
@@ -414,6 +456,13 @@ export interface AgentRuntimeConfig {
 	parentAgentId?: string | null;
 	agentRole?: AgentRole;
 	systemPrompt?: string;
+	/**
+	 * Additional structured system prompt parts, ported from OpenCode's
+	 * SystemPart model. Composed with `systemPrompt` at request time.
+	 * Each part can carry cache hints and metadata for advanced provider
+	 * handling.
+	 */
+	systemParts?: readonly SystemPart[];
 	messageModelInfo?: AgentMessage["modelInfo"];
 	model: AgentModel;
 	modelOptions?: Record<string, unknown>;

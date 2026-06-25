@@ -219,6 +219,41 @@ export { validateWithZod, zodToJsonSchema } from "./parse/zod";
 export type { ClineSystemPromptOptions } from "./prompt/cline";
 export { buildClineSystemPrompt, processWorkspaceInfo } from "./prompt/cline";
 export {
+	buildSystemPrompt,
+	normalizeSystemInput,
+	renderSystemPart,
+	renderSystemParts,
+	systemText,
+	systemUpdate,
+	wrapSystemUpdate,
+	isWrappedSystemUpdate,
+	unwrapSystemUpdate,
+} from "./prompt/system-part";
+export type {
+	SystemUpdateContent,
+} from "./prompt/system-part";
+export type {
+	AnyEnhancedTool,
+	DispatchResult,
+	EnhancedTool,
+	EnhancedTools,
+	ToolCallInfo,
+	ToolChoice as ToolChoiceType,
+	ToolChoiceMode,
+	ToolDefinitionShape,
+	ToolExecuteFn,
+	ToolOutputContent,
+	ToolSettlement,
+} from "./tools/definition";
+export {
+	ToolChoice,
+	make as makeTool,
+	makeDynamic,
+	toDefinitions as toolToDefinitions,
+	fromAgentTool,
+} from "./tools/definition";
+export { ToolRuntime } from "./tools/dispatch";
+export {
 	formatDisplayUserInput,
 	formatFileContentBlock,
 	formatUserCommandBlock,
