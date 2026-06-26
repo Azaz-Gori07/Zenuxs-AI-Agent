@@ -151,16 +151,13 @@ export function toModelEntriesFromKnownModels(
 }
 
 export function getOAuthProviderLabel(providerId: string): string {
-	if (providerId === "cline-pass") {
-		return "ClinePass";
+	switch (providerId) {
+		case "cline": return "Cline";
+		case "cline-pass": return "ClinePass";
+		case "zenuxs": return "Zenuxs";
+		case "openai-codex": return "ChatGPT";
+		default: return providerId;
 	}
-	if (providerId === "cline") {
-		return "Zenuxs";
-	}
-	if (providerId === "openai-codex") {
-		return "ChatGPT";
-	}
-	return providerId;
 }
 
 export function shouldUseFeaturedZenuxsModelPicker(providerId: string): boolean {

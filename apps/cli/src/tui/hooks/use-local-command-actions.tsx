@@ -2,6 +2,9 @@ import { useTerminalDimensions } from "@opentui/react";
 import type { ChoiceContext } from "@opentui-ui/dialog";
 import { useDialog } from "@opentui-ui/dialog/react";
 import { useCallback } from "react";
+import { rmSync, existsSync } from "node:fs";
+import { join } from "node:path";
+import { ProviderSettingsManager } from "@cline/core";
 import type { SlashCommandRegistry } from "../commands/slash-command-registry";
 import { resolveSlashCommand } from "../commands/slash-command-registry";
 import { ForkConfirmContent } from "../components/dialogs/fork-confirm";
@@ -174,6 +177,39 @@ export function useLocalCommandActions(input: {
 		}
 	}, [canForkSession, dialog, onFork, refocusTextarea, session]);
 
+	const logout = useCallback(async () => {
+		const manager = new ProviderSettingsManager();
+		const existing = manager.getProviderSettings("zenuxs");
+		if (existing) {
+			const { auth, ...rest } = existing;
+			manager.saveProviderSettings(rest, { setLastUsed: false });
+		}
+		session.appendEntry({
+			kind: "status",
+			text: "Logged out of Zenuxs. Restart the CLI to re-authenticate.",
+		});
+		session.setIsRunning(false);
+		setTimeout(() => session.requestExit(), 100);
+		setTimeout(onExit, 1000);
+	}, [session, onExit]);
+
+	const clearData = useCallback(async () => {
+		const dataDir = join(
+			process.env.XDG_DATA_HOME?.trim() ||
+				join(process.env.USERPROFILE?.trim() || "", ".zenuxs", "data"),
+		);
+		if (existsSync(dataDir)) {
+			rmSync(dataDir, { recursive: true, force: true });
+		}
+		session.appendEntry({
+			kind: "status",
+			text: "Local data cleared. Restart the CLI to re-authenticate.",
+		});
+		session.setIsRunning(false);
+		setTimeout(() => session.requestExit(), 100);
+		setTimeout(onExit, 1000);
+	}, [session, onExit]);
+
 	const handleSlashCommand = useCallback(
 		(command: string, invocation?: LocalSlashCommandInvocation) => {
 			const resolved = resolveSlashCommand(slashCommandRegistry, command);
@@ -193,6 +229,8 @@ export function useLocalCommandActions(input: {
 				runFork,
 				runUndo: onUndo,
 				clearConversation: onClearConversation,
+				logout,
+				clearData,
 				openHelp,
 				openHistory,
 				exitCline: onExit,
@@ -212,6 +250,8 @@ export function useLocalCommandActions(input: {
 			openSkills,
 			runCompact,
 			runFork,
+			logout,
+			clearData,
 			slashCommandRegistry,
 		],
 	);

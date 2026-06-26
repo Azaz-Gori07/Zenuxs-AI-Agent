@@ -23,6 +23,8 @@ export type LocalSlashCommandName =
 	| "fork"
 	| "undo"
 	| "clear"
+	| "logout"
+	| "cleardata"
 	| "history"
 	| "quit"
 	| "help";
@@ -101,6 +103,14 @@ const TUI_LOCAL_COMMANDS: Array<{
 		description: "Start a new session",
 	},
 	{
+		name: "logout",
+		description: "Log out of Zenuxs account",
+	},
+	{
+		name: "cleardata",
+		description: "Clear all local settings and data",
+	},
+	{
 		name: "history",
 		description: "View session history",
 	},
@@ -126,6 +136,8 @@ const SYSTEM_COMMAND_ORDER = [
 	"fork",
 	"undo",
 	"clear",
+	"logout",
+	"cleardata",
 	"team",
 	"history",
 	"help",

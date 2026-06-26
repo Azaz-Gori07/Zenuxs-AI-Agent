@@ -54,6 +54,7 @@ export function isProviderConfigured(
 ): boolean {
 	if (!settings) return false;
 	if (isOAuthProvider(providerId)) {
+		if (settings.apiKey?.trim() && settings.baseUrl?.trim()) return true;
 		return Boolean(settings.auth?.accessToken?.trim());
 	}
 	if (getPersistedProviderApiKey(providerId, settings)) return true;

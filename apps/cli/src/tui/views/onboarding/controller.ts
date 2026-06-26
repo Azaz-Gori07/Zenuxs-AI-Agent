@@ -372,12 +372,14 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 		const apiBase = process.env.ZENUXS_CODE_API_URL?.trim() || "https://aiapi.zenuxs.in";
 		const proxyBaseUrl = `${apiBase}/api/zenuxs-code/proxy`;
 
-		// Save as "zenuxs" provider — preserves OAuth auth while adding proxy config
+		// Save as proxy-only provider — NO auth field so CLI treats it as a plain
+		// openai-compatible proxy, not an OAuth provider that needs token refresh.
 		const existing = providerSettingsManager.getProviderSettings("zenuxs");
+		const { auth, ...restSettings } = existing ?? {};
 		const providerId = "zenuxs";
 		providerSettingsManager.saveProviderSettings(
 			{
-				...existing?.settings,
+				...restSettings,
 				provider: providerId,
 				baseUrl: proxyBaseUrl,
 				apiKey: token,
@@ -477,6 +479,25 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 			const provider = providers.find((p) => p.id === providerId);
 			if (!provider) return;
 			if (provider.isOAuth) {
+				if (provider.id === "zenuxs") {
+					const existing = providerSettingsManager.getProviderSettings("zenuxs");
+					const token = existing?.auth?.accessToken;
+					if (token) {
+						setStep("zenuxs_providers");
+						setCloudProviders([]);
+						setCloudProvidersLoading(true);
+						setCloudProviderError("");
+						setCloudProviderSelected(0);
+						fetchAiModels(token)
+							.then((models) => {
+								if (models.length > 0) setCloudProviders(models);
+								else setStep("byo_provider");
+							})
+							.catch(() => setStep("byo_provider"))
+							.finally(() => setCloudProvidersLoading(false));
+						return;
+					}
+				}
 				if (isOnboardingOAuthProviderId(provider.id)) {
 					startOAuthFlow(provider.id);
 				}
@@ -547,7 +568,17 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 			setByoFocusedField(firstField ?? "apiKey");
 			setStep("byo_apikey");
 		},
-		[providers, startOAuthFlow, refreshCodexCliStatus, providerSettingsManager],
+		[
+			providers,
+			startOAuthFlow,
+			refreshCodexCliStatus,
+			providerSettingsManager,
+			setStep,
+			setCloudProviders,
+			setCloudProvidersLoading,
+			setCloudProviderError,
+			setCloudProviderSelected,
+		],
 	);
 
 	const saveCodexCliConfig = useCallback(() => {

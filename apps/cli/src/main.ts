@@ -944,22 +944,27 @@ export async function runCli(): Promise<void> {
 		const providedApiKey = args.key?.trim() || undefined;
 		let apiKey = providedApiKey || persistedApiKey || undefined;
 
-		// "zenuxs" is an identity/auth provider, not an LLM provider.
-		// If the user passes -p zenuxs (or it's the last-used provider),
-		// redirect to the real LLM provider.
+		// "zenuxs" can be an LLM provider configured via selectCloudProvider
+		// (proxy with apiKey=JWT + baseUrl) OR an identity/auth provider.
+		// If it has apiKey and baseUrl, treat it as an LLM provider directly.
 		if (provider === "zenuxs") {
-			const fallbackProvider =
-				lastUsedProviderSettings?.provider &&
-				lastUsedProviderSettings.provider !== "zenuxs"
-					? lastUsedProviderSettings.provider
-					: undefined;
-			provider = normalizeProviderId(fallbackProvider || "cline");
-			selectedProviderSettings =
-				providerSettingsManager.getProviderSettings(provider);
-			apiKey =
-				providedApiKey ||
-				getPersistedProviderApiKey(provider, selectedProviderSettings) ||
-				undefined;
+			const zenuxsHasProxyConfig =
+				selectedProviderSettings?.apiKey &&
+				selectedProviderSettings?.baseUrl;
+			if (!zenuxsHasProxyConfig) {
+				const fallbackProvider =
+					lastUsedProviderSettings?.provider &&
+					lastUsedProviderSettings.provider !== "zenuxs"
+						? lastUsedProviderSettings.provider
+						: undefined;
+				provider = normalizeProviderId(fallbackProvider || "cline");
+				selectedProviderSettings =
+					providerSettingsManager.getProviderSettings(provider);
+				apiKey =
+					providedApiKey ||
+					getPersistedProviderApiKey(provider, selectedProviderSettings) ||
+					undefined;
+			}
 		}
 
 		const isYoloMode = args.mode === "yolo";

@@ -1,13 +1,7 @@
 {
-<<<<<<< HEAD
-	"name": "zenuxs-code",
-	"displayName": "zenuxs code",
-	"version": "1.2.2",
-=======
 	"name": "zenuxs",
 	"displayName": "zenuxs",
 	"version": "3.0.29",
->>>>>>> 9de1fd736c062736885272bb114b455331ead98a
 	"description": "Autonomous coding agent CLI - capable of creating/editing files, running commands, using the browser, and more",
 	"type": "module",
 	"publishConfig": {

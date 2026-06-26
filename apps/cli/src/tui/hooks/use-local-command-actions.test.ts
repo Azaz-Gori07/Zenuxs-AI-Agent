@@ -19,6 +19,8 @@ function makeActions(
 		runFork: vi.fn(),
 		runUndo: vi.fn(async () => {}),
 		clearConversation: vi.fn(async () => {}),
+		logout: vi.fn(async () => {}),
+		clearData: vi.fn(async () => {}),
 		openHelp: vi.fn(),
 		openHistory: vi.fn(),
 		exitCline: vi.fn(),

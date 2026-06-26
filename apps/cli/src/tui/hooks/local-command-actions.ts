@@ -14,6 +14,8 @@ export interface LocalSlashCommandActionInput {
 	runFork: () => void;
 	runUndo: () => Promise<void>;
 	clearConversation: () => Promise<void>;
+	logout: () => Promise<void>;
+	clearData: () => Promise<void>;
 	openHelp: () => void;
 	openHistory: () => void;
 	exitCline: () => void;
@@ -63,6 +65,12 @@ export function runLocalSlashCommandAction(
 	}
 	if (normalized === "clear") {
 		return input.clearConversation().then(() => true);
+	}
+	if (normalized === "logout") {
+		return input.logout().then(() => true);
+	}
+	if (normalized === "cleardata") {
+		return input.clearData().then(() => true);
 	}
 	if (normalized === "help") {
 		input.openHelp();
