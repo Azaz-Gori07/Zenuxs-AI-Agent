@@ -1,4 +1,4 @@
-import {
+﻿import {
 	copyFileSync,
 	cpSync,
 	existsSync,
@@ -17,10 +17,10 @@ function defineProcessEnv(name: string): string {
 const sourcemap = Bun.env.CLINE_SOURCEMAPS === "1" ? "linked" : "none";
 const rootDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(rootDir, "../../");
-const hubWebviewSourcePath = join(repoRoot, "apps/cline-hub/src/webview");
-const hubWebviewDistPath = join(repoRoot, "apps/cline-hub/dist/webview");
+const hubWebviewSourcePath = join(repoRoot, "apps/zenuxs-hub/src/webview");
+const hubWebviewDistPath = join(repoRoot, "apps/zenuxs-hub/dist/webview");
 const hubWebviewIndexPath = join(hubWebviewDistPath, "index.html");
-const cliHubWebviewDistPath = join(rootDir, "dist/cline-hub/webview");
+const cliHubWebviewDistPath = join(rootDir, "dist/zenuxs-hub/webview");
 
 function newestFileMtimeMs(dir: string): number {
 	let newest = 0;
@@ -58,7 +58,7 @@ function shouldBuildHubWebview(): boolean {
 
 if (shouldBuildHubWebview()) {
 	console.log("Building Cline Hub webview...");
-	await $`bun -F @cline/cline-hub build:webview`.cwd(repoRoot);
+	await $`bun -F @zenuxs/zenuxs-hub build:webview`.cwd(repoRoot);
 }
 
 const result = await Bun.build({

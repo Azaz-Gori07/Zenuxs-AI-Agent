@@ -7,7 +7,7 @@ import {
 	resolveSharedHubOwnerContext,
 	stopLocalHubServerGracefully,
 } from "@cline/core";
-import { formatUptime, resolveClineBuildEnv } from "@cline/shared";
+import { formatUptime, resolveZenuxsBuildEnv } from "@cline/shared";
 import { Command } from "commander";
 
 interface HubCommandIo {
@@ -48,7 +48,7 @@ function formatHubUptimeFromStartedAt(
 }
 
 function resolveCliHubOwnerContext() {
-	return resolveClineBuildEnv() === "production"
+	return resolveZenuxsBuildEnv() === "production"
 		? resolveProductionHubOwnerContext()
 		: resolveSharedHubOwnerContext();
 }

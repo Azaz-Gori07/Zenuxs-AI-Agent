@@ -1,6 +1,6 @@
 # CLI Distribution
 
-The Cline CLI (`cline`) is distributed as compiled binaries via npm. Users run `npm i -g cline` and get a working `cline` command without needing Bun, Zig, or any other runtime installed.
+The Cline CLI (`zenuxs`) is distributed as compiled binaries via npm. Users run `npm i -g cline` and get a working `zenuxs` command without needing Bun, Zig, or any other runtime installed.
 
 ## Why Compiled Binaries?
 
@@ -35,7 +35,7 @@ Each platform package contains a compiled binary and a minimal `package.json` wi
   "os": ["darwin"],
   "cpu": ["arm64"],
   "bin": {
-    "cline": "bin/cline"
+    "zenuxs": "bin/zenuxs"
   }
 }
 ```
@@ -49,7 +49,7 @@ The `cline` wrapper package contains no binary -- just the resolver script, post
   "name": "cline",
   "version": "0.1.0",
   "bin": {
-    "cline": "./bin/cline"
+    "zenuxs": "./bin/zenuxs"
   },
   "scripts": {
     "postinstall": "node ./postinstall.mjs || true"
@@ -65,14 +65,14 @@ The `cline` wrapper package contains no binary -- just the resolver script, post
 }
 ```
 
-After installing, users run `cline`:
+After installing, users run `zenuxs`:
 
 ```bash
 npm i -g cline
 
-cline              # interactive mode
-cline "prompt"     # single-prompt mode
-cline auth         # authenticate a provider
+zenuxs              # interactive mode
+zenuxs "prompt"     # single-prompt mode
+zenuxs auth         # authenticate a provider
 ```
 
 ## How to Publish
@@ -156,10 +156,10 @@ postinstall script runs:
   - Creates a cached hard link for fast startup
   |
   v
-User runs: cline
+User runs: zenuxs
   |
   v
-bin/cline (Node.js resolver) executes:
+bin/zenuxs (Node.js resolver) executes:
   1. Check CLINE_BIN_PATH env var override
   2. Check cached binary at bin/.cline
   3. Walk up node_modules for the platform package
@@ -171,7 +171,7 @@ bin/cline (Node.js resolver) executes:
 ```
 apps/cli/
   bin/
-    cline                   # Node.js resolver script (npm entry point)
+    zenuxs                   # Node.js resolver script (npm entry point)
   script/
     build.ts                # Cross-compile for all platforms
     publish-npm.ts          # npm publish orchestration
@@ -199,7 +199,7 @@ Cross-compiles the CLI for all target platforms:
 3. For each target platform:
    - Runs `bun build --compile --target bun-{os}-{arch}` to create a standalone executable
    - Generates a `package.json` with `os` and `cpu` fields for npm platform filtering
-   - Runs a smoke test on the current platform's binary (`cline --version`)
+    - Runs a smoke test on the current platform's binary (`zenuxs --version`)
    - Copies the plugin sandbox bootstrap file if present
 
 Flags:
@@ -215,7 +215,7 @@ Orchestrates publishing all packages to npm:
 1. Reads built packages from `dist/`
 2. Publishes all 6 platform packages in parallel (`@cline/cli-darwin-arm64`, etc.)
 3. Generates a clean main package (`cline`) with:
-   - `bin.cline` pointing to the resolver script
+   - `bin.zenuxs` pointing to the resolver script
    - `postinstall` running the binary caching script
    - `optionalDependencies` listing all platform packages
 4. Publishes the generated `cline` wrapper package
@@ -224,9 +224,9 @@ Platform packages must be published before the generated `cline` wrapper package
 
 The publish script generates a separate `package.json` for the published `cline` wrapper package. The development `package.json` (with `bin` pointing to `src/index.ts` for `bun link`) is never published directly.
 
-## Binary Resolver (`bin/cline`)
+## Binary Resolver (`bin/zenuxs`)
 
-A Node.js script that serves as the entry point when users run `cline`. It finds and executes the correct platform-specific binary.
+A Node.js script that serves as the entry point when users run `zenuxs`. It finds and executes the correct platform-specific binary.
 
 The shebang is `#!/usr/bin/env node` because Node.js is guaranteed to be available wherever npm is. The resolver uses only CommonJS (`require`) and Node.js APIs -- no `bun:` imports or Bun-specific APIs. It then spawns the compiled binary which has Bun embedded.
 
@@ -250,8 +250,8 @@ During development, `bin` in package.json points to `src/index.ts` for `bun link
 | Mode | bin target | Runtime | Needs Bun? |
 |---|---|---|---|
 | `bun run dev` | src/index.ts | Bun (source) | Yes |
-| `bun link` + `cline` | src/index.ts | Bun (source) | Yes |
-| `npm i -g cline` | bin/cline resolver | Compiled binary | No |
+| `bun link` + `zenuxs` | src/index.ts | Bun (source) | Yes |
+| `npm i -g cline` | bin/zenuxs resolver | Compiled binary | No |
 
 ## Gotchas
 

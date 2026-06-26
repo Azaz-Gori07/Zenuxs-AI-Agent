@@ -5,7 +5,7 @@ import {
 } from "@cline/core";
 import { byLengthAsc, Fzf, type FzfResultItem } from "fzf";
 import type { Config } from "../utils/types";
-import { formatClineCredits, loadClineAccountSnapshot } from "./cline-account";
+import { formatZenuxsCredits, loadZenuxsAccountSnapshot } from "./zenuxs-account";
 
 export interface InteractiveSlashCommand {
 	name: string;
@@ -176,10 +176,10 @@ export async function resolveClineWelcomeLine(input: {
 		return undefined;
 	}
 	try {
-		const snapshot = await loadClineAccountSnapshot(input);
+		const snapshot = await loadZenuxsAccountSnapshot(input);
 		const parts = [
 			snapshot.user.email,
-			`Credits: ${formatClineCredits(snapshot.displayedBalance)}`,
+			`Credits: ${formatZenuxsCredits(snapshot.displayedBalance)}`,
 		];
 		if (snapshot.activeOrganization?.name.trim()) {
 			parts.push(snapshot.activeOrganization.name);

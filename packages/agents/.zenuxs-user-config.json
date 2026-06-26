@@ -1,0 +1,24 @@
+{
+  "userId": "user_X__RcpNIvI",
+  "mcpServers": [
+    {
+      "name": "filesystem",
+      "transport": {
+        "type": "stdio",
+        "command": "mcp-server-filesystem",
+        "args": ["D:\\V3\\zenuxs-code\\packages\\agents"]
+      }
+    },
+    {
+      "name": "github",
+      "transport": {
+        "type": "stdio",
+        "command": "mcp-server-github",
+        "args": [],
+        "env": {
+          "GITHUB_TOKEN": ""
+        }
+      }
+    }
+  ]
+}

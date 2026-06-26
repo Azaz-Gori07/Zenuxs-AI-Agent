@@ -10,6 +10,9 @@
 	"dependencies": {
 		"@cline/llms": "workspace:*",
 		"@cline/shared": "workspace:*",
+		"@modelcontextprotocol/sdk": "^1.29.0",
+		"@modelcontextprotocol/server-filesystem": "^2026.1.14",
+		"@modelcontextprotocol/server-github": "^2025.4.8",
 		"nanoid": "^5.1.7"
 	},
 	"exports": {

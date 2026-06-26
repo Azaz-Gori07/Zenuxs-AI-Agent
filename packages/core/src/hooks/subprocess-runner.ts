@@ -1,7 +1,7 @@
 import { spawn } from "node:child_process";
 import {
 	augmentNodeCommandForDebug,
-	withResolvedClineBuildEnv,
+	withResolvedZenuxsBuildEnv,
 } from "@cline/shared";
 
 export interface RunSubprocessEventOptions {
@@ -122,7 +122,7 @@ export async function runSubprocessEvent(
 	const detached = !!options.detached;
 	const child = spawn(command[0], command.slice(1), {
 		cwd: options.cwd,
-		env: withResolvedClineBuildEnv(options.env),
+		env: withResolvedZenuxsBuildEnv(options.env),
 		stdio: detached ? ["pipe", "ignore", "ignore"] : ["pipe", "pipe", "pipe"],
 		detached,
 		// Prevent a console window from flashing on Windows (especially when

@@ -5,6 +5,9 @@
  *
  */
 
+/** Default maximum loop iterations when none is configured. */
+export const DEFAULT_MAX_ITERATIONS = 50;
+
 import type { ModelInfo } from "./llms/model-info";
 import type {
 	ToolApprovalRequest,
@@ -473,7 +476,7 @@ export interface AgentRuntimeConfig {
 	logger?: BasicLogger;
 	telemetry?: ITelemetryService;
 	initialMessages?: readonly AgentMessage[];
-	maxIterations?: number;
+	maxIterations: number;
 	completionPolicy?: {
 		requireCompletionTool?: boolean;
 		completionGuard?: () => string | undefined;

@@ -1,5 +1,5 @@
 import { AgentRuntimeAbortError } from "@cline/agents";
-import { initVcr, resolveClineBuildEnv } from "@cline/shared";
+import { initVcr, resolveZenuxsBuildEnv } from "@cline/shared";
 import { createLocalHubScheduleRuntimeHandlers } from "../daemon/runtime-handlers";
 import { resolveHubEndpointOptions } from "../discovery/defaults";
 import {
@@ -66,7 +66,7 @@ async function main(): Promise<void> {
 		port: endpoint.port,
 		pathname: endpoint.pathname,
 		owner:
-			resolveClineBuildEnv() === "production"
+			resolveZenuxsBuildEnv() === "production"
 				? resolveProductionHubOwnerContext()
 				: resolveSharedHubOwnerContext(),
 		runtimeHandlers: createLocalHubScheduleRuntimeHandlers(),

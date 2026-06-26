@@ -1,7 +1,7 @@
 import {
 	type BasicLogger,
 	captureExtensionActivated,
-	createClineTelemetryServiceConfig,
+	createZenuxsTelemetryServiceConfig,
 	createConfiguredTelemetryHandle,
 	type ITelemetryService,
 	identifyAccount,
@@ -32,7 +32,7 @@ export function getCliTelemetryService(
 ): ITelemetryService {
 	if (!telemetrySingleton) {
 		const { version, name, os_type, os_version } = getCliBuildInfo();
-		const config = createClineTelemetryServiceConfig({
+		const config = createZenuxsTelemetryServiceConfig({
 			metadata: {
 				extension_version: version,
 				cline_type: "cli",

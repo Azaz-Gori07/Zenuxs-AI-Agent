@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
 	getMainMenuOptions,
 	getOAuthProviderLabel,
-	shouldUseFeaturedClineModelPicker,
+	shouldUseFeaturedZenuxsModelPicker,
 	toModelEntriesFromKnownModels,
 	toModelEntry,
 	toProviderEntry,
@@ -129,8 +129,8 @@ describe("onboarding model helpers", () => {
 	});
 
 	it("	uses the featured Zenuxs model picker only for the Zenuxs provider", () => {
-		expect(shouldUseFeaturedClineModelPicker("cline")).toBe(true);
-		expect(shouldUseFeaturedClineModelPicker("cline-pass")).toBe(false);
-		expect(shouldUseFeaturedClineModelPicker("anthropic")).toBe(false);
+		expect(shouldUseFeaturedZenuxsModelPicker("cline")).toBe(true);
+		expect(shouldUseFeaturedZenuxsModelPicker("cline-pass")).toBe(false);
+		expect(shouldUseFeaturedZenuxsModelPicker("anthropic")).toBe(false);
 	});
 });

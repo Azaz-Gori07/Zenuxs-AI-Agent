@@ -14,14 +14,14 @@ export {
 	FEATURE_FLAGS,
 	FeatureFlagDefaultValue,
 } from "@cline/shared";
-export { ClineCore } from "./ClineCore";
+export { ZenuxsCore } from "./ZenuxsCore";
 export type {
-	ClineCoreListHistoryOptions,
-	ClineCoreOptions,
-	ClineCoreStartInput,
+	ZenuxsCoreListHistoryOptions,
+	ZenuxsCoreOptions,
+	ZenuxsCoreStartInput,
 	HubOptions,
 	RemoteOptions,
-} from "./cline-core/types";
+} from "./engine/types";
 export type {
 	LoadAgentPluginFromPathOptions,
 	ResolveAgentPluginPathsOptions,

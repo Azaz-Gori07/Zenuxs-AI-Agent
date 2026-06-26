@@ -264,8 +264,8 @@ describe("LocalRuntimeHost", () => {
 			}),
 		);
 
-		// `session.started` is emitted from `ClineCore.start` (see
-		// `ClineCore.test.ts`), not from `LocalRuntimeHost`, so that the
+		// `session.started` is emitted from `ZenuxsCore.start` (see
+		// `ZenuxsCore.test.ts`), not from `LocalRuntimeHost`, so that the
 		// signal fires for every backend. We assert that it is NOT emitted
 		// here and only transport-scoped events remain.
 		expect(adapter.emit).not.toHaveBeenCalledWith(

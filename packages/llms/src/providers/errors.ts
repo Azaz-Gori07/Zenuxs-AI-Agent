@@ -1,4 +1,4 @@
-import { getClineEnvironmentConfig } from "@cline/shared";
+import { getZenuxsEnvironmentConfig } from "@cline/shared";
 
 export const CLINE_NOT_SUBSCRIBED_RESPONSE_MESSAGE =
 	"the user is not subscribed to required model plan";
@@ -6,7 +6,7 @@ export const CLINE_NOT_SUBSCRIBED_RESPONSE_MESSAGE =
 export function getClinePassSubscriptionUrl(): string {
 	return `${new URL(
 		"/dashboard/subscription",
-		getClineEnvironmentConfig().appBaseUrl,
+		getZenuxsEnvironmentConfig().appBaseUrl,
 	).toString()}/`;
 }
 

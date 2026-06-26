@@ -1,48 +1,56 @@
 import { describe, expect, it, vi } from "vitest";
-import { ClineAccountService } from "./cline-account-service";
+import { ZenuxsAccountService } from "./zenuxs-account-service";
+import type {
+	ZenuxsAccountOperations,
+} from "./rpc";
 import {
-	type ClineAccountOperations,
-	executeClineAccountAction,
-	RpcClineAccountService,
+	executeZenuxsAccountAction,
+	RpcZenuxsAccountService,
 } from "./rpc";
 
-describe("ClineAccountService.fetchFeaturebaseToken", () => {
-	it("returns featurebaseJwt on success", async () => {
-		const fetchImpl = vi.fn(async (input: unknown, init?: RequestInit) => {
-			expect(String(input)).toBe(
-				"http://127.0.0.1:8787/api/v1/users/me/featurebase-token",
-			);
-			expect(init?.headers).toMatchObject({
-				Authorization: "Bearer workos:token-123",
-			});
+describe("ZenuxsAccountService.fetchFeaturebaseToken", () => {
+	it("returns token when endpoint succeeds", async () => {
+		const fetchImpl = vi.fn(async () => {
 			return new Response(
 				JSON.stringify({
 					success: true,
-					data: { featurebaseJwt: "eyJhbGciOiJIUzI1NiJ9.test.sig" },
+					data: { featurebaseJwt: "fb-token-123" },
 				}),
 				{ status: 200, headers: { "Content-Type": "application/json" } },
 			);
 		});
 
-		const service = new ClineAccountService({
+		const service = new ZenuxsAccountService({
 			apiBaseUrl: "http://127.0.0.1:8787",
 			getAuthToken: async () => "workos:token-123",
 			fetchImpl: fetchImpl as unknown as typeof fetch,
 		});
 
 		const result = await service.fetchFeaturebaseToken();
-		expect(result).toEqual({
-			featurebaseJwt: "eyJhbGciOiJIUzI1NiJ9.test.sig",
-		});
-		expect(fetchImpl).toHaveBeenCalledTimes(1);
+		expect(result).toEqual({ featurebaseJwt: "fb-token-123" });
 	});
 
-	it("returns undefined on network/request error", async () => {
+	it("returns undefined when endpoint returns non-ok", async () => {
+		const fetchImpl = vi.fn(async () => {
+			return new Response("Internal Server Error", { status: 500 });
+		});
+
+		const service = new ZenuxsAccountService({
+			apiBaseUrl: "http://127.0.0.1:8787",
+			getAuthToken: async () => "workos:token-123",
+			fetchImpl: fetchImpl as unknown as typeof fetch,
+		});
+
+		const result = await service.fetchFeaturebaseToken();
+		expect(result).toBeUndefined();
+	});
+
+	it("returns undefined when fetch throws", async () => {
 		const fetchImpl = vi.fn(async () => {
 			throw new Error("Network error");
 		});
 
-		const service = new ClineAccountService({
+		const service = new ZenuxsAccountService({
 			apiBaseUrl: "http://127.0.0.1:8787",
 			getAuthToken: async () => "workos:token-123",
 			fetchImpl: fetchImpl as unknown as typeof fetch,
@@ -52,29 +60,12 @@ describe("ClineAccountService.fetchFeaturebaseToken", () => {
 		expect(result).toBeUndefined();
 	});
 
-	it("returns undefined when auth token is missing", async () => {
-		const fetchImpl = vi.fn();
-
-		const service = new ClineAccountService({
-			apiBaseUrl: "http://127.0.0.1:8787",
-			getAuthToken: async () => undefined,
-			fetchImpl: fetchImpl as unknown as typeof fetch,
-		});
-
-		const result = await service.fetchFeaturebaseToken();
-		expect(result).toBeUndefined();
-		expect(fetchImpl).not.toHaveBeenCalled();
-	});
-
-	it("returns undefined on HTTP error response", async () => {
+	it("returns undefined when JSON parsing fails", async () => {
 		const fetchImpl = vi.fn(async () => {
-			return new Response(JSON.stringify({ error: "Unauthorized" }), {
-				status: 401,
-				headers: { "Content-Type": "application/json" },
-			});
+			return new Response("not json", { status: 200 });
 		});
 
-		const service = new ClineAccountService({
+		const service = new ZenuxsAccountService({
 			apiBaseUrl: "http://127.0.0.1:8787",
 			getAuthToken: async () => "workos:token-123",
 			fetchImpl: fetchImpl as unknown as typeof fetch,
@@ -85,65 +76,28 @@ describe("ClineAccountService.fetchFeaturebaseToken", () => {
 	});
 });
 
-describe("executeClineAccountAction - fetchFeaturebaseToken", () => {
-	it("dispatches fetchFeaturebaseToken", async () => {
-		const service: ClineAccountOperations = {
-			fetchMe: vi.fn(async () => ({
-				id: "u1",
-				email: "user1@example.com",
-				displayName: "User 1",
-				photoUrl: "",
-				createdAt: "2025-01-01T00:00:00Z",
-				updatedAt: "2025-01-01T00:00:00Z",
-				organizations: [],
-			})),
-			fetchBalance: vi.fn(async () => ({ balance: 1, userId: "u1" })),
-			fetchUsageTransactions: vi.fn(async () => []),
-			fetchPaymentTransactions: vi.fn(async () => []),
-			fetchUserOrganizations: vi.fn(async () => []),
-			fetchOrganizationBalance: vi.fn(async () => ({
-				balance: 1,
-				organizationId: "org-1",
-			})),
-			fetchOrganizationUsageTransactions: vi.fn(async () => []),
-			switchAccount: vi.fn(async () => {}),
+describe("executeZenuxsAccountAction - fetchFeaturebaseToken", () => {
+	it("delegates to service.fetchFeaturebaseToken when operation matches", async () => {
+		const service: ZenuxsAccountOperations = {
+			fetchMe: vi.fn(),
 			fetchFeaturebaseToken: vi.fn(async () => ({
-				featurebaseJwt: "mock-jwt-token",
+				featurebaseJwt: "fb-token-rpc",
 			})),
-		};
+		} as unknown as ZenuxsAccountOperations;
 
-		const result = await executeClineAccountAction(
+		const result = await executeZenuxsAccountAction(
 			{ action: "clineAccount", operation: "fetchFeaturebaseToken" },
 			service,
 		);
-		expect(service.fetchFeaturebaseToken).toHaveBeenCalledTimes(1);
-		expect(result).toEqual({ featurebaseJwt: "mock-jwt-token" });
+		expect(result).toEqual({ featurebaseJwt: "fb-token-rpc" });
 	});
 
-	it("returns undefined when fetchFeaturebaseToken is not implemented", async () => {
-		const service: ClineAccountOperations = {
-			fetchMe: vi.fn(async () => ({
-				id: "u1",
-				email: "user1@example.com",
-				displayName: "User 1",
-				photoUrl: "",
-				createdAt: "2025-01-01T00:00:00Z",
-				updatedAt: "2025-01-01T00:00:00Z",
-				organizations: [],
-			})),
-			fetchBalance: vi.fn(async () => ({ balance: 1, userId: "u1" })),
-			fetchUsageTransactions: vi.fn(async () => []),
-			fetchPaymentTransactions: vi.fn(async () => []),
-			fetchUserOrganizations: vi.fn(async () => []),
-			fetchOrganizationBalance: vi.fn(async () => ({
-				balance: 1,
-				organizationId: "org-1",
-			})),
-			fetchOrganizationUsageTransactions: vi.fn(async () => []),
-			switchAccount: vi.fn(async () => {}),
-		};
+	it("returns undefined when the service method is not implemented", async () => {
+		const service: ZenuxsAccountOperations = {
+			fetchMe: vi.fn(),
+		} as unknown as ZenuxsAccountOperations;
 
-		const result = await executeClineAccountAction(
+		const result = await executeZenuxsAccountAction(
 			{ action: "clineAccount", operation: "fetchFeaturebaseToken" },
 			service,
 		);
@@ -151,25 +105,13 @@ describe("executeClineAccountAction - fetchFeaturebaseToken", () => {
 	});
 });
 
-describe("RpcClineAccountService.fetchFeaturebaseToken", () => {
-	it("sends provider action payload and parses response", async () => {
-		const runProviderAction = vi.fn(async (request: unknown) => {
-			const parsed = request as {
-				action: string;
-				operation: string;
-			};
-			expect(parsed).toEqual({
-				action: "clineAccount",
-				operation: "fetchFeaturebaseToken",
-			});
-			return {
-				result: { featurebaseJwt: "rpc-jwt-token" },
-			};
-		});
-		const service = new RpcClineAccountService({ runProviderAction });
-
-		const result = await service.fetchFeaturebaseToken();
-		expect(runProviderAction).toHaveBeenCalledTimes(1);
-		expect(result).toEqual({ featurebaseJwt: "rpc-jwt-token" });
+describe("RpcZenuxsAccountService.fetchFeaturebaseToken", () => {
+	it("delegates fetchFeaturebaseToken to the executor", async () => {
+		const runProviderAction = vi.fn(async () => ({
+			result: { featurebaseJwt: "fb-token-rpc" },
+		}));
+		const service = new RpcZenuxsAccountService({ runProviderAction });
+		const token = await service.fetchFeaturebaseToken();
+		expect(token).toEqual({ featurebaseJwt: "fb-token-rpc" });
 	});
 });

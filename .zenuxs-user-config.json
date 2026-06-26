@@ -1,0 +1,24 @@
+{
+  "userId": "user_zw_yJ0pkDG",
+  "mcpServers": [
+    {
+      "name": "filesystem",
+      "transport": {
+        "type": "stdio",
+        "command": "mcp-server-filesystem",
+        "args": ["D:\\V3\\zenuxs-code"]
+      }
+    },
+    {
+      "name": "github",
+      "transport": {
+        "type": "stdio",
+        "command": "mcp-server-github",
+        "args": [],
+        "env": {
+          "GITHUB_TOKEN": ""
+        }
+      }
+    }
+  ]
+}

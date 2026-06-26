@@ -86,17 +86,6 @@ function buildCachedAiSdkMessages(
 	return aiMessages;
 }
 
-async function ensureGatewayLangfuseTelemetry(
-	providerId: string,
-): Promise<boolean> {
-	try {
-		const runtime = await import("../services/langfuse-telemetry");
-		return runtime.ensureLangfuseTelemetry(providerId);
-	} catch {
-		return false;
-	}
-}
-
 function toAiSdkMessages(
 	messages: readonly AgentMessage[],
 	systemPrompt?: string,
@@ -921,9 +910,6 @@ function createAiSdkProvider(kind: ProviderModuleKind): GatewayProviderFactory {
 					},
 					context,
 				);
-				const langfuse = await ensureGatewayLangfuseTelemetry(
-					config.providerId,
-				);
 				const tools = providerDisablesExternalToolExecution(context)
 					? undefined
 					: toAiSdkTools(request);
@@ -961,9 +947,6 @@ function createAiSdkProvider(kind: ProviderModuleKind): GatewayProviderFactory {
 						? { maxOutputTokens: request.maxTokens }
 						: {}),
 					abortSignal: request.signal,
-					experimental_telemetry: {
-						isEnabled: langfuse,
-					},
 					providerOptions,
 					onError: ({ error: streamError }) => {
 						const msg = extractErrorMessage(streamError);

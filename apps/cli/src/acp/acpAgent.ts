@@ -23,7 +23,7 @@ import type {
 import { PROTOCOL_VERSION, RequestError } from "@agentclientprotocol/sdk";
 import {
 	type AgentEvent,
-	type ClineCore,
+	type ZenuxsCore,
 	Llms,
 	ProviderSettingsManager,
 	SessionSource,
@@ -62,7 +62,7 @@ interface SessionState {
 	/** Current model id for the session. */
 	currentModelId: string;
 	/** Active session manager for the running agent, if any. */
-	sessionManager?: ClineCore;
+	sessionManager?: ZenuxsCore;
 	/** Internal session id within the session manager. */
 	activeSessionId?: string;
 	/** Abort controller for the current prompt, if running. */

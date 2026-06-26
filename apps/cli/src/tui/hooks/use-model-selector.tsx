@@ -1,5 +1,5 @@
 import {
-	fetchClineRecommendedModels,
+	fetchZenuxsRecommendedModels,
 	Llms,
 	ProviderSettingsManager,
 	refreshProviderModelsFromSource,
@@ -10,11 +10,11 @@ import type { DialogActions } from "@opentui-ui/dialog/react";
 import { useCallback, useState } from "react";
 import type { Config } from "../../utils/types";
 import { withLoadingDialog } from "../components/dialogs/loading-dialog";
-import { buildClineModelEntries } from "../components/model-selector/cline-model-picker";
+import { buildZenuxsModelEntries } from "../components/model-selector/zenuxs-model-picker";
 import {
 	BROWSE_ALL_ACTION,
-	ClineModelSelectorDialogContent,
-} from "../components/model-selector/cline-model-selector";
+	ZenuxsModelSelectorDialogContent,
+} from "../components/model-selector/zenuxs-model-selector";
 import {
 	ModelIdInputContent,
 	type ModelOption,
@@ -146,13 +146,15 @@ export function useModelSelector(opts: {
 					const clineResult = await dialog.choice<string>({
 						style: { maxHeight: termHeight - 2 },
 						content: (ctx: ChoiceContext<string>) => (
-							<ClineModelSelectorDialogContent
+							<ZenuxsModelSelectorDialogContent
+
+							
 								{...ctx}
 								currentModel={config.modelId}
 								currentProviderName={providerDisplayName}
 								knownModels={config.knownModels as Record<string, unknown>}
 								loadEntries={async () =>
-									buildClineModelEntries(await fetchClineRecommendedModels())
+									buildZenuxsModelEntries(await fetchZenuxsRecommendedModels())
 								}
 							/>
 						),

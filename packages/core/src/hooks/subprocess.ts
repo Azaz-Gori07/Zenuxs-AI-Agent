@@ -224,7 +224,7 @@ function basePayload(
 	const userId = env.CLINE_USER_ID?.trim() || env.USER?.trim() || "unknown";
 	const workspaceRoot = options.cwd || process.cwd();
 	return {
-		clineVersion: env.CLINE_VERSION?.trim() || "",
+		clineVersion: env.ZENUXS_VERSION?.trim() || "",
 		hookName,
 		timestamp: new Date().toISOString(),
 		taskId: ctx.conversationId,

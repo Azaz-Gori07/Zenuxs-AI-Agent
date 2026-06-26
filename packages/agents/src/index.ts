@@ -47,6 +47,7 @@ export type {
 	AgentRuntimeConfig,
 	AgentRuntimeConfigWithModel,
 	AgentRuntimeConfigWithProvider,
+	IntegrationsConfig,
 } from "./agent-runtime";
 export {
 	Agent,

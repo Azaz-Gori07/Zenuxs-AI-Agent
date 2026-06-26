@@ -586,3 +586,13 @@ export function ensureHookLogDir(filePath?: string): string {
 	}
 	return dir;
 }
+
+/**
+ * Zenuxs-prefixed aliases for Cline-branded exports.
+ */
+export const ZENUXS_MCP_SETTINGS_FILE_NAME = CLINE_MCP_SETTINGS_FILE_NAME;
+export const setZenuxsDir = setClineDir;
+export const setZenuxsDirIfUnset = setClineDirIfUnset;
+export const resolveZenuxsDir = resolveClineDir;
+export const resolveZenuxsDataDir = resolveClineDataDir;
+export const resolveDocumentsZenuxsDirectoryPath = resolveDocumentsClineDirectoryPath;

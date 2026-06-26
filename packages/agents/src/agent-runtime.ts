@@ -30,6 +30,7 @@ import {
 	mergeModelOptions,
 } from "@cline/shared";
 import { nanoid } from "nanoid";
+import type { McpServerConfig } from "./mcp/types";
 
 // Local `createUID` helper. The clinee source imports this from
 // `@cline/shared` (see `packages/shared/dist/identifier.ts`), but
@@ -77,8 +78,17 @@ export type AgentEventListener = (event: AgentRuntimeEvent) => void;
  * `@cline/core`, which constructs models itself to share gateway/telemetry
  * wiring with the rest of the session runtime.
  */
+export interface IntegrationsConfig {
+	subagents?: boolean;
+	selfCritique?: boolean;
+}
+
 export interface AgentRuntimeConfigWithModel extends BaseAgentRuntimeConfig {
 	model: AgentModel;
+	/** MCP servers to connect for tool discovery */
+	mcpServers?: McpServerConfig[];
+	/** Feature flags for integrations (defaults: all true) */
+	integrations?: IntegrationsConfig;
 }
 
 /**
@@ -100,6 +110,10 @@ export interface AgentRuntimeConfigWithProvider
 	headers?: Record<string, string>;
 	/** Provider-specific gateway options */
 	options?: GatewayProviderSettings["options"];
+	/** MCP servers to connect for tool discovery */
+	mcpServers?: McpServerConfig[];
+	/** Feature flags for integrations (defaults: all true) */
+	integrations?: IntegrationsConfig;
 }
 
 /**
@@ -247,7 +261,7 @@ interface HookBag {
 	onEvent: NonNullable<AgentRuntimeHooks["onEvent"]>[];
 }
 
-class ControlledStopError extends Error {
+export class ControlledStopError extends Error {
 	readonly reason?: string;
 
 	constructor(reason?: string) {
@@ -366,7 +380,7 @@ function textFromMessage(message: AgentMessage | undefined): string {
 		.join("");
 }
 
-function textFromToolMessage(message: AgentMessage | undefined): string {
+export function textFromToolMessage(message: AgentMessage | undefined): string {
 	const result = message?.content.find(
 		(part): part is Extract<AgentMessagePart, { type: "tool-result" }> =>
 			part.type === "tool-result",

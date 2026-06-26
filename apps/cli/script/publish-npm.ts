@@ -320,7 +320,7 @@ const wrapperPackageJson = {
 	...(bugs ? { bugs } : {}),
 	...(sourceRepository ? { repository: sourceRepository } : {}),
 	bin: {
-		cline: "./bin/cline",
+		zenuxs: "./bin/zenuxs",
 	},
 	scripts: {
 		postinstall: "node ./postinstall.mjs || true",

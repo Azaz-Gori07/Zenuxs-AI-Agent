@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+﻿#!/usr/bin/env bun
 
 import {
 	cpSync,
@@ -103,8 +103,8 @@ if (!buildOptions.skipSdkBuild) {
 	await $`bun -F @cline/cli build`.cwd(rootDir);
 }
 
-const hubWebviewSource = join(cliDir, "../cline-hub/src/webview");
-const hubWebviewDist = join(cliDir, "../cline-hub/dist/webview");
+const hubWebviewSource = join(cliDir, "../zenuxs-hub/src/webview");
+const hubWebviewDist = join(cliDir, "../zenuxs-hub/dist/webview");
 const hubWebviewIndex = join(hubWebviewDist, "index.html");
 
 function newestFileMtimeMs(dir: string): number {
@@ -142,7 +142,7 @@ function shouldBuildHubWebview(): boolean {
 
 if (shouldBuildHubWebview()) {
 	console.log("Building Cline Hub webview...");
-	await $`bun -F @cline/cline-hub build:webview`.cwd(rootDir);
+	await $`bun -F @zenuxs/zenuxs-hub build:webview`.cwd(rootDir);
 }
 
 const binaries: Record<string, string> = {};
@@ -186,7 +186,7 @@ async function buildCompiledBinary(input: {
 	const tmpDir = join("/tmp", `cline-build-${input.dirName}`);
 	const tmpOutfile = join(
 		tmpDir,
-		input.outfile.endsWith(".exe") ? "cline.exe" : "cline",
+		input.outfile.endsWith(".exe") ? "zenuxs.exe" : "zenuxs",
 	);
 	mkdirSync(tmpDir, { recursive: true });
 
@@ -227,7 +227,7 @@ for (const item of targets) {
 	const displayOs = item.os === "win32" ? "windows" : item.os;
 	const name = `@cline/cli-${displayOs}-${item.arch}`;
 	const dirName = `cli-${displayOs}-${item.arch}`;
-	const binaryName = item.os === "win32" ? "cline.exe" : "cline";
+	const binaryName = item.os === "win32" ? "zenuxs.exe" : "zenuxs";
 	const bunTarget = getBunTarget(item);
 
 	console.log(`\nBuilding ${name} (target: ${bunTarget})...`);
@@ -269,8 +269,8 @@ for (const item of targets) {
 	}
 
 	if (existsSync(hubWebviewDist)) {
-		const hubWebviewDest = join(cliDir, `dist/${dirName}/cline-hub/webview`);
-		mkdirSync(join(cliDir, `dist/${dirName}/cline-hub`), {
+		const hubWebviewDest = join(cliDir, `dist/${dirName}/zenuxs-hub/webview`);
+		mkdirSync(join(cliDir, `dist/${dirName}/zenuxs-hub`), {
 			recursive: true,
 		});
 		cpSync(hubWebviewDist, hubWebviewDest, { recursive: true });
@@ -288,7 +288,7 @@ for (const item of targets) {
 				cpu: [item.arch],
 				...(repository ? { repository } : {}),
 				bin: {
-					cline: `bin/${binaryName}`,
+					zenuxs: `bin/${binaryName}`,
 				},
 			},
 			null,

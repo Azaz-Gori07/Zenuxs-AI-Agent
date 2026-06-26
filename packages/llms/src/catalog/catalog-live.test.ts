@@ -3,7 +3,7 @@ import {
 	getGeneratedModelsForProvider,
 	getGeneratedProviderModels,
 } from "./catalog.generated-access";
-import { normalizeClineRecommendedProviderModels } from "./catalog-cline-recommended";
+import { normalizeZenuxsRecommendedProviderModels } from "./catalog-zenuxs-recommended";
 import {
 	fetchModelsDevProviderModels,
 	type ModelsDevPayload,
@@ -13,7 +13,7 @@ import {
 
 describe("models-dev-catalog", () => {
 	it("normalizes Cline recommended clinePass models as a generated provider source", () => {
-		const result = normalizeClineRecommendedProviderModels(
+		const result = normalizeZenuxsRecommendedProviderModels(
 			{
 				clinePass: [
 					{
@@ -70,7 +70,7 @@ describe("models-dev-catalog", () => {
 	});
 
 	it("matches Cline recommended clinePass models against OpenRouter model names", () => {
-		const result = normalizeClineRecommendedProviderModels(
+		const result = normalizeZenuxsRecommendedProviderModels(
 			{
 				clinePass: [
 					{
@@ -105,9 +105,9 @@ describe("models-dev-catalog", () => {
 	});
 
 	it("returns no ClinePass models when clinePass is empty or missing", () => {
-		expect(normalizeClineRecommendedProviderModels({}, {})).toEqual({});
+		expect(normalizeZenuxsRecommendedProviderModels({}, {})).toEqual({});
 		expect(
-			normalizeClineRecommendedProviderModels({ clinePass: [] }, {}),
+			normalizeZenuxsRecommendedProviderModels({ clinePass: [] }, {}),
 		).toEqual({});
 	});
 

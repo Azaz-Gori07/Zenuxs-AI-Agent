@@ -1,6 +1,8 @@
 export const FeatureFlag = {
 	/** Enables ClinePass provider/model list exposure in supported clients. */
 	CLINE_PASS: "ext-cline-pass",
+	/** Zenuxs-prefixed alias. */
+	ZENUXS_PASS: "ext-cline-pass",
 } as const;
 
 export type KnownFeatureFlag = (typeof FeatureFlag)[keyof typeof FeatureFlag];

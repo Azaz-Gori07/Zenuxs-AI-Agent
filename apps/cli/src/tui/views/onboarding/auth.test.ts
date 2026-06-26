@@ -2,8 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const hoisted = vi.hoisted(() => ({
 	loginLocalProvider: vi.fn(),
-	startClineDeviceAuth: vi.fn(),
-	completeClineDeviceAuth: vi.fn(),
+	startZenuxsDeviceAuth: vi.fn(),
+	completeZenuxsDeviceAuth: vi.fn(),
 	saveLocalProviderOAuthCredentials: vi.fn(),
 	identifyFeatureFlagsAccount: vi.fn(async () => {}),
 	openMock: vi.fn(() => Promise.resolve()),
@@ -11,14 +11,14 @@ const hoisted = vi.hoisted(() => ({
 
 vi.mock("@cline/core", () => ({
 	loginLocalProvider: hoisted.loginLocalProvider,
-	startClineDeviceAuth: hoisted.startClineDeviceAuth,
-	completeClineDeviceAuth: hoisted.completeClineDeviceAuth,
+	startZenuxsDeviceAuth: hoisted.startZenuxsDeviceAuth,
+	completeZenuxsDeviceAuth: hoisted.completeZenuxsDeviceAuth,
 	saveLocalProviderOAuthCredentials: hoisted.saveLocalProviderOAuthCredentials,
 	ProviderSettingsManager: class {},
 }));
 
 vi.mock("@cline/shared", () => ({
-	getClineEnvironmentConfig: () => ({ apiBaseUrl: "https://api.example" }),
+	getZenuxsEnvironmentConfig: () => ({ apiBaseUrl: "https://api.example" }),
 }));
 
 vi.mock("open", () => ({ default: hoisted.openMock }));
@@ -47,8 +47,8 @@ function makeManager() {
 describe("onboarding auth telemetry forwarding", () => {
 	beforeEach(() => {
 		hoisted.loginLocalProvider.mockReset();
-		hoisted.startClineDeviceAuth.mockReset();
-		hoisted.completeClineDeviceAuth.mockReset();
+		hoisted.startZenuxsDeviceAuth.mockReset();
+		hoisted.completeZenuxsDeviceAuth.mockReset();
 		hoisted.saveLocalProviderOAuthCredentials.mockReset();
 		hoisted.identifyFeatureFlagsAccount.mockReset();
 		hoisted.identifyFeatureFlagsAccount.mockResolvedValue(undefined);
@@ -116,8 +116,8 @@ describe("onboarding auth telemetry forwarding", () => {
 		expect(telemetryArg).toBeUndefined();
 	});
 
-	it("forwards telemetry into completeClineDeviceAuth for the device-code flow", async () => {
-		hoisted.startClineDeviceAuth.mockResolvedValueOnce({
+	it("forwards telemetry into completeZenuxsDeviceAuth for the device-code flow", async () => {
+		hoisted.startZenuxsDeviceAuth.mockResolvedValueOnce({
 			deviceCode: "dc",
 			userCode: "uc",
 			verificationUri: "https://verify",
@@ -125,7 +125,7 @@ describe("onboarding auth telemetry forwarding", () => {
 			expiresInSeconds: 600,
 			pollIntervalSeconds: 5,
 		});
-		hoisted.completeClineDeviceAuth.mockResolvedValueOnce({
+		hoisted.completeZenuxsDeviceAuth.mockResolvedValueOnce({
 			access: "a",
 			refresh: "r",
 			expires: 0,
@@ -149,13 +149,13 @@ describe("onboarding auth telemetry forwarding", () => {
 		await Promise.resolve();
 		await Promise.resolve();
 
-		expect(hoisted.completeClineDeviceAuth).toHaveBeenCalledTimes(1);
-		const [opts] = hoisted.completeClineDeviceAuth.mock.calls[0];
+		expect(hoisted.completeZenuxsDeviceAuth).toHaveBeenCalledTimes(1);
+		const [opts] = hoisted.completeZenuxsDeviceAuth.mock.calls[0];
 		expect(opts.telemetry).toBe(fakeTelemetry);
 		// We do NOT forward telemetry to startClineDeviceAuth — auth_started is
 		// emitted by completeClineDeviceAuth, so passing telemetry to the start
 		// helper would double-emit the event.
-		expect(hoisted.startClineDeviceAuth).toHaveBeenCalledWith();
+		expect(hoisted.startZenuxsDeviceAuth).toHaveBeenCalledWith();
 		expect(hoisted.identifyFeatureFlagsAccount).toHaveBeenCalledWith({
 			id: "acct-1",
 			email: "user@example.com",
@@ -168,7 +168,7 @@ describe("onboarding auth telemetry forwarding", () => {
 
 	it("falls back to displaying the device auth URL when browser open fails", async () => {
 		hoisted.openMock.mockRejectedValueOnce(new Error("no browser"));
-		hoisted.startClineDeviceAuth.mockResolvedValueOnce({
+		hoisted.startZenuxsDeviceAuth.mockResolvedValueOnce({
 			deviceCode: "dc",
 			userCode: "uc",
 			verificationUri: "https://verify",
@@ -176,7 +176,7 @@ describe("onboarding auth telemetry forwarding", () => {
 			expiresInSeconds: 600,
 			pollIntervalSeconds: 5,
 		});
-		hoisted.completeClineDeviceAuth.mockResolvedValueOnce({
+		hoisted.completeZenuxsDeviceAuth.mockResolvedValueOnce({
 			access: "a",
 			refresh: "r",
 			expires: 0,

@@ -1,4 +1,4 @@
-import { buildClineSystemPrompt } from "@cline/shared";
+import { buildZenuxsSystemPrompt } from "@cline/shared";
 import type { DelegatedAgentRuntimeConfig } from "./delegated-agent";
 
 export function buildTeammateSystemPrompt(
@@ -10,12 +10,12 @@ export function buildTeammateSystemPrompt(
 		return trimmedPrompt;
 	}
 
-	return buildClineSystemPrompt({
-		ide: config.clineIdeName?.trim() || "Terminal",
+	return buildZenuxsSystemPrompt({
+		ide: config.zenuxsIdeName?.trim() || "Terminal",
 		workspaceRoot: config.cwd?.trim() || "/",
 		providerId: config.providerId,
 		rules: `# Team Teammate Role\n${trimmedPrompt}`,
-		platform: config.clinePlatform,
+		platform: config.zenuxsPlatform,
 		metadata: config.workspaceMetadata,
 	});
 }
@@ -30,12 +30,12 @@ export function buildSubAgentSystemPrompt(
 		return trimmedPrompt;
 	}
 
-	return buildClineSystemPrompt({
-		ide: config.clineIdeName || "Terminal",
+	return buildZenuxsSystemPrompt({
+		ide: config.zenuxsIdeName || "Terminal",
 		workspaceRoot: config.cwd?.trim() || "/",
 		providerId: config.providerId,
 		overridePrompt: trimmedPrompt,
 		metadata: config.workspaceMetadata,
-		platform: config.clinePlatform,
+		platform: config.zenuxsPlatform,
 	});
 }

@@ -16,7 +16,7 @@ import type { enrichPromptWithMentions } from "./workspace";
 /**
  * Emits local-only session creation telemetry (task.created/restarted and
  * hook discovery). The transport-agnostic `session.started` event is
- * emitted from `ClineCore.start` so it fires for every backend (local,
+ * emitted from `ZenuxsCore.start` so it fires for every backend (local,
  * hub, remote) at the outer API boundary.
  */
 export function emitSessionCreationTelemetry(

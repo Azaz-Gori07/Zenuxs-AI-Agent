@@ -11,6 +11,11 @@ export {
 	getClinePassSubscriptionUrl,
 	isClineNotSubscribedError,
 	isClineNotSubscribedMessage,
+	checkCodexCliInstalled,
+	CODEX_CLI_INSTALL_URL,
+	type CodexCliStatus,
+	isOpenAICodexCliProvider,
+	OPENAI_CODEX_CLI_PROVIDER_ID,
 } from "@cline/llms";
 // Shared contracts and path helpers re-exported for app consumers.
 export type {
@@ -37,7 +42,7 @@ export type {
 	ChatStartSessionArtifacts,
 	ChatStartSessionRequest,
 	ChatTurnResult,
-	ClineAccountActionRequest,
+	ZenuxsAccountActionRequest,
 	ConnectorHookEvent,
 	ContentBlock,
 	FeatureFlag,
@@ -86,12 +91,12 @@ export type {
 	WorkspaceManifestSchema,
 } from "@cline/shared";
 export {
-	buildClineSystemPrompt as getClineDefaultSystemPrompt,
+	buildZenuxsSystemPrompt as getZenuxsDefaultSystemPrompt,
 	buildSdkErrorProperties,
 	ContributionRegistry,
 	captureSdkError,
-	createClineTelemetryServiceConfig,
-	createClineTelemetryServiceMetadata,
+	createZenuxsTelemetryServiceConfig,
+	createZenuxsTelemetryServiceMetadata,
 	createContributionRegistry,
 	createTool,
 	emptyWorkspaceManifest,
@@ -107,22 +112,22 @@ export {
 } from "@cline/shared";
 export * from "@cline/shared/storage";
 export {
-	type ClineAccountBalance,
-	type ClineAccountOperations,
-	type ClineAccountOrganization,
-	type ClineAccountOrganizationBalance,
-	type ClineAccountOrganizationUsageTransaction,
-	type ClineAccountPaymentTransaction,
-	ClineAccountService,
-	type ClineAccountServiceOptions,
-	type ClineAccountUsageTransaction,
-	type ClineAccountUser,
-	type ClineOrganization,
-	executeClineAccountAction,
+	type ZenuxsAccountBalance,
+	type ZenuxsAccountOperations,
+	type ZenuxsAccountOrganization,
+	type ZenuxsAccountOrganizationBalance,
+	type ZenuxsAccountOrganizationUsageTransaction,
+	type ZenuxsAccountPaymentTransaction,
+	ZenuxsAccountService,
+	type ZenuxsAccountServiceOptions,
+	type ZenuxsAccountUsageTransaction,
+	type ZenuxsAccountUser,
+	type ZenuxsOrganization,
+	executeZenuxsAccountAction,
 	type FeaturebaseTokenResponse,
-	isClineAccountActionRequest,
+	isZenuxsAccountActionRequest,
 	type ProviderActionExecutor,
-	RpcClineAccountService,
+	RpcZenuxsAccountService,
 	type UserRemoteConfigOrganization,
 	type UserRemoteConfigResponse,
 } from "./account";
@@ -131,12 +136,12 @@ export {
 	type OAuthClientCallbacksOptions,
 } from "./auth/client";
 export {
-	completeClineDeviceAuth,
-	getValidClineCredentials,
-	loginClineOAuth,
-	refreshClineToken,
-	startClineDeviceAuth,
-} from "./auth/cline";
+	completeZenuxsDeviceAuth,
+	getValidZenuxsCredentials,
+	loginZenuxsOAuth,
+	refreshZenuxsToken,
+	startZenuxsDeviceAuth,
+} from "./auth/zenuxs";
 export {
 	getValidOpenAICodexCredentials,
 	loginOpenAICodex,
@@ -150,7 +155,6 @@ export {
 export {
 	loginZenuxsAuth,
 	refreshZenuxsAuth,
-	getValidZenuxsCredentials,
 	type ZenuxsAuthOptions,
 } from "./auth/zenuxs";
 export {
@@ -189,29 +193,31 @@ export type {
 	OcaOAuthProviderOptions,
 	OcaTokenResolution,
 } from "./auth/types";
-export { ClineCore } from "./ClineCore";
+export { ZenuxsCore } from "./ZenuxsCore";
 export type {
-	ClineAutomationEventIngressResult,
-	ClineAutomationEventLog,
-	ClineAutomationEventSuppression,
-	ClineAutomationListEventsOptions,
-	ClineAutomationListRunsOptions,
-	ClineAutomationListSpecsOptions,
-	ClineAutomationRun,
-	ClineAutomationRunStatus,
-	ClineAutomationSpec,
-	ClineCoreAutomationApi,
-	ClineCoreAutomationOptions,
-	ClineCoreListHistoryOptions,
-	ClineCoreOptions,
-	ClineCoreSettingsApi,
-	ClineCoreStartInput,
+	ZenuxsAutomationEventIngressResult,
+	ZenuxsAutomationEventLog,
+	ZenuxsAutomationEventSuppression,
+	ZenuxsAutomationListEventsOptions,
+	ZenuxsAutomationListRunsOptions,
+	ZenuxsAutomationListSpecsOptions,
+	ZenuxsAutomationRun,
+	ZenuxsAutomationRunStatus,
+	ZenuxsAutomationSpec,
+	ZenuxsCoreAutomationApi,
+	ZenuxsCoreAutomationOptions,
+	ZenuxsCoreListHistoryOptions,
+	ZenuxsCoreOptions,
+	ZenuxsCoreSettingsApi,
+	ZenuxsCoreStartInput,
 	HubOptions,
 	RemoteOptions,
 	RestoreInput,
 	RestoreOptions,
 	RestoreResult,
-} from "./cline-core/types";
+	RuntimeHostMode,
+	StartSessionBootstrap,
+} from "./engine/types";
 export type {
 	LoadAgentPluginFromPathOptions,
 	PluginInitializationFailure,
@@ -469,7 +475,6 @@ export type {
 	RestoreSessionResult,
 	RuntimeHost,
 	RuntimeHost as SessionHost,
-	RuntimeHostMode,
 	RuntimeHostSubscribeOptions,
 	SendSessionInput,
 	SessionAccumulatedUsage,
@@ -780,12 +785,12 @@ export {
 	ToolPresets,
 } from "./extensions/tools";
 export {
-	type ClineRecommendedModel,
-	type ClineRecommendedModelsData,
-	FALLBACK_CLINE_RECOMMENDED_MODELS,
-	type FetchClineRecommendedModelsOptions,
-	fetchClineRecommendedModels,
-} from "./services/llms/cline-recommended-models";
+	type ZenuxsRecommendedModel,
+	type ZenuxsRecommendedModelsData,
+	FALLBACK_ZENUXS_RECOMMENDED_MODELS,
+	type FetchZenuxsRecommendedModelsOptions,
+	fetchZenuxsRecommendedModels,
+} from "./services/llms/zenuxs-recommended-models";
 export {
 	clearLiveModelsCatalogCache,
 	clearPrivateModelsCatalogCache,

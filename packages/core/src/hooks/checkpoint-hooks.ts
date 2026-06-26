@@ -94,7 +94,7 @@ async function runGit(
 }
 
 /**
- * Deletes all private git refs under refs/cline/checkpoints/{sessionId}/ that
+ * Deletes all private git refs under refs/zenuxs/checkpoints/{sessionId}/ that
  * were created by the checkpoint system to keep stash objects reachable.
  * Errors are swallowed - if the cwd is not a git repo or the refs don't exist,
  * the delete is a no-op.
@@ -104,7 +104,7 @@ export async function deleteCheckpointRefs(
 	sessionId: string,
 ): Promise<void> {
 	if (!cwd) return;
-	const prefix = `refs/cline/checkpoints/${sessionId}/`;
+	const prefix = `refs/zenuxs/checkpoints/${sessionId}/`;
 	try {
 		const { stdout } = await runGit(cwd, [
 			"for-each-ref",
@@ -130,7 +130,7 @@ export async function retainCheckpointRefs(
 		checkpoints.map((entry) =>
 			runGit(cwd, [
 				"update-ref",
-				`refs/cline/checkpoints/${sessionId}/${entry.runCount}`,
+				`refs/zenuxs/checkpoints/${sessionId}/${entry.runCount}`,
 				entry.ref,
 			]),
 		),
@@ -211,7 +211,7 @@ export function createCheckpointHooks(
 			}
 		};
 
-		const message = `cline checkpoint session=${options.sessionId} run=${runCount}`;
+		const message = `zenuxs checkpoint session=${options.sessionId} run=${runCount}`;
 		let ref = "";
 		try {
 			const result = await runGit(options.cwd, ["stash", "create", message]);
@@ -233,7 +233,7 @@ export function createCheckpointHooks(
 		// ref path keeps the object reachable (GC-safe) without surfacing
 		// it to the user.  The raw SHA already works with `git stash apply`
 		// on the restore path, so no restore-side changes are needed.
-		const privateRef = `refs/cline/checkpoints/${options.sessionId}/${runCount}`;
+		const privateRef = `refs/zenuxs/checkpoints/${options.sessionId}/${runCount}`;
 		try {
 			await runGit(options.cwd, ["update-ref", privateRef, ref]);
 		} catch (error) {

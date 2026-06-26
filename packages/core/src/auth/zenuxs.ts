@@ -271,15 +271,211 @@ export async function refreshZenuxsAuth(
 	return null;
 }
 
-export async function getValidZenuxsCredentials(
+function sleep(ms: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export interface ZenuxsOAuthCredentials extends OAuthCredentials {
+	metadata?: OAuthCredentials["metadata"] & { provider?: string };
+}
+
+export interface DeviceAuthResult {
+	deviceCode: string;
+	userCode: string;
+	verificationUri: string;
+	verificationUriComplete?: string;
+	expiresInSeconds: number;
+	pollIntervalSeconds: number;
+}
+
+export async function startZenuxsDeviceAuth(): Promise<DeviceAuthResult> {
+	const authUrl = getAuthServerUrl();
+	const response = await fetch(`${authUrl}/oauth/device/authorize`, {
+		method: "POST",
+		headers: { "Content-Type": "application/x-www-form-urlencoded" },
+		body: new URLSearchParams({
+			client_id: getClientId(),
+			scope: "openid profile email",
+		}).toString(),
+	});
+
+	if (!response.ok) {
+		const text = await response.text();
+		throw new Error(`Device auth initiation failed: ${text}`);
+	}
+
+	const data = (await response.json()) as {
+		device_code: string;
+		user_code: string;
+		verification_uri: string;
+		verification_uri_complete?: string;
+		expires_in: number;
+		interval: number;
+	};
+
+	return {
+		deviceCode: data.device_code,
+		userCode: data.user_code,
+		verificationUri: data.verification_uri,
+		verificationUriComplete: data.verification_uri_complete,
+		expiresInSeconds: data.expires_in,
+		pollIntervalSeconds: data.interval,
+	};
+}
+
+export async function completeZenuxsDeviceAuth(options: {
+	deviceCode: string;
+	expiresInSeconds: number;
+	pollIntervalSeconds: number;
+	apiBaseUrl: string;
+	provider: string;
+	telemetry?: ITelemetryService;
+}): Promise<OAuthCredentials> {
+	const authUrl = getAuthServerUrl();
+	const startTime = Date.now();
+	const expiresMs = options.expiresInSeconds * 1000;
+
+	let workosAccessToken: string | undefined;
+	let workosRefreshToken: string | undefined;
+
+	while (Date.now() - startTime < expiresMs) {
+		await sleep(options.pollIntervalSeconds * 1000);
+
+		const tokenResponse = await fetch(`${authUrl}/oauth/device/token`, {
+			method: "POST",
+			headers: { "Content-Type": "application/x-www-form-urlencoded" },
+			body: new URLSearchParams({
+				grant_type: "device_token",
+				device_code: options.deviceCode,
+				client_id: getClientId(),
+			}).toString(),
+		});
+
+		if (!tokenResponse.ok) {
+			const text = await tokenResponse.text();
+			try {
+				const err = JSON.parse(text) as { error?: string };
+				if (err.error === "authorization_pending") continue;
+				if (err.error === "expired_token" || err.error === "access_denied") {
+					throw new Error(`Device auth failed: ${err.error}`);
+				}
+			} catch {
+				throw new Error(`Device auth token poll failed: ${text}`);
+			}
+			continue;
+		}
+
+		const tokenData = (await tokenResponse.json()) as Record<string, unknown>;
+		if (tokenData.access_token) {
+			workosAccessToken = tokenData.access_token as string;
+			workosRefreshToken = tokenData.refresh_token as string | undefined;
+			break;
+		}
+	}
+
+	if (!workosAccessToken) {
+		throw new Error("Device auth timed out");
+	}
+
+	const apiBaseUrl = getApiBaseUrl(options.apiBaseUrl);
+	const registerResponse = await fetch(`${apiBaseUrl}/api/auth/oauth/register`, {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({
+			accessToken: workosAccessToken,
+			refreshToken: workosRefreshToken,
+		}),
+	});
+
+	if (!registerResponse.ok) {
+		const text = await registerResponse.text();
+		throw new Error(`Token registration failed: ${text}`);
+	}
+
+	const registerData = (await registerResponse.json()) as {
+		success: boolean;
+		data?: {
+			accessToken: string;
+			refreshToken: string;
+			expiresAt: string;
+			userInfo: {
+				subject: string;
+				email: string;
+				name: string;
+				clineUserId: string;
+				accounts: string[];
+			};
+		};
+	};
+
+	if (!registerData.success || !registerData.data) {
+		throw new Error("Token registration was not successful");
+	}
+
+	const { accessToken, refreshToken, expiresAt, userInfo } = registerData.data;
+	const expires = new Date(expiresAt).getTime();
+
+	return {
+		access: accessToken,
+		refresh: refreshToken,
+		expires,
+		accountId: userInfo.clineUserId,
+		email: userInfo.email,
+		metadata: { name: userInfo.name },
+	};
+}
+
+export async function loginZenuxsOAuth(options: {
+	apiBaseUrl?: string;
+	useWorkOSDeviceAuth?: boolean;
+	callbacks: OAuthLoginCallbacks;
+	telemetry?: ITelemetryService;
+}): Promise<OAuthCredentials> {
+	if (options.useWorkOSDeviceAuth) {
+		const deviceAuth = await startZenuxsDeviceAuth();
+		const verifyUrl = deviceAuth.verificationUriComplete || deviceAuth.verificationUri;
+		options.callbacks.onAuth({
+			url: verifyUrl,
+			instructions:
+				"Complete authentication in your browser, then return to this terminal.",
+		});
+		return completeZenuxsDeviceAuth({
+			deviceCode: deviceAuth.deviceCode,
+			expiresInSeconds: deviceAuth.expiresInSeconds,
+			pollIntervalSeconds: deviceAuth.pollIntervalSeconds,
+			apiBaseUrl: options.apiBaseUrl || getApiBaseUrl(),
+			provider: "zenuxs",
+			telemetry: options.telemetry,
+		});
+	}
+
+	return loginZenuxsAuth({
+		apiBaseUrl: options.apiBaseUrl,
+		callbacks: options.callbacks,
+		telemetry: options.telemetry,
+	});
+}
+
+export async function refreshZenuxsToken(
 	credentials: OAuthCredentials,
 	options?: { forceRefresh?: boolean; telemetry?: ITelemetryService },
+): Promise<OAuthCredentials | null> {
+	return refreshZenuxsAuth(credentials, options);
+}
+
+export async function getValidZenuxsCredentials(
+	credentials: OAuthCredentials,
+	options?: { apiBaseUrl?: string; telemetry?: ITelemetryService },
+	refreshOptions?: { forceRefresh?: boolean },
 ): Promise<OAuthCredentials> {
-	if (!options?.forceRefresh && credentials.expires > Date.now() + REFRESH_BUFFER_MS) {
+	if (!refreshOptions?.forceRefresh && credentials.expires > Date.now() + REFRESH_BUFFER_MS) {
 		return credentials;
 	}
 
-	const refreshed = await refreshZenuxsAuth(credentials, options);
+	const refreshed = await refreshZenuxsAuth(credentials, {
+		forceRefresh: refreshOptions?.forceRefresh,
+		telemetry: options?.telemetry,
+	});
 	if (refreshed) return refreshed;
 
 	throw new Error(

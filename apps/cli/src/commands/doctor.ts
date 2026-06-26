@@ -1,4 +1,4 @@
-import { spawnSync } from "node:child_process";
+﻿import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, rmSync } from "node:fs";
 import { dirname, join } from "node:path";
 import {
@@ -11,7 +11,7 @@ import {
 	resolveSharedHubOwnerContext,
 	stopLocalHubServerGracefully,
 } from "@cline/core";
-import { formatUptime, resolveClineBuildEnv } from "@cline/shared";
+import { formatUptime, resolveZenuxsBuildEnv } from "@cline/shared";
 import { Command } from "commander";
 import open from "open";
 import { isProcessRunning } from "../connectors/common";
@@ -80,7 +80,7 @@ function listMatchingProcesses(pattern: string): ProcessRecord[] {
 		return [];
 	}
 	// "--" stops pgrep's option parsing so patterns that start with dashes
-	// (e.g. the "--cline-hub-daemon" marker) are treated as patterns.
+	// (e.g. the "--zenuxs-hub-daemon" marker) are treated as patterns.
 	const result = spawnSync("pgrep", ["-fal", "--", pattern], {
 		encoding: "utf8",
 	});
@@ -159,7 +159,7 @@ function listStaleHubPids(currentHubPids: number[]): number[] {
 	const patterns = [
 		"/sdk/packages/core/src/hub/daemon/entry.ts",
 		"/sdk/packages/core/dist/hub/daemon/entry.js",
-		"--cline-hub-daemon",
+		"--zenuxs-hub-daemon",
 	];
 	const records = new Map<number, ProcessRecord>();
 	for (const pattern of patterns) {
@@ -317,7 +317,7 @@ function formatHubUptimeFromStartedAt(
 }
 
 function resolveCliHubOwnerContext() {
-	return resolveClineBuildEnv() === "production"
+	return resolveZenuxsBuildEnv() === "production"
 		? resolveProductionHubOwnerContext()
 		: resolveSharedHubOwnerContext();
 }

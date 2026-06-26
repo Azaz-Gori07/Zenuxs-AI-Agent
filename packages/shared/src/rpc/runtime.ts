@@ -372,7 +372,7 @@ export type ProviderSettingsActionRequest =
 	| SaveProviderSettingsActionRequest
 	| AddProviderActionRequest;
 
-export type ClineAccountActionRequest =
+export type ZenuxsAccountActionRequest =
 	| {
 			action: "clineAccount";
 			operation: "fetchMe";
@@ -419,7 +419,7 @@ export type ClineAccountActionRequest =
 
 export type ProviderActionRequest =
 	| ProviderSettingsActionRequest
-	| ClineAccountActionRequest;
+	| ZenuxsAccountActionRequest;
 
 export interface ProviderOAuthLoginResponse {
 	provider: string;

@@ -4,7 +4,7 @@ import type { EnsureHubServerOptions } from "./start-shared-server";
 const {
 	mockEnsureHubWebSocketServer,
 	mockResolveHubEndpointOptions,
-	mockResolveClineBuildEnv,
+	mockResolveZenuxsBuildEnv,
 	mockResolveProductionHubOwnerContext,
 	mockResolveSharedHubOwnerContext,
 	mockStartHubWebSocketServer,
@@ -21,7 +21,7 @@ const {
 			pathname: options.pathname ?? "/hub",
 		}),
 	),
-	mockResolveClineBuildEnv: vi.fn(() => "production"),
+	mockResolveZenuxsBuildEnv: vi.fn(() => "production"),
 	mockResolveProductionHubOwnerContext: vi.fn(() => ({
 		ownerId: "production",
 		discoveryPath: "/tmp/cline-data/locks/hub/production.json",
@@ -34,7 +34,7 @@ const {
 }));
 
 vi.mock("@cline/shared", () => ({
-	resolveClineBuildEnv: mockResolveClineBuildEnv,
+	resolveZenuxsBuildEnv: mockResolveZenuxsBuildEnv,
 }));
 
 vi.mock("../discovery/defaults", () => ({

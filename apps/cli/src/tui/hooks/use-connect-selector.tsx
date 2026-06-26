@@ -16,7 +16,7 @@ import {
 	DisconnectActiveProviderConfirmContent,
 } from "../components/dialogs/provider-picker";
 import { withLoadingDialog } from "../components/dialogs/loading-dialog";
-import { isOpenAICodexCliProvider } from "../../utils/codex-cli";
+import { isOpenAICodexCliProvider } from "@cline/core";
 import { isOAuthProvider } from "../../utils/provider-auth";
 import type { Config } from "../../utils/types";
 

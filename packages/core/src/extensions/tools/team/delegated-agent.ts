@@ -33,8 +33,8 @@ export interface DelegatedAgentRuntimeConfig
 	extends DelegatedAgentConnectionConfig {
 	cwd?: string;
 	providerId: string;
-	clinePlatform?: string;
-	clineIdeName?: string;
+	zenuxsPlatform?: string;
+	zenuxsIdeName?: string;
 	maxIterations?: number;
 	hooks?: AgentHooks;
 	extensions?: AgentExtension[];

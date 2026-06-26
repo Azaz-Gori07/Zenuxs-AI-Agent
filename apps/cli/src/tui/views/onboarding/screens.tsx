@@ -3,11 +3,11 @@ import type { ReactNode } from "react";
 import {
 	CODEX_CLI_INSTALL_URL,
 	type CodexCliStatus,
-} from "../../../utils/codex-cli";
+} from "@cline/core";
 import {
-	ClineModelPicker,
-	type ClineModelPickerEntry,
-} from "../../components/model-selector/cline-model-picker";
+	ZenuxsModelPicker,
+	type ZenuxsModelPickerEntry,
+} from "../../components/model-selector/zenuxs-model-picker";
 import {
 	type SearchableItem,
 	SearchableList,
@@ -536,7 +536,7 @@ export function OnboardingProviderPickerScreen(props: {
 }
 
 export function OnboardingClineModelScreen(props: {
-	clineEntries: ClineModelPickerEntry[];
+	clineEntries: ZenuxsModelPickerEntry[];
 	clineKnownModels: Record<string, unknown> | undefined;
 	clineModelSelected: number;
 	compact: boolean;
@@ -558,7 +558,7 @@ export function OnboardingClineModelScreen(props: {
 				You can change this anytime
 			</text>
 
-			<ClineModelPicker
+			<ZenuxsModelPicker
 				entries={props.clineEntries}
 				selected={props.clineModelSelected}
 				loading={props.recommendedLoading}
