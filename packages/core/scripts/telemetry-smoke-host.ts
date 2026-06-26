@@ -11,7 +11,7 @@
  */
 
 import {
-	createClineTelemetryServiceConfig,
+	createZenuxsTelemetryServiceConfig,
 	type ITelemetryService,
 } from "@cline/shared";
 import {
@@ -106,7 +106,7 @@ async function smokeCli() {
 		"CLI: memoized captureCliExtensionActivated equivalent (only first call should emit)",
 	);
 	const logger = new CapturingLogger();
-	const cfg = createClineTelemetryServiceConfig({
+	const cfg = createZenuxsTelemetryServiceConfig({
 		metadata: {
 			extension_version: "0.0.0-smoke",
 			cline_type: "cli",
@@ -135,7 +135,7 @@ async function smokeCliAuthenticated() {
 		"CLI: authenticated captureCliExtensionActivated should carry organization_id",
 	);
 	const logger = new CapturingLogger();
-	const cfg = createClineTelemetryServiceConfig({
+	const cfg = createZenuxsTelemetryServiceConfig({
 		metadata: {
 			extension_version: "0.0.0-smoke",
 			cline_type: "cli",
@@ -168,7 +168,7 @@ async function smokeCliAuthenticated() {
 async function smokeVscode() {
 	header("VS Code: createVscodeTelemetry-equivalent shared service");
 	const logger = new CapturingLogger();
-	const cfg = createClineTelemetryServiceConfig({
+	const cfg = createZenuxsTelemetryServiceConfig({
 		metadata: {
 			extension_version: "0.0.0-smoke",
 			cline_type: "VSCode Extension",

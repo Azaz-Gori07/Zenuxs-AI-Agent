@@ -32,7 +32,7 @@ function main() {
 	const platform = platformMap[os.platform()] || os.platform();
 	const arch = os.arch();
 	const packageName = `@cline/cli-${platform}-${arch}`;
-	const binaryName = "cline";
+	const binaryName = "zenuxs";
 
 	let binaryPath;
 	try {

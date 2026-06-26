@@ -153,16 +153,16 @@ function resolveSkillDirectories(
 }
 
 async function discoverManagedPluginRoots(
-	clineDirectoryPath: string,
+	zenuxsDirectoryPath: string,
 ): Promise<string[]> {
 	try {
-		const entries = await readdir(clineDirectoryPath, { withFileTypes: true });
+		const entries = await readdir(zenuxsDirectoryPath, { withFileTypes: true });
 		const pluginRoots: string[] = [];
 		for (const entry of entries) {
 			if (!entry.isDirectory()) {
 				continue;
 			}
-			const pluginRoot = join(clineDirectoryPath, entry.name);
+			const pluginRoot = join(zenuxsDirectoryPath, entry.name);
 			const manifestPath = join(pluginRoot, MANAGED_PLUGIN_MANIFEST_FILE_NAME);
 			try {
 				const content = await readFile(manifestPath, "utf8");
@@ -556,7 +556,7 @@ export function createRulesConfigDefinition(
 		directories: managedRoot ? [...directories, managedRoot] : directories,
 		discoverFiles: discoverRulesLikeFiles,
 		includeFile: (fileName, filePath) =>
-			fileName === ".clinerules" ||
+			fileName === ".zenuxs" ||
 			isMarkdownFile(fileName) ||
 			isMarkdownFile(filePath),
 		parseFile: (context) =>

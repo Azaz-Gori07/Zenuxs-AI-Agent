@@ -6,7 +6,7 @@ import {
 	resolveHubOwnerContext,
 } from ".";
 
-const DEFAULT_SHARED_HUB_OWNER_LABEL = "shared:cline";
+const DEFAULT_SHARED_HUB_OWNER_LABEL = "shared:zenuxs";
 const HUB_DISCOVERY_ENV = "CLINE_HUB_DISCOVERY_PATH";
 const PRODUCTION_HUB_OWNER_ID = "hub-production";
 

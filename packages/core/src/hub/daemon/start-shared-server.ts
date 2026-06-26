@@ -1,4 +1,4 @@
-import { resolveClineBuildEnv } from "@cline/shared";
+import { resolveZenuxsBuildEnv } from "@cline/shared";
 import { resolveHubEndpointOptions } from "../discovery/defaults";
 import {
 	resolveProductionHubOwnerContext,
@@ -23,13 +23,13 @@ export interface EnsureHubServerOptions
 	extends Omit<EnsureHubWebSocketServerOptions, "owner"> {}
 
 function resolveDefaultHubOwnerContext() {
-	return resolveClineBuildEnv() === "production"
+	return resolveZenuxsBuildEnv() === "production"
 		? resolveProductionHubOwnerContext()
 		: resolveSharedHubOwnerContext();
 }
 
 function shouldAllowDefaultPortFallback(hasExplicitPort: boolean): boolean {
-	return resolveClineBuildEnv() !== "production" && !hasExplicitPort;
+	return resolveZenuxsBuildEnv() !== "production" && !hasExplicitPort;
 }
 
 /**

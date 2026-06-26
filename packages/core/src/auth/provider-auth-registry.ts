@@ -1,14 +1,14 @@
 import {
-	getClineEnvironmentConfig,
+	getZenuxsEnvironmentConfig,
 	type ITelemetryService,
 } from "@cline/shared";
 import type { ProviderSettingsManager } from "../services/storage/provider-settings-manager";
 import type { ProviderSettings } from "../types/provider-settings";
 import {
-	type ClineOAuthCredentials,
-	getValidClineCredentials,
-	loginClineOAuth,
-} from "./cline";
+	type ZenuxsOAuthCredentials,
+	getValidZenuxsCredentials,
+	loginZenuxsOAuth,
+} from "./zenuxs";
 import { getValidOpenAICodexCredentials, loginOpenAICodex } from "./codex";
 import { getValidOcaCredentials, loginOcaOAuth } from "./oca";
 import { loginZenuxsAuth, refreshZenuxsAuth } from "./zenuxs";
@@ -53,14 +53,14 @@ export interface ProviderAuthHandler {
 	normalizeStoredAccessToken?(accessToken: string): string;
 }
 
-function formatClineApiKey(accessToken: string): string {
+function formatZenuxsApiKey(accessToken: string): string {
 	const token = accessToken.trim();
 	return token.toLowerCase().startsWith(WORKOS_TOKEN_PREFIX)
 		? token
 		: `${WORKOS_TOKEN_PREFIX}${token}`;
 }
 
-function stripClineApiKeyPrefix(accessToken: string): string {
+function stripZenuxsApiKeyPrefix(accessToken: string): string {
 	const token = accessToken.trim();
 	return token.toLowerCase().startsWith(WORKOS_TOKEN_PREFIX)
 		? token.slice(WORKOS_TOKEN_PREFIX.length)
@@ -198,29 +198,29 @@ function createOAuthHandler(input: {
 	};
 }
 
-function createClineAuthHandler(input: {
+function createZenuxsAuthHandler(input: {
 	providerId: string;
 	storageProviderId?: string;
 }): ProviderAuthHandler {
 	return createOAuthHandler({
 		providerId: input.providerId,
 		storageProviderId: input.storageProviderId,
-		formatAccessToken: formatClineApiKey,
-		normalizeStoredAccessToken: stripClineApiKeyPrefix,
+		formatAccessToken: formatZenuxsApiKey,
+		normalizeStoredAccessToken: stripZenuxsApiKeyPrefix,
 		login: ({ settings, callbacks, telemetry }) =>
-			loginClineOAuth({
+			loginZenuxsOAuth({
 				apiBaseUrl:
-					settings?.baseUrl?.trim() || getClineEnvironmentConfig().apiBaseUrl,
+					settings?.baseUrl?.trim() || getZenuxsEnvironmentConfig().apiBaseUrl,
 				useWorkOSDeviceAuth: true,
 				callbacks,
 				telemetry,
 			}),
 		refresh: ({ settings, credentials, forceRefresh, telemetry }) =>
-			getValidClineCredentials(
-				credentials as ClineOAuthCredentials,
+			getValidZenuxsCredentials(
+				credentials as ZenuxsOAuthCredentials,
 				{
 					apiBaseUrl:
-						settings.baseUrl?.trim() || getClineEnvironmentConfig().apiBaseUrl,
+						settings.baseUrl?.trim() || getZenuxsEnvironmentConfig().apiBaseUrl,
 					telemetry,
 				},
 				{ forceRefresh },
@@ -229,8 +229,8 @@ function createClineAuthHandler(input: {
 }
 
 const providerAuthHandlers = [
-	createClineAuthHandler({ providerId: "cline" }),
-	createClineAuthHandler({
+	createZenuxsAuthHandler({ providerId: "cline" }),
+	createZenuxsAuthHandler({
 		providerId: "cline-pass",
 		storageProviderId: "cline",
 	}),

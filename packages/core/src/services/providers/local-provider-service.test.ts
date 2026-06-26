@@ -1117,7 +1117,7 @@ describe("listLocalProviders", () => {
 		expect(ids).toContain("list-provider-b");
 	});
 
-	it("hides ClinePass when the ClinePass feature flag is disabled", async () => {
+	it("hides ZenuxsPass when the ZenuxsPass feature flag is disabled", async () => {
 		const { providers } = await listLocalProviders(manager, {
 			isClinePassEnabled: false,
 		});
@@ -1125,7 +1125,7 @@ describe("listLocalProviders", () => {
 		expect(providers.map((p) => p.id)).not.toContain("cline-pass");
 	});
 
-	it("includes ClinePass when the ClinePass feature flag is enabled", async () => {
+	it("includes ZenuxsPass when the ZenuxsPass feature flag is enabled", async () => {
 		const { providers } = await listLocalProviders(manager, {
 			isClinePassEnabled: true,
 		});
@@ -1236,7 +1236,7 @@ describe("listLocalProviders", () => {
 		const openrouter = providers.find(
 			(provider) => provider.id === "openrouter",
 		);
-		const clineModelIds = new Set(
+		const zenuxsModelIds = new Set(
 			cline?.modelList?.map((model) => model.id) ?? [],
 		);
 		const openrouterModelIds = new Set(
@@ -1244,8 +1244,8 @@ describe("listLocalProviders", () => {
 		);
 
 		expect(cline?.modelList?.length).toBeGreaterThan(0);
-		expect(clineModelIds).toContain("zai/glm-5.2");
-		expect(clineModelIds).not.toContain("z-ai/glm-5.2");
+		expect(zenuxsModelIds).toContain("zai/glm-5.2");
+		expect(zenuxsModelIds).not.toContain("z-ai/glm-5.2");
 		expect(openrouterModelIds).toContain("z-ai/glm-5.2");
 	});
 

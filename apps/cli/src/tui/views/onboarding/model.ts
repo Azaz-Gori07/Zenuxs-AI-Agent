@@ -1,4 +1,4 @@
-import { isOpenAICodexCliProvider } from "../../../utils/codex-cli";
+import { isOpenAICodexCliProvider } from "@cline/core";
 import { isOAuthProvider } from "../../../utils/provider-auth";
 
 export type OnboardingStep =
@@ -163,6 +163,6 @@ export function getOAuthProviderLabel(providerId: string): string {
 	return providerId;
 }
 
-export function shouldUseFeaturedClineModelPicker(providerId: string): boolean {
+export function shouldUseFeaturedZenuxsModelPicker(providerId: string): boolean {
 	return providerId === "cline";
 }

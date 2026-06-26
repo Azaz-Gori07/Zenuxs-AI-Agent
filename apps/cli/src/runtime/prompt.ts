@@ -7,7 +7,7 @@ import {
 	mergeRulesForSystemPrompt,
 	type UserInstructionConfigService,
 } from "@cline/core";
-import { type AgentMode, buildClineSystemPrompt } from "@cline/shared";
+import { type AgentMode, buildZenuxsSystemPrompt } from "@cline/shared";
 import { isImagePath, loadImageAsDataUrl } from "../utils/image-attachments";
 
 const PLAN_MODE_INSTRUCTIONS = `# Plan Mode
@@ -39,7 +39,7 @@ export async function resolveSystemPrompt(input: {
 			? `${rules}\n\n${PLAN_MODE_INSTRUCTIONS}`
 			: PLAN_MODE_INSTRUCTIONS;
 	}
-	let systemPrompt = buildClineSystemPrompt({
+	let systemPrompt = buildZenuxsSystemPrompt({
 		ide: "Terminal Shell",
 		workspaceRoot: input.cwd,
 		workspaceName: basename(input.cwd),

@@ -1,13 +1,13 @@
 import {
-	completeClineDeviceAuth,
+	completeZenuxsDeviceAuth,
 	type ITelemetryService,
 	isOAuthProvider,
 	loginLocalProvider,
 	type ProviderSettingsManager,
 	saveLocalProviderOAuthCredentials,
-	startClineDeviceAuth,
+	startZenuxsDeviceAuth,
 } from "@cline/core";
-import { getClineEnvironmentConfig } from "@cline/shared";
+import { getZenuxsEnvironmentConfig } from "@cline/shared";
 import open from "open";
 import { identifyFeatureFlagsAccount } from "../../../utils/feature-flags";
 
@@ -19,7 +19,7 @@ export function isOnboardingOAuthProviderId(
 	return isOAuthProvider(providerId);
 }
 
-function isClineAccountOAuthProvider(providerId: string): boolean {
+function isZenuxsAccountOAuthProvider(providerId: string): boolean {
 	return providerId === "cline" || providerId === "cline-pass";
 }
 
@@ -62,7 +62,7 @@ export function runOAuthAuthFlow(input: {
 				credentials,
 				{ setLastUsed: false },
 			);
-			if (isClineAccountOAuthProvider(input.providerId)) {
+			if (isZenuxsAccountOAuthProvider(input.providerId)) {
 				void identifyFeatureFlagsAccount({
 					id: credentials.accountId,
 					email: credentials.email,
@@ -92,13 +92,13 @@ export function runDeviceCodeAuthFlow(input: {
 		input.providerId,
 	);
 	const apiBaseUrl =
-		existing?.baseUrl?.trim() || getClineEnvironmentConfig().apiBaseUrl;
+		existing?.baseUrl?.trim() || getZenuxsEnvironmentConfig().apiBaseUrl;
 
-	// `startClineDeviceAuth` only requests the user/device code pair; the
-	// `auth_started` telemetry event is emitted by `completeClineDeviceAuth`
+	// `startZenuxsDeviceAuth` only requests the user/device code pair; the
+	// `auth_started` telemetry event is emitted by `completeZenuxsDeviceAuth`
 	// (which owns the actual login lifecycle), so we intentionally do NOT
-	// pass telemetry into `startClineDeviceAuth` here.
-	startClineDeviceAuth()
+	// pass telemetry into `startZenuxsDeviceAuth` here.
+	startZenuxsDeviceAuth()
 		.then((result) => {
 			if (input.isAborted()) return;
 			const verifyUrl =
@@ -114,7 +114,7 @@ export function runDeviceCodeAuthFlow(input: {
 				input.setStatus("Could not open browser. Visit the URL below.");
 			}
 
-			completeClineDeviceAuth({
+			completeZenuxsDeviceAuth({
 				deviceCode: result.deviceCode,
 				expiresInSeconds: result.expiresInSeconds,
 				pollIntervalSeconds: result.pollIntervalSeconds,
@@ -131,7 +131,7 @@ export function runDeviceCodeAuthFlow(input: {
 						credentials,
 						{ setLastUsed: false },
 					);
-					if (isClineAccountOAuthProvider(input.providerId)) {
+					if (isZenuxsAccountOAuthProvider(input.providerId)) {
 						void identifyFeatureFlagsAccount({
 							id: credentials.accountId,
 							email: credentials.email,

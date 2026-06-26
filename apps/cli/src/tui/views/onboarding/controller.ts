@@ -9,22 +9,23 @@ import {
 	resolveProviderConfig,
 	saveLocalProviderSettings,
 } from "@cline/core";
-import { isClineProvider } from "@cline/shared";
+import { isZenuxsProvider } from "@cline/shared";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { fetchAiModels, type AiModelEntry } from "../../../utils/zenuxs-code-api";
 import {
 	type CodexCliStatus,
 	checkCodexCliInstalled,
 	isOpenAICodexCliProvider,
-} from "../../../utils/codex-cli";
+} from "@cline/core";
+import { getCliFeatureFlagsService } from "../../../utils/feature-flags";
 import { getPersistedProviderApiKey } from "../../../utils/provider-auth";
 import { listLocalProviders } from "../../../utils/provider-catalog";
 import { getCliTelemetryService } from "../../../utils/telemetry";
 import {
-	buildClineModelEntries,
-	type ClineModelPickerEntry,
-	useClineRecommendedModels,
-} from "../../components/model-selector/cline-model-picker";
+	buildZenuxsModelEntries,
+	type ZenuxsModelPickerEntry,
+	useZenuxsRecommendedModels,
+} from "../../components/model-selector/zenuxs-model-picker";
 import {
 	type SearchableItem,
 	useSearchableList,
@@ -54,7 +55,7 @@ import {
 	type OnboardingStep,
 	type ProviderEntry,
 	type ReasoningEffort,
-	shouldUseFeaturedClineModelPicker,
+	shouldUseFeaturedZenuxsModelPicker,
 	type ThinkingLevel,
 	toModelEntriesFromKnownModels,
 	toModelEntry,
@@ -183,9 +184,9 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 	const modelList = useSearchableList(modelItems, createCustomModelItem);
 
 	// Cline featured model picker
-	const recommended = useClineRecommendedModels();
-	const clineEntries: ClineModelPickerEntry[] = useMemo(
-		() => (recommended.data ? buildClineModelEntries(recommended.data) : []),
+	const recommended = useZenuxsRecommendedModels();
+	const clineEntries: ZenuxsModelPickerEntry[] = useMemo(
+		() => (recommended.data ? buildZenuxsModelEntries(recommended.data) : []),
 		[recommended.data],
 	);
 	const [clineModelSelected, setClineModelSelected] = useState(0);
@@ -270,7 +271,7 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 			const provider = providers.find((p) => p.id === providerId);
 			setActiveProviderName(provider?.name ?? providerId);
 			setModelsDefaultId(provider?.defaultModelId ?? "");
-			if (shouldUseFeaturedClineModelPicker(providerId)) {
+			if (shouldUseFeaturedZenuxsModelPicker(providerId)) {
 				setClineModelSelected(0);
 				setStep("cline_model");
 			} else if (providerId === "openai-compatible") {
@@ -420,7 +421,7 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 
 	const startOAuthFlow = useCallback(
 		(providerId: OnboardingOAuthProviderId) => {
-			if (isClineProvider(providerId)) {
+			if (isZenuxsProvider(providerId)) {
 				startDeviceCodeFlow(providerId);
 				return;
 			}

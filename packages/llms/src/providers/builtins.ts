@@ -4,7 +4,7 @@ import {
 	type GatewayProviderManifest,
 	type GatewayProviderMetadata,
 	type GatewayProviderSettings,
-	getClineEnvironmentConfig,
+	getZenuxsEnvironmentConfig,
 	type JsonValue,
 	type ProviderCapability,
 	type ProviderConfigField,
@@ -493,7 +493,7 @@ function createClineLikeSpec(
 		apiKeyEnv: ["CLINE_API_KEY"],
 		defaults: {
 			get baseUrl(): string {
-				return `${getClineEnvironmentConfig().apiBaseUrl}/api/v1`;
+				return `${getZenuxsEnvironmentConfig().apiBaseUrl}/api/v1`;
 			},
 			...input.defaults,
 		},

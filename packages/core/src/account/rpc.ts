@@ -1,48 +1,48 @@
 import type {
-	ClineAccountActionRequest,
+	ZenuxsAccountActionRequest,
 	ProviderActionRequest,
 } from "@cline/shared";
 import type {
-	ClineAccountBalance,
-	ClineAccountOrganization,
-	ClineAccountOrganizationBalance,
-	ClineAccountOrganizationUsageTransaction,
-	ClineAccountPaymentTransaction,
-	ClineAccountUsageTransaction,
-	ClineAccountUser,
+	ZenuxsAccountBalance,
+	ZenuxsAccountOrganization,
+	ZenuxsAccountOrganizationBalance,
+	ZenuxsAccountOrganizationUsageTransaction,
+	ZenuxsAccountPaymentTransaction,
+	ZenuxsAccountUsageTransaction,
+	ZenuxsAccountUser,
 	FeaturebaseTokenResponse,
 } from "./types";
 
-export interface ClineAccountOperations {
-	fetchMe(): Promise<ClineAccountUser>;
-	fetchBalance(userId?: string): Promise<ClineAccountBalance>;
+export interface ZenuxsAccountOperations {
+	fetchMe(): Promise<ZenuxsAccountUser>;
+	fetchBalance(userId?: string): Promise<ZenuxsAccountBalance>;
 	fetchUsageTransactions(
 		userId?: string,
-	): Promise<ClineAccountUsageTransaction[]>;
+	): Promise<ZenuxsAccountUsageTransaction[]>;
 	fetchPaymentTransactions(
 		userId?: string,
-	): Promise<ClineAccountPaymentTransaction[]>;
-	fetchUserOrganizations(): Promise<ClineAccountOrganization[]>;
+	): Promise<ZenuxsAccountPaymentTransaction[]>;
+	fetchUserOrganizations(): Promise<ZenuxsAccountOrganization[]>;
 	fetchOrganizationBalance(
 		organizationId: string,
-	): Promise<ClineAccountOrganizationBalance>;
+	): Promise<ZenuxsAccountOrganizationBalance>;
 	fetchOrganizationUsageTransactions(input: {
 		organizationId: string;
 		memberId?: string;
-	}): Promise<ClineAccountOrganizationUsageTransaction[]>;
+	}): Promise<ZenuxsAccountOrganizationUsageTransaction[]>;
 	switchAccount(organizationId?: string | null): Promise<void>;
 	fetchFeaturebaseToken?(): Promise<FeaturebaseTokenResponse | undefined>;
 }
 
-export function isClineAccountActionRequest(
+export function isZenuxsAccountActionRequest(
 	request: ProviderActionRequest,
-): request is ClineAccountActionRequest {
+): request is ZenuxsAccountActionRequest {
 	return request.action === "clineAccount";
 }
 
-export async function executeClineAccountAction(
-	request: ClineAccountActionRequest,
-	service: ClineAccountOperations,
+export async function executeZenuxsAccountAction(
+	request: ZenuxsAccountActionRequest,
+	service: ZenuxsAccountOperations,
 ): Promise<unknown> {
 	switch (request.operation) {
 		case "fetchMe":
@@ -82,22 +82,22 @@ export interface ProviderActionExecutor {
 	}>;
 }
 
-export class RpcClineAccountService implements ClineAccountOperations {
+export class RpcZenuxsAccountService implements ZenuxsAccountOperations {
 	private readonly executor: ProviderActionExecutor;
 
 	constructor(executor: ProviderActionExecutor) {
 		this.executor = executor;
 	}
 
-	public async fetchMe(): Promise<ClineAccountUser> {
-		return this.request<ClineAccountUser>({
+	public async fetchMe(): Promise<ZenuxsAccountUser> {
+		return this.request<ZenuxsAccountUser>({
 			action: "clineAccount",
 			operation: "fetchMe",
 		});
 	}
 
-	public async fetchBalance(userId?: string): Promise<ClineAccountBalance> {
-		return this.request<ClineAccountBalance>({
+	public async fetchBalance(userId?: string): Promise<ZenuxsAccountBalance> {
+		return this.request<ZenuxsAccountBalance>({
 			action: "clineAccount",
 			operation: "fetchBalance",
 			...(userId?.trim() ? { userId: userId.trim() } : {}),
@@ -106,8 +106,8 @@ export class RpcClineAccountService implements ClineAccountOperations {
 
 	public async fetchUsageTransactions(
 		userId?: string,
-	): Promise<ClineAccountUsageTransaction[]> {
-		return this.request<ClineAccountUsageTransaction[]>({
+	): Promise<ZenuxsAccountUsageTransaction[]> {
+		return this.request<ZenuxsAccountUsageTransaction[]>({
 			action: "clineAccount",
 			operation: "fetchUsageTransactions",
 			...(userId?.trim() ? { userId: userId.trim() } : {}),
@@ -116,16 +116,16 @@ export class RpcClineAccountService implements ClineAccountOperations {
 
 	public async fetchPaymentTransactions(
 		userId?: string,
-	): Promise<ClineAccountPaymentTransaction[]> {
-		return this.request<ClineAccountPaymentTransaction[]>({
+	): Promise<ZenuxsAccountPaymentTransaction[]> {
+		return this.request<ZenuxsAccountPaymentTransaction[]>({
 			action: "clineAccount",
 			operation: "fetchPaymentTransactions",
 			...(userId?.trim() ? { userId: userId.trim() } : {}),
 		});
 	}
 
-	public async fetchUserOrganizations(): Promise<ClineAccountOrganization[]> {
-		return this.request<ClineAccountOrganization[]>({
+	public async fetchUserOrganizations(): Promise<ZenuxsAccountOrganization[]> {
+		return this.request<ZenuxsAccountOrganization[]>({
 			action: "clineAccount",
 			operation: "fetchUserOrganizations",
 		});
@@ -133,12 +133,12 @@ export class RpcClineAccountService implements ClineAccountOperations {
 
 	public async fetchOrganizationBalance(
 		organizationId: string,
-	): Promise<ClineAccountOrganizationBalance> {
+	): Promise<ZenuxsAccountOrganizationBalance> {
 		const orgId = organizationId.trim();
 		if (!orgId) {
 			throw new Error("organizationId is required");
 		}
-		return this.request<ClineAccountOrganizationBalance>({
+		return this.request<ZenuxsAccountOrganizationBalance>({
 			action: "clineAccount",
 			operation: "fetchOrganizationBalance",
 			organizationId: orgId,
@@ -148,12 +148,12 @@ export class RpcClineAccountService implements ClineAccountOperations {
 	public async fetchOrganizationUsageTransactions(input: {
 		organizationId: string;
 		memberId?: string;
-	}): Promise<ClineAccountOrganizationUsageTransaction[]> {
+	}): Promise<ZenuxsAccountOrganizationUsageTransaction[]> {
 		const orgId = input.organizationId.trim();
 		if (!orgId) {
 			throw new Error("organizationId is required");
 		}
-		return this.request<ClineAccountOrganizationUsageTransaction[]>({
+		return this.request<ZenuxsAccountOrganizationUsageTransaction[]>({
 			action: "clineAccount",
 			operation: "fetchOrganizationUsageTransactions",
 			organizationId: orgId,
@@ -178,7 +178,7 @@ export class RpcClineAccountService implements ClineAccountOperations {
 		});
 	}
 
-	private async request<T>(request: ClineAccountActionRequest): Promise<T> {
+	private async request<T>(request: ZenuxsAccountActionRequest): Promise<T> {
 		const response = await this.executor.runProviderAction(request);
 		return response.result as T;
 	}

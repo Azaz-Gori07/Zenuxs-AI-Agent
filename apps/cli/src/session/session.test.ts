@@ -20,7 +20,7 @@ vi.mock("@cline/core", async () => {
 		await vi.importActual<typeof import("@cline/core")>("@cline/core");
 	return {
 		...actual,
-		ClineCore: {
+		ZenuxsCore: {
 			create: createCore,
 		},
 		resolveSessionBackend,

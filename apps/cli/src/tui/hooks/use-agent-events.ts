@@ -4,7 +4,7 @@ import type {
 	PendingPromptSnapshot,
 	PendingPromptSubmittedEvent,
 } from "../../runtime/session-events";
-import { formatCliErrorMessage } from "../../utils/cline-pass-errors";
+import { formatCliErrorMessage } from "../../utils/zenuxs-pass-errors";
 import { resolveStatusNoticeLabel } from "../../utils/events";
 import {
 	formatToolInput,

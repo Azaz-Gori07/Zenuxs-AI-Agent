@@ -1,0 +1,32 @@
+{
+  "taskId": "loop-prevention-001",
+  "planId": "agent-loop-prevention-v1",
+
+  "currentStep": 0,
+  "planSteps": [
+    { "step": 1, "description": "Make maxIterations required with default 50" },
+    { "step": 2, "description": "Cumulative mistake budget in MistakeTracker" },
+    { "step": 3, "description": "Flip-flop detection in LoopDetectionTracker" },
+    { "step": 4, "description": "Wire loop detection into beforeTool hook path" },
+    { "step": 5, "description": "SelfCritique goes through orchestrator" },
+    { "step": 6, "description": "Error handler routes to done at retry limit" }
+  ],
+
+  "completedSteps": [],
+  "blockedSteps": [],
+  "retries": 0,
+
+  "progress": "0/6 steps completed. Plan locked. Awaiting execution start.",
+  "status": "ready",
+
+  "startedAt": null,
+  "lastUpdate": null,
+
+  "completedFiles": [],
+  "verification": [],
+
+  "executionBudget": {
+    "maxRetriesPerStep": 2,
+    "retriesUsed": 0
+  }
+}

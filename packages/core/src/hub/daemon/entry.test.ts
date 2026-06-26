@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from "node:fs";
+﻿import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -40,7 +40,7 @@ const {
 
 vi.mock("@cline/shared", () => ({
 	initVcr: mockInitVcr,
-	resolveClineBuildEnv: () => "production",
+	resolveZenuxsBuildEnv: () => "production",
 }));
 
 vi.mock("../daemon/runtime-handlers", () => ({
@@ -84,7 +84,7 @@ describe("hub daemon entry", () => {
 	});
 
 	it("starts the daemon with cron options for the daemon workspace root", async () => {
-		const cwd = mkdtempSync(join(tmpdir(), "cline-hub-entry-test-"));
+		const cwd = mkdtempSync(join(tmpdir(), "zenuxs-hub-entry-test-"));
 		tempDirs.push(cwd);
 		process.argv = [
 			"node",

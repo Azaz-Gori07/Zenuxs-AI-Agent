@@ -1,5 +1,5 @@
 import type { AgentEvent } from "@cline/core";
-import { getClineEnvironmentConfig } from "@cline/shared";
+import { getZenuxsEnvironmentConfig } from "@cline/shared";
 import type { Config } from "./types";
 
 const CLINE_RECOMMENDED_MODELS_TIMEOUT_MS = 5_000;
@@ -78,7 +78,7 @@ export async function shouldZeroClineFreeModelCost(
 	if (!modelId) return false;
 
 	const baseUrl =
-		config.baseUrl?.trim() || getClineEnvironmentConfig().apiBaseUrl;
+		config.baseUrl?.trim() || getZenuxsEnvironmentConfig().apiBaseUrl;
 	const freeModelIds = await getClineFreeModelIds(baseUrl);
 	return freeModelIds.some((freeModelId) =>
 		modelIdsMatch(modelId, freeModelId),

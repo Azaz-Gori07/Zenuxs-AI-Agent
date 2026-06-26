@@ -1,5 +1,5 @@
 import {
-	completeClineDeviceAuth,
+	completeZenuxsDeviceAuth,
 	getProviderConfigFields,
 	isOAuthProvider,
 	loginLocalProvider,
@@ -8,9 +8,9 @@ import {
 	ProviderSettingsManager,
 	saveLocalProviderOAuthCredentials,
 	saveLocalProviderSettings,
-	startClineDeviceAuth,
+	startZenuxsDeviceAuth,
 } from "@cline/core";
-import { getClineEnvironmentConfig } from "@cline/shared";
+import { getZenuxsEnvironmentConfig } from "@cline/shared";
 import type { ChoiceContext } from "@opentui-ui/dialog";
 import { useDialogKeyboard } from "@opentui-ui/dialog/react";
 import open from "open";
@@ -20,7 +20,7 @@ import {
 	type CodexCliStatus,
 	checkCodexCliInstalled,
 	isOpenAICodexCliProvider,
-} from "../../../utils/codex-cli";
+} from "@cline/core";
 import { listLocalProviders } from "../../../utils/provider-catalog";
 import { palette } from "../../palette";
 import {
@@ -766,9 +766,9 @@ export function OAuthLoginContent(
 		const manager = new ProviderSettingsManager();
 		const existing = manager.getProviderSettings(providerId);
 		const apiBaseUrl =
-			existing?.baseUrl?.trim() || getClineEnvironmentConfig().apiBaseUrl;
+			existing?.baseUrl?.trim() || getZenuxsEnvironmentConfig().apiBaseUrl;
 
-		startClineDeviceAuth()
+		startZenuxsDeviceAuth()
 			.then((result) => {
 				if (!isActiveAuthAttempt(attempt)) return;
 				setDeviceUserCode(result.userCode);
@@ -776,7 +776,7 @@ export function OAuthLoginContent(
 					result.verificationUriComplete || result.verificationUri,
 				);
 
-				completeClineDeviceAuth({
+				completeZenuxsDeviceAuth({
 					deviceCode: result.deviceCode,
 					expiresInSeconds: result.expiresInSeconds,
 					pollIntervalSeconds: result.pollIntervalSeconds,

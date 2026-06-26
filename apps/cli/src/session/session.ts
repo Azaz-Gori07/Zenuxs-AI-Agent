@@ -7,7 +7,7 @@ import type {
 	SessionRecord,
 } from "@cline/core";
 import {
-	ClineCore,
+	ZenuxsCore,
 	listSessionHistoryFromBackend,
 	resolveSessionBackend,
 } from "@cline/core";
@@ -34,7 +34,7 @@ export async function createCliCore(options?: {
 	forceLocalBackend?: boolean;
 	cwd?: string;
 	workspaceRoot?: string;
-}): Promise<ClineCore> {
+}): Promise<ZenuxsCore> {
 	const explicitBackendMode = options?.forceLocalBackend
 		? "local"
 		: options?.backendMode;
@@ -46,7 +46,7 @@ export async function createCliCore(options?: {
 		logger: options?.logger,
 		telemetry,
 	});
-	const core = await ClineCore.create({
+	const core = await ZenuxsCore.create({
 		...(explicitBackendMode ? { backendMode: explicitBackendMode } : {}),
 		...(options?.forceLocalBackend !== true
 			? {
@@ -80,7 +80,7 @@ export async function createCliCore(options?: {
 }
 
 async function withCliCore<T>(
-	run: (core: ClineCore) => Promise<T>,
+	run: (core: ZenuxsCore) => Promise<T>,
 	options?: {
 		forceLocalBackend?: boolean;
 		logger?: BasicLogger;
@@ -165,7 +165,7 @@ export async function getLatestSessionRow(): Promise<unknown | undefined> {
 }
 
 export async function handleSessionHookEvent(
-	payload: Parameters<ClineCore["ingestHookEvent"]>[0],
+	payload: Parameters<ZenuxsCore["ingestHookEvent"]>[0],
 ): Promise<void> {
 	await withCliCore(
 		async (core) => {

@@ -1,4 +1,4 @@
-export interface ClineAccountOrganization {
+export interface ZenuxsAccountOrganization {
 	active: boolean;
 	memberId: string;
 	name: string;
@@ -6,14 +6,14 @@ export interface ClineAccountOrganization {
 	roles: Array<"admin" | "member" | "owner">;
 }
 
-export interface ClineAccountUser {
+export interface ZenuxsAccountUser {
 	id: string;
 	email: string;
 	displayName: string;
 	photoUrl: string;
 	createdAt: string;
 	updatedAt: string;
-	organizations: ClineAccountOrganization[];
+	organizations: ZenuxsAccountOrganization[];
 }
 
 export interface UserRemoteConfigOrganization {
@@ -28,12 +28,12 @@ export interface UserRemoteConfigResponse {
 	organizations?: UserRemoteConfigOrganization[];
 }
 
-export interface ClineAccountBalance {
+export interface ZenuxsAccountBalance {
 	balance: number;
 	userId: string;
 }
 
-export interface ClineAccountUsageTransaction {
+export interface ZenuxsAccountUsageTransaction {
 	aiInferenceProviderName: string;
 	aiModelName: string;
 	aiModelTypeName: string;
@@ -55,14 +55,14 @@ export interface ClineAccountUsageTransaction {
 	userId: string;
 }
 
-export interface ClineAccountPaymentTransaction {
+export interface ZenuxsAccountPaymentTransaction {
 	paidAt: string;
 	creatorId: string;
 	amountCents: number;
 	credits: number;
 }
 
-export interface ClineOrganization {
+export interface ZenuxsOrganization {
 	createdAt: string;
 	defaultRemoteConfig?: string;
 	deletedAt?: string;
@@ -74,7 +74,7 @@ export interface ClineOrganization {
 	updatedAt: string;
 }
 
-export interface ClineAccountOrganizationBalance {
+export interface ZenuxsAccountOrganizationBalance {
 	balance: number;
 	organizationId: string;
 }
@@ -83,7 +83,7 @@ export interface FeaturebaseTokenResponse {
 	featurebaseJwt: string;
 }
 
-export interface ClineAccountOrganizationUsageTransaction {
+export interface ZenuxsAccountOrganizationUsageTransaction {
 	aiInferenceProviderName: string;
 	aiModelName: string;
 	aiModelTypeName: string;

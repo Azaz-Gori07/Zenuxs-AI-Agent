@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+﻿import { existsSync } from "node:fs";
 import { arch, platform } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -102,11 +102,11 @@ function resolveDefaultWebviewDistDir(): string | undefined {
 	const candidates = [
 		...resolveInstalledPlatformPackageWebviewCandidates(),
 		// Source checkout: apps/cli/src/commands/dashboard.ts
-		join(moduleDir, "../../../cline-hub/dist/webview"),
+		join(moduleDir, "../../../zenuxs-hub/dist/webview"),
 		// Node bundle: apps/cli/dist/index.js
-		join(moduleDir, "cline-hub/webview"),
+		join(moduleDir, "zenuxs-hub/webview"),
 		// Compiled platform package: apps/cli/dist/<platform>/bin/cline
-		join(dirname(process.execPath), "../cline-hub/webview"),
+		join(dirname(process.execPath), "../zenuxs-hub/webview"),
 	];
 
 	return candidates.find((candidate) => existsSync(candidate));
@@ -125,7 +125,7 @@ function resolveInstalledPlatformPackageWebviewCandidates(): string[] {
 		let current = start;
 		for (;;) {
 			candidates.push(
-				join(current, "node_modules", packageName, "cline-hub/webview"),
+				join(current, "node_modules", packageName, "zenuxs-hub/webview"),
 			);
 			const parent = dirname(current);
 			if (parent === current) break;
@@ -141,7 +141,7 @@ function resolvePlatformPackageName(): string {
 }
 
 async function startDefaultDashboardServer(): Promise<DashboardServerHandle> {
-	const { startClineHubDashboardServer } = await import("@cline/cline-hub");
+	const { startClineHubDashboardServer } = await import("@zenuxs/zenuxs-hub");
 	return await startClineHubDashboardServer();
 }
 

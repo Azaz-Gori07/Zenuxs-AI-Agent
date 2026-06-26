@@ -1,8 +1,8 @@
-import type { ClineCore } from "@cline/core";
+import type { ZenuxsCore } from "@cline/core";
 import type { Message } from "@cline/shared";
 
 export async function loadInteractiveResumeMessages(
-	sessionManager: ClineCore,
+	sessionManager: ZenuxsCore,
 	resumeSessionId?: string,
 ): Promise<Message[] | undefined> {
 	const target = resumeSessionId?.trim();

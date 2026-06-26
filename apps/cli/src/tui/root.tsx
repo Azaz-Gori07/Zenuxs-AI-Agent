@@ -264,8 +264,8 @@ function App(props: TuiProps) {
 	const openAccount = useAccountDialog({
 		dialog,
 		termHeight,
-		loadAccount: props.loadClineAccount,
-		switchAccount: props.switchClineAccount,
+		loadAccount: props.loadZenuxsAccount,
+		switchAccount: props.switchZenuxsAccount,
 		onAccountChange: props.onAccountChange,
 		openModelSelector,
 		refocusTextarea: () => refocusTextareaRef.current(),

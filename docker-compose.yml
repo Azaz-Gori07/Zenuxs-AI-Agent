@@ -1,0 +1,11 @@
+version: "3.8"
+
+networks:
+  zenuxs-net:
+    driver: bridge
+
+services:
+  # (No external integration services configured)
+  # Zenuxs runs standalone without Langfuse, OpenHands, or Skyvern.
+
+volumes: {}

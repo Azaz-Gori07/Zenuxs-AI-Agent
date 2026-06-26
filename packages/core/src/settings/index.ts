@@ -3,7 +3,7 @@ export {
 	createCoreSettingsService,
 } from "./settings-service";
 export type {
-	ClineCoreSettingsApi,
+	ZenuxsCoreSettingsApi,
 	CoreSettingsItem,
 	CoreSettingsItemKind,
 	CoreSettingsItemSource,

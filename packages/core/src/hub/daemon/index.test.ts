@@ -17,7 +17,7 @@ const {
 	resolveClineDataDir,
 	resolveHubBuildId,
 	writeHubDiscovery,
-	CLINE_RUN_AS_HUB_DAEMON_ENV,
+	ZENUXS_RUN_AS_HUB_DAEMON_ENV,
 } = vi.hoisted(() => ({
 	spawn: vi.fn(() => ({ unref: vi.fn() })),
 	closeSync: vi.fn(),
@@ -42,10 +42,10 @@ const {
 	resolveClineDataDir: vi.fn(() => "/tmp/cline-data"),
 	resolveHubBuildId: vi.fn(() => "current-build"),
 	writeHubDiscovery: vi.fn(),
-	CLINE_RUN_AS_HUB_DAEMON_ENV: "CLINE_RUN_AS_HUB_DAEMON",
+	ZENUXS_RUN_AS_HUB_DAEMON_ENV: "ZENUXS_RUN_AS_HUB_DAEMON",
 }));
 
-const originalRunAsHubDaemon = process.env[CLINE_RUN_AS_HUB_DAEMON_ENV];
+const originalRunAsHubDaemon = process.env[ZENUXS_RUN_AS_HUB_DAEMON_ENV];
 
 vi.mock("node:child_process", () => ({
 	spawn,
@@ -58,16 +58,16 @@ vi.mock("node:fs", () => ({
 }));
 
 vi.mock("@cline/shared", () => ({
-	CLINE_RUN_AS_HUB_DAEMON_ENV,
-	CLINE_HUB_PORT: 25463,
-	CLINE_HUB_DEV_PORT: 25466,
+	ZENUXS_RUN_AS_HUB_DAEMON_ENV,
+	ZENUXS_HUB_PORT: 25463,
+	ZENUXS_HUB_DEV_PORT: 25466,
 	isHubProtocolCompatible: (record: { protocolVersion?: string }) => ({
 		compatible: record.protocolVersion === "v1",
 	}),
 	isHubDaemonProcess: (env: NodeJS.ProcessEnv = process.env) =>
-		env[CLINE_RUN_AS_HUB_DAEMON_ENV] === "1",
-	resolveClineBuildEnv: () => "production",
-	withResolvedClineBuildEnv: (env: NodeJS.ProcessEnv) => env,
+		env[ZENUXS_RUN_AS_HUB_DAEMON_ENV] === "1",
+	resolveZenuxsBuildEnv: () => "production",
+	withResolvedZenuxsBuildEnv: (env: NodeJS.ProcessEnv) => env,
 }));
 
 vi.mock("../client", () => ({
@@ -95,7 +95,7 @@ describe("ensureDetachedHubServer", () => {
 	const fetchMock = vi.fn(async () => ({ ok: true }));
 
 	beforeEach(() => {
-		delete process.env[CLINE_RUN_AS_HUB_DAEMON_ENV];
+		delete process.env[ZENUXS_RUN_AS_HUB_DAEMON_ENV];
 		spawn.mockReset();
 		spawn.mockImplementation(() => ({ unref: vi.fn() }));
 		closeSync.mockReset();
@@ -118,9 +118,9 @@ describe("ensureDetachedHubServer", () => {
 		vi.clearAllMocks();
 		vi.unstubAllGlobals();
 		if (originalRunAsHubDaemon === undefined) {
-			delete process.env[CLINE_RUN_AS_HUB_DAEMON_ENV];
+			delete process.env[ZENUXS_RUN_AS_HUB_DAEMON_ENV];
 		} else {
-			process.env[CLINE_RUN_AS_HUB_DAEMON_ENV] = originalRunAsHubDaemon;
+			process.env[ZENUXS_RUN_AS_HUB_DAEMON_ENV] = originalRunAsHubDaemon;
 		}
 	});
 
@@ -155,7 +155,7 @@ describe("ensureDetachedHubServer", () => {
 		expect(spawnArgs).toContain("--port");
 		expect(spawnArgs).toContain("25463");
 		expect(spawnArgs).not.toContain("0");
-		expect(spawnOptions?.env?.[CLINE_RUN_AS_HUB_DAEMON_ENV]).toBe("1");
+		expect(spawnOptions?.env?.[ZENUXS_RUN_AS_HUB_DAEMON_ENV]).toBe("1");
 	});
 
 	it("retries a transient ETXTBSY spawn failure while starting the detached daemon", async () => {
@@ -200,7 +200,7 @@ describe("ensureDetachedHubServer", () => {
 	});
 
 	it("does not spawn another detached daemon from inside the hub daemon process", async () => {
-		process.env[CLINE_RUN_AS_HUB_DAEMON_ENV] = "1";
+		process.env[ZENUXS_RUN_AS_HUB_DAEMON_ENV] = "1";
 
 		const { spawnDetachedHubServer } = await import(".");
 		spawnDetachedHubServer("/workspace");
@@ -210,7 +210,7 @@ describe("ensureDetachedHubServer", () => {
 	});
 
 	it("does not prewarm another detached daemon from inside the hub daemon process", async () => {
-		process.env[CLINE_RUN_AS_HUB_DAEMON_ENV] = "1";
+		process.env[ZENUXS_RUN_AS_HUB_DAEMON_ENV] = "1";
 
 		const { prewarmDetachedHubServer } = await import(".");
 		prewarmDetachedHubServer("/workspace");

@@ -55,7 +55,7 @@ export interface WorkspaceContext extends WorkspaceInfo {
 	/** Human-readable workspace name shown in the system prompt */
 	workspaceName?: string;
 	/**
-	 * Pre-serialized workspace metadata block that replaces {{CLINE_METADATA}}
+	 * Pre-serialized workspace metadata block that replaces {{ZENUXS_METADATA}}
 	 * in the system prompt template.
 	 */
 	metadata?: string;

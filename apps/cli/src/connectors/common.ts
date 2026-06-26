@@ -10,7 +10,7 @@ import {
 import { join } from "node:path";
 import type { HubSessionClient, HubSessionRow } from "@cline/core";
 import { ensureParentDir, resolveClineDataDir } from "@cline/core";
-import { withResolvedClineBuildEnv } from "@cline/shared";
+import { withResolvedZenuxsBuildEnv } from "@cline/shared";
 import { createCliLoggerAdapter } from "../logging/adapter";
 import { logSpawnedProcess } from "../logging/process";
 import { resolveCliLaunchSpec } from "../utils/internal-launch";
@@ -191,7 +191,7 @@ export function spawnDetachedConnector(
 					? "ignore"
 					: ["ignore", detachedLogFd, detachedLogFd],
 			env: {
-				...withResolvedClineBuildEnv(process.env),
+				...withResolvedZenuxsBuildEnv(process.env),
 				[childEnvKey]: "1",
 			},
 			// Prevent a console window from appearing on Windows; detached

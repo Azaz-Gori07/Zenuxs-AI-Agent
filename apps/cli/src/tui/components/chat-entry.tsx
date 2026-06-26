@@ -4,12 +4,12 @@ import { useState } from "react";
 import "opentui-spinner/react";
 import {
 	getClinePassSubscriptionUrl,
-	isClinePassSubscriptionError,
-} from "../../utils/cline-pass-errors";
+	isZenuxsPassSubscriptionError,
+} from "../../utils/zenuxs-pass-errors";
 import {
 	CLINE_CREDITS_DASHBOARD_URL,
-	isClineAccountCreditsErrorMessage,
-} from "../cline-account";
+	isZenuxsAccountCreditsErrorMessage,
+} from "../zenuxs-account";
 import { useTerminalBackground } from "../hooks/use-terminal-background";
 import {
 	getDefaultForeground,
@@ -424,10 +424,10 @@ export function ChatEntryView(props: {
 			);
 
 		case "error":
-			if (isClineAccountCreditsErrorMessage(entry.text)) {
+			if (isZenuxsAccountCreditsErrorMessage(entry.text)) {
 				return <ClineCreditsErrorView defaultFg={defaultFg} />;
 			}
-			if (isClinePassSubscriptionError(entry.text)) {
+			if (isZenuxsPassSubscriptionError(entry.text)) {
 				return <ClinePassSubscriptionErrorView defaultFg={defaultFg} />;
 			}
 			return (

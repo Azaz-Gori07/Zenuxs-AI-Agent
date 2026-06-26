@@ -274,12 +274,12 @@ describe("DefaultRuntimeBuilder team persistence boundary", () => {
 				}),
 			}),
 		);
-		const clineBootstrapCall = (
+		const zenuxsBootstrapCall = (
 			bootstrapAgentTeamsMock.mock.calls as unknown as Array<[BootstrapCall]>
 		)[0]?.[0];
-		expect(clineBootstrapCall).toBeDefined();
+		expect(zenuxsBootstrapCall).toBeDefined();
 		expect(
-			clineBootstrapCall?.teammateConfigProvider.getRuntimeConfig(),
+			zenuxsBootstrapCall?.teammateConfigProvider.getRuntimeConfig(),
 		).toEqual(
 			expect.objectContaining({
 				providerId: "cline",

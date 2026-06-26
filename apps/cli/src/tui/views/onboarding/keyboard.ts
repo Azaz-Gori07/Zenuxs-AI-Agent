@@ -1,7 +1,7 @@
 import type { ProviderConfigFieldKey } from "@cline/core";
 import { useKeyboard } from "@opentui/react";
 import type { Dispatch, SetStateAction } from "react";
-import type { ClineModelPickerEntry } from "../../components/model-selector/cline-model-picker";
+import type { ZenuxsModelPickerEntry } from "../../components/model-selector/zenuxs-model-picker";
 import type { SearchableListState } from "../../components/searchable-list";
 import {
 	isOnboardingOAuthProviderId,
@@ -25,7 +25,7 @@ export function useOnboardingKeyboard(input: {
 	menuSelected: number;
 	providerList: SearchableListState;
 	modelList: SearchableListState;
-	clineEntries: ClineModelPickerEntry[];
+	clineEntries: ZenuxsModelPickerEntry[];
 	clineModelSelected: number;
 	thinkingSelected: number;
 	setStep: (step: OnboardingStep) => void;

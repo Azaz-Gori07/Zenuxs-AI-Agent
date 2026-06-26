@@ -1,23 +1,23 @@
 export {
-	ClineAccountService,
-	type ClineAccountServiceOptions,
-} from "./cline-account-service";
+	ZenuxsAccountService,
+	type ZenuxsAccountServiceOptions,
+} from "./zenuxs-account-service";
 export {
-	type ClineAccountOperations,
-	executeClineAccountAction,
-	isClineAccountActionRequest,
+	type ZenuxsAccountOperations,
+	executeZenuxsAccountAction,
+	isZenuxsAccountActionRequest,
 	type ProviderActionExecutor,
-	RpcClineAccountService,
+	RpcZenuxsAccountService,
 } from "./rpc";
 export type {
-	ClineAccountBalance,
-	ClineAccountOrganization,
-	ClineAccountOrganizationBalance,
-	ClineAccountOrganizationUsageTransaction,
-	ClineAccountPaymentTransaction,
-	ClineAccountUsageTransaction,
-	ClineAccountUser,
-	ClineOrganization,
+	ZenuxsAccountBalance,
+	ZenuxsAccountOrganization,
+	ZenuxsAccountOrganizationBalance,
+	ZenuxsAccountOrganizationUsageTransaction,
+	ZenuxsAccountPaymentTransaction,
+	ZenuxsAccountUsageTransaction,
+	ZenuxsAccountUser,
+	ZenuxsOrganization,
 	FeaturebaseTokenResponse,
 	UserRemoteConfigOrganization,
 	UserRemoteConfigResponse,

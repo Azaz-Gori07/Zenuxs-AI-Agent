@@ -4,7 +4,7 @@
   "workspaces": [
     "packages/*",
     "apps/*",
-    "apps/cline-hub/src/webview"
+    "apps/zenuxs-hub/src/webview"
   ],
   "scripts": {
     "build": "bun run build:sdk && bun -F zenuxs build",

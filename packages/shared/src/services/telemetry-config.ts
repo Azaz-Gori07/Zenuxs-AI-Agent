@@ -1,7 +1,7 @@
 import { parseKeyPairsIntoRecord } from "../parse/headers/utils";
 import type { OpenTelemetryClientConfig, TelemetryMetadata } from "./telemetry";
 
-export interface ClineTelemetryServiceConfig extends OpenTelemetryClientConfig {
+export interface ZenuxsTelemetryServiceConfig extends OpenTelemetryClientConfig {
 	metadata: TelemetryMetadata;
 }
 
@@ -30,7 +30,7 @@ function getTelemetryBuildTimeConfig(): OpenTelemetryClientConfig {
 	};
 }
 
-export function createClineTelemetryServiceMetadata(
+export function createZenuxsTelemetryServiceMetadata(
 	overrides: Partial<TelemetryMetadata> = {},
 ): TelemetryMetadata {
 	return {
@@ -47,12 +47,12 @@ export function createClineTelemetryServiceMetadata(
 	};
 }
 
-export function createClineTelemetryServiceConfig(
-	configOverrides: Partial<ClineTelemetryServiceConfig> = {},
-): ClineTelemetryServiceConfig {
+export function createZenuxsTelemetryServiceConfig(
+	configOverrides: Partial<ZenuxsTelemetryServiceConfig> = {},
+): ZenuxsTelemetryServiceConfig {
 	return {
 		...getTelemetryBuildTimeConfig(),
 		...configOverrides,
-		metadata: createClineTelemetryServiceMetadata(configOverrides.metadata),
+		metadata: createZenuxsTelemetryServiceMetadata(configOverrides.metadata),
 	};
 }

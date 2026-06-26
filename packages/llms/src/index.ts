@@ -80,4 +80,10 @@ export {
 export type * from "./providers/gateway";
 export { createGateway, DefaultGateway } from "./providers/gateway";
 export { resolveProviderModelCatalogKeys } from "./providers/provider-keys";
-export { disposeLangfuseTelemetry } from "./services/langfuse-telemetry";
+export {
+	checkCodexCliInstalled,
+	isOpenAICodexCliProvider,
+	type CodexCliStatus,
+	OPENAI_CODEX_CLI_PROVIDER_ID,
+	CODEX_CLI_INSTALL_URL,
+} from "./providers/vendors/codex-cli";

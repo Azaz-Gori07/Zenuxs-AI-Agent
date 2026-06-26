@@ -1,7 +1,7 @@
 import {
 	buildRemoteConfigSessionBlobUploadMetadata,
-	ClineAccountService,
-	type ClineCoreStartInput,
+	ZenuxsAccountService,
+	type ZenuxsCoreStartInput,
 	createRemoteConfigSessionMessagesArtifactUploader,
 	ProviderSettingsManager,
 	prepareRemoteConfigCoreIntegration,
@@ -12,7 +12,7 @@ import {
 	type SessionMessagesArtifactUploader,
 } from "@cline/core";
 import {
-	getClineEnvironmentConfig,
+	getZenuxsEnvironmentConfig,
 	type RemoteConfigBundle,
 	RemoteConfigSchema,
 } from "@cline/shared";
@@ -44,9 +44,9 @@ async function loadCliRemoteConfigBundleUncached(): Promise<
 		return undefined;
 	}
 
-	const service = new ClineAccountService({
+	const service = new ZenuxsAccountService({
 		apiBaseUrl:
-			settings?.baseUrl?.trim() || getClineEnvironmentConfig().apiBaseUrl,
+			settings?.baseUrl?.trim() || getZenuxsEnvironmentConfig().apiBaseUrl,
 		getAuthToken: async () => authToken,
 	});
 	const response = await service.fetchRemoteConfig().catch(() => null);
@@ -139,7 +139,7 @@ function captureRemoteConfigInitialized(bundle: RemoteConfigBundle): void {
 }
 
 export async function prepareCliEnterpriseIntegration(
-	input: ClineCoreStartInput,
+	input: ZenuxsCoreStartInput,
 ) {
 	const bundle = await loadCliRemoteConfigBundle();
 	if (!bundle) {

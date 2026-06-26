@@ -7,9 +7,9 @@ import {
 import type { CliMigrationNotice } from "../kanban-migration/notice";
 import { logCliError } from "../logging/errors";
 import {
-	loadClineAccountSnapshot,
-	switchClineAccount,
-} from "../tui/cline-account";
+	loadZenuxsAccountSnapshot,
+	switchZenuxsAccount,
+} from "../tui/zenuxs-account";
 import type {
 	InteractiveConfigItem,
 	LoadInteractiveConfigDataOptions,
@@ -407,13 +407,13 @@ export async function runInteractive(
 				clineApiBaseUrl: options?.clineApiBaseUrl,
 				clineProviderSettings: options?.clineProviderSettings,
 			}),
-		loadClineAccount: async () =>
-			await loadClineAccountSnapshot({
+		loadZenuxsAccount: async () =>
+			await loadZenuxsAccountSnapshot({
 				config,
 				clineApiBaseUrl: options?.clineApiBaseUrl,
 			}),
-		switchClineAccount: async (organizationId) =>
-			await switchClineAccount({
+		switchZenuxsAccount: async (organizationId) =>
+			await switchZenuxsAccount({
 				config,
 				organizationId,
 				clineApiBaseUrl: options?.clineApiBaseUrl,
@@ -682,7 +682,7 @@ export async function runInteractive(
 		},
 		onAccountChange: async () => {
 			await sessionRuntime.ensureReady();
-			await loadClineAccountSnapshot({
+			await loadZenuxsAccountSnapshot({
 				config,
 				clineApiBaseUrl: options?.clineApiBaseUrl,
 			}).catch((error) => {

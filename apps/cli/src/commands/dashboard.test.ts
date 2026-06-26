@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync } from "node:fs";
+﻿import { mkdirSync, mkdtempSync } from "node:fs";
 import { arch, platform, tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -160,7 +160,7 @@ describe("runDashboardCommand", () => {
 			"node_modules",
 			"@cline",
 			`cli-${platformName}-${arch()}`,
-			"cline-hub",
+			"zenuxs-hub",
 			"webview",
 		);
 		mkdirSync(join(wrapperPath, ".."), { recursive: true });

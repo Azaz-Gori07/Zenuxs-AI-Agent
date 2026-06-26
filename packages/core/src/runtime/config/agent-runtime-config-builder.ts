@@ -12,18 +12,18 @@
  * `LoopDetectionTracker` — not passed through here.
  */
 
-import type {
-	AgentConfig,
-	AgentMessage,
-	AgentModel,
-	AgentRuntimeConfig,
-	AgentRuntimeHooks,
-	AgentRuntimePlugin,
-	AgentRuntimePrepareTurnContext,
-	AgentRuntimePrepareTurnResult,
-	AgentTool,
-	BasicLogger,
-	ITelemetryService,
+import {
+	type AgentConfig,
+	type AgentMessage,
+	type AgentModel,
+	type AgentRuntimeConfig,
+	type AgentRuntimeHooks,
+	type AgentRuntimePlugin,
+	type AgentRuntimePrepareTurnContext,
+	type AgentRuntimePrepareTurnResult,
+	type AgentTool,
+	type BasicLogger,
+	type ITelemetryService,
 } from "@cline/shared";
 
 /**
@@ -109,7 +109,7 @@ export function createAgentRuntimeConfig(
 		telemetry: input.telemetry ?? agentConfig.telemetry,
 		initialMessages: input.initialMessages,
 		completionPolicy: agentConfig.completionPolicy,
-		maxIterations: agentConfig.maxIterations,
+		maxIterations: agentConfig.maxIterations ?? 50,
 		toolExecution,
 		toolPolicies: agentConfig.toolPolicies,
 		toolContextMetadata: input.toolContextMetadata,

@@ -4,7 +4,7 @@ import type {
 	ChatRunTurnRequest,
 	ChatStartSessionRequest,
 } from "@cline/shared";
-import { buildClineSystemPrompt } from "@cline/shared";
+import { buildZenuxsSystemPrompt } from "@cline/shared";
 import { nowIso } from "@cline/shared/db";
 import type { ResolveCronSpecsDirOptions } from "@cline/shared/storage";
 import { DefaultToolNames } from "../../extensions/tools/constants";
@@ -476,7 +476,7 @@ export class CronRunner {
 		const notes = buildNotesSystemPromptSection(spec.notesDirectory);
 		const additional = mergeRulesForSystemPrompt(undefined, notes);
 		const metadata = await buildWorkspaceMetadata(workspaceRoot);
-		const base = buildClineSystemPrompt({
+		const base = buildZenuxsSystemPrompt({
 			ide: "Zenuxs Cron",
 			workspaceRoot,
 			workspaceName: basename(workspaceRoot),

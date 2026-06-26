@@ -1,4 +1,4 @@
-import { CLINE_BUILD_ENV_ENV } from "@cline/shared";
+import { ZENUXS_BUILD_ENV_ENV } from "@cline/shared";
 import { describe, expect, it } from "vitest";
 import {
 	DEFAULT_HUB_PORT,
@@ -12,7 +12,7 @@ describe("resolveDefaultHubPort", () => {
 	it("returns the dev hub port when CLINE_BUILD_ENV is development and CLINE_HUB_PORT is unset", () => {
 		expect(
 			resolveDefaultHubPort({
-				env: { [CLINE_BUILD_ENV_ENV]: "development" },
+				env: { [ZENUXS_BUILD_ENV_ENV]: "development" },
 				execArgv: [],
 			}),
 		).toBe(DEV_HUB_PORT);
@@ -21,7 +21,7 @@ describe("resolveDefaultHubPort", () => {
 	it("returns the production hub port when CLINE_BUILD_ENV is production and CLINE_HUB_PORT is unset", () => {
 		expect(
 			resolveDefaultHubPort({
-				env: { [CLINE_BUILD_ENV_ENV]: "production" },
+				env: { [ZENUXS_BUILD_ENV_ENV]: "production" },
 				execArgv: [],
 			}),
 		).toBe(DEFAULT_HUB_PORT);
@@ -46,7 +46,7 @@ describe("resolveDefaultHubPort", () => {
 		expect(
 			resolveDefaultHubPort({
 				env: {
-					[CLINE_BUILD_ENV_ENV]: "development",
+					[ZENUXS_BUILD_ENV_ENV]: "development",
 					CLINE_HUB_PORT: "31000",
 				},
 				execArgv: [],
@@ -58,7 +58,7 @@ describe("resolveDefaultHubPort", () => {
 		expect(
 			resolveDefaultHubPort({
 				env: {
-					[CLINE_BUILD_ENV_ENV]: "production",
+					[ZENUXS_BUILD_ENV_ENV]: "production",
 					CLINE_HUB_PORT: "31000",
 				},
 				execArgv: [],
@@ -70,7 +70,7 @@ describe("resolveDefaultHubPort", () => {
 		expect(
 			resolveDefaultHubPort({
 				env: {
-					[CLINE_BUILD_ENV_ENV]: "development",
+					[ZENUXS_BUILD_ENV_ENV]: "development",
 					CLINE_HUB_PORT: "not-a-port",
 				},
 				execArgv: [],
@@ -82,7 +82,7 @@ describe("resolveDefaultHubPort", () => {
 		expect(
 			resolveDefaultHubPort({
 				env: {
-					[CLINE_BUILD_ENV_ENV]: "production",
+					[ZENUXS_BUILD_ENV_ENV]: "production",
 					CLINE_HUB_PORT: "0",
 				},
 				execArgv: [],
@@ -97,7 +97,7 @@ describe("resolveHubEndpointOptions", () => {
 			resolveHubEndpointOptions(
 				{},
 				{
-					env: { [CLINE_BUILD_ENV_ENV]: "development" },
+					env: { [ZENUXS_BUILD_ENV_ENV]: "development" },
 					execArgv: [],
 				},
 			),
@@ -113,7 +113,7 @@ describe("resolveHubEndpointOptions", () => {
 			resolveHubEndpointOptions(
 				{ port: 40000 },
 				{
-					env: { [CLINE_BUILD_ENV_ENV]: "development" },
+					env: { [ZENUXS_BUILD_ENV_ENV]: "development" },
 					execArgv: [],
 				},
 			).port,

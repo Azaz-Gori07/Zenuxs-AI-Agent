@@ -1,4 +1,4 @@
-import { timingSafeEqual } from "node:crypto";
+﻿import { timingSafeEqual } from "node:crypto";
 import http from "node:http";
 import net from "node:net";
 import { URL } from "node:url";
@@ -204,7 +204,7 @@ function isAddressInUseError(error: unknown): boolean {
 }
 
 const SHARED_SERVERS = new Map<string, Promise<HubWebSocketServer>>();
-const HUB_AUTH_PROTOCOL_PREFIX = "cline-hub-auth.";
+const HUB_AUTH_PROTOCOL_PREFIX = "zenuxs-hub-auth.";
 const HUB_SOCKET_HEARTBEAT_INTERVAL_MS = 30_000;
 
 function parseHeaderValue(value: string | string[] | undefined): string {

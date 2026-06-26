@@ -2,7 +2,7 @@ import {
 	type AgentExtension,
 	buildRemoteConfigSessionBlobUploadMetadata,
 	clearRemoteConfigSessionBlobUpload,
-	createClineTelemetryServiceConfig,
+	createZenuxsTelemetryServiceConfig,
 	createSessionId,
 	createRemoteConfigSessionMessagesArtifactUploader as createSharedRemoteConfigSessionMessagesArtifactUploader,
 	type ITelemetryService,
@@ -14,7 +14,7 @@ import {
 	readRemoteConfigSessionBlobUploadMetadata,
 	registerRemoteConfigSessionBlobUpload,
 } from "@cline/shared";
-import type { ClineCoreStartInput } from "../cline-core/types";
+import type { ZenuxsCoreStartInput } from "../engine/types";
 import { createConfiguredTelemetryService } from "../services/telemetry";
 import type { CreateOpenTelemetryTelemetryServiceOptions } from "../services/telemetry/OpenTelemetryProvider";
 import type { SessionMessagesArtifactUploader } from "../types/session";
@@ -31,7 +31,7 @@ export interface PreparedRemoteConfigCoreIntegration {
 	prepared: PreparedRemoteConfigRuntime;
 	extensions: AgentExtension[];
 	telemetry?: ITelemetryService;
-	applyToStartSessionInput(input: ClineCoreStartInput): ClineCoreStartInput;
+	applyToStartSessionInput(input: ZenuxsCoreStartInput): ZenuxsCoreStartInput;
 	dispose(): Promise<void>;
 }
 
@@ -52,7 +52,7 @@ function createTelemetryService(
 	}
 
 	return createConfiguredTelemetryService(
-		createClineTelemetryServiceConfig(telemetryConfig),
+		createZenuxsTelemetryServiceConfig(telemetryConfig),
 	).telemetry;
 }
 
@@ -82,7 +82,7 @@ export async function prepareRemoteConfigCoreIntegration(
 		prepared,
 		extensions,
 		telemetry,
-		applyToStartSessionInput(input: ClineCoreStartInput): ClineCoreStartInput {
+		applyToStartSessionInput(input: ZenuxsCoreStartInput): ZenuxsCoreStartInput {
 			const existingExtensions = input.config.extensions ?? [];
 			const existingTelemetry = input.config.telemetry;
 			const sessionId = blobUploadMetadataTemplate

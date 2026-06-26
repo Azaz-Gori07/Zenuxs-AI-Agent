@@ -13,7 +13,7 @@ const { loginClineOAuth } = vi.hoisted(() => ({
 	loginClineOAuth: vi.fn(),
 }));
 
-vi.mock("./cline", () => ({
+vi.mock("./zenuxs", () => ({
 	getValidClineCredentials: vi.fn(),
 	loginClineOAuth,
 }));
@@ -70,7 +70,7 @@ describe("provider auth registry", () => {
 		).toBe("workos:abc");
 	});
 
-	it("login/save for ClinePass stores credentials under Cline storage", async () => {
+	it("login/save for ZenuxsPass stores credentials under Zenuxs storage", async () => {
 		loginClineOAuth.mockResolvedValueOnce({
 			access: "new-access",
 			refresh: "new-refresh",
@@ -115,7 +115,7 @@ describe("provider auth registry", () => {
 		);
 	});
 
-	it("ClinePass resolves API keys from Cline storage", () => {
+	it("ZenuxsPass resolves API keys from Zenuxs storage", () => {
 		const getProviderSettings = vi.fn().mockReturnValue({
 			provider: "cline",
 			auth: { accessToken: "abc" },

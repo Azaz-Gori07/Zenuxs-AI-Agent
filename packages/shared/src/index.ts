@@ -216,8 +216,8 @@ export {
 } from "./parse/string";
 export { formatHumanReadableDate, formatUptime } from "./parse/time";
 export { validateWithZod, zodToJsonSchema } from "./parse/zod";
-export type { ClineSystemPromptOptions } from "./prompt/cline";
-export { buildClineSystemPrompt, processWorkspaceInfo } from "./prompt/cline";
+export type { ZenuxsSystemPromptOptions } from "./prompt/zenuxs";
+export { buildZenuxsSystemPrompt, processWorkspaceInfo } from "./prompt/zenuxs";
 export {
 	buildSystemPrompt,
 	normalizeSystemInput,
@@ -262,7 +262,7 @@ export {
 	parseUserCommandEnvelope,
 	xmlTagsRemoval,
 } from "./prompt/format";
-export { isClineProvider } from "./providers/utils";
+export { isZenuxsProvider } from "./providers/utils";
 export {
 	buildRemoteConfigSessionBlobUploadMetadata,
 	clearRemoteConfigSessionBlobUpload,
@@ -308,8 +308,8 @@ export {
 	AwsBedrockCustomModelSchema,
 	AwsBedrockModelSchema,
 	AwsBedrockSettingsSchema,
-	ClineModelSchema,
-	ClineSettingsSchema,
+	ZenuxsModelSchema,
+	ZenuxsSettingsSchema,
 	EnterpriseTelemetrySchema,
 	GlobalInstructionsFileSchema,
 	LiteLLMModelSchema,
@@ -324,10 +324,10 @@ export {
 	VertexSettingsSchema,
 } from "./remote-config/schema";
 export {
-	CLINE_DEFAULT_RPC_ADDRESS,
-	CLINE_DEFAULT_RPC_PORT,
-	CLINE_HUB_DEV_PORT,
-	CLINE_HUB_PORT,
+	ZENUXS_DEFAULT_RPC_ADDRESS,
+	ZENUXS_DEFAULT_RPC_PORT,
+	ZENUXS_HUB_DEV_PORT,
+	ZENUXS_HUB_PORT,
 } from "./rpc";
 export type {
 	AddProviderActionRequest,
@@ -340,7 +340,7 @@ export type {
 	ChatStartSessionResponse,
 	ChatToolCallResult,
 	ChatTurnResult,
-	ClineAccountActionRequest,
+	ZenuxsAccountActionRequest,
 	EnterpriseAuthenticateRequest,
 	EnterpriseAuthenticateResponse,
 	EnterpriseStatusRequest,
@@ -388,33 +388,33 @@ export {
 	TEAM_PROGRESS_EVENT_TYPE,
 } from "./rpc/team-progress";
 export type {
-	ClineBuildEnv,
-	ClineDebugRole,
-	ResolveClineBuildEnvOptions,
+	ZenuxsBuildEnv,
+	ZenuxsDebugRole,
+	ResolveZenuxsBuildEnvOptions,
 } from "./runtime/build-env";
 export {
 	augmentNodeCommandForDebug,
-	CLINE_BUILD_ENV_ENV,
-	CLINE_DEBUG_HOST_ENV,
-	CLINE_DEBUG_PORT_BASE_ENV,
-	resolveClineBuildEnv,
-	withResolvedClineBuildEnv,
+	ZENUXS_BUILD_ENV_ENV,
+	ZENUXS_DEBUG_HOST_ENV,
+	ZENUXS_DEBUG_PORT_BASE_ENV,
+	resolveZenuxsBuildEnv,
+	withResolvedZenuxsBuildEnv,
 } from "./runtime/build-env";
 export type {
-	ClineEnvironment,
-	ClineEnvironmentConfig,
-	ResolveClineEnvironmentOptions,
-} from "./runtime/cline-environment";
+	ZenuxsEnvironment,
+	ZenuxsEnvironmentConfig,
+	ResolveZenuxsEnvironmentOptions,
+} from "./runtime/zenuxs-environment";
 export {
-	CLINE_ENVIRONMENT_ENV,
-	CLINE_ENVIRONMENT_OVERRIDE_ENV,
-	CLINE_ENVIRONMENTS,
-	DEFAULT_CLINE_ENVIRONMENT,
-	getClineEnvironmentConfig,
-	resolveClineEnvironment,
-} from "./runtime/cline-environment";
+	ZENUXS_ENVIRONMENT_ENV,
+	ZENUXS_ENVIRONMENT_OVERRIDE_ENV,
+	ZENUXS_ENVIRONMENTS,
+	DEFAULT_ZENUXS_ENVIRONMENT,
+	getZenuxsEnvironmentConfig,
+	resolveZenuxsEnvironment,
+} from "./runtime/zenuxs-environment";
 export {
-	CLINE_RUN_AS_HUB_DAEMON_ENV,
+	ZENUXS_RUN_AS_HUB_DAEMON_ENV,
 	isHubDaemonProcess,
 } from "./runtime/hub-daemon-env";
 export type {
@@ -436,10 +436,10 @@ export {
 	normalizeSdkError,
 	SDK_ERROR_TELEMETRY_EVENT,
 } from "./services/telemetry";
-export type { ClineTelemetryServiceConfig } from "./services/telemetry-config";
+export type { ZenuxsTelemetryServiceConfig } from "./services/telemetry-config";
 export {
-	createClineTelemetryServiceConfig,
-	createClineTelemetryServiceMetadata,
+	createZenuxsTelemetryServiceConfig,
+	createZenuxsTelemetryServiceMetadata,
 } from "./services/telemetry-config";
 export type {
 	HookSessionContext,

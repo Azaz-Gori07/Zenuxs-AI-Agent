@@ -15,7 +15,7 @@ import {
 	type HookControl,
 	type HookSessionContext,
 	type WorkspaceInfo,
-	withResolvedClineBuildEnv,
+	withResolvedZenuxsBuildEnv,
 } from "@cline/shared";
 import { ensureHookLogDir } from "@cline/shared/storage";
 import { createAgentHooksExtension } from "./hook-extension";
@@ -184,7 +184,7 @@ function createPayloadBase(
 		rootSessionId: options.rootSessionId || ctx.conversationId,
 	};
 	return {
-		clineVersion: process.env.CLINE_VERSION?.trim() || "",
+		clineVersion: process.env.ZENUXS_VERSION?.trim() || "",
 		timestamp: new Date().toISOString(),
 		taskId: ctx.conversationId,
 		sessionContext,
@@ -330,7 +330,7 @@ async function runHookCommandOnce(
 	});
 	const child = spawn(command[0], command.slice(1), {
 		cwd: options.cwd,
-		env: withResolvedClineBuildEnv(options.env),
+		env: withResolvedZenuxsBuildEnv(options.env),
 		stdio: options.detached
 			? ["pipe", "ignore", "ignore"]
 			: ["pipe", "pipe", "pipe"],
@@ -533,7 +533,7 @@ async function runBlockingHookCommands(options: {
 			const result = await runHookCommand(options.payload, {
 				command,
 				cwd: options.cwd,
-				env: withResolvedClineBuildEnv(process.env),
+				env: withResolvedZenuxsBuildEnv(process.env),
 				detached: false,
 				timeoutMs: options.timeoutMs,
 			});
@@ -571,7 +571,7 @@ function runAsyncHookCommands(options: {
 		void runHookCommand(options.payload, {
 			command,
 			cwd: options.cwd,
-			env: withResolvedClineBuildEnv(process.env),
+			env: withResolvedZenuxsBuildEnv(process.env),
 			detached: true,
 		}).catch((error) => {
 			logHookError(

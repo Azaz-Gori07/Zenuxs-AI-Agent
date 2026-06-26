@@ -1,4 +1,4 @@
-import type {
+﻿import type {
 	AgentExtension,
 	AgentHooks,
 	AgentTool,
@@ -380,7 +380,7 @@ function createUserInstructionServiceProxy(
 		createSkillsExecutor: (allowedSkillNames) =>
 			createSnapshotSkillsExecutor(snapshot, allowedSkillNames),
 		createExtension: (options): AgentExtension => ({
-			name: "cline-hub-user-instructions",
+			name: "zenuxs-hub-user-instructions",
 			manifest: {
 				capabilities: [
 					options.includeRules ? "rules" : undefined,
@@ -395,7 +395,7 @@ function createUserInstructionServiceProxy(
 			setup(api) {
 				if (options.includeRules) {
 					api.registerRule({
-						id: "cline-hub-user-instructions:rules",
+						id: "zenuxs-hub-user-instructions:rules",
 						source: "hub-user-instructions",
 						content: () =>
 							formatRulesForSystemPrompt(
