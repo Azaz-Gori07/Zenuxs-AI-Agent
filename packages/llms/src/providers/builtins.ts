@@ -506,7 +506,7 @@ function createClineLikeSpec(
 
 const cline = createClineLikeSpec({
 	id: "cline",
-	name: "Zenuxs",
+	name: "Cline",
 	popular: 1,
 	modelsFactory: buildClineModels,
 	defaultModelId: CLINE_DEFAULT_MODEL_ID,
@@ -552,6 +552,16 @@ const OPENAI_COMPATIBLE_SPECS: BuiltinSpec[] = [
 		defaultModelId: "gpt-4o",
 		apiKeyEnv: ["OPENAI_API_KEY"],
 		defaults: { baseUrl: "https://api.openai.com/v1" },
+	},
+	{
+		id: "zenuxs",
+		name: "Zenuxs",
+		description: "Zenuxs AI API endpoint",
+		family: "openai-compatible",
+		popular: 3,
+		capabilities: ["tools"],
+		defaultModelId: "gpt-4o",
+		defaults: { baseUrl: "https://aiapi.zenuxs.in/api/zenuxs-code/proxy" },
 	},
 	cline,
 	clinePass,

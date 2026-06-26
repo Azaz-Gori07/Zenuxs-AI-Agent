@@ -11,6 +11,7 @@ export enum BUILT_IN_PROVIDER {
 	CLAUDE_CODE = "claude-code",
 	CLINE = "cline",
 	CLINE_PASS = "cline-pass",
+	ZENUXS = "zenuxs",
 	// OpenAI variants
 	OPENAI_COMPATIBLE = "openai-compatible",
 	OPENAI_NATIVE = "openai-native",

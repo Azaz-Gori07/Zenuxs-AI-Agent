@@ -371,10 +371,12 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 		const apiBase = process.env.ZENUXS_CODE_API_URL?.trim() || "https://aiapi.zenuxs.in";
 		const proxyBaseUrl = `${apiBase}/api/zenuxs-code/proxy`;
 
-		// Use "openai-compatible" as the actual CLI provider pointing to our proxy
-		const providerId = "openai-compatible";
+		// Save as "zenuxs" provider — preserves OAuth auth while adding proxy config
+		const existing = providerSettingsManager.getProviderSettings("zenuxs");
+		const providerId = "zenuxs";
 		providerSettingsManager.saveProviderSettings(
 			{
+				...existing?.settings,
 				provider: providerId,
 				baseUrl: proxyBaseUrl,
 				apiKey: token,

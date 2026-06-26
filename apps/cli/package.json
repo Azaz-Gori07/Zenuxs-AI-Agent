@@ -1,7 +1,7 @@
 {
 	"name": "zenuxs-code",
 	"displayName": "zenuxs code",
-	"version": "1.2.1",
+	"version": "1.2.2",
 	"description": "Autonomous coding agent CLI - capable of creating/editing files, running commands, using the browser, and more",
 	"type": "module",
 	"publishConfig": {
