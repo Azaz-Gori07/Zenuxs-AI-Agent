@@ -16,13 +16,16 @@ import {
 	resolveDefaultMcpSettingsPath,
 } from "../../extensions/mcp";
 import {
+	createAllEnhancedTools,
 	createBuiltinTools,
 	DEFAULT_MODEL_TOOL_ROUTING_RULES,
 	resolveToolPresetName,
 	resolveToolRoutingConfig,
+	type CreateAllEnhancedToolsOptions,
 	type SkillsExecutorWithMetadata,
 	type ToolExecutors,
 	ToolPresets,
+	type ToolPresetConfig,
 	type ToolRoutingRule,
 } from "../../extensions/tools";
 import {
@@ -141,21 +144,70 @@ function createBuiltinToolsList(
 		toolRoutingRules ?? DEFAULT_MODEL_TOOL_ROUTING_RULES,
 	);
 
+	// Merge preset with routing overrides for effective tool flags
+	const effectiveConfig: ToolPresetConfig = {
+		...preset,
+		...toolRoutingConfig,
+	};
+
+	// 1. Create enhanced tools (read, write, edit, glob, grep, bash, webfetch,
+	//    todowrite, websearch, plan_exit) — these replace the default executors
+	const enhancedMode: CreateAllEnhancedToolsOptions["mode"] =
+		mode === "plan" ? "plan" : "act";
+	const disabledTools: string[] = [];
+	if (effectiveConfig.enableReadFiles === false)
+		disabledTools.push("read");
+	if (effectiveConfig.enableEditor === false)
+		disabledTools.push("edit");
+	if (effectiveConfig.enableWriteFile === false)
+		disabledTools.push("write");
+	if (effectiveConfig.enableBash === false)
+		disabledTools.push("bash");
+	if (effectiveConfig.enableWebFetch === false)
+		disabledTools.push("webfetch");
+	const enableGlob =
+		effectiveConfig.enableGlob ?? effectiveConfig.enableSearch;
+	const enableGrep =
+		effectiveConfig.enableGrep ?? effectiveConfig.enableSearch;
+	if (enableGlob === false) disabledTools.push("glob");
+	if (enableGrep === false) disabledTools.push("grep");
+	if (effectiveConfig.enableTodoWrite === false)
+		disabledTools.push("todowrite");
+
+	const { tools: enhancedTools } = createAllEnhancedTools({
+		cwd,
+		mode: enhancedMode,
+		enableWebSearch: effectiveConfig.enableWebSearch,
+		enablePlanExit: effectiveConfig.enablePlanExit,
+		disabledTools,
+	});
+
+	// 2. Create additional tools not covered by the enhanced set (skills,
+	//    ask_question, submit_and_exit, apply_patch) using the default executors
+	const additionalTools = createBuiltinTools({
+		cwd,
+		enableReadFiles: false,
+		enableSearch: false,
+		enableBash: false,
+		enableWebFetch: false,
+		enableEditor: false,
+		enableApplyPatch: effectiveConfig.enableApplyPatch,
+		enableSkills: !!skillsExecutor,
+		enableAskQuestion: effectiveConfig.enableAskQuestion,
+		enableSubmitAndExit: effectiveConfig.enableSubmitAndExit,
+		executors: {
+			...(skillsExecutor
+				? {
+						skills: skillsExecutor,
+					}
+				: {}),
+			...(executorOverrides ?? {}),
+		},
+	});
+
+	// 3. Merge and filter by policies
 	return filterAvailableTools(
-		createBuiltinTools({
-			cwd,
-			...preset,
-			enableSkills: !!skillsExecutor,
-			...toolRoutingConfig,
-			executors: {
-				...(skillsExecutor
-					? {
-							skills: skillsExecutor,
-						}
-					: {}),
-				...(executorOverrides ?? {}),
-			},
-		}),
+		[...enhancedTools, ...additionalTools],
 		toolPolicies,
 	);
 }

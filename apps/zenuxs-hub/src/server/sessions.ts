@@ -273,6 +273,17 @@ export async function sendMessage(
 		await createSession(ctx, peer, text, config, attachments);
 		return;
 	}
+	const selectedSession = ctx.sessions.get(peer.selectedSessionId);
+	const requestedProvider = config?.provider ?? config?.providerId;
+	const requestedModel = config?.model ?? config?.modelId;
+	const providerChanged =
+		Boolean(requestedProvider) && requestedProvider !== selectedSession?.provider;
+	const modelChanged =
+		Boolean(requestedModel) && requestedModel !== selectedSession?.model;
+	if (providerChanged || modelChanged) {
+		await createSession(ctx, peer, text, config, attachments);
+		return;
+	}
 	await ctx.cline.send({
 		sessionId: peer.selectedSessionId,
 		prompt: text,

@@ -94,9 +94,10 @@ export function buildAgentGraph(
 	runtime: AgentRuntime,
 	mcpLayer?: McpLayer,
 	mcpRegistry?: McpToolRegistry,
+	workspaceRoot?: string,
 ) {
-	// @ts-expect-error – workspaceRoot not on public config type
-	const wsRoot = runtime.config.workspaceRoot || process.cwd();
+	// workspaceRoot is passed from the caller (CLI) to avoid private config access
+	const wsRoot = workspaceRoot ?? process.cwd();
 	const effectiveMcpLayer = mcpLayer ?? new McpLayer(wsRoot);
 	const effectiveMcpRegistry = mcpRegistry ?? new McpToolRegistry(effectiveMcpLayer);
 
@@ -261,20 +262,17 @@ export function buildAgentGraph(
 
 	const contextRetrievalNode = async (state: typeof AgentStateAnnotation.State) => {
 		try {
-			// @ts-expect-error – graph closure accesses runtime state
 			runtime.throwIfAborted();
 			if (state.iteration_count > 0) {
 				return {};
 			}
-			// @ts-expect-error – workspaceRoot not on public config type
-			const workspaceRoot = runtime.config.workspaceRoot || process.cwd();
 			const query = state.current_task || "";
 			if (!query.trim()) {
 				return {};
 			}
 
 			// Initialize MCP Layer (auto-discovery + connection of all servers)
-			const mcpServersFromConfig: McpServerConfig[] = loadMcpServersFromConfig(workspaceRoot);
+			const mcpServersFromConfig: McpServerConfig[] = loadMcpServersFromConfig(wsRoot);
 			const runtimeMcpServers = (runtime.config as any).mcpServers as McpServerConfig[] | undefined;
 			const allUserServers = [...mcpServersFromConfig, ...(runtimeMcpServers ?? [])];
 			await effectiveMcpLayer.initialize(allUserServers);

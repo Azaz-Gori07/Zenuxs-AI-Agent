@@ -1,20 +1,36 @@
-import type { ITelemetryService } from "@cline/shared";
+import {
+	getZenuxsEnvironmentConfig,
+	type ITelemetryService,
+} from "@cline/shared";
 import type { OAuthCredentials, OAuthLoginCallbacks } from "./types";
 import { getProofKey } from "./utils";
 import { startLocalOAuthServer, type LocalOAuthServer } from "./server";
 
-function getAuthServerUrl(): string {
+function getZenuxsAuthServerUrl(): string {
 	if (typeof process !== "undefined" && process.env?.ZENUXS_AUTH_URL?.trim()) {
 		return process.env.ZENUXS_AUTH_URL.trim().replace(/\/+$/, "");
 	}
 	return "https://api.auth.zenuxs.in";
 }
 
-function getClientId(): string {
+function getZenuxsClientId(): string {
 	if (typeof process !== "undefined" && process.env?.ZENUXS_CLIENT_ID?.trim()) {
 		return process.env.ZENUXS_CLIENT_ID.trim();
 	}
 	return "6f8764d705aa9541";
+}
+
+function getClineAuthServerUrl(inputBaseUrl?: string): string {
+	const url = inputBaseUrl?.trim();
+	if (url) return url.replace(/\/+$/, "");
+	return getZenuxsEnvironmentConfig().apiBaseUrl.replace(/\/+$/, "");
+}
+
+function getClineWorkOsClientId(): string {
+	if (typeof process !== "undefined" && process.env?.CLINE_WORKOS_CLIENT_ID?.trim()) {
+		return process.env.CLINE_WORKOS_CLIENT_ID.trim();
+	}
+	return getZenuxsEnvironmentConfig().workOsClientId;
 }
 const LOCAL_CALLBACK_PORTS = [48821, 48822, 48823, 48824, 48825];
 const CALLBACK_PATH = "/oauth/callback";
@@ -75,9 +91,9 @@ export async function loginZenuxsAuth(
 	}
 
 	// 3. Build the authorization URL
-	const authUrl = getAuthServerUrl();
+	const authUrl = getZenuxsAuthServerUrl();
 	const authorizeUrl = new URL(`${authUrl}/oauth/authorize`);
-	authorizeUrl.searchParams.set("client_id", getClientId());
+	authorizeUrl.searchParams.set("client_id", getZenuxsClientId());
 	authorizeUrl.searchParams.set("redirect_uri", server.callbackUrl);
 	authorizeUrl.searchParams.set("response_type", "code");
 	authorizeUrl.searchParams.set("scope", "openid profile email");
@@ -106,7 +122,7 @@ export async function loginZenuxsAuth(
 	callbacks.onProgress?.("Exchanging authorization code for tokens...");
 
 	// 6. Exchange the authorization code for tokens
-	const tokenUrl = `${getAuthServerUrl()}/oauth/token`;
+	const tokenUrl = `${getZenuxsAuthServerUrl()}/oauth/token`;
 	const tokenResponse = await fetch(tokenUrl, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
@@ -114,7 +130,7 @@ export async function loginZenuxsAuth(
 			grant_type: "authorization_code",
 			code: callbackResult.code,
 			redirect_uri: server.callbackUrl,
-			client_id: getClientId(),
+			client_id: getZenuxsClientId(),
 			code_verifier: verifier,
 		}),
 	});
@@ -143,7 +159,7 @@ export async function loginZenuxsAuth(
 	let userEmail = "";
 	let userName = "";
 	try {
-		const userinfoUrl = `${getAuthServerUrl()}/oauth/userinfo`;
+		const userinfoUrl = `${getZenuxsAuthServerUrl()}/oauth/userinfo`;
 		const userinfoRes = await fetch(userinfoUrl, {
 			headers: { Authorization: `Bearer ${oauthAccessToken}` },
 		});
@@ -222,14 +238,14 @@ export async function refreshZenuxsAuth(
 		// Try refreshing with the OAuth refresh token
 	if (credentials.refresh && credentials.refresh !== credentials.access) {
 		try {
-			const tokenUrl = `${getAuthServerUrl()}/oauth/token`;
+			const tokenUrl = `${getZenuxsAuthServerUrl()}/oauth/token`;
 			const tokenResponse = await fetch(tokenUrl, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
 					grant_type: "refresh_token",
 					refresh_token: credentials.refresh,
-					client_id: getClientId(),
+					client_id: getZenuxsClientId(),
 				}),
 			});
 
@@ -288,13 +304,17 @@ export interface DeviceAuthResult {
 	pollIntervalSeconds: number;
 }
 
-export async function startZenuxsDeviceAuth(): Promise<DeviceAuthResult> {
-	const authUrl = getAuthServerUrl();
+export async function startZenuxsDeviceAuth(options?: {
+	apiBaseUrl?: string;
+	clientId?: string;
+}): Promise<DeviceAuthResult> {
+	const authUrl = getClineAuthServerUrl(options?.apiBaseUrl);
+	const clientId = options?.clientId?.trim() || getClineWorkOsClientId();
 	const response = await fetch(`${authUrl}/oauth/device/authorize`, {
 		method: "POST",
 		headers: { "Content-Type": "application/x-www-form-urlencoded" },
 		body: new URLSearchParams({
-			client_id: getClientId(),
+			client_id: clientId,
 			scope: "openid profile email",
 		}).toString(),
 	});
@@ -328,10 +348,13 @@ export async function completeZenuxsDeviceAuth(options: {
 	expiresInSeconds: number;
 	pollIntervalSeconds: number;
 	apiBaseUrl: string;
+	authBaseUrl?: string;
+	clientId?: string;
 	provider: string;
 	telemetry?: ITelemetryService;
 }): Promise<OAuthCredentials> {
-	const authUrl = getAuthServerUrl();
+	const authUrl = getClineAuthServerUrl(options.authBaseUrl ?? options.apiBaseUrl);
+	const clientId = options.clientId?.trim() || getClineWorkOsClientId();
 	const startTime = Date.now();
 	const expiresMs = options.expiresInSeconds * 1000;
 
@@ -347,7 +370,7 @@ export async function completeZenuxsDeviceAuth(options: {
 			body: new URLSearchParams({
 				grant_type: "device_token",
 				device_code: options.deviceCode,
-				client_id: getClientId(),
+				client_id: clientId,
 			}).toString(),
 		});
 
@@ -432,7 +455,8 @@ export async function loginZenuxsOAuth(options: {
 	telemetry?: ITelemetryService;
 }): Promise<OAuthCredentials> {
 	if (options.useWorkOSDeviceAuth) {
-		const deviceAuth = await startZenuxsDeviceAuth();
+		const apiBaseUrl = options.apiBaseUrl || getZenuxsEnvironmentConfig().apiBaseUrl;
+		const deviceAuth = await startZenuxsDeviceAuth({ apiBaseUrl });
 		const verifyUrl = deviceAuth.verificationUriComplete || deviceAuth.verificationUri;
 		options.callbacks.onAuth({
 			url: verifyUrl,
@@ -443,7 +467,8 @@ export async function loginZenuxsOAuth(options: {
 			deviceCode: deviceAuth.deviceCode,
 			expiresInSeconds: deviceAuth.expiresInSeconds,
 			pollIntervalSeconds: deviceAuth.pollIntervalSeconds,
-			apiBaseUrl: options.apiBaseUrl || getApiBaseUrl(),
+			apiBaseUrl,
+			authBaseUrl: apiBaseUrl,
 			provider: "zenuxs",
 			telemetry: options.telemetry,
 		});

@@ -7,11 +7,13 @@
  */
 
 import type { ToolExecutors } from "../types";
+import type { AgentToolContext } from "@cline/shared";
 import {
 	type ApplyPatchExecutorOptions,
 	createApplyPatchExecutor,
 } from "./apply-patch";
 import { type BashExecutorOptions, createBashExecutor } from "./bash";
+import type { BashExecutor } from "../types";
 import { createEditorExecutor, type EditorExecutorOptions } from "./editor";
 import {
 	createFileReadExecutor,
@@ -53,6 +55,52 @@ export interface DefaultExecutorsOptions {
 	webFetch?: WebFetchExecutorOptions;
 	applyPatch?: ApplyPatchExecutorOptions;
 	editor?: EditorExecutorOptions;
+	enhancedShell?: {
+		enableDangerDetection?: boolean;
+		onDangerousCommand?: (command: string, cwd: string) => Promise<boolean>;
+	};
+}
+
+/**
+ * Check if a command is dangerous (matches known destructive patterns)
+ */
+const DANGEROUS_PATTERNS = [
+	/\brm\s+-rf\s+\//i,
+	/\bsudo\s+rm/i,
+	/\bchmod\s+777/i,
+	/\bdd\s+if=/i,
+	/\bmkfs?\s+/i,
+	/>\s*\/dev\/sd/i,
+	/\bshutdown\b/i,
+	/\breboot\b/i,
+	/\binit\s+0\b/i,
+	/\binit\s+6\b/i,
+];
+
+function checkDangerousCommand(command: string): boolean {
+	return DANGEROUS_PATTERNS.some((pattern) => pattern.test(command));
+}
+
+/**
+ * Enhanced bash executor with danger detection
+ */
+function createEnhancedBashExecutor(
+	options: BashExecutorOptions & { onDangerousCommand?: (command: string, cwd: string) => Promise<boolean> } = {},
+): BashExecutor {
+	const { onDangerousCommand } = options;
+	const baseExecutor = createBashExecutor(options);
+
+	return async (command: string | { command: string; args?: string[] }, cwd: string, _context: AgentToolContext) => {
+		// Extract string command for danger check
+		const commandStr = typeof command === "string" ? command : command.command;
+		if (onDangerousCommand && checkDangerousCommand(commandStr)) {
+			const approved = await onDangerousCommand(commandStr, cwd);
+			if (!approved) {
+				throw new Error(`Command blocked by danger detection: ${commandStr}`);
+			}
+		}
+		return baseExecutor(command, cwd, _context);
+	};
 }
 
 /**
@@ -76,10 +124,18 @@ export interface DefaultExecutorsOptions {
 export function createDefaultExecutors(
 	options: DefaultExecutorsOptions = {},
 ): ToolExecutors {
+	const { enhancedShell } = options;
+	const bashOptions = { ...options.bash };
+
 	return {
 		readFile: createFileReadExecutor(options.fileRead),
 		search: createSearchExecutor(options.search),
-		bash: createBashExecutor(options.bash),
+		bash: (enhancedShell?.enableDangerDetection ?? true)
+			? createEnhancedBashExecutor({
+				...bashOptions,
+				onDangerousCommand: enhancedShell?.onDangerousCommand,
+			})
+			: createBashExecutor(bashOptions),
 		webFetch: createWebFetchExecutor(options.webFetch),
 		applyPatch: createApplyPatchExecutor(options.applyPatch),
 		editor: createEditorExecutor(options.editor),

@@ -4,7 +4,7 @@ import { join } from "node:path";
 import type { AgentTool } from "@cline/shared";
 import { setClineDir, setHomeDir } from "@cline/shared/storage";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { createBuiltinTools } from "../../extensions/tools";
+import { createAllEnhancedTools } from "../../extensions/tools";
 import { DefaultRuntimeBuilder } from "./runtime-builder";
 
 type LegacyConfig = {
@@ -19,13 +19,12 @@ type LegacyConfig = {
 };
 
 function legacyBuiltinTools(cwd: string): AgentTool[] {
-	return createBuiltinTools({
+	const { tools } = createAllEnhancedTools({
 		cwd,
-		enableReadFiles: true,
-		enableSearch: true,
-		enableBash: true,
-		enableWebFetch: true,
+		mode: "act",
+		enableWebSearch: true,
 	});
+	return tools;
 }
 
 function legacyBuildRuntimeEnvironment(

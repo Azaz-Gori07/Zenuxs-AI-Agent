@@ -6,11 +6,11 @@ import {
 
 const {
 	getValidOpenAICodexCredentials,
-	getValidClineCredentials,
+	getValidZenuxsCredentials,
 	getValidOcaCredentials,
 } = vi.hoisted(() => ({
 	getValidOpenAICodexCredentials: vi.fn(),
-	getValidClineCredentials: vi.fn(),
+	getValidZenuxsCredentials: vi.fn(),
 	getValidOcaCredentials: vi.fn(),
 }));
 
@@ -18,8 +18,11 @@ vi.mock("../../auth/codex", () => ({
 	getValidOpenAICodexCredentials,
 }));
 
-vi.mock("../../auth/cline", () => ({
-	getValidClineCredentials,
+vi.mock("../../auth/zenuxs", () => ({
+	getValidZenuxsCredentials,
+	loginZenuxsAuth: vi.fn(),
+	loginZenuxsOAuth: vi.fn(),
+	refreshZenuxsAuth: vi.fn(),
 }));
 
 vi.mock("../../auth/oca", () => ({
@@ -92,7 +95,7 @@ describe("RuntimeOAuthTokenManager", () => {
 		});
 		const saveProviderSettings = vi.fn();
 
-		getValidClineCredentials.mockResolvedValueOnce({
+		getValidZenuxsCredentials.mockResolvedValueOnce({
 			access: "access-new",
 			refresh: "refresh-new",
 			expires: 4_000_000_000_000,
@@ -111,7 +114,7 @@ describe("RuntimeOAuthTokenManager", () => {
 		});
 
 		expect(getProviderSettings).toHaveBeenCalledWith("cline");
-		expect(getValidClineCredentials).toHaveBeenCalledWith(
+		expect(getValidZenuxsCredentials).toHaveBeenCalledWith(
 			expect.objectContaining({
 				access: "access-old",
 				refresh: "refresh-old",

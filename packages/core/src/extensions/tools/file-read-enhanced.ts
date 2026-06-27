@@ -181,10 +181,14 @@ export function createEnhancedFileReadTool(options: CreateEnhancedFileReadOption
 - Binary detection
 - Fuzzy "did you mean" suggestions on miss`,
     inputSchema: ReadFileRequestSchema,
-    execute: async (input: ReadFileRequest) => {
-      const filePath = path.isAbsolute(input.path)
-        ? input.path
-        : path.resolve(cwd, input.path);
+    execute: async (input: any) => {
+      const targetPath = input.path || (Array.isArray(input.files) && input.files[0]?.path) || input.filePath;
+      if (!targetPath) {
+        return { output: "Error: File path is required for read tool.", isError: true };
+      }
+      const filePath = path.isAbsolute(targetPath)
+        ? targetPath
+        : path.resolve(cwd, targetPath);
 
       // Check if path exists
       let stat: Stats;

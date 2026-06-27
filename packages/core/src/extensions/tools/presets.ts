@@ -12,6 +12,12 @@ import type { CreateDefaultToolsOptions, DefaultToolsConfig } from "./types";
 export interface ToolPresetConfig extends DefaultToolsConfig {
 	enableSpawnAgent?: boolean;
 	enableAgentTeams?: boolean;
+	enableWriteFile?: boolean;
+	enableGlob?: boolean;
+	enableGrep?: boolean;
+	enableWebSearch?: boolean;
+	enableTodoWrite?: boolean;
+	enablePlanExit?: boolean;
 }
 
 /**
@@ -34,6 +40,12 @@ export const ToolPresets = {
 		enableSubmitAndExit: false,
 		enableSpawnAgent: true,
 		enableAgentTeams: true,
+		enableWriteFile: true,
+		enableGlob: true,
+		enableGrep: true,
+		enableWebSearch: true,
+		enableTodoWrite: true,
+		enablePlanExit: false,
 	},
 
 	/**
@@ -52,6 +64,12 @@ export const ToolPresets = {
 		enableSubmitAndExit: false,
 		enableSpawnAgent: true,
 		enableAgentTeams: true,
+		enableWriteFile: false,
+		enableGlob: true,
+		enableGrep: true,
+		enableWebSearch: true,
+		enableTodoWrite: true,
+		enablePlanExit: true,
 	},
 
 	/**
@@ -105,6 +123,12 @@ export const ToolPresets = {
 		enableSubmitAndExit: true,
 		enableSpawnAgent: false,
 		enableAgentTeams: false,
+		enableWriteFile: true,
+		enableGlob: false,
+		enableGrep: false,
+		enableWebSearch: false,
+		enableTodoWrite: false,
+		enablePlanExit: false,
 	},
 } as const satisfies Record<string, ToolPresetConfig>;
 

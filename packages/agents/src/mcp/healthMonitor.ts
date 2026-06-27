@@ -29,9 +29,13 @@ export class HealthMonitor {
 	start(): void {
 		if (this.active) return;
 		this.active = true;
-		this.runAllChecks().catch(() => {});
+		this.runAllChecks().catch((error) => {
+			console.error("[HealthMonitor] Initial health check failed:", error);
+		});
 		this.interval = setInterval(() => {
-			this.runAllChecks().catch(() => {});
+			this.runAllChecks().catch((error) => {
+				console.error("[HealthMonitor] Periodic health check failed:", error);
+			});
 		}, this.intervalMs);
 	}
 

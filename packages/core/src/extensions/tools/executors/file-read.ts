@@ -56,10 +56,15 @@ export interface FileReadExecutorOptions {
 }
 
 const DEFAULT_FILE_READ_OPTIONS: Required<Omit<FileReadExecutorOptions, "cwd">> & { cwd?: string } = {
-	maxFileSizeBytes: 10_000_000, // 10MB default limit
-	encoding: "utf-8", // Default to UTF-8 encoding
-	includeLineNumbers: true, // Include line numbers by default
+  maxFileSizeBytes: 10_000_000, // 10MB default limit
+  encoding: "utf-8", // Default to UTF-8 encoding
+  includeLineNumbers: true, // Include line numbers by default
 };
+
+// Enhanced options that include danger detection configuration
+export interface EnhancedFileReadExecutorOptions extends FileReadExecutorOptions {
+  onExternalDirectory?: (paths: string[]) => Promise<boolean>;
+}
 
 const MAX_TEXT_STREAM_BYTES = 100_000_000;
 const MAX_UNRANGED_LINE_SCAN = 50_000;

@@ -3878,6 +3878,10 @@ describe("sdk-gateway", () => {
 		expect(config.fetch).not.toBe(customFetch);
 		await config.fetch?.("https://example.test/v1/chat/completions", {
 			method: "POST",
+			headers: {
+				Authorization: "Bearer openrouter-secret-token",
+				"X-API-Key": "secondary-provider-key",
+			},
 			body: JSON.stringify({ messages: [{ role: "user", content: "hi" }] }),
 		});
 
@@ -3910,6 +3914,20 @@ describe("sdk-gateway", () => {
 				},
 			},
 		});
+		expect(records[1]?.wire).toMatchObject({
+			providerName: "openrouter",
+			baseUrl: "https://example.test",
+			endpoint: "/v1/chat/completions",
+			method: "POST",
+			authorizationHeader: "Bearer o...[redacted:30]",
+			accessTokenSource: "authorization",
+			headers: {
+				Authorization: "Bearer o...[redacted:30]",
+				"X-API-Key": "secondar...[redacted:22]",
+			},
+		});
+		expect(JSON.stringify(records[1])).not.toContain("openrouter-secret-token");
+		expect(JSON.stringify(records[1])).not.toContain("secondary-provider-key");
 	});
 
 	it("increments capture attempts instead of overwriting repeated wire requests", async () => {

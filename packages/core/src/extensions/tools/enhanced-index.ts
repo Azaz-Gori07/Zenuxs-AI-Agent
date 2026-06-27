@@ -32,6 +32,13 @@ export interface CreateAllEnhancedToolsOptions {
   enabledTools?: string[];
 }
 
+import {
+  createCreateFileTool,
+  createDeleteFileTool,
+  createMoveFileTool,
+  createCopyFileTool,
+} from "./file-ops-enhanced";
+
 // =============================================================================
 // Create All Enhanced Tools
 // =============================================================================
@@ -62,20 +69,27 @@ export function createAllEnhancedTools(options: CreateAllEnhancedToolsOptions): 
   const searchTool = options.enableWebSearch ? createWebSearchTool() : undefined;
   const todoTool = createTodoWriteTool(options.todoService);
   const planExitTool = options.enablePlanExit ? createPlanExitTool() : undefined;
+  const createFileTool = createCreateFileTool({ cwd });
+  const deleteFileTool = createDeleteFileTool({ cwd });
+  const moveFileTool = createMoveFileTool({ cwd });
+  const copyFileTool = createCopyFileTool({ cwd });
 
   // Register all tools
   const registrations: ToolRegistration[] = [
     { id: "read", tool: readTool, category: "builtin", enabled: true },
-    { id: "write", tool: writeTool, category: "builtin", enabled: true, modelFilter: (_providerId, modelId) => {
-      // Apply_patch replaces write/edit for some GPT models
-      return !(modelId.includes("gpt-4-turbo") || modelId.includes("gpt-4-32k"));
-    }},
-    { id: "edit", tool: editTool, category: "builtin", enabled: true, modelFilter: (_providerId, modelId) => {
-      return !(modelId.includes("gpt-4-turbo") || modelId.includes("gpt-4-32k"));
-    }},
+    { id: "write", tool: writeTool, category: "builtin", enabled: true },
+    { id: "write_file", tool: writeTool, category: "builtin", enabled: true },
+    { id: "create_file", tool: createFileTool, category: "builtin", enabled: true },
+    { id: "edit", tool: editTool, category: "builtin", enabled: true },
+    { id: "editor", tool: editTool, category: "builtin", enabled: true },
+    { id: "replace_file", tool: editTool, category: "builtin", enabled: true },
+    { id: "delete_file", tool: deleteFileTool, category: "builtin", enabled: true },
+    { id: "move_file", tool: moveFileTool, category: "builtin", enabled: true },
+    { id: "copy_file", tool: copyFileTool, category: "builtin", enabled: true },
     { id: "glob", tool: globTool, category: "builtin", enabled: true },
     { id: "grep", tool: grepTool, category: "builtin", enabled: true },
     { id: "bash", tool: shellTool, category: "builtin", enabled: true },
+    { id: "run_commands", tool: shellTool, category: "builtin", enabled: true },
     { id: "webfetch", tool: fetchTool, category: "builtin", enabled: true },
     { id: "todowrite", tool: todoTool, category: "builtin", enabled: true },
   ];
@@ -103,4 +117,10 @@ export { createEnhancedGlobTool, createEnhancedGrepTool } from "./glob-grep-enha
 export { createEnhancedShellTool } from "./shell-enhanced";
 export { createWebFetchTool, createWebSearchTool } from "./web-enhanced";
 export { createTodoWriteTool, createPlanExitTool } from "./todo-enhanced";
+export {
+  createCreateFileTool,
+  createDeleteFileTool,
+  createMoveFileTool,
+  createCopyFileTool,
+} from "./file-ops-enhanced";
 export type { TodoService } from "./todo-enhanced";

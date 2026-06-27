@@ -39,6 +39,21 @@ export {
 	type SearchExecutorOptions,
 	type WebFetchExecutorOptions,
 } from "./executors/index";
+// Enhanced Tools (OpenCode-level intelligence)
+export {
+	createAllEnhancedTools,
+	createEnhancedFileReadTool,
+	createEnhancedWriteTool,
+	createEnhancedEditorTool,
+	createEnhancedGlobTool,
+	createEnhancedGrepTool,
+	createEnhancedShellTool,
+	createWebFetchTool as createEnhancedWebFetchTool,
+	createWebSearchTool,
+	createTodoWriteTool,
+	createPlanExitTool,
+} from "./enhanced-index";
+export type { CreateAllEnhancedToolsOptions } from "./enhanced-index";
 export {
 	DEFAULT_MODEL_TOOL_ROUTING_RULES,
 	resolveToolRoutingConfig,
@@ -50,6 +65,7 @@ export {
 	createToolPoliciesWithPreset,
 	resolveToolPresetName,
 	type ToolPolicyPresetName,
+	type ToolPresetConfig,
 	type ToolPresetName,
 	ToolPresets,
 } from "./presets";

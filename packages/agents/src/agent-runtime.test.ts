@@ -1532,4 +1532,86 @@ describe("AgentRuntime", () => {
 			totalCost: 1.0,
 		});
 	});
+
+	it("preserves streamed tool argument deltas when content contains JSON structures and resolves tool aliases", async () => {
+		const executedInput: any[] = [];
+		const writeTool: AgentTool = {
+			name: "write",
+			description: "Write content to file",
+			inputSchema: { type: "object" },
+			async execute(input) {
+				executedInput.push(input);
+				return { success: true };
+			},
+		};
+
+		const model = new ScriptedModel([
+			() => [
+				{
+					type: "tool-call-delta",
+					toolCallId: "call_write_1",
+					toolName: "write_file", // Calling alias write_file when write is registered
+					inputText: '{"filePath":"config.json","content":"',
+				},
+				{
+					type: "tool-call-delta",
+					toolCallId: "call_write_1",
+					toolName: "write_file",
+					inputText: '{\\n  \\"setting\\": true\\n}', // Delta fragment starting with {
+				},
+				{
+					type: "tool-call-delta",
+					toolCallId: "call_write_1",
+					toolName: "write_file",
+					inputText: '"}',
+				},
+				{ type: "finish", reason: "tool-calls" },
+			],
+			() => [
+				{ type: "text-delta", text: "file written successfully" },
+				{ type: "finish", reason: "stop" },
+			],
+		]);
+
+		const runtime = new AgentRuntime({ model, tools: [writeTool] });
+		const result = await runtime.run("Write config");
+
+		expect(result.status).toBe("completed");
+		expect(result.outputText).toBe("file written successfully");
+		expect(executedInput).toHaveLength(1);
+		expect(executedInput[0]).toEqual({
+			filePath: "config.json",
+			content: '{\n  "setting": true\n}',
+		});
+	});
+
+	it("enforces builder architecture policy by rejecting raw source code dumps in chat", async () => {
+		let turns = 0;
+		const model = new ScriptedModel([
+			() => {
+				turns++;
+				return [
+					{ type: "text-delta", text: "Here is the portfolio file:\n```html\n<!DOCTYPE html>\n<html><body><h1>Portfolio</h1></body></html>\n```" },
+					{ type: "finish", reason: "stop" },
+				];
+			},
+			(request) => {
+				turns++;
+				const lastMsg = request.messages.at(-1) as AgentMessage;
+				expect((lastMsg.content[0] as any).text).toContain("[SYSTEM ENFORCEMENT] Builder Architecture Violation Detected");
+				return [
+					{ type: "text-delta", text: "✔ portfolio.html created" },
+					{ type: "finish", reason: "stop" },
+				];
+			},
+		]);
+
+		const runtime = new AgentRuntime({ model, tools: [] });
+		const result = await runtime.run("Create AI Engineer Portfolio");
+
+		expect(result.status).toBe("completed");
+		expect(turns).toBe(2);
+		expect(result.outputText).toBe("✔ portfolio.html created");
+	});
 });
+

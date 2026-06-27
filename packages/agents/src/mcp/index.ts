@@ -9,6 +9,9 @@ export { SessionManager } from "./sessionManager";
 export { DynamicLoader } from "./dynamicLoader";
 export { UserMcpManager } from "./userMcpManager";
 
+// MCP tool wrapper for AgentTool integration
+export { createMcpTool, formatMcpToolResult, getMcpToolsAsAgentTools } from "./mcp-tool-wrapper";
+
 export type {
 	McpServerConfig,
 	McpServerTransportConfig,

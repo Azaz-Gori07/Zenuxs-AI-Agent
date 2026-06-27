@@ -361,6 +361,105 @@ describe("LocalRuntimeHost", () => {
 		);
 	});
 
+	it("does not resolve OAuth credentials for API-key providers", async () => {
+		const apiKeyProviders = [
+			"openrouter",
+			"nvidia",
+			"openai-native",
+			"anthropic",
+			"gemini",
+			"groq",
+			"deepseek",
+		];
+		const sessionId = "sess-api-key-provider";
+		const manifest = createManifest(sessionId);
+		const sessionService = {
+			ensureSessionsDir: vi.fn().mockReturnValue("/tmp/sessions"),
+			createRootSessionWithArtifacts: vi.fn().mockResolvedValue({
+				manifestPath: "/tmp/manifest-openrouter.json",
+				messagesPath: "/tmp/messages-openrouter.json",
+				manifest,
+			}),
+			persistSessionMessages: vi.fn(),
+			writeSessionManifest: vi.fn(),
+			listSessions: vi.fn().mockResolvedValue([]),
+			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+		};
+		const runtimeBuilder = {
+			build: vi.fn().mockReturnValue({ tools: [], shutdown: vi.fn() }),
+		};
+		const createAgent = vi.fn((config: { providerId?: string }) => ({
+			run: vi
+				.fn()
+				.mockResolvedValue(
+					createResult({
+						model: {
+							id: "test-model",
+							provider: config.providerId ?? "mock-provider",
+						},
+					}),
+				),
+			continue: vi.fn().mockResolvedValue(createResult()),
+			getMessages: vi.fn().mockReturnValue([]),
+			getAgentId: vi.fn().mockReturnValue("agent-root-1"),
+			getConversationId: vi.fn().mockReturnValue("conv-root-1"),
+			abort: vi.fn(),
+			subscribeEvents: vi.fn().mockReturnValue(() => {}),
+			canStartRun: vi.fn().mockReturnValue(true),
+			shutdown: vi.fn().mockResolvedValue(undefined),
+		}));
+		const oauthTokenManager = {
+			resolveProviderApiKey: vi.fn().mockResolvedValue({
+				apiKey: "workos:wrong-token",
+				refreshed: false,
+			}),
+		};
+		const manager = new RuntimeHostUnderTest({
+			distinctId,
+			sessionService: sessionService as never,
+			runtimeBuilder: runtimeBuilder as never,
+			createAgent,
+			oauthTokenManager: oauthTokenManager as never,
+			providerSettingsManager: {
+				getProviderSettings: vi.fn((providerId: string) => ({
+					provider: providerId,
+					apiKey: `sk-${providerId}-provider-key`,
+					model: "test-model",
+					baseUrl: `https://${providerId}.example.test/v1`,
+				})),
+			} as never,
+		});
+
+		for (const providerId of apiKeyProviders) {
+			const providerSessionId = `${sessionId}-${providerId}`;
+			await manager.startSession(
+				normalizeStartInput({
+					config: createConfig({
+						sessionId: providerSessionId,
+						providerId,
+						modelId: "test-model",
+						apiKey: undefined,
+					}),
+					prompt: "hello",
+				}),
+			);
+
+			expect(createAgent).toHaveBeenCalledWith(
+				expect.objectContaining({
+					providerId,
+					apiKey: `sk-${providerId}-provider-key`,
+					baseUrl: `https://${providerId}.example.test/v1`,
+					providerConfig: expect.objectContaining({
+						providerId,
+						apiKey: `sk-${providerId}-provider-key`,
+						baseUrl: `https://${providerId}.example.test/v1`,
+					}),
+				}),
+			);
+		}
+		expect(oauthTokenManager.resolveProviderApiKey).not.toHaveBeenCalled();
+	});
+
 	it("captures active session lookup misses as handled telemetry", async () => {
 		const adapter = {
 			name: "test",

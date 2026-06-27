@@ -15,6 +15,29 @@ describe("provider settings", () => {
 		expect(config.accessToken).toBe("oauth-access-token");
 	});
 
+	it("does not expose OAuth access tokens on API-key provider configs", () => {
+		for (const provider of [
+			"openrouter",
+			"nvidia",
+			"openai-compatible",
+			"anthropic",
+			"gemini",
+			"groq",
+			"deepseek",
+		]) {
+			const config = toProviderConfig({
+				provider,
+				model: "test-model",
+				auth: {
+					accessToken: "workos:cline-token",
+				},
+			});
+
+			expect(config.apiKey, provider).toBeUndefined();
+			expect(config.accessToken, provider).toBeUndefined();
+		}
+	});
+
 	it("accepts the Bedrock apikey authentication alias", () => {
 		const result = safeParseSettings({
 			provider: "bedrock",

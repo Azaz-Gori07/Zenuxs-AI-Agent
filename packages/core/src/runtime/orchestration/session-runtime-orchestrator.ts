@@ -72,6 +72,8 @@ import {
 	messagesToSyncMessages,
 } from "../../services/zenuxs-conversation-sync";
 import { RuntimeEventAdapter } from "./runtime-event-adapter";
+import { createIntentRouterHooks } from "../intent-router-integration";
+import { createObservationHooks } from "../observation-integration";
 
 function formatToolResultError(output: unknown): string {
 	if (typeof output === "string") {
@@ -921,9 +923,52 @@ export class SessionRuntime {
 				.getValidatedExtensions()
 				.map((extension) => extension.hooks),
 		]);
+
+		// Create intent router hooks for coding agent architecture
+		const intentRouterHooks = createIntentRouterHooks({
+			enabled: true,
+			logClassifications: false,
+			onIntentClassified: (intent) => {
+				this.logger?.log?.(
+					`[IntentRouter] ${intent.intent} → ${intent.mode} (confidence: ${intent.confidence.toFixed(2)})`,
+				);
+			},
+		});
+
+		// Create observation hooks for tool execution tracking
+		const observationHooks = createObservationHooks({
+			sessionId: this.config.sessionId || `session_${Date.now()}`,
+			enabled: true,
+			logObservations: false,
+			enableSelfRepair: true,
+			maxSelfRepairIterations: 5,
+			onObservation: (observation) => {
+				this.logger?.debug?.(
+					`[Observation] ${observation.toolName} ${observation.status} (${observation.durationMs}ms)`,
+				);
+			},
+			onSelfRepairTrigger: (summary) => {
+				this.logger?.log?.(
+					`[SelfRepair] Triggered: ${summary.failedTools} failures, iteration ${summary.currentIteration}`,
+				);
+			},
+		});
+
 		return {
 			...hooks,
 			beforeModel: async (ctx) => {
+				// Run observation hooks first (for self-reflection)
+				const observationControl = await observationHooks.beforeModel?.(ctx);
+				if (observationControl) {
+					return observationControl;
+				}
+
+				// Run intent router hooks
+				const intentControl = await intentRouterHooks.beforeModel?.(ctx);
+				if (intentControl) {
+					return intentControl;
+				}
+
 				const control = await hooks.beforeModel?.(ctx);
 				if (control?.stop) {
 					return control;
@@ -935,6 +980,18 @@ export class SessionRuntime {
 					...control,
 					messages: preparedMessages,
 				};
+			},
+			afterModel: async (ctx) => {
+				// Run intent router afterModel hooks
+				const intentControl = await intentRouterHooks.afterModel?.(ctx);
+				if (intentControl) {
+					return intentControl;
+				}
+				return hooks.afterModel?.(ctx);
+			},
+			afterTool: async (ctx) => {
+				// Run observation hooks to capture tool execution results
+				return observationHooks.afterTool?.(ctx);
 			},
 		};
 	}

@@ -1,9 +1,12 @@
 import type { AgentEvent, AgentTool } from "@cline/shared";
 import {
+	createAllEnhancedTools,
 	createBuiltinTools,
 	resolveToolPresetName,
+	type CreateAllEnhancedToolsOptions,
 	type ToolExecutors,
 	ToolPresets,
+	type ToolPresetConfig,
 } from "../../../extensions/tools";
 import type {
 	SubAgentEndContext,
@@ -130,13 +133,64 @@ export function createSessionSpawnTool(
 		rootSessionId,
 	);
 	const createSubAgentTools = () => {
-		const tools: AgentTool[] = config.enableTools
-			? createBuiltinTools({
-					cwd: config.cwd,
-					...ToolPresets[resolveToolPresetName({ mode: config.mode })],
-					executors: toolExecutors,
-				})
-			: [];
+		if (!config.enableTools) {
+			const tools: AgentTool[] = [];
+			if (config.enableSpawnAgent) {
+				tools.push(
+					createSessionSpawnTool(
+						deps,
+						config,
+						rootSessionId,
+						toolExecutors,
+					),
+				);
+			}
+			return filterDisabledTools(tools);
+		}
+
+		const preset: ToolPresetConfig =
+			ToolPresets[resolveToolPresetName({ mode: config.mode })];
+		const enhancedMode: CreateAllEnhancedToolsOptions["mode"] =
+			config.mode === "plan" ? "plan" : "act";
+
+		// Build disabled-tools list from preset flags
+		const disabledTools: string[] = [];
+		if (preset.enableReadFiles === false) disabledTools.push("read");
+		if (preset.enableEditor === false) disabledTools.push("edit");
+		if (preset.enableWriteFile === false) disabledTools.push("write");
+		if (preset.enableBash === false) disabledTools.push("bash");
+		if (preset.enableWebFetch === false) disabledTools.push("webfetch");
+		const enableGlob = preset.enableGlob ?? preset.enableSearch;
+		const enableGrep = preset.enableGrep ?? preset.enableSearch;
+		if (enableGlob === false) disabledTools.push("glob");
+		if (enableGrep === false) disabledTools.push("grep");
+		if (preset.enableTodoWrite === false)
+			disabledTools.push("todowrite");
+
+		const { tools: enhancedTools } = createAllEnhancedTools({
+			cwd: config.cwd,
+			mode: enhancedMode,
+			enableWebSearch: preset.enableWebSearch,
+			enablePlanExit: preset.enablePlanExit,
+			disabledTools,
+		});
+
+		// Additional tools not covered by enhanced (apply_patch, etc.)
+		const additionalTools = createBuiltinTools({
+			cwd: config.cwd,
+			enableReadFiles: false,
+			enableSearch: false,
+			enableBash: false,
+			enableWebFetch: false,
+			enableEditor: false,
+			enableApplyPatch: preset.enableApplyPatch,
+			enableSkills: false,
+			enableAskQuestion: preset.enableAskQuestion,
+			enableSubmitAndExit: preset.enableSubmitAndExit,
+			executors: toolExecutors,
+		});
+
+		const tools: AgentTool[] = [...enhancedTools, ...additionalTools];
 		if (config.enableSpawnAgent) {
 			tools.push(
 				createSessionSpawnTool(deps, config, rootSessionId, toolExecutors),

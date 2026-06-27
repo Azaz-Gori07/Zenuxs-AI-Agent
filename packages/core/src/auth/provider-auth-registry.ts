@@ -369,7 +369,6 @@ export function getPersistedProviderApiKey(
 	}
 
 	return (
-		settings?.auth?.accessToken?.trim() ||
 		settings?.apiKey?.trim() ||
 		settings?.auth?.apiKey?.trim() ||
 		undefined

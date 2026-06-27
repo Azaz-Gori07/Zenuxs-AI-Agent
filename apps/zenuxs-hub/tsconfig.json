@@ -1,18 +1,18 @@
 {
-	"extends": "../../sdk/packages/tsconfig.base.json",
+	"extends": "../../packages/tsconfig.base.json",
 	"compilerOptions": {
 		"noEmit": true,
 		"types": ["bun", "node"],
 		"paths": {
-			"@cline/core": ["../../sdk/packages/core/src/index.ts"],
+			"@cline/core": ["../../packages/core/src/index.ts"],
 			"@cline/core/*": [
-				"../../sdk/packages/core/src/*",
-				"../../sdk/packages/core/src/*/index.ts"
+				"../../packages/core/src/*",
+				"../../packages/core/src/*/index.ts"
 			],
-			"@cline/shared": ["../../sdk/packages/shared/src/index.ts"],
+			"@cline/shared": ["../../packages/shared/src/index.ts"],
 			"@cline/shared/*": [
-				"../../sdk/packages/shared/src/*",
-				"../../sdk/packages/shared/src/*/index.ts"
+				"../../packages/shared/src/*",
+				"../../packages/shared/src/*/index.ts"
 			]
 		}
 	},

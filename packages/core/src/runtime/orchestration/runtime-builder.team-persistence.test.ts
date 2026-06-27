@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 const createBuiltinToolsMock = vi.fn(() => []);
+const createAllEnhancedToolsMock = vi.fn(() => ({ tools: [] }));
 const bootstrapAgentTeamsMock = vi.fn(() => ({
 	tools: [],
 	restoredFromPersistence: true,
@@ -69,6 +70,7 @@ vi.mock("../../extensions/tools/team", () => ({
 
 vi.mock("../../extensions/tools", () => ({
 	ALL_DEFAULT_TOOL_NAMES: [],
+	createAllEnhancedTools: createAllEnhancedToolsMock,
 	createBuiltinTools: createBuiltinToolsMock,
 	ToolPresets: {
 		development: {},

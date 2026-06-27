@@ -637,26 +637,49 @@ export function createEnhancedWriteTool(options: CreateEnhancedWriterOptions): a
 
   return createTool({
     name: "write",
-    description: "Write content to a file (full-file replacement). Creates parent directories as needed. BOM-aware.",
+    description: "Write content to a file (full-file replacement). Creates parent directories as needed. BOM-aware with disk validation.",
     inputSchema: WriteFileInputSchema,
     execute: async (input: WriteFileInput, _context) => {
       const filePath = path.isAbsolute(input.filePath)
         ? input.filePath
         : path.resolve(cwd, input.filePath);
 
+      // Step 1 & 2: Determine destination and create directory if missing
       await fs.mkdir(path.dirname(filePath), { recursive: true });
+
+      // Step 3 & 7: Write generated content and flush to disk
       await fs.writeFile(filePath, input.content, "utf-8");
+
+      // Step 4: Verify file exists on disk
+      try {
+        await fs.access(filePath);
+      } catch {
+        throw new Error(`Write Validation Failed: File ${filePath} does not exist on disk after write operation.`);
+      }
+
+      // Step 9 & 10: Re-open/re-read file and verify written content matches
+      const diskContent = await fs.readFile(filePath, "utf-8");
+      if (stripBom(diskContent) !== stripBom(input.content)) {
+        // Retry write once on mismatch
+        await fs.writeFile(filePath, input.content, "utf-8");
+        const recheck = await fs.readFile(filePath, "utf-8");
+        if (stripBom(recheck) !== stripBom(input.content)) {
+          throw new Error(`Write Validation Failed: Content written to ${filePath} does not match target content on disk.`);
+        }
+      }
 
       if (onWrite) {
         await onWrite(filePath, input.content);
       }
 
+      // Step 11: Report success after verification
       return {
         title: `Wrote ${path.basename(filePath)}`,
-        output: `Wrote ${input.content.length} bytes to ${filePath}`,
+        output: `✔ Verified: Wrote ${input.content.length} bytes to ${filePath} and confirmed content on disk`,
         metadata: {
           filePath,
           size: input.content.length,
+          verified: true,
         },
       };
     },

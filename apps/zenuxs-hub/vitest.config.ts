@@ -10,19 +10,19 @@ export default defineConfig({
 		alias: [
 			{
 				find: /^@cline\/core$/,
-				replacement: resolve(rootDir, "../../sdk/packages/core/src/index.ts"),
+				replacement: resolve(rootDir, "../../packages/core/src/index.ts"),
 			},
 			{
 				find: /^@cline\/core\/(.+)$/,
-				replacement: resolve(rootDir, "../../sdk/packages/core/src/$1"),
+				replacement: resolve(rootDir, "../../packages/core/src/$1"),
 			},
 			{
 				find: /^@cline\/shared$/,
-				replacement: resolve(rootDir, "../../sdk/packages/shared/src/index.ts"),
+				replacement: resolve(rootDir, "../../packages/shared/src/index.ts"),
 			},
 			{
 				find: /^@cline\/shared\/(.+)$/,
-				replacement: resolve(rootDir, "../../sdk/packages/shared/src/$1"),
+				replacement: resolve(rootDir, "../../packages/shared/src/$1"),
 			},
 		],
 	},

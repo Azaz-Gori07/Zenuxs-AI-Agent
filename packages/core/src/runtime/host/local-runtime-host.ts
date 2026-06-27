@@ -276,6 +276,9 @@ export class LocalRuntimeHost implements RuntimeHost {
 		if (input.config.apiKey?.trim()) {
 			return input;
 		}
+		if (!isOAuthProvider(input.config.providerId)) {
+			return input;
+		}
 
 		const resolved = await this.oauthTokenManager.resolveProviderApiKey({
 			providerId: input.config.providerId,
@@ -1603,6 +1606,10 @@ export class LocalRuntimeHost implements RuntimeHost {
 		session: ActiveSession,
 		options?: { forceRefresh?: boolean },
 	): Promise<void> {
+		if (!isOAuthProvider(session.config.providerId)) {
+			return;
+		}
+
 		let resolved: RuntimeOAuthResolution | null = null;
 		try {
 			resolved = await this.oauthTokenManager.resolveProviderApiKey({

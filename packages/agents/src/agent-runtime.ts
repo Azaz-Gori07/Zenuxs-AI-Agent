@@ -13,6 +13,7 @@ import type {
 	AgentRuntimeHooks,
 	AgentRuntimeStateSnapshot,
 	AgentStopControl,
+	AgentTextPart,
 	AgentTool,
 	AgentToolCallPart,
 	AgentToolDefinition,
@@ -555,6 +556,55 @@ export class AgentRuntime {
 		if (hooks.onEvent) this.hooks.onEvent.push(hooks.onEvent);
 	}
 
+	private getTool(toolName: string): AgentTool | undefined {
+		let tool = this.tools.get(toolName);
+		if (tool) return tool;
+		const normalized = toolName.trim().toLowerCase();
+		tool = this.tools.get(normalized);
+		if (tool) return tool;
+
+		const aliases: Record<string, string[]> = {
+			write_file: ["write", "editor", "write_to_file", "create_file"],
+			write: ["write_file", "editor", "create_file"],
+			create_file: ["write_file", "write", "editor"],
+			write_to_file: ["write_file", "write", "editor"],
+			read_file: ["read_files", "read"],
+			read_files: ["read", "read_file"],
+			read: ["read_files", "read_file"],
+			edit: ["editor", "replace_in_file", "replace_file"],
+			editor: ["edit", "replace_in_file", "replace_file"],
+			replace_file: ["edit", "editor", "replace_in_file"],
+			replace_in_file: ["edit", "editor"],
+			patch_file: ["apply_patch", "patch"],
+			patch: ["apply_patch", "patch_file"],
+			apply_patch: ["patch_file", "patch"],
+			delete_file: ["remove_file", "unlink"],
+			remove_file: ["delete_file", "unlink"],
+			unlink: ["delete_file", "remove_file"],
+			move_file: ["rename_file"],
+			rename_file: ["move_file"],
+			copy_file: ["copy"],
+			shell: ["run_commands", "bash", "cmd", "execute_command", "exec"],
+			bash: ["run_commands", "execute_command", "shell", "cmd", "exec"],
+			run_commands: ["bash", "execute_command", "shell", "cmd", "exec"],
+			execute_command: ["run_commands", "bash", "shell"],
+			cmd: ["run_commands", "bash", "shell"],
+			webfetch: ["fetch_web_content"],
+			fetch_web_content: ["webfetch"],
+			todowrite: ["todo_write"],
+			todo_write: ["todowrite"],
+			websearch: ["web_search"],
+			web_search: ["websearch"],
+		};
+
+		const candidates = aliases[normalized] ?? [];
+		for (const candidate of candidates) {
+			tool = this.tools.get(candidate);
+			if (tool) return tool;
+		}
+		return undefined;
+	}
+
 	private getRequiredCompletionToolNames(): string[] {
 		if (this.config.completionPolicy?.requireCompletionTool !== true) {
 			return [];
@@ -573,6 +623,41 @@ export class AgentRuntime {
 		return `[SYSTEM] This run is not complete until you call one of these terminal completion tools: ${terminalToolNames.join(
 			", ",
 		)}. Continue working if requirements are not met. If the task is complete, call the appropriate terminal completion tool now.`;
+	}
+
+	private checkForBuilderViolation(message: AgentMessage): string | undefined {
+		const textContent = message.content
+			.filter((part: AgentMessagePart): part is AgentTextPart => part.type === "text")
+			.map((part) => part.text)
+			.join("\n");
+
+		if (!textContent) return undefined;
+
+		const lower = textContent.toLowerCase();
+		if (
+			lower.includes("show me the source code") ||
+			lower.includes("print the code") ||
+			lower.includes("display the code in chat") ||
+			lower.includes("output the code in chat")
+		) {
+			return undefined;
+		}
+
+		const isCodeDump =
+			textContent.includes("```html") ||
+			textContent.includes("```tsx") ||
+			textContent.includes("```jsx") ||
+			textContent.includes("```css") ||
+			textContent.includes("```typescript") ||
+			textContent.includes("```javascript") ||
+			textContent.includes("<!DOCTYPE html>") ||
+			(textContent.match(/```[\s\S]*?```/g)?.some((block) => block.split("\n").length > 8) ?? false);
+
+		if (isCodeDump) {
+			return `[SYSTEM ENFORCEMENT] Builder Architecture Violation Detected: You outputted raw source code directly into chat instead of writing files to disk. In Builder Mode, NEVER output source code in chat text. You MUST use filesystem tools (write_file, edit) to write all files directly to the workspace filesystem, and output ONLY progress status (e.g. "✔ Creating portfolio.html...") in chat. Execute write_file tools now.`;
+		}
+
+		return undefined;
 	}
 
 	private getCompletionReminderMessages(): string[] {
@@ -660,7 +745,7 @@ export class AgentRuntime {
 					throw this.normalizeAbortError();
 				}
 
-				const toolCalls = message.content.filter(
+				let toolCalls = message.content.filter(
 					(part: AgentMessagePart): part is AgentToolCallPart =>
 						part.type === "tool-call",
 				);
@@ -669,6 +754,27 @@ export class AgentRuntime {
 				}
 				this.state.pendingToolCalls = toolCalls.map((part) => part.toolCallId);
 
+				// If no structured tool calls were emitted, scan the assistant text
+				// response for inline JSON that represents a tool call. This catches
+				// cases where the provider/model emits tool payloads as text (e.g.
+				// non-standard response format, proxy intermediaries, or models that
+				// write inline JSON instead of structured tool-call parts).
+				if (toolCalls.length === 0) {
+					const extractedParts = this.scanTextForJsonToolCalls(message);
+					if (extractedParts.length > 0) {
+						message.content = message.content.filter(
+							(p) => p.type !== "text",
+						);
+						message.content.push(...extractedParts);
+						toolCalls = extractedParts.filter(
+							(p): p is AgentToolCallPart => p.type === "tool-call",
+						);
+						this.state.pendingToolCalls = toolCalls.map(
+							(part) => part.toolCallId,
+						);
+					}
+				}
+
 				if (toolCalls.length === 0) {
 					await this.emit({
 						type: "turn-finished",
@@ -676,6 +782,11 @@ export class AgentRuntime {
 						iteration: this.state.iteration,
 						toolCallCount: 0,
 					});
+					const builderViolation = this.checkForBuilderViolation(message);
+					if (builderViolation) {
+						await this.addUserReminderMessage(builderViolation);
+						continue;
+					}
 					const completionReminderMessages =
 						this.getCompletionReminderMessages();
 					if (completionReminderMessages.length > 0) {
@@ -1140,7 +1251,7 @@ export class AgentRuntime {
 	): AgentMessage | undefined {
 		for (let index = 0; index < toolCalls.length; index += 1) {
 			const toolCall = toolCalls[index];
-			if (this.tools.get(toolCall.toolName)?.lifecycle?.completesRun !== true) {
+			if (this.getTool(toolCall.toolName)?.lifecycle?.completesRun !== true) {
 				continue;
 			}
 			const toolMessage = toolMessages[index];
@@ -1156,11 +1267,292 @@ export class AgentRuntime {
 		return undefined;
 	}
 
+	private normalizeToolInputPayload(toolName: string, rawInput: unknown): unknown {
+		if (rawInput === undefined || rawInput === null) {
+			return {};
+		}
+
+		// If input is a string, try JSON.parse first before heuristic mapping.
+		// This catches cases where the LLM response contains a JSON-encoded tool
+		// payload that wasn't parsed upstream (e.g. inline JSON in streaming text,
+		// non-standard provider response format, or parseToolArguments fallback).
+		if (typeof rawInput === "string") {
+			const str = rawInput.trim();
+			if (str.startsWith("{") || str.startsWith("[")) {
+				try {
+					const parsed = JSON.parse(str);
+					if (typeof parsed === "object" && parsed !== null) {
+						rawInput = parsed;
+					}
+				} catch {
+					// Not valid JSON — fall through to existing heuristics
+				}
+			}
+		}
+
+		const normName = toolName.trim().toLowerCase();
+
+		// String inputs (e.g. create_file("test.txt") or read_file("test.txt"))
+		if (typeof rawInput === "string") {
+			const str = rawInput.trim();
+			if (normName.includes("create") || normName.includes("write")) {
+				return { filePath: str, path: str, content: "", new_text: "" };
+			}
+			if (normName.includes("read")) {
+				return { files: [{ path: str }], path: str };
+			}
+			if (normName.includes("delete") || normName.includes("remove") || normName.includes("unlink")) {
+				return { filePath: str, path: str, file: str };
+			}
+			if (normName.includes("bash") || normName.includes("command") || normName.includes("shell") || normName.includes("exec")) {
+				return { commands: [str], command: str };
+			}
+			return str;
+		}
+
+		if (typeof rawInput !== "object" || Array.isArray(rawInput)) {
+			return rawInput;
+		}
+
+		const obj = { ...(rawInput as Record<string, unknown>) };
+
+		// Normalize write / create_file inputs
+		if (normName.includes("write") || normName.includes("create")) {
+			const filePath = (obj.filePath || obj.path || obj.file || obj.filename || obj.dest || obj.destination) as string | undefined;
+			const content = (obj.content !== undefined ? obj.content : obj.text !== undefined ? obj.text : obj.new_text !== undefined ? obj.new_text : obj.code) as string | undefined;
+			if (filePath !== undefined) {
+				if (obj.filePath === undefined && obj.path === undefined) {
+					obj.filePath = filePath;
+				}
+			}
+			if (content !== undefined) {
+				if (obj.content === undefined && obj.new_text === undefined) {
+					obj.content = content;
+				}
+			}
+		}
+
+		// Normalize edit / replace_file inputs
+		if (normName.includes("edit") || normName.includes("replace")) {
+			const filePath = (obj.filePath || obj.path || obj.file || obj.filename) as string | undefined;
+			const oldStr = (obj.oldString ?? obj.old_text ?? obj.old ?? obj.search) as string | undefined;
+			const newStr = (obj.newString ?? obj.new_text ?? obj.new ?? obj.replace) as string | undefined;
+			if (filePath !== undefined) {
+				if (obj.filePath === undefined && obj.path === undefined) obj.filePath = filePath;
+			}
+			if (oldStr !== undefined) {
+				if (obj.oldString === undefined && obj.old_text === undefined) obj.oldString = oldStr;
+			}
+			if (newStr !== undefined) {
+				if (obj.newString === undefined && obj.new_text === undefined) obj.newString = newStr;
+			}
+		}
+
+		// Normalize read_files / read inputs
+		if (normName.includes("read")) {
+			const filesArr = obj.files as Array<{ path?: string }> | undefined;
+			const filePath = (obj.filePath || obj.path || obj.file || (filesArr && filesArr[0] && filesArr[0].path)) as string | undefined;
+			if (filePath !== undefined) {
+				if (obj.path === undefined) obj.path = filePath;
+				if (obj.filePath === undefined) obj.filePath = filePath;
+				if (!obj.files) {
+					obj.files = [{ path: filePath, start_line: obj.start_line, end_line: obj.end_line }];
+				}
+			}
+		}
+
+		return obj;
+	}
+
+	/**
+	 * Scan the assistant message text for inline JSON that represents tool calls.
+	 * This catches cases where the model emits tool payloads as bare JSON in its
+	 * text response instead of using structured tool-call parts (e.g. non-standard
+	 * provider response format, proxy intermediaries, or models that embed JSON
+	 * alongside natural-language explanation).
+	 *
+	 * Strategy:
+	 * 1. Concatenate all text parts of the message.
+	 * 2. Find JSON objects or arrays using a brace-balancing scanner.
+	 * 3. Try JSON.parse on each candidate.
+	 * 4. Map the parsed fields to a registered tool name via heuristics:
+	 *    - If the object has an explicit `tool`/`toolName`/`name` field, use it.
+	 *    - If it has `filePath` + `content`/`code` → `write_file`.
+	 *    - If it has `filePath` + edit-related fields → `edit`.
+	 *    - If it has `command`/`commands` → `bash`.
+	 *    - If it has `filePath`/`path` only → `read_file`.
+	 * 5. Verify the tool name resolves via getTool().
+	 * 6. Create AgentToolCallPart objects for each match.
+	 */
+	private scanTextForJsonToolCalls(
+		message: AgentMessage,
+	): AgentToolCallPart[] {
+		const textParts = message.content.filter(
+			(p): p is AgentTextPart => p.type === "text",
+		);
+		if (textParts.length === 0) return [];
+
+		const fullText = textParts.map((p) => p.text).join("\n");
+		const candidates = this.findJsonCandidates(fullText);
+		if (candidates.length === 0) return [];
+
+		const result: AgentToolCallPart[] = [];
+		const usedRanges: Array<{ start: number; end: number }> = [];
+
+		for (const { start, end, raw } of candidates) {
+			if (usedRanges.some((r) => start < r.end && end > r.start)) continue;
+
+			let parsed: unknown;
+			try {
+				parsed = JSON.parse(raw);
+			} catch {
+				continue;
+			}
+			if (typeof parsed !== "object" || parsed === null) continue;
+
+			const obj = parsed as Record<string, unknown>;
+			const toolName = this.matchToolNameFromJson(obj);
+			if (!toolName) continue;
+
+			const tool = this.getTool(toolName);
+			if (!tool) continue;
+
+			usedRanges.push({ start, end });
+			result.push({
+				type: "tool-call",
+				toolCallId: createUID("tool"),
+				toolName,
+				input: obj,
+			});
+		}
+
+		return result;
+	}
+
+	/**
+	 * Find JSON object/array candidates in text using brace/bracelet balancing.
+	 * Returns the raw string and its character range for each candidate.
+	 */
+	private findJsonCandidates(text: string): Array<{
+		start: number;
+		end: number;
+		raw: string;
+	}> {
+		const candidates: Array<{ start: number; end: number; raw: string }> = [];
+		const delimiters: Record<string, string> = { "{": "}", "[": "]" };
+
+		for (let i = 0; i < text.length; i++) {
+			const ch = text[i];
+			const close = delimiters[ch];
+			if (!close) continue;
+
+			let depth = 1;
+			let inString = false;
+			let escape = false;
+			for (let j = i + 1; j < text.length; j++) {
+				const c = text[j];
+				if (escape) {
+					escape = false;
+					continue;
+				}
+				if (c === "\\") {
+					escape = true;
+					continue;
+				}
+				if (c === '"') {
+					inString = !inString;
+					continue;
+				}
+				if (inString) continue;
+
+				if (c === ch) {
+					depth++;
+				} else if (c === close) {
+					depth--;
+					if (depth === 0) {
+						const raw = text.slice(i, j + 1);
+						if (raw.length >= 2) {
+							candidates.push({ start: i, end: j + 1, raw });
+						}
+						break;
+					}
+				}
+			}
+		}
+
+		return candidates;
+	}
+
+	/**
+	 * Infer a tool name from the fields of a parsed JSON object.
+	 * Checks for explicit tool-name fields first, then heuristics.
+	 */
+	private matchToolNameFromJson(
+		obj: Record<string, unknown>,
+	): string | undefined {
+		// Explicit tool-name field
+		const explicitName =
+			(typeof obj.tool === "string" ? obj.tool : undefined) ??
+			(typeof obj.toolName === "string" ? obj.toolName : undefined) ??
+			(typeof obj.name === "string" ? obj.name : undefined);
+		if (explicitName && this.getTool(explicitName)) {
+			return explicitName;
+		}
+
+		const hasFilePath = (key: string) =>
+			key === "filePath" || key === "path" || key === "file" || key === "filename";
+
+		const filePathKeys = Object.keys(obj).filter(hasFilePath);
+		const hasFilePathValue = filePathKeys.length > 0;
+
+		const hasContent =
+			typeof obj.content === "string" ||
+			typeof obj.text === "string" ||
+			typeof obj.code === "string" ||
+			typeof obj.new_text === "string";
+
+		const hasEditFields =
+			typeof obj.oldString === "string" ||
+			typeof obj.old_text === "string" ||
+			typeof obj.search === "string";
+
+		const hasCommand =
+			typeof obj.command === "string" ||
+			typeof obj.commands === "string" ||
+			(Array.isArray(obj.commands) && obj.commands.length > 0);
+
+		// Write / create tools
+		if (hasFilePathValue && hasContent) {
+			if (this.getTool("write_file")) return "write_file";
+			if (this.getTool("write")) return "write";
+		}
+
+		// Edit tool
+		if (hasFilePathValue && hasEditFields) {
+			if (this.getTool("editor")) return "editor";
+			if (this.getTool("edit")) return "edit";
+		}
+
+		// Bash / shell
+		if (hasCommand) {
+			if (this.getTool("bash")) return "bash";
+			if (this.getTool("shell")) return "shell";
+		}
+
+		// Read tool (filePath but no content)
+		if (hasFilePathValue) {
+			if (this.getTool("read_file")) return "read_file";
+			if (this.getTool("read")) return "read";
+		}
+
+		return undefined;
+	}
+
 	private async prepareToolExecution(
 		toolCall: AgentToolCallPart,
 	): Promise<PreparedToolExecution> {
-		const tool = this.tools.get(toolCall.toolName);
-		let input = toolCall.input;
+		const tool = this.getTool(toolCall.toolName);
+		let input = this.normalizeToolInputPayload(toolCall.toolName, toolCall.input);
 		let skipReason: string | undefined;
 		const metadata =
 			toolCall.metadata &&
@@ -1532,6 +1924,8 @@ function parseToolInput(assembly: PendingToolAssembly): {
 		return {
 			input: {},
 			invalidInput: {},
+			parseError: `Tool call ${assembly.toolName ?? assembly.toolCallId} emitted empty arguments. Tool calls must include valid JSON arguments.`,
+			reason: "invalid_arguments",
 		};
 	}
 	const parsed = parseToolArguments(assembly.inputText);
@@ -1562,34 +1956,118 @@ function buildInvalidToolInput(
 		: { rawInputText: value };
 }
 
-function parseToolArguments(
+/**
+ * Robust JSON parser with recovery for common LLM formatting mistakes.
+ * Handles: markdown code fences, trailing commas, single quotes,
+ * malformed escapes, nested JSON strings, unicode, multiline strings,
+ * partial streamed payloads, whitespace issues.
+ */
+export function parseToolArguments(
 	value: string,
 ): { ok: true; value: unknown } | { ok: false; error: string } {
-	const trimmed = value.trim();
-	if (!trimmed) {
-		return {
-			ok: false,
-			error: "Tool call arguments were empty.",
-		};
+	let trimmed = value.trim();
+	
+	// Treat empty input, empty braces, or empty parens as empty object
+	if (!trimmed || trimmed === "{}" || trimmed === "()") {
+		return { ok: true, value: {} };
 	}
 
+	// Step 1: Strip markdown code fences if present
+	if (trimmed.startsWith("```json")) {
+		trimmed = trimmed.slice(7);
+		const endIdx = trimmed.lastIndexOf("```");
+		if (endIdx !== -1) {
+			trimmed = trimmed.slice(0, endIdx);
+		}
+		trimmed = trimmed.trim();
+	} else if (trimmed.startsWith("```")) {
+		trimmed = trimmed.slice(3);
+		const endIdx = trimmed.lastIndexOf("```");
+		if (endIdx !== -1) {
+			trimmed = trimmed.slice(0, endIdx);
+		}
+		trimmed = trimmed.trim();
+	}
+
+	// Step 2: Strip function call wrappers like `run_commands(...)` or `(...)`
+	const fnMatch = trimmed.match(/^(?:[a-zA-Z0-9_-]+\s*)?\(([\s\S]*)\)$/);
+	if (fnMatch) {
+		const inside = fnMatch[1].trim();
+		if (!inside) {
+			return { ok: true, value: {} };
+		}
+		trimmed = inside;
+	}
+
+	// Step 3: Direct parse fast path
 	try {
 		return { ok: true, value: JSON.parse(trimmed) };
 	} catch {
-		// Fall through to a normalized error below.
+		// Fall through to recovery
 	}
 
-	if (!(trimmed.startsWith("{") || trimmed.startsWith("["))) {
-		return {
-			ok: false,
-			error: "Tool call arguments must be encoded as a JSON object or array.",
+	// Step 4: Python-style / keyword argument syntax recovery (e.g. `command="ls -la"` or `path='foo.txt'`)
+	const kwMatch = trimmed.match(/^([a-zA-Z0-9_$]+)\s*=\s*(.*)$/s);
+	if (kwMatch) {
+		const key = kwMatch[1];
+		let valStr = kwMatch[2].trim();
+		try {
+			const parsedVal = JSON.parse(valStr);
+			return { ok: true, value: { [key]: parsedVal } };
+		} catch {
+			if (
+				(valStr.startsWith("'") && valStr.endsWith("'")) ||
+				(valStr.startsWith('"') && valStr.endsWith('"'))
+			) {
+				valStr = valStr.slice(1, -1);
+			}
+			return { ok: true, value: { [key]: valStr } };
+		}
+	}
+
+	// Step 5: JSON structural recovery for object/array strings
+	let recovered = trimmed;
+
+	// Remove trailing commas before } or ]
+	recovered = recovered.replace(/,\s*([}\]])/g, "$1");
+
+	// Fix unquoted object keys: e.g. {command: "ls"} -> {"command": "ls"}
+	recovered = recovered.replace(/(?<=[{\s,])([a-zA-Z0-9_$]+)\s*:/g, '"$1":');
+
+	// Replace single quotes with double quotes for keys and values
+	recovered = recovered.replace(/(?<=[{[\s,])'([^']*)'(?=[\s:}\],])/g, '"$1"');
+
+	// Fix unescaped control characters
+	recovered = recovered.replace(/[\x00-\x1f]/g, (match) => {
+		const escapes: Record<string, string> = {
+			'\n': '\\n',
+			'\r': '\\r',
+			'\t': '\\t',
 		};
+		return escapes[match] || `\\u${match.charCodeAt(0).toString(16).padStart(4, '0')}`;
+	});
+
+	try {
+		return { ok: true, value: JSON.parse(recovered) };
+	} catch {
+		// Fall through to raw string check
+	}
+
+	// Step 6: Fallback for plain string inputs (e.g. raw commands like `ls -la` or `"ls -la"`)
+	if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) {
+		let plain = trimmed;
+		if (
+			(plain.startsWith("'") && plain.endsWith("'")) ||
+			(plain.startsWith('"') && plain.endsWith('"'))
+		) {
+			plain = plain.slice(1, -1);
+		}
+		return { ok: true, value: plain };
 	}
 
 	return {
 		ok: false,
-		error:
-			"Tool call arguments could not be parsed as JSON. Ensure the outer tool payload is valid JSON and escape embedded quotes/newlines inside string fields.",
+		error: "Tool call arguments could not be parsed as JSON. Ensure the outer tool payload is valid JSON and escape embedded quotes/newlines inside string fields.",
 	};
 }
 
@@ -1597,9 +2075,19 @@ function mergeToolInputText(current: string, incoming: string): string {
 	if (!current) {
 		return incoming;
 	}
-	const trimmed = incoming.trimStart();
-	if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
-		return incoming;
+	const trimmedIncoming = incoming.trim();
+	if (trimmedIncoming.startsWith("{") || trimmedIncoming.startsWith("[")) {
+		try {
+			const parsedIncoming = JSON.parse(trimmedIncoming);
+			if (typeof parsedIncoming === "object" && parsedIncoming !== null) {
+				const parsedCurrent = JSON.parse(current.trim());
+				if (typeof parsedCurrent === "object" && parsedCurrent !== null) {
+					return incoming;
+				}
+			}
+		} catch {
+			// Ignore JSON parse errors - if either current or incoming is not a complete valid JSON object, treat as incremental stream delta
+		}
 	}
 	return current + incoming;
 }

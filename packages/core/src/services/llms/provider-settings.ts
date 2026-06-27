@@ -4,7 +4,10 @@ import {
 	DEFAULT_EXTERNAL_OCA_BASE_URL,
 	DEFAULT_INTERNAL_OCA_BASE_URL,
 } from "../../auth/oca";
-import { getPersistedProviderApiKey } from "../../auth/provider-auth-registry";
+import {
+	getPersistedProviderApiKey,
+	isOAuthProvider,
+} from "../../auth/provider-auth-registry";
 import {
 	OPENAI_COMPATIBLE_PROVIDERS,
 	type ProviderDefaults,
@@ -217,6 +220,9 @@ export function toProviderConfig(
 	const generatedDefaultModelId = Object.keys(generatedKnownModels)[0];
 
 	const apiKey = getPersistedProviderApiKey(normalizedProviderId, settings);
+	const accessToken = isOAuthProvider(normalizedProviderId)
+		? settings.auth?.accessToken
+		: undefined;
 	const resolvedBaseUrl =
 		settings.baseUrl ??
 		(normalizedProviderId === "oca"
@@ -249,7 +255,7 @@ export function toProviderConfig(
 			"default",
 		...(includeKnownModels ? { knownModels } : {}),
 		apiKey,
-		accessToken: settings.auth?.accessToken,
+		accessToken,
 		refreshToken: settings.auth?.refreshToken,
 		accountId: settings.auth?.accountId,
 		baseUrl: resolvedBaseUrl,

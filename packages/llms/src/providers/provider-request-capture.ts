@@ -187,6 +187,115 @@ function parseJsonString(value: unknown): unknown {
 	}
 }
 
+function headersToRecord(headers: unknown): Record<string, string> {
+	if (!headers) return {};
+	if (headers instanceof Headers) {
+		return Object.fromEntries(headers.entries());
+	}
+	if (Array.isArray(headers)) {
+		return Object.fromEntries(
+			headers
+				.filter((entry): entry is [unknown, unknown] => Array.isArray(entry))
+				.map(([key, value]) => [String(key), String(value)]),
+		);
+	}
+	if (typeof headers === "object") {
+		return Object.fromEntries(
+			Object.entries(headers as Record<string, unknown>).map(([key, value]) => [
+				key,
+				String(value),
+			]),
+		);
+	}
+	return {};
+}
+
+function mergeRequestHeaders(
+	input: Parameters<typeof fetch>[0],
+	init: Parameters<typeof fetch>[1],
+): Record<string, string> {
+	const requestHeaders = input instanceof Request ? input.headers : undefined;
+	return {
+		...headersToRecord(requestHeaders),
+		...headersToRecord(init?.headers),
+	};
+}
+
+function findHeader(
+	headers: Record<string, string>,
+	name: string,
+): string | undefined {
+	const lowerName = name.toLowerCase();
+	for (const [key, value] of Object.entries(headers)) {
+		if (key.toLowerCase() === lowerName) {
+			return value;
+		}
+	}
+	return undefined;
+}
+
+function redactSecret(value: string | undefined): string | undefined {
+	const trimmed = value?.trim();
+	if (!trimmed) return undefined;
+	return `${trimmed.slice(0, 8)}...[redacted:${trimmed.length}]`;
+}
+
+function resolveAccessTokenSource(
+	headers: Record<string, string>,
+): string | undefined {
+	if (findHeader(headers, "authorization")) return "authorization";
+	if (findHeader(headers, "x-api-key")) return "x-api-key";
+	if (findHeader(headers, "api-key")) return "api-key";
+	if (findHeader(headers, "x-litellm-api-key")) return "x-litellm-api-key";
+	return undefined;
+}
+
+function summarizeHeaders(
+	headers: Record<string, string>,
+): Record<string, string> {
+	const summary: Record<string, string> = {};
+	for (const [key, value] of Object.entries(headers)) {
+		const lowerKey = key.toLowerCase();
+		if (
+			lowerKey === "authorization" ||
+			lowerKey === "x-api-key" ||
+			lowerKey === "api-key" ||
+			lowerKey === "x-litellm-api-key"
+		) {
+			summary[key] = redactSecret(value) ?? "";
+			continue;
+		}
+		summary[key] = value;
+	}
+	return summary;
+}
+
+function parseRequestUrl(input: Parameters<typeof fetch>[0]): URL | undefined {
+	try {
+		return new URL(input instanceof Request ? input.url : String(input));
+	} catch {
+		return undefined;
+	}
+}
+
+function captureWireMetadata(
+	request: GatewayStreamRequest,
+	input: Parameters<typeof fetch>[0],
+	init: Parameters<typeof fetch>[1],
+): Record<string, unknown> {
+	const url = parseRequestUrl(input);
+	const headers = mergeRequestHeaders(input, init);
+	const authorizationHeader = findHeader(headers, "authorization");
+	return {
+		providerName: request.providerId,
+		baseUrl: url ? `${url.protocol}//${url.host}` : undefined,
+		endpoint: url ? `${url.pathname}${url.search}` : undefined,
+		authorizationHeader: redactSecret(authorizationHeader),
+		accessTokenSource: resolveAccessTokenSource(headers),
+		headers: summarizeHeaders(headers),
+	};
+}
+
 function extractProviderMessages(
 	payloadRecord: Record<string, unknown>,
 ): unknown {
@@ -200,6 +309,26 @@ function extractProviderMessages(
 		if ("contents" in bodyRecord) return bodyRecord.contents;
 	}
 	return undefined;
+}
+
+function extractWireMetadata(
+	payloadRecord: Record<string, unknown>,
+): Record<string, unknown> | undefined {
+	const fields = [
+		"providerName",
+		"baseUrl",
+		"endpoint",
+		"method",
+		"authorizationHeader",
+		"accessTokenSource",
+		"headers",
+	] as const;
+	const metadata = Object.fromEntries(
+		fields
+			.filter((field) => payloadRecord[field] !== undefined)
+			.map((field) => [field, payloadRecord[field]]),
+	);
+	return Object.keys(metadata).length > 0 ? metadata : undefined;
 }
 
 function captureCorrelation(
@@ -312,12 +441,17 @@ export function recordProviderRequestCapture(input: {
 				? (input.payload as Record<string, unknown>)
 				: { value: input.payload };
 		const messages = extractProviderMessages(payloadRecord);
+		const wireMetadata =
+			input.stage === "wire_request"
+				? extractWireMetadata(payloadRecord)
+				: undefined;
 		const serializedPayload = safeStringify(input.payload);
 		writeCapture({
 			timestamp: new Date().toISOString(),
 			captureStage: input.stage,
 			mode,
 			correlation: captureCorrelation(input.request),
+			...(wireMetadata ? { wire: wireMetadata } : {}),
 			summary: {
 				payloadBytes: byteLength(serializedPayload),
 				estimatedTokens: estimateTokens(byteLength(serializedPayload)),
@@ -379,6 +513,7 @@ export function wrapFetchForProviderRequestCapture(
 					stage: "wire_request",
 					request,
 					payload: {
+						...captureWireMetadata(request, input, init),
 						url: input instanceof Request ? input.url : String(input),
 						method:
 							init?.method ??

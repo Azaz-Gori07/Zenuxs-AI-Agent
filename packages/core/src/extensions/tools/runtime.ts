@@ -81,6 +81,43 @@ const BASE_TOOL_CATALOG: readonly RuntimeToolCatalogEntry[] = [
 			"Enable team collaboration tools for teammate management, task coordination, mailbox messaging, mission logs, and outcomes.",
 		headlessToolNames: [...TEAM_TOOL_NAMES],
 	},
+	// Enhanced tools (ported from OpenCode)
+	{
+		id: "write_file",
+		description:
+			"Write content to a file with BOM-aware handling, line ending normalization, and file locking for concurrent safety.",
+		headlessToolNames: ["write_file"],
+	},
+	{
+		id: "glob",
+		description:
+			"Find files matching a glob pattern with fast file system traversal.",
+		headlessToolNames: ["glob"],
+	},
+	{
+		id: "grep",
+		description:
+			"Search file contents using ripgrep with support for file type filtering and context lines.",
+		headlessToolNames: ["grep"],
+	},
+	{
+		id: "web_search",
+		description:
+			"Perform web searches and return structured results with URLs and snippets.",
+		headlessToolNames: ["web_search"],
+	},
+	{
+		id: "todo_write",
+		description:
+			"Track task progress with a todo list. Use to plan complex tasks and track completion.",
+		headlessToolNames: ["todo_write"],
+	},
+	{
+		id: "plan_exit",
+		description:
+			"Exit planning mode and transition to build mode with the current plan.",
+		headlessToolNames: ["plan_exit"],
+	},
 ] as const;
 
 const TOOL_NAME_TO_FLAG: Partial<
@@ -130,6 +167,12 @@ type ResolvedToolFlags = Pick<
 > & {
 	enableSpawnAgent?: boolean;
 	enableAgentTeams?: boolean;
+	enableWriteFile?: boolean;
+	enableGlob?: boolean;
+	enableGrep?: boolean;
+	enableWebSearch?: boolean;
+	enableTodoWrite?: boolean;
+	enablePlanExit?: boolean;
 };
 
 function resolvePresetFlags(context: BuiltinToolAvailabilityContext): {

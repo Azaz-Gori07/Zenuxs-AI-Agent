@@ -168,14 +168,17 @@ export function buildMessageModelInfo(
 }
 
 /**
- * `"parallel"` when `maxParallelToolCalls ≥ 2`, `"sequential"` when
- * `1`, `undefined` when the caller did not specify.
+ * `"parallel"` when `maxParallelToolCalls ≥ 2` or undefined (default),
+ * `"sequential"` when explicitly set to `1`.
+ *
+ * Changed from OpenCode parity: Parallel execution is now the default
+ * for better performance, matching modern AI agent expectations.
  */
 export function resolveToolExecution(
 	maxParallelToolCalls: number | undefined,
 ): "sequential" | "parallel" | undefined {
 	if (maxParallelToolCalls === undefined) {
-		return undefined;
+		return "parallel"; // Default to parallel for better performance
 	}
 	return maxParallelToolCalls >= 2 ? "parallel" : "sequential";
 }

@@ -140,6 +140,14 @@ export async function dispatch(
   }
 
   // Validate input
+  if (call.input === null || call.input === undefined || (typeof call.input === "object" && Object.keys(call.input).length === 0)) {
+    const { settlement, errorEvent } = settlementFromError(
+      callInfo,
+      `Tool call arguments are empty for "${call.toolName}". Tool calls must include valid JSON arguments.`,
+    );
+    return { ...settlement, events: [errorEvent] };
+  }
+
   const validationError = validateInput(call.input, tool.inputSchema);
   if (validationError) {
     const { settlement, errorEvent } = settlementFromError(

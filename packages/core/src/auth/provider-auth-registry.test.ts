@@ -9,13 +9,15 @@ import {
 	resolveProviderApiKeyFromSettings,
 } from "./provider-auth-registry";
 
-const { loginClineOAuth } = vi.hoisted(() => ({
-	loginClineOAuth: vi.fn(),
+const { loginZenuxsOAuth } = vi.hoisted(() => ({
+	loginZenuxsOAuth: vi.fn(),
 }));
 
 vi.mock("./zenuxs", () => ({
-	getValidClineCredentials: vi.fn(),
-	loginClineOAuth,
+	getValidZenuxsCredentials: vi.fn(),
+	loginZenuxsAuth: vi.fn(),
+	loginZenuxsOAuth,
+	refreshZenuxsAuth: vi.fn(),
 }));
 
 vi.mock("./oca", () => ({
@@ -70,8 +72,27 @@ describe("provider auth registry", () => {
 		).toBe("workos:abc");
 	});
 
+	it("ignores OAuth access tokens for API-key providers", () => {
+		expect(
+			getPersistedProviderApiKey("openrouter", {
+				provider: "openrouter",
+				apiKey: "sk-or-provider-key",
+				auth: {
+					accessToken: "workos:cline-token",
+					apiKey: "sk-or-auth-key",
+				},
+			}),
+		).toBe("sk-or-provider-key");
+		expect(
+			getPersistedProviderApiKey("openrouter", {
+				provider: "openrouter",
+				auth: { accessToken: "workos:cline-token" },
+			}),
+		).toBeUndefined();
+	});
+
 	it("login/save for ZenuxsPass stores credentials under Zenuxs storage", async () => {
-		loginClineOAuth.mockResolvedValueOnce({
+		loginZenuxsOAuth.mockResolvedValueOnce({
 			access: "new-access",
 			refresh: "new-refresh",
 			expires: 4_000_000_000_000,
@@ -111,7 +132,7 @@ describe("provider auth registry", () => {
 		});
 		expect(saveProviderSettings).toHaveBeenCalledWith(
 			expect.objectContaining({ provider: "cline" }),
-			{ tokenSource: "oauth" },
+			{ setLastUsed: false, tokenSource: "oauth" },
 		);
 	});
 
@@ -129,7 +150,7 @@ describe("provider auth registry", () => {
 	});
 
 	it("login/save stores credentials under handler storageProviderId", async () => {
-		loginClineOAuth.mockResolvedValueOnce({
+		loginZenuxsOAuth.mockResolvedValueOnce({
 			access: "new-access",
 			refresh: "new-refresh",
 			expires: 4_000_000_000_000,
@@ -165,7 +186,7 @@ describe("provider auth registry", () => {
 		});
 		expect(saveProviderSettings).toHaveBeenCalledWith(
 			expect.objectContaining({ provider: "cline" }),
-			{ tokenSource: "oauth" },
+			{ setLastUsed: false, tokenSource: "oauth" },
 		);
 	});
 });
