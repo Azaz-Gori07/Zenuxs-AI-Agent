@@ -284,9 +284,6 @@ export function parseSkillConfigFromMarkdown(
 		throw new Error(`Failed to parse YAML frontmatter: ${parseError}`);
 	}
 	const instructions = body.trim();
-	if (!instructions) {
-		throw new Error("Missing instructions body in skill file.");
-	}
 	const parsedName = parseStringField(data.name, "name", false);
 	const name = parsedName ?? fallbackName.trim();
 	if (!name) {
@@ -393,7 +390,7 @@ async function discoverSkillFiles(
 		const entries = await readdir(directoryPath, { withFileTypes: true });
 		const candidates: UnifiedConfigFileCandidate[] = [];
 		for (const entry of entries) {
-			if (entry.isFile() && entry.name === SKILL_FILE_NAME) {
+			if (entry.isFile() && (entry.name === SKILL_FILE_NAME || isMarkdownFile(entry.name))) {
 				candidates.push({
 					directoryPath,
 					fileName: entry.name,
@@ -531,12 +528,17 @@ export function createSkillsConfigDefinition(
 			? dedupeDirectoryPaths([...directories, managedRoot])
 			: directories,
 		discoverFiles: discoverSkillFiles,
-		includeFile: (fileName) => fileName === SKILL_FILE_NAME,
-		parseFile: (context) =>
-			parseSkillConfigFromMarkdown(
-				context.content,
-				basename(context.directoryPath),
-			),
+		includeFile: (fileName, filePath) =>
+			fileName === SKILL_FILE_NAME ||
+			isMarkdownFile(fileName) ||
+			isMarkdownFile(filePath),
+		parseFile: (context) => {
+			const fallbackName =
+				basename(context.filePath) === SKILL_FILE_NAME
+					? basename(context.directoryPath)
+					: basename(context.filePath, extname(context.filePath));
+			return parseSkillConfigFromMarkdown(context.content, fallbackName);
+		},
 		resolveId: (skill) => normalizeName(skill.name),
 	};
 }
