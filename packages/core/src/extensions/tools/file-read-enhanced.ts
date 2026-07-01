@@ -19,6 +19,7 @@ import { Stats } from "fs";
 import * as path from "path";
 import { createTool } from "@cline/shared";
 import { z } from "zod";
+import { resolvePathInfo } from "./path-kind";
 
 // =============================================================================
 // Constants
@@ -186,15 +187,11 @@ export function createEnhancedFileReadTool(options: CreateEnhancedFileReadOption
       if (!targetPath) {
         return { output: "Error: File path is required for read tool.", isError: true };
       }
-      const filePath = path.isAbsolute(targetPath)
-        ? targetPath
-        : path.resolve(cwd, targetPath);
+      const pathInfo = await resolvePathInfo(cwd, targetPath);
+      const filePath = pathInfo.absolutePath;
 
       // Check if path exists
-      let stat: Stats;
-      try {
-        stat = await fs.stat(filePath);
-      } catch {
+      if (pathInfo.kind === "missing") {
         // Try fuzzy suggestions
         const suggestions = await findSimilarFiles(filePath);
         if (suggestions.length > 0) {
@@ -206,8 +203,10 @@ export function createEnhancedFileReadTool(options: CreateEnhancedFileReadOption
         return { output: `File not found: ${filePath}`, isError: true };
       }
 
+      const stat = pathInfo.stats as Stats;
+
       // Handle directories
-      if (stat.isDirectory()) {
+      if (pathInfo.kind === "directory") {
         const entries = await fs.readdir(filePath, { withFileTypes: true });
         const sorted = entries
           .map((e) => {
@@ -224,6 +223,13 @@ export function createEnhancedFileReadTool(options: CreateEnhancedFileReadOption
             entries: sorted,
             totalEntries: sorted.length,
           },
+        };
+      }
+
+      if (pathInfo.kind !== "file") {
+        return {
+          output: `Unsupported path type: ${filePath}`,
+          isError: true,
         };
       }
 

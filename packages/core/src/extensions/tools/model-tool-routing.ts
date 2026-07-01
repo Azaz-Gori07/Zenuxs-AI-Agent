@@ -36,6 +36,7 @@ const TOOL_NAME_TO_FLAG: Record<
 	keyof Pick<
 		DefaultToolsConfig,
 		| "enableReadFiles"
+		| "enableListDirectory"
 		| "enableSearch"
 		| "enableBash"
 		| "enableWebFetch"
@@ -47,6 +48,7 @@ const TOOL_NAME_TO_FLAG: Record<
 	>
 > = {
 	read_files: "enableReadFiles",
+	list_directory: "enableListDirectory",
 	search_codebase: "enableSearch",
 	run_commands: "enableBash",
 	fetch_web_content: "enableWebFetch",

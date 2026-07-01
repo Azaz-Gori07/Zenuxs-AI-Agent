@@ -142,11 +142,11 @@ export class WorkspaceIndexer {
     // Scan workspace recursively
     await this.scanDirectory(workspaceRoot, workspaceRoot);
 
-    // Detect framework and dependencies
+    // Detect framework, package manager, and dependencies
+    // Single package.json read instead of 2-3 separate reads
     if (this.options.detectFramework) {
-      this.detectFramework();
+      this.detectFrameworkAndDependencies();
       this.detectPackageManager();
-      this.detectDependencies();
     }
 
     this.index.totalFiles = this.index.files.size;
@@ -598,9 +598,11 @@ export class WorkspaceIndexer {
   }
 
   /**
-   * Detect framework from config files
+   * Detect framework and dependencies in a single package.json read.
+   * Replaces separate detectFramework() + detectDependencies() which
+   * each read and parsed package.json independently.
    */
-  private detectFramework(): void {
+  private detectFrameworkAndDependencies(): void {
     if (!this.index) return;
 
     const packageJsonPath = path.join(
@@ -608,12 +610,15 @@ export class WorkspaceIndexer {
       "package.json",
     );
 
-    if (!fs.existsSync(packageJsonPath)) return;
+    let content: string;
+    try {
+      content = fs.readFileSync(packageJsonPath, "utf-8");
+    } catch {
+      return; // package.json doesn't exist
+    }
 
     try {
-      const content = fs.readFileSync(packageJsonPath, "utf-8");
       const packageJson = JSON.parse(content);
-
       const deps = {
         ...packageJson.dependencies,
         ...packageJson.devDependencies,
@@ -635,6 +640,9 @@ export class WorkspaceIndexer {
       } else if (deps["svelte"]) {
         this.index.framework = "svelte";
       }
+
+      // Detect dependencies (same parse, no second file read)
+      this.index.dependencies = Object.keys(deps);
     } catch {
       // Ignore parse errors
     }
@@ -656,34 +664,6 @@ export class WorkspaceIndexer {
       this.index.packageManager = "bun";
     } else if (fs.existsSync(path.join(root, "package-lock.json"))) {
       this.index.packageManager = "npm";
-    }
-  }
-
-  /**
-   * Detect dependencies
-   */
-  private detectDependencies(): void {
-    if (!this.index) return;
-
-    const packageJsonPath = path.join(
-      this.index.workspaceRoot,
-      "package.json",
-    );
-
-    if (!fs.existsSync(packageJsonPath)) return;
-
-    try {
-      const content = fs.readFileSync(packageJsonPath, "utf-8");
-      const packageJson = JSON.parse(content);
-
-      const deps = {
-        ...packageJson.dependencies,
-        ...packageJson.devDependencies,
-      };
-
-      this.index.dependencies = Object.keys(deps);
-    } catch {
-      // Ignore parse errors
     }
   }
 }

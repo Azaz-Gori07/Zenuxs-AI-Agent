@@ -39,6 +39,26 @@ export interface ToolOperationResult {
 export type FileReadResultContent = string | Array<TextContent | ImageContent>;
 
 // =============================================================================
+// Search Result Type
+// =============================================================================
+
+/**
+ * A single search match in a normalized shape shared by ripgrep and regex drivers.
+ */
+export interface SearchMatch {
+	/** Relative file path (POSIX separators) */
+	file: string;
+	/** One-based line number */
+	line: number;
+	/** One-based column number */
+	column: number;
+	/** Matched text */
+	match: string;
+	/** Formatted context lines surrounding the match */
+	context: string[];
+}
+
+// =============================================================================
 // Executor Interfaces
 // =============================================================================
 
@@ -53,6 +73,20 @@ export type FileReadExecutor = (
 	request: ReadFileRequest,
 	context: AgentToolContext,
 ) => Promise<FileReadResultContent>;
+
+/**
+ * Executor for listing directories
+ *
+ * @param targetPath - Absolute path to the directory to list
+ * @param cwd - Current working directory
+ * @param context - Tool execution context
+ * @returns Formatted directory listing
+ */
+export type DirectoryListExecutor = (
+	targetPath: string,
+	cwd: string,
+	context: AgentToolContext,
+) => Promise<string>;
 
 /**
  * Executor for searching the codebase
@@ -198,6 +232,8 @@ export type VerifySubmitExecutor = (
 export interface ToolExecutors {
 	/** File reading implementation */
 	readFile?: FileReadExecutor;
+	/** Directory listing implementation */
+	listDirectory?: DirectoryListExecutor;
 	/** Codebase search implementation */
 	search?: SearchExecutor;
 	/** Shell command execution implementation */
@@ -225,6 +261,7 @@ export interface ToolExecutors {
  */
 export type DefaultToolName =
 	| "read_files"
+	| "list_directory"
 	| "search_codebase"
 	| "run_commands"
 	| "fetch_web_content"
@@ -243,6 +280,12 @@ export interface DefaultToolsConfig {
 	 * @default true
 	 */
 	enableReadFiles?: boolean;
+
+	/**
+	 * Enable the list_directory tool
+	 * @default true
+	 */
+	enableListDirectory?: boolean;
 
 	/**
 	 * Enable the search_codebase tool

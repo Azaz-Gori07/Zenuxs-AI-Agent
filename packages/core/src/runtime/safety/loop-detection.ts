@@ -21,6 +21,10 @@ export interface LoopDetectionState {
 	lastToolName: string;
 	lastToolSignature: string;
 	consecutiveIdenticalCount: number;
+	/** Flip-flop detection: tracks alternating between two states */
+	previousToolName?: string;
+	previousToolSignature?: string;
+	flipFlopCount: number;
 }
 
 export function createLoopDetectionState(): LoopDetectionState {
@@ -28,6 +32,7 @@ export function createLoopDetectionState(): LoopDetectionState {
 		lastToolName: "",
 		lastToolSignature: "",
 		consecutiveIdenticalCount: 0,
+		flipFlopCount: 0,
 	};
 }
 
@@ -35,6 +40,9 @@ export function resetLoopDetectionState(state: LoopDetectionState): void {
 	state.lastToolName = "";
 	state.lastToolSignature = "";
 	state.consecutiveIdenticalCount = 0;
+	state.previousToolName = undefined;
+	state.previousToolSignature = undefined;
+	state.flipFlopCount = 0;
 }
 
 function sortKeys(value: unknown): unknown {
@@ -69,6 +77,26 @@ export function checkRepeatedToolCall(
 	signature: string,
 	config: LoopDetectionConfig,
 ): LoopCheckResult {
+	// Flip-flop detection: alternating between two states (A, B, A, B, ...)
+	// A flip-flop occurs when the current call matches the PREVIOUS call
+	// but NOT the immediately-last call (i.e., the input oscillates).
+	const isSameAsLast =
+		state.lastToolName === toolName &&
+		state.lastToolSignature === signature;
+	const isSameAsPrevious =
+		state.previousToolName === toolName &&
+		state.previousToolSignature === signature;
+
+	if (isSameAsPrevious && !isSameAsLast && state.previousToolName !== undefined) {
+		state.flipFlopCount++;
+	} else if (isSameAsLast) {
+		// Same as last call — not a flip-flop, reset
+		state.flipFlopCount = 0;
+	} else {
+		// Completely new call — reset
+		state.flipFlopCount = 0;
+	}
+
 	if (
 		toolName === state.lastToolName &&
 		signature === state.lastToolSignature
@@ -77,8 +105,20 @@ export function checkRepeatedToolCall(
 	} else {
 		state.consecutiveIdenticalCount = 1;
 	}
+
+	// Store previous state for flip-flop detection
+	state.previousToolName = state.lastToolName;
+	state.previousToolSignature = state.lastToolSignature;
 	state.lastToolName = toolName;
 	state.lastToolSignature = signature;
+
+	// Flip-flop escalation: 3+ alternations is a hard stop
+	if (state.flipFlopCount >= 3) {
+		return {
+			softWarning: false,
+			hardEscalation: true,
+		};
+	}
 
 	return {
 		softWarning: state.consecutiveIdenticalCount === config.softThreshold,

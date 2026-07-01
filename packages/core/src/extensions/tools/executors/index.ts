@@ -41,9 +41,45 @@ export {
 } from "./file-read";
 export { createSearchExecutor, type SearchExecutorOptions } from "./search";
 export {
+	searchWithRegex,
+	type RegexSearchOptions,
+	type RegexSearchResult,
+} from "./regex-search";
+export {
+	isRipgrepAvailable,
+	resetRipgrepAvailability,
+	searchWithRipgrep,
+	type RipgrepSearchOptions,
+} from "./ripgrep-search";
+export {
 	createWebFetchExecutor,
 	type WebFetchExecutorOptions,
 } from "./web-fetch";
+export {
+	searchWithSemantic,
+	type SemanticSearchOptions,
+} from "./semantic-search";
+export {
+	createDirectoryListExecutor,
+	listDirectory,
+	type DirectoryListOptions,
+	type DirectoryEntry,
+} from "./directory-list";
+export {
+	createTestRunnerHelper,
+	detectScripts,
+	parseTestOutput,
+	type TestRunnerResult,
+	type DetectedScripts,
+} from "./test-runner-helper";
+export {
+	createGitHelper,
+	parseGitStatus,
+	parseDiffStat,
+	type GitStatus,
+	type GitDiffResult,
+	type GitHelper,
+} from "./git-helper";
 
 /**
  * Options for creating default executors

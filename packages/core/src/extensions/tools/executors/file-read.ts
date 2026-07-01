@@ -240,6 +240,12 @@ export function createFileReadExecutor(
 		// Check if file exists
 		const stat = await fs.stat(resolvedPath);
 
+		if (stat.isDirectory()) {
+			throw new Error(
+				`Path is a directory: ${resolvedPath}. Use list_directory to list its contents.`,
+			);
+		}
+
 		if (!stat.isFile()) {
 			throw new Error(`Path is not a file: ${resolvedPath}`);
 		}

@@ -186,6 +186,27 @@ function applyChunks(
 	return result.join("\n");
 }
 
+async function getPathKind(
+	filePath: string,
+): Promise<"missing" | "file" | "directory" | "other"> {
+	try {
+		const stat = await fs.stat(filePath);
+		if (stat.isFile()) return "file";
+		if (stat.isDirectory()) return "directory";
+		return "other";
+	} catch (error) {
+		if (
+			error instanceof Error &&
+			"code" in error &&
+			((error as NodeJS.ErrnoException).code === "ENOENT" ||
+				(error as NodeJS.ErrnoException).code === "ENOTDIR")
+		) {
+			return "missing";
+		}
+		throw error;
+	}
+}
+
 async function loadFiles(
 	lines: readonly string[],
 	cwd: string,
@@ -200,6 +221,16 @@ async function loadFiles(
 
 	for (const filePath of filesToLoad) {
 		const absolutePath = resolveFilePath(cwd, filePath, restrictToCwd);
+		const pathKind = await getPathKind(absolutePath);
+		if (pathKind === "missing") {
+			throw new DiffError(`File not found: ${filePath}`);
+		}
+		if (pathKind === "directory") {
+			throw new DiffError(`Path is a directory, not a file: ${filePath}`);
+		}
+		if (pathKind === "other") {
+			throw new DiffError(`Unsupported path type: ${filePath}`);
+		}
 		let fileContent: string;
 		try {
 			fileContent = await fs.readFile(absolutePath, encoding);
@@ -290,6 +321,17 @@ async function applyChanges(
 			case PatchActionType.ADD:
 				if (change.newContent === undefined) {
 					throw new DiffError(`Cannot create ${filePath} with no content`);
+				}
+				{
+					const pathKind = await getPathKind(sourceAbsPath);
+					if (pathKind === "directory") {
+						throw new DiffError(
+							`Path is a directory, not a file: ${filePath}`,
+						);
+					}
+					if (pathKind === "other") {
+						throw new DiffError(`Unsupported path type: ${filePath}`);
+					}
 				}
 				await fs.mkdir(path.dirname(sourceAbsPath), { recursive: true });
 				await fs.writeFile(sourceAbsPath, change.newContent, { encoding });

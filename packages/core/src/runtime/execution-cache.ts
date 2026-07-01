@@ -294,15 +294,19 @@ export class ExecutionCacheManager {
       for (const file of files) {
         if (file.endsWith(".json")) {
           const filePath = path.join(cacheDir, file);
-          const content = fs.readFileSync(filePath, "utf-8");
-          const entry = JSON.parse(content) as CacheEntry;
+          try {
+            const content = fs.readFileSync(filePath, "utf-8");
+            const entry = JSON.parse(content) as CacheEntry;
 
-          // Restore dates
-          entry.cachedAt = new Date(entry.cachedAt);
+            // Restore dates
+            entry.cachedAt = new Date(entry.cachedAt);
 
-          if (this.isEntryValid(entry)) {
-            this.cache.set(entry.key, entry);
-            loaded++;
+            if (this.isEntryValid(entry)) {
+              this.cache.set(entry.key, entry);
+              loaded++;
+            }
+          } catch {
+            // Skip unreadable/corrupt files
           }
         }
       }

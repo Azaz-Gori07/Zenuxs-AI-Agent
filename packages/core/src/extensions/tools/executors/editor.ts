@@ -33,6 +33,13 @@ export interface EditorExecutorOptions {
 	 * @default 200
 	 */
 	maxDiffLines?: number;
+
+	/**
+	 * Whether to create .bak backups before overwriting existing files.
+	 * Used by the T6 full-file-rewrite fallback chain.
+	 * @default false
+	 */
+	createBackupBeforeRewrite?: boolean;
 }
 
 async function resolveFilePath(
@@ -105,12 +112,39 @@ async function createFile(
 	return `File created successfully at: ${filePath}`;
 }
 
-async function fileExists(filePath: string): Promise<boolean> {
+async function backupFile(
+	filePath: string,
+	_encoding: BufferEncoding,
+): Promise<string | null> {
 	try {
-		await fs.access(filePath);
-		return true;
+		const stat = await fs.stat(filePath);
+		if (!stat.isFile()) return null;
+		const backupPath = `${filePath}.bak`;
+		await fs.copyFile(filePath, backupPath);
+		return backupPath;
 	} catch {
-		return false;
+		return null;
+	}
+}
+
+async function getPathKind(
+	filePath: string,
+): Promise<"missing" | "file" | "directory" | "other"> {
+	try {
+		const stat = await fs.stat(filePath);
+		if (stat.isFile()) return "file";
+		if (stat.isDirectory()) return "directory";
+		return "other";
+	} catch (error) {
+		if (
+			error instanceof Error &&
+			"code" in error &&
+			((error as NodeJS.ErrnoException).code === "ENOENT" ||
+				(error as NodeJS.ErrnoException).code === "ENOTDIR")
+		) {
+			return "missing";
+		}
+		throw error;
 	}
 }
 
@@ -120,6 +154,7 @@ async function replaceInFile(
 	newStr: string | null | undefined,
 	encoding: BufferEncoding,
 	maxDiffLines: number,
+	createBackup: boolean,
 ): Promise<string> {
 	const content = await fs.readFile(filePath, encoding);
 	const occurrences = countOccurrences(content, oldStr);
@@ -134,11 +169,20 @@ async function replaceInFile(
 		);
 	}
 
+	let backupPath: string | null = null;
+	if (createBackup) {
+		backupPath = await backupFile(filePath, encoding);
+	}
+
 	const updated = content.replace(oldStr, newStr ?? "");
 	await fs.writeFile(filePath, updated, { encoding });
 
 	const diff = createLineDiff(content, updated, maxDiffLines);
-	return `Edited ${filePath}\n${diff}`;
+	const lines = [`Edited ${filePath}`, diff];
+	if (backupPath) {
+		lines.push(`Backup saved at: ${backupPath}`);
+	}
+	return lines.join("\n");
 }
 
 async function insertInFile(
@@ -174,6 +218,7 @@ export function createEditorExecutor(
 		encoding = "utf-8",
 		restrictToCwd = true,
 		maxDiffLines = 200,
+		createBackupBeforeRewrite = false,
 	} = options;
 
 	return async (
@@ -182,8 +227,19 @@ export function createEditorExecutor(
 		_context: AgentToolContext,
 	): Promise<string> => {
 		const filePath = await resolveFilePath(cwd, input.path, restrictToCwd);
+		const pathKind = await getPathKind(filePath);
+
+		if (pathKind === "directory") {
+			throw new Error(`Path is a directory, not a file: ${filePath}`);
+		}
+		if (pathKind === "other") {
+			throw new Error(`Unsupported path type: ${filePath}`);
+		}
 
 		if (input.insert_line != null) {
+			if (pathKind === "missing") {
+				throw new Error(`File not found: ${filePath}`);
+			}
 			return insertInFile(
 				filePath,
 				input.insert_line, // One-based index
@@ -192,7 +248,7 @@ export function createEditorExecutor(
 			);
 		}
 
-		if (!(await fileExists(filePath))) {
+		if (pathKind === "missing") {
 			return createFile(filePath, input.new_text, encoding);
 		}
 		if (input.old_text == null) {
@@ -207,6 +263,7 @@ export function createEditorExecutor(
 			input.new_text,
 			encoding,
 			maxDiffLines,
+			createBackupBeforeRewrite,
 		);
 	};
 }

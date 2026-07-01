@@ -73,6 +73,8 @@ export interface MistakeTrackerOptions {
 
 export class MistakeTracker {
 	private consecutiveMistakes = 0;
+	/** Cumulative mistake budget: total mistakes across the session */
+	private cumulativeMistakes = 0;
 	private readonly options: MistakeTrackerOptions;
 
 	constructor(options: MistakeTrackerOptions) {
@@ -83,6 +85,7 @@ export class MistakeTracker {
 		const max = this.options.maxConsecutiveMistakes;
 		const next = input.forceAtLimit && max ? max : this.consecutiveMistakes + 1;
 		this.consecutiveMistakes = next;
+		this.cumulativeMistakes++;
 
 		const errorMessage =
 			input.details?.trim() || `consecutive mistake (${input.reason})`;
@@ -100,6 +103,7 @@ export class MistakeTracker {
 			reason: input.reason,
 			details: input.details,
 			consecutiveMistakes: next,
+			cumulativeMistakes: this.cumulativeMistakes,
 			maxConsecutiveMistakes: this.options.maxConsecutiveMistakes,
 		});
 
@@ -143,10 +147,16 @@ export class MistakeTracker {
 
 	reset(): void {
 		this.consecutiveMistakes = 0;
+		// Note: cumulativeMistakes is NOT reset — it tracks the entire session
 	}
 
 	get value(): number {
 		return this.consecutiveMistakes;
+	}
+
+	/** Total mistakes recorded this session (cumulative budget) */
+	get cumulative(): number {
+		return this.cumulativeMistakes;
 	}
 }
 

@@ -1585,6 +1585,182 @@ describe("AgentRuntime", () => {
 		});
 	});
 
+	it("routes generic search tool calls to grep when grep is the registered file-search implementation", async () => {
+		const executedInput: any[] = [];
+		const grepTool: AgentTool = {
+			name: "grep",
+			description: "Search file contents",
+			inputSchema: { type: "object" },
+			async execute(input) {
+				executedInput.push(input);
+				return { success: true, output: "found" };
+			},
+		};
+
+		const model = new ScriptedModel([
+			() => [
+				{
+					type: "tool-call-delta",
+					toolCallId: "call_search_1",
+					toolName: "search",
+					inputText:
+						'{"pattern":"About","path":"src/pages/About.jsx"}',
+				},
+				{ type: "finish", reason: "tool-calls" },
+			],
+			() => [
+				{ type: "text-delta", text: "search complete" },
+				{ type: "finish", reason: "stop" },
+			],
+		]);
+
+		const runtime = new AgentRuntime({ model, tools: [grepTool] });
+		const result = await runtime.run("Search in About.jsx");
+
+		expect(result.status).toBe("completed");
+		expect(result.outputText).toBe("search complete");
+		expect(executedInput).toEqual([
+			{ pattern: "About", path: "src/pages/About.jsx" },
+		]);
+	});
+
+	it("recovers a skipped search tool call by switching to a compatible grep tool", async () => {
+		const executedInput: any[] = [];
+		const grepTool: AgentTool = {
+			name: "grep",
+			description: "Search file contents",
+			inputSchema: { type: "object" },
+			async execute(input) {
+				executedInput.push(input);
+				return { success: true, output: "found" };
+			},
+		};
+
+		const model = new ScriptedModel([
+			() => [
+				{
+					type: "tool-call-delta",
+					toolCallId: "call_search_skip",
+					toolName: "search",
+					inputText: '{"pattern":"About","path":"src/pages/About.jsx"}',
+				},
+				{ type: "finish", reason: "tool-calls" },
+			],
+			() => [
+				{ type: "text-delta", text: "continued" },
+				{ type: "finish", reason: "stop" },
+			],
+		]);
+
+		const runtime = new AgentRuntime({ model, tools: [grepTool] });
+		const result = await runtime.run("Search in About.jsx");
+
+		expect(result.status).toBe("completed");
+		expect(result.outputText).toBe("continued");
+		expect(executedInput).toEqual([
+			{ pattern: "About", path: "src/pages/About.jsx" },
+		]);
+		const toolResult = result.messages.find((message) => message.role === "tool")
+			?.content[0];
+		expect(toolResult).toMatchObject({
+			type: "tool-result",
+			toolName: "grep",
+			isError: undefined,
+		});
+	});
+
+	it("recovers grep ENOTDIR by retrying the same file path in file-search mode", async () => {
+		const executedInput: any[] = [];
+		const grepTool: AgentTool = {
+			name: "grep",
+			description: "Search file contents",
+			inputSchema: { type: "object" },
+			async execute(input) {
+				executedInput.push(input);
+				if (executedInput.length === 1) {
+					throw new Error("ENOTDIR: not a directory, scandir 'src/pages/About.jsx'");
+				}
+				return { success: true, output: "found in file" };
+			},
+		};
+
+		const model = new ScriptedModel([
+			() => [
+				{
+					type: "tool-call-delta",
+					toolCallId: "call_grep_enotdir",
+					toolName: "grep",
+					inputText: '{"pattern":"About","path":"src/pages/About.jsx"}',
+				},
+				{ type: "finish", reason: "tool-calls" },
+			],
+			() => [
+				{ type: "text-delta", text: "continued" },
+				{ type: "finish", reason: "stop" },
+			],
+		]);
+
+		const runtime = new AgentRuntime({ model, tools: [grepTool] });
+		const result = await runtime.run("Search in About.jsx");
+
+		expect(result.status).toBe("completed");
+		expect(executedInput).toEqual([
+			{ pattern: "About", path: "src/pages/About.jsx" },
+			{ pattern: "About", path: "src/pages/About.jsx" },
+		]);
+		const toolResult = result.messages.find((message) => message.role === "tool")
+			?.content[0];
+		expect(toolResult).toMatchObject({
+			type: "tool-result",
+			toolName: "grep",
+			output: { success: true, output: "found in file" },
+		});
+	});
+
+	it("recovers invalid read payloads by normalizing path aliases before continuing", async () => {
+		const executedInput: any[] = [];
+		const readTool: AgentTool = {
+			name: "read",
+			description: "Read files",
+			inputSchema: { type: "object" },
+			async execute(input) {
+				executedInput.push(input);
+				if (!input || typeof input !== "object" || !("path" in input)) {
+					throw new Error("File path is required");
+				}
+				return { output: "file contents" };
+			},
+		};
+
+		const model = new ScriptedModel([
+			() => [
+				{
+					type: "tool-call-delta",
+					toolCallId: "call_read_invalid",
+					toolName: "read",
+					inputText: '{"filePath":"src/pages/About.jsx"}',
+				},
+				{ type: "finish", reason: "tool-calls" },
+			],
+			() => [
+				{ type: "text-delta", text: "continued" },
+				{ type: "finish", reason: "stop" },
+			],
+		]);
+
+		const runtime = new AgentRuntime({ model, tools: [readTool] });
+		const result = await runtime.run("Read About.jsx");
+
+		expect(result.status).toBe("completed");
+		expect(executedInput).toEqual([
+			{
+				filePath: "src/pages/About.jsx",
+				path: "src/pages/About.jsx",
+				files: [{ path: "src/pages/About.jsx", start_line: undefined, end_line: undefined }],
+			},
+		]);
+	});
+
 	it("enforces builder architecture policy by rejecting raw source code dumps in chat", async () => {
 		let turns = 0;
 		const model = new ScriptedModel([
@@ -1614,4 +1790,3 @@ describe("AgentRuntime", () => {
 		expect(result.outputText).toBe("✔ portfolio.html created");
 	});
 });
-

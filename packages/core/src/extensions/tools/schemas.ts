@@ -80,6 +80,21 @@ export const ReadFilesInputUnionSchema = z.union([
 ]);
 
 /**
+ * Schema for list_directory tool input
+ */
+export const ListDirectoryInputSchema = z.object({
+	path: z
+		.string()
+		.describe("The absolute path of the directory to list"),
+	max_depth: z
+		.number()
+		.int()
+		.positive()
+		.optional()
+		.describe("Maximum depth to recurse (1 = target directory only)"),
+});
+
+/**
  * Schema for search_codebase tool input
  */
 export const SearchCodebaseInputSchema = z.object({
@@ -295,6 +310,11 @@ export type ReadFileRequest = z.infer<typeof ReadFileRequestSchema>;
  * Input for the read_files tool
  */
 export type ReadFilesInput = z.infer<typeof ReadFilesInputSchema>;
+
+/**
+ * Input for the list_directory tool
+ */
+export type ListDirectoryInput = z.infer<typeof ListDirectoryInputSchema>;
 
 /**
  * Input for the search_codebase tool

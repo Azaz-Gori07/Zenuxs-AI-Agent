@@ -16,6 +16,7 @@ import * as path from "path";
 import * as fs from "fs/promises";
 import { createTool } from "@cline/shared";
 import { z } from "zod";
+import { resolvePathInfo, resolveToolPath } from "./path-kind";
 
 // =============================================================================
 // Constants
@@ -520,9 +521,7 @@ Key rules:
 - BOM-aware`,
     inputSchema: EditFileInputSchema,
     execute: async (input: EditFileInput, _context) => {
-      const filePath = path.isAbsolute(input.filePath)
-        ? input.filePath
-        : path.resolve(cwd, input.filePath);
+      const filePath = resolveToolPath(cwd, input.filePath);
 
       if (!input.oldString && !input.newString) {
         return { output: "Error: oldString and newString cannot both be empty.", isError: true };
@@ -533,12 +532,21 @@ Key rules:
       }
 
       return withFileLock(filePath, async () => {
-        // Check if file exists
-        let fileExists = true;
-        try {
-          await fs.access(filePath);
-        } catch {
-          fileExists = false;
+        const pathInfo = await resolvePathInfo(cwd, input.filePath);
+        const fileExists = pathInfo.kind !== "missing";
+
+        if (pathInfo.kind === "directory") {
+          return {
+            output: `Error: Path is a directory, not a file: ${pathInfo.absolutePath}`,
+            isError: true,
+          };
+        }
+
+        if (pathInfo.kind === "other") {
+          return {
+            output: `Error: Unsupported path type: ${pathInfo.absolutePath}`,
+            isError: true,
+          };
         }
 
         // Handle new file creation
@@ -551,14 +559,14 @@ Key rules:
           }
 
           // Create new file
-          await fs.mkdir(path.dirname(filePath), { recursive: true });
-          await fs.writeFile(filePath, input.newString, "utf-8");
+          await fs.mkdir(path.dirname(pathInfo.absolutePath), { recursive: true });
+          await fs.writeFile(pathInfo.absolutePath, input.newString, "utf-8");
 
-          const metadata = { edits: [{ filePath, operation: "create" }] };
+          const metadata = { edits: [{ filePath: pathInfo.absolutePath, operation: "create" }] };
 
           return {
-            title: `Created ${path.basename(filePath)}`,
-            output: `File created: ${filePath}`,
+            title: `Created ${path.basename(pathInfo.absolutePath)}`,
+            output: `File created: ${pathInfo.absolutePath}`,
             metadata,
           };
         }
@@ -568,7 +576,7 @@ Key rules:
           return { output: `Error: File not found: ${filePath}`, isError: true };
         }
 
-        const { text: contentOld, bom, lineEnding } = await readFileContent(filePath);
+        const { text: contentOld, bom, lineEnding } = await readFileContent(pathInfo.absolutePath);
 
         // Normalize line endings
         const old = convertToLineEnding(normalizeLineEndings(input.oldString), lineEnding);
@@ -594,20 +602,20 @@ Key rules:
         }
 
         // Write result
-        await writeFileContent(filePath, contentNew, bom, lineEnding);
+        await writeFileContent(pathInfo.absolutePath, contentNew, bom, lineEnding);
 
         // Trigger post-edit callback (e.g., LSP diagnostics, formatting)
         if (onEdit) {
-          await onEdit(filePath, contentOld, contentNew);
+          await onEdit(pathInfo.absolutePath, contentOld, contentNew);
         }
 
-        const diff = computeDiff(filePath, normalizeLineEndings(contentOld), normalizeLineEndings(contentNew));
+        const diff = computeDiff(pathInfo.absolutePath, normalizeLineEndings(contentOld), normalizeLineEndings(contentNew));
 
         return {
-          title: `Edited ${path.basename(filePath)}`,
-          output: `Applied edit to ${filePath}\n\nChanges:\n${diff.slice(0, 2000)}`,
+          title: `Edited ${path.basename(pathInfo.absolutePath)}`,
+          output: `Applied edit to ${pathInfo.absolutePath}\n\nChanges:\n${diff.slice(0, 2000)}`,
           metadata: {
-            edits: [{ filePath, operation: "edit" }],
+            edits: [{ filePath: pathInfo.absolutePath, operation: "edit" }],
             diff,
           },
         };
@@ -640,9 +648,22 @@ export function createEnhancedWriteTool(options: CreateEnhancedWriterOptions): a
     description: "Write content to a file (full-file replacement). Creates parent directories as needed. BOM-aware with disk validation.",
     inputSchema: WriteFileInputSchema,
     execute: async (input: WriteFileInput, _context) => {
-      const filePath = path.isAbsolute(input.filePath)
-        ? input.filePath
-        : path.resolve(cwd, input.filePath);
+      const pathInfo = await resolvePathInfo(cwd, input.filePath);
+      const filePath = pathInfo.absolutePath;
+
+      if (pathInfo.kind === "directory") {
+        return {
+          output: `Error: Path is a directory, not a file: ${filePath}`,
+          isError: true,
+        };
+      }
+
+      if (pathInfo.kind === "other") {
+        return {
+          output: `Error: Unsupported path type: ${filePath}`,
+          isError: true,
+        };
+      }
 
       // Step 1 & 2: Determine destination and create directory if missing
       await fs.mkdir(path.dirname(filePath), { recursive: true });

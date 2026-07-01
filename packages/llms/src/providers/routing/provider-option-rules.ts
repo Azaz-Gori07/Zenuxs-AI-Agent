@@ -462,6 +462,16 @@ const miniMaxThinkingRule: ProviderOptionRule = {
 		),
 };
 
+const nvidiaSuppressGenericOptionsRule: ProviderOptionRule = {
+	id: "provider.nvidia.suppress-generic-options",
+	phase: "provider",
+	description:
+		"NVIDIA API rejects non-standard reasoning parameters. Suppress thinking and effort options.",
+	applies: (input) => input.request.providerId === "nvidia",
+	suppresses: { genericThinking: true, genericEffort: true },
+	build: () => undefined,
+};
+
 const routedGlmReasoningRule: ProviderOptionRule = {
 	id: "family.glm.routed-reasoning",
 	phase: "model-overlay",
@@ -477,7 +487,9 @@ const routedGlmReasoningRule: ProviderOptionRule = {
 			input.context,
 			input.providerOptionsKey,
 			{
-				includeProviderBuckets: input.request.providerId !== "openrouter",
+				includeProviderBuckets:
+					input.request.providerId !== "openrouter" &&
+					input.request.providerId !== "nvidia",
 			},
 		),
 };
@@ -506,6 +518,7 @@ export const PROVIDER_OPTION_RULES: ReadonlyArray<ProviderOptionRule> = [
 	nonGlmProviderRoutingSuppressionRule,
 	nativeZaiGlmThinkingRule,
 	miniMaxThinkingRule,
+	nvidiaSuppressGenericOptionsRule,
 	routedGlmReasoningRule,
 ];
 

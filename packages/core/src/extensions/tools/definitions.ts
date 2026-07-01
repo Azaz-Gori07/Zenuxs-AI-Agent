@@ -40,6 +40,8 @@ import {
 	EditFileInputSchema,
 	type FetchWebContentInput,
 	FetchWebContentInputSchema,
+	type ListDirectoryInput,
+	ListDirectoryInputSchema,
 	type ReadFileRequest,
 	type ReadFilesInput,
 	ReadFilesInputSchema,
@@ -63,6 +65,7 @@ import type {
 	BashExecutor,
 	CreateDefaultToolsOptions,
 	DefaultToolsConfig,
+	DirectoryListExecutor,
 	EditorExecutor,
 	FileReadExecutor,
 	SearchExecutor,
@@ -151,6 +154,52 @@ function coalesceSplitHeredocCommands(commands: string[]): string[] {
 // =============================================================================
 // AgentTool Factory Functions
 // =============================================================================
+
+/**
+ * Create the list_directory tool
+ *
+ * Lists the contents of a directory.
+ */
+export function createListDirectoryTool(
+	executor: DirectoryListExecutor,
+	config: Pick<DefaultToolsConfig, "cwd"> = {},
+): AgentTool<ListDirectoryInput, ToolOperationResult> {
+	const cwd = config.cwd ?? process.cwd();
+
+	return createTool<ListDirectoryInput, ToolOperationResult>({
+		name: "list_directory",
+		description:
+			"List the contents of a directory. " +
+			"Useful for exploring project structure and finding files. " +
+			"Returns a formatted listing with file/directory indicators.",
+		inputSchema: zodToJsonSchema(ListDirectoryInputSchema),
+		timeoutMs: 10000,
+		retryable: true,
+		maxRetries: 1,
+		execute: async (input, context) => {
+			try {
+				const result = await withTimeout(
+					executor(input.path, cwd, context),
+					10000,
+					"Directory listing timed out after 10000ms",
+				);
+				return {
+					query: input.path,
+					result,
+					success: true,
+				};
+			} catch (error) {
+				const msg = formatError(error);
+				return {
+					query: input.path,
+					result: "",
+					error: `Error listing directory: ${msg}`,
+					success: false,
+				};
+			}
+		},
+	});
+}
 
 /**
  * Create the read_files tool
@@ -843,6 +892,7 @@ export function createDefaultTools(
 	const {
 		executors,
 		enableReadFiles = true,
+		enableListDirectory = true,
 		enableSearch = true,
 		enableBash = true,
 		enableWebFetch = true,
@@ -859,6 +909,11 @@ export function createDefaultTools(
 	// Add read_files tool if enabled and executor provided
 	if (enableReadFiles && executors.readFile) {
 		tools.push(createReadFilesTool(executors.readFile, config));
+	}
+
+	// Add list_directory tool if enabled and executor provided
+	if (enableListDirectory && executors.listDirectory) {
+		tools.push(createListDirectoryTool(executors.listDirectory, config));
 	}
 
 	// Add search_codebase tool if enabled and executor provided

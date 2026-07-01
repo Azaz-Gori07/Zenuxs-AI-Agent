@@ -31,6 +31,7 @@ import {
 	mergeModelOptions,
 } from "@cline/shared";
 import { nanoid } from "nanoid";
+import * as path from "node:path";
 import type { McpServerConfig } from "./mcp/types";
 
 // Local `createUID` helper. The clinee source imports this from
@@ -250,6 +251,19 @@ interface PreparedToolExecution {
 	tool?: AgentTool;
 	input: unknown;
 	skipReason?: string;
+	recovery?: ToolRecoveryPlan;
+}
+
+interface ToolRecoveryPlan {
+	reason: string;
+	kind:
+		| "normalize-input"
+		| "switch-tool"
+		| "recover-file-path"
+		| "recover-directory-path";
+	recoveryInput?: unknown;
+	recoveryToolName?: string;
+	diagnostic?: string;
 }
 
 interface HookBag {
@@ -584,6 +598,10 @@ export class AgentRuntime {
 			move_file: ["rename_file"],
 			rename_file: ["move_file"],
 			copy_file: ["copy"],
+			grep: ["grep_search", "search"],
+			grep_search: ["grep", "search"],
+			search: ["grep", "grep_search", "search_codebase"],
+			search_codebase: ["search", "grep"],
 			shell: ["run_commands", "bash", "cmd", "execute_command", "exec"],
 			bash: ["run_commands", "execute_command", "shell", "cmd", "exec"],
 			run_commands: ["bash", "execute_command", "shell", "cmd", "exec"],
@@ -1245,6 +1263,151 @@ export class AgentRuntime {
 		return results;
 	}
 
+	private recoverToolExecution(
+		prepared: PreparedToolExecution,
+		errorText: string,
+	): PreparedToolExecution | undefined {
+		if (prepared.recovery) {
+			return undefined;
+		}
+		if (
+			errorText.includes("Tool execution is disabled for provider") ||
+			errorText.includes("requires approval") ||
+			errorText.includes("was not approved")
+		) {
+			return undefined;
+		}
+		const toolName = prepared.toolCall.toolName.trim().toLowerCase();
+		const normalizedInput = this.normalizeToolInputPayload(
+			prepared.toolCall.toolName,
+			prepared.input,
+		);
+
+		const nextCandidates = new Set<string>();
+		const addCandidate = (name?: string): void => {
+			if (!name) return;
+			const tool = this.getTool(name);
+			if (tool) nextCandidates.add(tool.name);
+		};
+
+		const recoveryPayloads: Array<{
+			kind: ToolRecoveryPlan["kind"];
+			reason: string;
+			input?: unknown;
+			toolName?: string;
+		}> = [];
+
+		if (
+			errorText.includes("File path is required") ||
+			errorText.includes("required") ||
+			errorText.includes("Invalid")
+		) {
+			recoveryPayloads.push({
+				kind: "normalize-input",
+				reason: "Recovered missing file input by normalizing the payload.",
+				input: normalizedInput,
+			});
+		}
+
+		if (
+			errorText.includes("ENOTDIR") ||
+			errorText.includes("Path is a directory") ||
+			errorText.includes("not a directory")
+		) {
+			const pathValue = this.extractPathLikeValue(prepared.input);
+			if (pathValue) {
+				const targetToolName =
+					toolName.includes("grep") || toolName.includes("search")
+						? "grep"
+						: "read";
+				const targetTool = this.getTool(targetToolName);
+				recoveryPayloads.push({
+					kind: "recover-file-path",
+					reason: "Recovered filesystem path as a file target.",
+					input: this.buildFileSearchPayload(targetToolName, pathValue, prepared.input),
+					toolName: targetTool?.name,
+				});
+			}
+		}
+
+		if (
+			(errorText.includes("Unknown tool") || errorText.includes("skipped")) &&
+			toolName.includes("search")
+		) {
+			addCandidate("grep");
+			addCandidate("search_codebase");
+			if (nextCandidates.size > 0) {
+				recoveryPayloads.push({
+					kind: "switch-tool",
+					reason: "Recovered tool selection to a compatible file-search tool.",
+					toolName: [...nextCandidates][0],
+					input: normalizedInput,
+				});
+			}
+		}
+
+		if (recoveryPayloads.length === 0) {
+			return undefined;
+		}
+
+		const chosen = recoveryPayloads[0];
+		return {
+			...prepared,
+			skipReason: undefined,
+			input: chosen.input ?? normalizedInput,
+			recovery: {
+				kind: chosen.kind,
+				reason: chosen.reason,
+				recoveryInput: chosen.input,
+				recoveryToolName: chosen.toolName,
+				diagnostic: errorText,
+			},
+			tool: chosen.toolName ? this.getTool(chosen.toolName) ?? prepared.tool : prepared.tool,
+			toolCall: {
+				...prepared.toolCall,
+				toolName: chosen.toolName ?? prepared.toolCall.toolName,
+			},
+		};
+	}
+
+	private extractPathLikeValue(input: unknown): string | undefined {
+		if (typeof input === "string") {
+			return input.trim() || undefined;
+		}
+		if (!input || typeof input !== "object" || Array.isArray(input)) {
+			return undefined;
+		}
+		const obj = input as Record<string, unknown>;
+		const candidate =
+			typeof obj.path === "string"
+				? obj.path
+				: typeof obj.filePath === "string"
+					? obj.filePath
+					: typeof obj.file === "string"
+						? obj.file
+						: undefined;
+		return candidate?.trim() || undefined;
+	}
+
+	private buildFileSearchPayload(
+		toolName: string,
+		pathValue: string,
+		originalInput?: unknown,
+	): unknown {
+		const norm = toolName.trim().toLowerCase();
+		if (norm.includes("read")) {
+			return { path: pathValue, files: [{ path: pathValue }] };
+		}
+		const pattern =
+			originalInput &&
+			typeof originalInput === "object" &&
+			!Array.isArray(originalInput) &&
+			typeof (originalInput as Record<string, unknown>).pattern === "string"
+				? ((originalInput as Record<string, unknown>).pattern as string)
+				: path.basename(pathValue);
+		return { pattern, path: pathValue };
+	}
+
 	private findCompletingToolMessage(
 		toolCalls: AgentToolCallPart[],
 		toolMessages: AgentMessage[],
@@ -1685,26 +1848,26 @@ export class AgentRuntime {
 			toolCall: prepared.toolCall,
 		});
 
-		let result: AgentToolResult;
-		if (prepared.skipReason) {
-			result = {
-				output: { error: prepared.skipReason },
-				isError: true,
-			};
-		} else if (!prepared.tool) {
-			result = {
-				output: { error: `Unknown tool: ${prepared.toolCall.toolName}` },
-				isError: true,
-			};
-		} else {
+		let current = prepared;
+		let result: AgentToolResult | undefined;
+		let lastErrorText: string | undefined;
+
+		for (let attempt = 0; attempt < 2; attempt += 1) {
 			try {
-				const output = await prepared.tool.execute(prepared.input, {
+				if (current.skipReason) {
+					throw new Error(current.skipReason);
+				}
+				if (!current.tool) {
+					throw new Error(`Unknown tool: ${current.toolCall.toolName}`);
+				}
+
+				const output = await current.tool.execute(current.input, {
 					sessionId: this.config.sessionId,
 					agentId: this.state.agentId,
 					conversationId: this.config.conversationId,
 					runId: this.state.runId ?? createUID("run"),
 					iteration: this.state.iteration,
-					toolCallId: prepared.toolCall.toolCallId,
+					toolCallId: current.toolCall.toolCallId,
 					signal: this.abortController?.signal,
 					metadata: this.config.toolContextMetadata,
 					snapshot: this.snapshot(),
@@ -1713,32 +1876,46 @@ export class AgentRuntime {
 							type: "tool-updated",
 							snapshot: this.snapshot(),
 							iteration: this.state.iteration,
-							toolCall: prepared.toolCall,
+							toolCall: current.toolCall,
 							update,
 						});
 					},
 				});
 				result = { output };
+				break;
 			} catch (error) {
+				lastErrorText = error instanceof Error ? error.message : String(error);
+				const recovered = this.recoverToolExecution(current, lastErrorText);
+				if (recovered && recovered !== current) {
+					current = recovered;
+					continue;
+				}
+
 				result = {
-					output: {
-						error: error instanceof Error ? error.message : String(error),
-					},
+					output: { error: lastErrorText },
 					isError: true,
 				};
+				break;
 			}
+		}
+
+		if (!result) {
+			result = {
+				output: { error: lastErrorText ?? "Tool execution failed" },
+				isError: true,
+			};
 		}
 
 		const endedAt = new Date();
 		const durationMs = Math.max(0, endedAt.getTime() - startedAt.getTime());
 
-		if (prepared.tool) {
+		if (current.tool) {
 			for (const hook of this.hooks.afterTool) {
 				const after = (await hook({
 					snapshot: this.snapshot(),
-					tool: prepared.tool,
-					toolCall: prepared.toolCall,
-					input: prepared.input,
+					tool: current.tool,
+					toolCall: current.toolCall,
+					input: current.input,
 					result,
 					startedAt,
 					endedAt,
@@ -1754,8 +1931,8 @@ export class AgentRuntime {
 		const message = createMessage("tool", [
 			{
 				type: "tool-result",
-				toolCallId: prepared.toolCall.toolCallId,
-				toolName: prepared.toolCall.toolName,
+				toolCallId: current.toolCall.toolCallId,
+				toolName: current.tool?.name ?? current.toolCall.toolName,
 				output: result.output,
 				isError: result.isError,
 			},
@@ -1765,7 +1942,7 @@ export class AgentRuntime {
 			type: "tool-finished",
 			snapshot: this.snapshot(),
 			iteration: this.state.iteration,
-			toolCall: prepared.toolCall,
+			toolCall: current.toolCall,
 			message,
 		});
 
