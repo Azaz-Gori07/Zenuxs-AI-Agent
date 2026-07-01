@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 
 import { isMainThread } from "node:worker_threads";
-import { disposeAll, initVcr, isHubDaemonProcess } from "@cline/shared";
+import { disposeAll, initVcr, isHubDaemonProcess, profiler } from "@cline/shared";
 import { logCliProcessError } from "./logging/errors";
 import {
 	abortActiveRuntime,
@@ -9,10 +9,15 @@ import {
 	isAbortInProgress,
 } from "./runtime/active-runtime";
 import { writeErr } from "./utils/output";
+// OPT-09: Static import for main module — avoids dynamic import overhead (~30-50ms).
+// The hub daemon path uses a separate dynamic import below.
+import { runCli } from "./main";
 
 // Initialize VCR before any HTTP requests are made.
 // Set CLINE_VCR=record|playback and CLINE_VCR_CASSETTE=<path> to enable.
+profiler.markTimeline("process.start", "startup");
 initVcr(process.env.CLINE_VCR);
+profiler.markTimeline("vcr.initialized", "startup");
 
 if (!isMainThread) {
 	// Worker imports of the bundled CLI entrypoint should not start the CLI.
@@ -64,8 +69,9 @@ if (!isMainThread) {
 
 		let exitCode = 0;
 		try {
-			const { runCli } = await import("./main");
+			const runCliId = profiler.start("cli.runCli", "startup");
 			await runCli();
+			profiler.end(runCliId);
 		} catch (err) {
 			logCliProcessError("runCli", err);
 			writeErr(err instanceof Error ? err.message : String(err));
@@ -73,6 +79,7 @@ if (!isMainThread) {
 			abortActiveRuntime();
 			exitCode = 1;
 		} finally {
+			await profiler.finish();
 			await disposeAll();
 		}
 		process.exit(exitCode || (process.exitCode as number) || 0);

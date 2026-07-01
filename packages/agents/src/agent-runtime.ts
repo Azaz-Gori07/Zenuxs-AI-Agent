@@ -29,6 +29,7 @@ import {
 	captureSdkError,
 	estimateTokens,
 	mergeModelOptions,
+	profiler,
 } from "@cline/shared";
 import { nanoid } from "nanoid";
 import * as path from "node:path";
@@ -52,7 +53,9 @@ function composeSystemPrompt(
 	base: string | undefined,
 	systemParts?: readonly SystemPart[],
 ): string | undefined {
+	const _profId = profiler.start("composeSystemPrompt", "message");
 	if (!base?.trim() && (!systemParts || systemParts.length === 0)) {
+		profiler.end(_profId);
 		return base;
 	}
 
@@ -69,8 +72,52 @@ function composeSystemPrompt(
 		}
 	}
 
-	return parts.join("\n\n");
+	const result = parts.join("\n\n");
+	profiler.end(_profId);
+	return result;
 }
+
+/**
+ * Module-level constant: tool name alias map for fuzzy resolution.
+ * Moved out of getTool() to avoid allocating a 36-entry object on every call.
+ */
+const TOOL_ALIASES: Record<string, string[]> = {
+	write_file: ["write", "editor", "write_to_file", "create_file"],
+	write: ["write_file", "editor", "create_file"],
+	create_file: ["write_file", "write", "editor"],
+	write_to_file: ["write_file", "write", "editor"],
+	read_file: ["read_files", "read"],
+	read_files: ["read", "read_file"],
+	read: ["read_files", "read_file"],
+	edit: ["editor", "replace_in_file", "replace_file"],
+	editor: ["edit", "replace_in_file", "replace_file"],
+	replace_file: ["edit", "editor", "replace_in_file"],
+	replace_in_file: ["edit", "editor"],
+	patch_file: ["apply_patch", "patch"],
+	patch: ["apply_patch", "patch_file"],
+	apply_patch: ["patch_file", "patch"],
+	delete_file: ["remove_file", "unlink"],
+	remove_file: ["delete_file", "unlink"],
+	unlink: ["delete_file", "remove_file"],
+	move_file: ["rename_file"],
+	rename_file: ["move_file"],
+	copy_file: ["copy"],
+	grep: ["grep_search", "search"],
+	grep_search: ["grep", "search"],
+	search: ["grep", "grep_search", "search_codebase"],
+	search_codebase: ["search", "grep"],
+	shell: ["run_commands", "bash", "cmd", "execute_command", "exec"],
+	bash: ["run_commands", "execute_command", "shell", "cmd", "exec"],
+	run_commands: ["bash", "execute_command", "shell", "cmd", "exec"],
+	execute_command: ["run_commands", "bash", "shell"],
+	cmd: ["run_commands", "bash", "shell"],
+	webfetch: ["fetch_web_content"],
+	fetch_web_content: ["webfetch"],
+	todowrite: ["todo_write"],
+	todo_write: ["todowrite"],
+	websearch: ["web_search"],
+	web_search: ["websearch"],
+};
 
 export type AgentRunInput = string | AgentMessage | readonly AgentMessage[];
 export type AgentEventListener = (event: AgentRuntimeEvent) => void;
@@ -452,6 +499,13 @@ export class AgentRuntime {
 	};
 	private initialization?: Promise<void>;
 	private abortController?: AbortController;
+	/** OPT-02: Cached system prompt — computed once, reused every iteration. */
+	private _cachedSystemPrompt?: string | undefined;
+	private _systemPromptCached = false;
+	/** OPT-03: Cached tool definition array — computed once after init. */
+	private _cachedToolDefinitions?: AgentToolDefinition[];
+	/** OPT-01: Cached snapshot — invalidated when messages change. */
+	private _cachedSnapshot?: AgentRuntimeStateSnapshot;
 
 	constructor(config: AgentRuntimeConfig) {
 		const resolved = resolveRuntimeConfig(config);
@@ -511,6 +565,7 @@ export class AgentRuntime {
 		this.state.pendingToolCalls = [];
 		this.state.usage = cloneUsage(DEFAULT_USAGE);
 		this.state.lastError = undefined;
+		this._invalidateSnapshot();
 		this.state.messages = cloneMessages(messages);
 		this.config = {
 			...this.config,
@@ -519,7 +574,13 @@ export class AgentRuntime {
 	}
 
 	snapshot(): AgentRuntimeStateSnapshot {
-		return {
+		const _profId = profiler.start("snapshot", "message");
+		// OPT-01: Return cached snapshot if messages haven't changed since last computation.
+		if (this._cachedSnapshot) {
+			profiler.end(_profId, { cached: true, messageCount: this.state.messages.length });
+			return this._cachedSnapshot;
+		}
+		const result = {
 			agentId: this.state.agentId,
 			agentRole: this.state.agentRole,
 			parentAgentId: this.state.parentAgentId,
@@ -532,6 +593,14 @@ export class AgentRuntime {
 			usage: cloneUsage(this.state.usage),
 			lastError: this.state.lastError,
 		};
+		profiler.end(_profId, { messageCount: this.state.messages.length, cached: false });
+		this._cachedSnapshot = result;
+		return result;
+	}
+
+	/** OPT-01: Invalidate snapshot cache when messages are mutated. */
+	private _invalidateSnapshot(): void {
+		this._cachedSnapshot = undefined;
 	}
 
 	private async ensureInitialized(): Promise<void> {
@@ -555,6 +624,12 @@ export class AgentRuntime {
 			}
 			this.registerHooks(setup?.hooks);
 		}
+		// OPT-03: Build tool definition array once after all tools are registered.
+		this._cachedToolDefinitions = [...this.tools.values()].map<AgentToolDefinition>((tool) => ({
+			name: tool.name,
+			description: tool.description,
+			inputSchema: tool.inputSchema,
+		}));
 	}
 
 	private registerHooks(hooks: Partial<AgentRuntimeHooks> | undefined): void {
@@ -571,55 +646,19 @@ export class AgentRuntime {
 	}
 
 	private getTool(toolName: string): AgentTool | undefined {
+		const _profId = profiler.start("getTool", "tool", { toolName });
 		let tool = this.tools.get(toolName);
-		if (tool) return tool;
+		if (tool) { profiler.end(_profId, { resolved: true, via: "exact" }); return tool; }
 		const normalized = toolName.trim().toLowerCase();
 		tool = this.tools.get(normalized);
-		if (tool) return tool;
+		if (tool) { profiler.end(_profId, { resolved: true, via: "normalized" }); return tool; }
 
-		const aliases: Record<string, string[]> = {
-			write_file: ["write", "editor", "write_to_file", "create_file"],
-			write: ["write_file", "editor", "create_file"],
-			create_file: ["write_file", "write", "editor"],
-			write_to_file: ["write_file", "write", "editor"],
-			read_file: ["read_files", "read"],
-			read_files: ["read", "read_file"],
-			read: ["read_files", "read_file"],
-			edit: ["editor", "replace_in_file", "replace_file"],
-			editor: ["edit", "replace_in_file", "replace_file"],
-			replace_file: ["edit", "editor", "replace_in_file"],
-			replace_in_file: ["edit", "editor"],
-			patch_file: ["apply_patch", "patch"],
-			patch: ["apply_patch", "patch_file"],
-			apply_patch: ["patch_file", "patch"],
-			delete_file: ["remove_file", "unlink"],
-			remove_file: ["delete_file", "unlink"],
-			unlink: ["delete_file", "remove_file"],
-			move_file: ["rename_file"],
-			rename_file: ["move_file"],
-			copy_file: ["copy"],
-			grep: ["grep_search", "search"],
-			grep_search: ["grep", "search"],
-			search: ["grep", "grep_search", "search_codebase"],
-			search_codebase: ["search", "grep"],
-			shell: ["run_commands", "bash", "cmd", "execute_command", "exec"],
-			bash: ["run_commands", "execute_command", "shell", "cmd", "exec"],
-			run_commands: ["bash", "execute_command", "shell", "cmd", "exec"],
-			execute_command: ["run_commands", "bash", "shell"],
-			cmd: ["run_commands", "bash", "shell"],
-			webfetch: ["fetch_web_content"],
-			fetch_web_content: ["webfetch"],
-			todowrite: ["todo_write"],
-			todo_write: ["todowrite"],
-			websearch: ["web_search"],
-			web_search: ["websearch"],
-		};
-
-		const candidates = aliases[normalized] ?? [];
+		const candidates = TOOL_ALIASES[normalized] ?? [];
 		for (const candidate of candidates) {
 			tool = this.tools.get(candidate);
-			if (tool) return tool;
+			if (tool) { profiler.end(_profId, { resolved: true, via: "alias" }); return tool; }
 		}
+		profiler.end(_profId, { resolved: false });
 		return undefined;
 	}
 
@@ -650,6 +689,14 @@ export class AgentRuntime {
 			.join("\n");
 
 		if (!textContent) return undefined;
+		// OPT-11: Early exit for short messages (unlikely to contain code dumps).
+		if (textContent.length < 50) return undefined;
+
+		// OPT-11: Check for code fences first (cheap), only do regex if fences found.
+		const hasCodeFence = textContent.includes("```");
+		if (!hasCodeFence && !textContent.includes("<!DOCTYPE html>")) {
+			return undefined;
+		}
 
 		const lower = textContent.toLowerCase();
 		if (
@@ -687,6 +734,7 @@ export class AgentRuntime {
 
 	private async addUserReminderMessage(text: string): Promise<AgentMessage> {
 		const reminderMessage = createMessage("user", [{ type: "text", text }]);
+		this._invalidateSnapshot();
 		this.state.messages.push(reminderMessage);
 		await this.emit({
 			type: "message-added",
@@ -698,6 +746,7 @@ export class AgentRuntime {
 
 	private async execute(input?: AgentRunInput): Promise<AgentRunResult> {
 		await this.ensureInitialized();
+		this._invalidateSnapshot();
 		if (this.state.status === "running") {
 			throw new Error("Agent runtime is already running");
 		}
@@ -715,6 +764,7 @@ export class AgentRuntime {
 			await this.emit({ type: "run-started", snapshot: this.snapshot() });
 
 			for (const message of input ? normalizeInput(input) : []) {
+				this._invalidateSnapshot();
 				this.state.messages.push(message);
 				await this.emit({
 					type: "message-added",
@@ -737,6 +787,7 @@ export class AgentRuntime {
 				this.throwIfAborted();
 
 				this.state.iteration += 1;
+				const _iterId = profiler.start("agentLoop.iteration", "agent", { iteration: this.state.iteration });
 				await this.emit({
 					type: "turn-started",
 					snapshot: this.snapshot(),
@@ -745,6 +796,7 @@ export class AgentRuntime {
 
 				const { message, finishReason } = await this.generateAssistantMessage();
 				finalAssistantMessage = message;
+				this._invalidateSnapshot();
 				this.state.messages.push(message);
 				await this.emit({
 					type: "message-added",
@@ -826,6 +878,7 @@ export class AgentRuntime {
 				const toolMessages = await this.executeToolCalls(toolCalls);
 				this.state.pendingToolCalls = [];
 				for (const toolMessage of toolMessages) {
+					this._invalidateSnapshot();
 					this.state.messages.push(toolMessage);
 					await this.emit({
 						type: "message-added",
@@ -839,6 +892,7 @@ export class AgentRuntime {
 					iteration: this.state.iteration,
 					toolCallCount: toolCalls.length,
 				});
+				profiler.end(_iterId);
 				const terminalToolMessage = this.findCompletingToolMessage(
 					toolCalls,
 					toolMessages,
@@ -922,14 +976,28 @@ export class AgentRuntime {
 		message: AgentMessage;
 		finishReason: AgentModelFinishReason;
 	}> {
+		const _profId = profiler.start("generateAssistantMessage", "llm", { iteration: this.state.iteration });
 		const usageBeforeModel = cloneUsage(this.state.usage);
-		let request: AgentModelRequest = {
-			systemPrompt: composeSystemPrompt(
+		const _composeId = profiler.start("composeSystemPrompt(call)", "message");
+		let systemPrompt: string | undefined;
+		if (this._systemPromptCached) {
+			systemPrompt = this._cachedSystemPrompt;
+		} else {
+			systemPrompt = composeSystemPrompt(
 				this.config.systemPrompt,
 				this.config.systemParts,
-			),
-			messages: cloneMessages(this.state.messages),
-			tools: [...this.tools.values()].map<AgentToolDefinition>((tool) => ({
+			);
+			this._cachedSystemPrompt = systemPrompt;
+			this._systemPromptCached = true;
+		}
+		profiler.end(_composeId, { cached: this._systemPromptCached && systemPrompt === this._cachedSystemPrompt });
+		// OPT-13: Clone messages once for the request, reuse cloned array for subsequent operations.
+		const _cloneId = profiler.start("cloneMessages(generateAssistant)", "message", { messageCount: this.state.messages.length });
+		const clonedMessages = cloneMessages(this.state.messages);
+		let request: AgentModelRequest = {
+			systemPrompt,
+			messages: clonedMessages,
+			tools: this._cachedToolDefinitions ?? [...this.tools.values()].map<AgentToolDefinition>((tool) => ({
 				name: tool.name,
 				description: tool.description,
 				inputSchema: tool.inputSchema,
@@ -937,10 +1005,12 @@ export class AgentRuntime {
 			signal: this.abortController?.signal,
 			options: this.config.modelOptions,
 		};
+		profiler.end(_cloneId);
 
 		if (this.state.iteration > 1) {
 			if (await this.consumePendingUserMessage()) {
-				request = { ...request, messages: cloneMessages(this.state.messages) };
+				// OPT-13: Reuse clonedMessages reference instead of cloning again.
+				request = { ...request, messages: clonedMessages };
 			}
 		}
 
@@ -953,7 +1023,8 @@ export class AgentRuntime {
 			})) as AgentBeforeModelResult | undefined;
 			this.applyStopControl(result);
 			if (result?.messages) {
-				request = { ...request, messages: cloneMessages(result.messages) };
+				// OPT-13: Only clone if hook actually returned new messages.
+				request = { ...request, messages: result.messages !== clonedMessages ? cloneMessages(result.messages) : result.messages };
 			}
 			if (result?.tools) {
 				request = { ...request, tools: [...result.tools] };
@@ -1154,6 +1225,7 @@ export class AgentRuntime {
 			this.applyStopControl(control);
 		}
 
+		profiler.end(_profId, { finishReason, contentParts: content.length });
 		return { message, finishReason };
 	}
 
@@ -1194,6 +1266,7 @@ export class AgentRuntime {
 		let next = request;
 		if (result.messages) {
 			const preparedMessages = cloneMessages(result.messages);
+			this._invalidateSnapshot();
 			this.state.messages = preparedMessages;
 			next = { ...next, messages: cloneMessages(preparedMessages) };
 		}
@@ -1216,6 +1289,7 @@ export class AgentRuntime {
 			return false;
 		}
 		const message = createMessage("user", [{ type: "text", text: pending }]);
+		this._invalidateSnapshot();
 		this.state.messages.push(message);
 		await this.emit({
 			type: "message-added",
@@ -1245,21 +1319,25 @@ export class AgentRuntime {
 	private async executeToolCalls(
 		toolCalls: AgentToolCallPart[],
 	): Promise<AgentMessage[]> {
+		const _profId = profiler.start("executeToolCalls", "tool", { toolCount: toolCalls.length });
 		const prepared: PreparedToolExecution[] = [];
 		for (const toolCall of toolCalls) {
 			prepared.push(await this.prepareToolExecution(toolCall));
 		}
 
 		if (this.config.toolExecution === "parallel") {
-			return Promise.all(
+			const results = await Promise.all(
 				prepared.map((execution) => this.executePreparedTool(execution)),
 			);
+			profiler.end(_profId);
+			return results;
 		}
 
 		const results: AgentMessage[] = [];
 		for (const execution of prepared) {
 			results.push(await this.executePreparedTool(execution));
 		}
+		profiler.end(_profId);
 		return results;
 	}
 
@@ -1556,6 +1634,9 @@ export class AgentRuntime {
 		if (textParts.length === 0) return [];
 
 		const fullText = textParts.map((p) => p.text).join("\n");
+		// OPT-10: Early exit if text too short or no JSON delimiters present.
+		if (fullText.length < 10) return [];
+		if (!fullText.includes("{") && !fullText.includes("[")) return [];
 		const candidates = this.findJsonCandidates(fullText);
 		if (candidates.length === 0) return [];
 
@@ -1840,6 +1921,10 @@ export class AgentRuntime {
 	private async executePreparedTool(
 		prepared: PreparedToolExecution,
 	): Promise<AgentMessage> {
+		const _toolProfId = profiler.start(`tool.execute(${prepared.toolCall.toolName})`, "tool", {
+			toolName: prepared.toolCall.toolName,
+			inputSize: JSON.stringify(prepared.input ?? {}).length,
+		});
 		const startedAt = new Date();
 		await this.emit({
 			type: "tool-started",
@@ -1946,6 +2031,20 @@ export class AgentRuntime {
 			message,
 		});
 
+		// Record tool call metrics
+		const outputStr = JSON.stringify(result.output ?? {});
+		profiler.end(_toolProfId, { resultSize: outputStr.length, isError: result.isError });
+		profiler.recordToolCall({
+			toolName: current.toolCall.toolName,
+			startMs: performance.now(),
+			endMs: performance.now(),
+			durationMs,
+			argsSize: JSON.stringify(prepared.input ?? {}).length,
+			resultSize: outputStr.length,
+			retryCount: 0,
+			recoveryCount: 0,
+		});
+
 		return message;
 	}
 
@@ -1993,6 +2092,7 @@ export class AgentRuntime {
 	}
 
 	private async emit(event: AgentRuntimeEvent): Promise<void> {
+		const _profId = profiler.start(`emit(${event.type})`, "event");
 		const metadata = buildEventMetadata(event);
 		switch (event.type) {
 			case "run-started":
@@ -2046,6 +2146,7 @@ export class AgentRuntime {
 		for (const hook of this.hooks.onEvent) {
 			await hook(event);
 		}
+		profiler.end(_profId);
 	}
 
 	private applyStopControl(
@@ -2142,11 +2243,23 @@ function buildInvalidToolInput(
 export function parseToolArguments(
 	value: string,
 ): { ok: true; value: unknown } | { ok: false; error: string } {
+	const _profId = profiler.start("parseToolArguments", "tool", { inputLength: value.length });
 	let trimmed = value.trim();
 	
 	// Treat empty input, empty braces, or empty parens as empty object
 	if (!trimmed || trimmed === "{}" || trimmed === "()") {
 		return { ok: true, value: {} };
+	}
+
+	// OPT-12: Fast path — if input starts with { or [, try direct JSON.parse first.
+	if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+		try {
+			const result = { ok: true as const, value: JSON.parse(trimmed) };
+			profiler.end(_profId, { result: "fast" });
+			return result;
+		} catch {
+			// Fall through to recovery steps
+		}
 	}
 
 	// Step 1: Strip markdown code fences if present
@@ -2239,9 +2352,11 @@ export function parseToolArguments(
 		) {
 			plain = plain.slice(1, -1);
 		}
+		profiler.end(_profId, { result: "plain" });
 		return { ok: true, value: plain };
 	}
 
+	profiler.end(_profId, { result: "failed" });
 	return {
 		ok: false,
 		error: "Tool call arguments could not be parsed as JSON. Ensure the outer tool payload is valid JSON and escape embedded quotes/newlines inside string fields.",

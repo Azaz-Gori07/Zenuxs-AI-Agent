@@ -1,0 +1,228 @@
+{
+  "root": {
+    "name": "root",
+    "value": 1966.8182,
+    "children": [
+      {
+        "name": "cli.runCli",
+        "value": 1732.9205,
+        "children": [
+          {
+            "name": "cli.createProviderSettingsManager",
+            "value": 11.134199999999964,
+            "children": [
+              {
+                "name": "cli.loadCliRuntimeModules",
+                "value": 47.468900000000076,
+                "children": [],
+                "category": "startup",
+                "self": 47.468900000000076
+              }
+            ],
+            "category": "startup",
+            "self": 0
+          },
+          {
+            "name": "cli.userInstructionService.start",
+            "value": 0.13550000000009277,
+            "children": [],
+            "category": "startup",
+            "self": 0.13550000000009277
+          },
+          {
+            "name": "cli.resolveProviderConfig",
+            "value": 2.5686000000000604,
+            "children": [],
+            "category": "startup",
+            "self": 2.5686000000000604
+          },
+          {
+            "name": "cli.resolveSystemPrompt",
+            "value": 271.5305999999998,
+            "children": [],
+            "category": "startup",
+            "self": 271.5305999999998
+          },
+          {
+            "name": "cli.runAgent",
+            "value": 1265.6721000000002,
+            "children": [],
+            "category": "agent",
+            "self": 1265.6721000000002
+          }
+        ],
+        "category": "startup",
+        "self": 181.87949999999978
+      }
+    ],
+    "category": "startup",
+    "self": 233.8977
+  },
+  "flatNodes": [
+    {
+      "name": "root",
+      "value": 1966.8182,
+      "children": [
+        {
+          "name": "cli.runCli",
+          "value": 1732.9205,
+          "children": [
+            {
+              "name": "cli.createProviderSettingsManager",
+              "value": 11.134199999999964,
+              "children": [
+                {
+                  "name": "cli.loadCliRuntimeModules",
+                  "value": 47.468900000000076,
+                  "children": [],
+                  "category": "startup",
+                  "self": 47.468900000000076
+                }
+              ],
+              "category": "startup",
+              "self": 0
+            },
+            {
+              "name": "cli.userInstructionService.start",
+              "value": 0.13550000000009277,
+              "children": [],
+              "category": "startup",
+              "self": 0.13550000000009277
+            },
+            {
+              "name": "cli.resolveProviderConfig",
+              "value": 2.5686000000000604,
+              "children": [],
+              "category": "startup",
+              "self": 2.5686000000000604
+            },
+            {
+              "name": "cli.resolveSystemPrompt",
+              "value": 271.5305999999998,
+              "children": [],
+              "category": "startup",
+              "self": 271.5305999999998
+            },
+            {
+              "name": "cli.runAgent",
+              "value": 1265.6721000000002,
+              "children": [],
+              "category": "agent",
+              "self": 1265.6721000000002
+            }
+          ],
+          "category": "startup",
+          "self": 181.87949999999978
+        }
+      ],
+      "category": "startup",
+      "self": 233.8977
+    },
+    {
+      "name": "cli.runCli",
+      "value": 1732.9205,
+      "children": [
+        {
+          "name": "cli.createProviderSettingsManager",
+          "value": 11.134199999999964,
+          "children": [
+            {
+              "name": "cli.loadCliRuntimeModules",
+              "value": 47.468900000000076,
+              "children": [],
+              "category": "startup",
+              "self": 47.468900000000076
+            }
+          ],
+          "category": "startup",
+          "self": 0
+        },
+        {
+          "name": "cli.userInstructionService.start",
+          "value": 0.13550000000009277,
+          "children": [],
+          "category": "startup",
+          "self": 0.13550000000009277
+        },
+        {
+          "name": "cli.resolveProviderConfig",
+          "value": 2.5686000000000604,
+          "children": [],
+          "category": "startup",
+          "self": 2.5686000000000604
+        },
+        {
+          "name": "cli.resolveSystemPrompt",
+          "value": 271.5305999999998,
+          "children": [],
+          "category": "startup",
+          "self": 271.5305999999998
+        },
+        {
+          "name": "cli.runAgent",
+          "value": 1265.6721000000002,
+          "children": [],
+          "category": "agent",
+          "self": 1265.6721000000002
+        }
+      ],
+      "category": "startup",
+      "self": 181.87949999999978
+    },
+    {
+      "name": "cli.runAgent",
+      "value": 1265.6721000000002,
+      "children": [],
+      "category": "agent",
+      "self": 1265.6721000000002
+    },
+    {
+      "name": "cli.resolveSystemPrompt",
+      "value": 271.5305999999998,
+      "children": [],
+      "category": "startup",
+      "self": 271.5305999999998
+    },
+    {
+      "name": "cli.loadCliRuntimeModules",
+      "value": 47.468900000000076,
+      "children": [],
+      "category": "startup",
+      "self": 47.468900000000076
+    },
+    {
+      "name": "cli.createProviderSettingsManager",
+      "value": 11.134199999999964,
+      "children": [
+        {
+          "name": "cli.loadCliRuntimeModules",
+          "value": 47.468900000000076,
+          "children": [],
+          "category": "startup",
+          "self": 47.468900000000076
+        }
+      ],
+      "category": "startup",
+      "self": 0
+    },
+    {
+      "name": "cli.resolveProviderConfig",
+      "value": 2.5686000000000604,
+      "children": [],
+      "category": "startup",
+      "self": 2.5686000000000604
+    },
+    {
+      "name": "cli.userInstructionService.start",
+      "value": 0.13550000000009277,
+      "children": [],
+      "category": "startup",
+      "self": 0.13550000000009277
+    }
+  ],
+  "metadata": {
+    "totalDurationMs": 1966.8182,
+    "spanCount": 7,
+    "generatedAt": "2026-07-01T12:59:50.021Z"
+  }
+}

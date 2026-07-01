@@ -45,6 +45,7 @@ import {
 	type MessageWithMetadata,
 	type ModelInfo,
 	mergeModelOptions,
+	profiler,
 	type ToolCallRecord,
 } from "@cline/shared";
 import { filterDisabledTools } from "../../services/global-settings";
@@ -375,6 +376,15 @@ export class SessionRuntime {
 	/** Remote conversation ID on Zenuxs AI backend, if sync is active. */
 	private zenuxsRemoteConvId: string | null = null;
 
+	// OPT-07: Cache per-run objects that depend only on stable config.
+	// Invalidated when config changes via updateConnection() / addTools().
+	private _cachedSystemPrompt: string | null = null;
+	private _cachedAgentModel: ReturnType<typeof createAgentModelFromConfig> | null = null;
+	private _cachedMergedTools: AgentTool[] | null = null;
+	private _cachedRuntimeHooks: Partial<AgentRuntimeHooks> | null = null;
+	// OPT-06: Cache format conversion result when input hasn't changed.
+	private _cachedPreparedMessages: { input: readonly AgentMessage[]; output: AgentMessage[] } | null = null;
+
 	constructor(config: AgentConfig, deps: SessionRuntimeOrchestratorDeps = {}) {
 		this.config = config;
 		this.agentId = `agent_${Date.now()}_${Math.random()
@@ -491,6 +501,9 @@ export class SessionRuntime {
 			}
 		}
 		this.config = { ...this.config, tools: merged };
+		// OPT-07: Invalidate tool-dependent caches.
+		this._cachedMergedTools = null;
+		this._cachedRuntimeHooks = null;
 	}
 
 	/** Mutate provider / reasoning fields for subsequent runs. */
@@ -510,6 +523,11 @@ export class SessionRuntime {
 		if (overrides.thinkingBudgetTokens !== undefined)
 			next.thinkingBudgetTokens = overrides.thinkingBudgetTokens;
 		this.config = next;
+		// OPT-07: Invalidate all config-dependent caches.
+		this._cachedSystemPrompt = null;
+		this._cachedAgentModel = null;
+		this._cachedMergedTools = null;
+		this._cachedRuntimeHooks = null;
 	}
 
 	clearHistory(): void {
@@ -747,48 +765,82 @@ export class SessionRuntime {
 		}
 
 		// Build the AgentRuntime for this turn.
-		const systemPrompt = await this.composeSystemPrompt();
-		const agentModel = createAgentModelFromConfig(
-			this.config,
-			this.logger,
-			this.telemetry,
-		);
-		// Merge extension-contributed tools with the config-declared
-		// tools for this turn. Extensions register tools via
-		// `api.registerTool` during `setup()` — parity with legacy
-		// `Agent.ensureExtensionsInitialized` at pre-Step-9 `agent.ts:1140-1146`
-		// which merged `this.contributionRegistry.getRegisteredTools()`
-		// into `this.config.tools`. Dedupe by name so a config tool
-		// wins over a same-named extension tool (legacy behaviour:
-		// `validateTools` rejects duplicates; here we prefer the
-		// explicitly-declared config tool).
-		const extensionToolsByName = new Map<string, AgentTool>();
-		for (const tool of this.contributionRegistry.getRegisteredTools()) {
-			extensionToolsByName.set(tool.name, tool);
+		const _runId = profiler.start("orchestrator.buildRuntime", "startup");
+		const _sysPromptId = profiler.start("orchestrator.composeSystemPrompt", "message");
+		// OPT-07: Cache system prompt across runs (invalidated on config change).
+		let systemPrompt: string;
+		if (this._cachedSystemPrompt !== null) {
+			systemPrompt = this._cachedSystemPrompt;
+		} else {
+			systemPrompt = await this.composeSystemPrompt();
+			this._cachedSystemPrompt = systemPrompt;
 		}
-		const extensionTools = filterAvailableExtensionTools(
-			[...extensionToolsByName.values()],
-			this.config.toolPolicies,
-		);
-		const mergedToolsByName = new Map<string, AgentTool>();
-		for (const tool of extensionTools) {
-			mergedToolsByName.set(tool.name, tool);
+		profiler.end(_sysPromptId, { cached: this._cachedSystemPrompt !== null });
+		const _modelId = profiler.start("orchestrator.createAgentModel", "llm");
+		// OPT-07: Cache agent model across runs (invalidated on connection change).
+		let agentModel: ReturnType<typeof createAgentModelFromConfig>;
+		if (this._cachedAgentModel !== null) {
+			agentModel = this._cachedAgentModel;
+		} else {
+			agentModel = createAgentModelFromConfig(
+				this.config,
+				this.logger,
+				this.telemetry,
+			);
+			this._cachedAgentModel = agentModel;
 		}
-		for (const tool of this.config.tools) {
-			mergedToolsByName.set(tool.name, tool);
+		profiler.end(_modelId, { cached: this._cachedAgentModel !== null });
+		const _toolsId = profiler.start("orchestrator.mergeTools", "tool");
+		// OPT-07: Cache merged tools across runs (invalidated on addTools/config change).
+		let tools: AgentTool[];
+		if (this._cachedMergedTools !== null) {
+			tools = this._cachedMergedTools;
+		} else {
+			// tools for this turn. Extensions register tools via
+			// `api.registerTool` during `setup()` — parity with legacy
+			// `Agent.ensureExtensionsInitialized` at pre-Step-9 `agent.ts:1140-1146`
+			// which merged `this.contributionRegistry.getRegisteredTools()`
+			// into `this.config.tools`. Dedupe by name so a config tool
+			// wins over a same-named extension tool (legacy behaviour:
+			// `validateTools` rejects duplicates; here we prefer the
+			// explicitly-declared config tool).
+			const extensionToolsByName = new Map<string, AgentTool>();
+			for (const tool of this.contributionRegistry.getRegisteredTools()) {
+				extensionToolsByName.set(tool.name, tool);
+			}
+			const extensionTools = filterAvailableExtensionTools(
+				[...extensionToolsByName.values()],
+				this.config.toolPolicies,
+			);
+			const mergedToolsByName = new Map<string, AgentTool>();
+			for (const tool of extensionTools) {
+				mergedToolsByName.set(tool.name, tool);
+			}
+			for (const tool of this.config.tools) {
+				mergedToolsByName.set(tool.name, tool);
+			}
+			tools = Array.from(mergedToolsByName.values());
+			this._cachedMergedTools = tools;
 		}
 		const conversationId = this.conversation.getConversationId();
 		const modelInfo = tryGetModelInfo(this.config);
-		const tools = Array.from(mergedToolsByName.values());
 		// Seed initialMessages with the full prior transcript (including
 		// the user message we just appended) so multi-turn history is
 		// preserved across runs. Fixes P1 #1: prior turns were silently
 		// lost because `createAgentRuntimeConfig` received no seed and
 		// `replaceMessages(runResult.messages)` downstream overwrote the
 		// conversation with just the current-turn trail.
+		profiler.end(_toolsId);
+		const _convId = profiler.start("orchestrator.messagesToAgentMessages", "message", { messageCount: this.conversation.getMessages().length });
 		const initialMessages = messagesToAgentMessages(
 			this.conversation.getMessages(),
 		);
+		profiler.end(_convId);
+		const _hooksId = profiler.start("orchestrator.createRuntimeHooks", "hook");
+		// OPT-07: Cache runtime hooks across runs (invalidated on addTools/config change).
+		if (this._cachedRuntimeHooks === null) {
+			this._cachedRuntimeHooks = this.createRuntimeHooks();
+		}
 		const runtimeConfig = createAgentRuntimeConfig({
 			agentConfig: this.config,
 			sessionId: this.config.sessionId,
@@ -805,12 +857,16 @@ export class SessionRuntime {
 				...this.config.toolContextMetadata,
 				[CLINE_INTERNAL_TELEMETRY_METADATA_KEY]: this.telemetry,
 			},
-			hooks: this.createRuntimeHooks(),
+			hooks: this._cachedRuntimeHooks,
 			prepareTurn: this.createRuntimePrepareTurn(modelInfo, tools),
 			initialMessages,
 			systemPrompt,
 		});
+		profiler.end(_hooksId);
+		const _createRuntimeId = profiler.start("orchestrator.createAgentRuntime", "agent");
 		const runtime = this.createAgentRuntimeImpl(runtimeConfig);
+		profiler.end(_createRuntimeId);
+		profiler.end(_runId);
 		this.activeRuntime = runtime;
 		if (this.abortRequested) {
 			runtime.abort(this.abortReason);
@@ -1051,22 +1107,31 @@ export class SessionRuntime {
 	private async prepareMessagesForModelRequest(
 		messages: readonly AgentMessage[],
 	): Promise<AgentMessage[]> {
+		// OPT-06: Cache the full conversion pipeline result.
+		if (this._cachedPreparedMessages !== null && this._cachedPreparedMessages.input === messages) {
+			return this._cachedPreparedMessages.output;
+		}
 		const providerMessages = await this.prepareProviderMessagesForApi(
 			agentMessagesToMessages(messages),
 		);
-		return messagesToAgentMessages(providerMessages);
+		const result = messagesToAgentMessages(providerMessages);
+		this._cachedPreparedMessages = { input: messages, output: result };
+		return result;
 	}
 
 	private async prepareProviderMessagesForApi(
 		messages: MessageWithMetadata[],
 	): Promise<MessageWithMetadata[]> {
+		const _profId = profiler.start("prepareProviderMessagesForApi", "message", { messageCount: messages.length });
 		let providerMessages = messages;
 		const messageBuilders =
 			this.contributionRegistry.getRegistrySnapshot().messageBuilder;
 		for (const builder of messageBuilders) {
 			providerMessages = await builder.build(providerMessages);
 		}
-		return this.messageBuilder.buildForApi(providerMessages);
+		const result = this.messageBuilder.buildForApi(providerMessages);
+		profiler.end(_profId);
+		return result;
 	}
 
 	private handleRuntimeEvent(event: AgentRuntimeEvent): void {
@@ -1229,8 +1294,9 @@ export class SessionRuntime {
 	}
 
 	private syncToZenuxsRemote(message: AgentMessage): void {
+		const _profId = profiler.start("syncToZenuxsRemote", "hook");
 		const token = this.config.zenuxsAuthToken;
-		if (!token) return;
+		if (!token) { profiler.end(_profId, { skipped: "no-token" }); return; }
 
 		const messages = this.conversation.getMessages();
 		if (messages.length === 0) return;

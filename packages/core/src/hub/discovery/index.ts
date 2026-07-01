@@ -262,14 +262,17 @@ export async function probeHubServer(
 	options?: { authToken?: string },
 ): Promise<HubServerProbeRecord | undefined> {
 	try {
+		const controller = new AbortController();
+		const timeoutId = setTimeout(() => controller.abort(), 2000);
 		const response = await fetch(
 			options?.authToken ? toHubStatusUrl(url) : toHubHealthUrl(url),
 			{
 				headers: options?.authToken
 					? { authorization: `Bearer ${options.authToken}` }
 					: undefined,
+				signal: controller.signal,
 			},
-		);
+		).finally(() => clearTimeout(timeoutId));
 		if (!response.ok) {
 			return undefined;
 		}

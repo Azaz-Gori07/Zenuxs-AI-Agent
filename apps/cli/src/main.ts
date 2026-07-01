@@ -3,7 +3,7 @@ import { homedir } from "node:os";
 import { basename } from "node:path";
 import type { ToolPolicy } from "@cline/core";
 
-import { registerDisposable } from "@cline/shared";
+import { registerDisposable, profiler } from "@cline/shared";
 import type { Command } from "commander";
 import {
 	CommanderError,
@@ -114,6 +114,7 @@ export function resolveConfigDirArg(argv: string[]): string | undefined {
 
 export async function runCli(): Promise<void> {
 	installStreamErrorGuards();
+	profiler.markTimeline("cli.runCli.start", "startup");
 	autoUpdateOnStartup();
 
 	const cliArgs = process.argv.slice(2);
@@ -892,13 +893,21 @@ export async function runCli(): Promise<void> {
 	// Keep command-style subcommands on a narrow path. Runtime-only imports pull
 	// in provider resolution, config services, and session startup wiring that
 	// should only load when the CLI is actually starting an agent session.
-	const providerSettingsManager = await createProviderSettingsManager();
+	// OPT-08: Parallelize createProviderSettingsManager with loadCliRuntimeModules.
+	// These are independent — provider settings don't feed into module loading.
+	const providerSettingsManagerId = profiler.start("cli.createProviderSettingsManager", "startup");
+	const providerSettingsManagerPromise = createProviderSettingsManager();
+	const loadModulesId = profiler.start("cli.loadCliRuntimeModules", "startup");
+	const loadModulesPromise = loadCliRuntimeModules();
+	const providerSettingsManager = await providerSettingsManagerPromise;
+	profiler.end(providerSettingsManagerId);
 	const {
 		coreServer,
 		coreServer: { createUserInstructionConfigService },
 		resolveSystemPrompt,
 		runAgent,
-	} = await loadCliRuntimeModules();
+	} = await loadModulesPromise;
+	profiler.end(loadModulesId);
 
 	const userInstructionService = createUserInstructionConfigService({
 		skills: {
@@ -909,7 +918,11 @@ export async function runCli(): Promise<void> {
 		rules: { workspacePath: workspaceRoot },
 		workflows: { workspacePath: workspaceRoot },
 	});
-	await userInstructionService.start().catch(() => {});
+	// OPT-08: Fire userInstructionService.start() without awaiting.
+	// The result is not needed until runAgent() at the earliest (~200ms+ later).
+	const userInstructionServiceId = profiler.start("cli.userInstructionService.start", "startup");
+	const userInstructionStartPromise = userInstructionService.start().catch(() => {});
+	profiler.end(userInstructionServiceId);
 	let userInstructionServiceDisposed = false;
 	const stopUserInstructionService = () => {
 		if (userInstructionServiceDisposed) {
@@ -1008,11 +1021,13 @@ export async function runCli(): Promise<void> {
 						failOnError: false,
 					}
 				: undefined;
+			const resolveProviderConfigId = profiler.start("cli.resolveProviderConfig", "startup");
 			const resolvedProviderConfig = await coreServer.resolveProviderConfig(
 				provider,
 				catalogOptions,
 				persistedProviderConfig,
 			);
+			profiler.end(resolveProviderConfigId);
 			knownModels = resolvedProviderConfig?.knownModels;
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);
@@ -1053,6 +1068,8 @@ export async function runCli(): Promise<void> {
 			|| selectedProviderSettings?.auth?.accessToken?.trim()
 			|| undefined;
 
+		profiler.markTimeline("cli.config.built", "startup");
+		const _resolveSysPromptId = profiler.start("cli.resolveSystemPrompt", "startup");
 		const config: Config = {
 			providerId: provider,
 			modelId:
@@ -1108,6 +1125,7 @@ export async function runCli(): Promise<void> {
 			},
 			teamName: !isYoloMode ? args.teamName?.trim() || undefined : undefined,
 		};
+		profiler.end(_resolveSysPromptId);
 		try {
 			// For OAuth providers, don't write the resolved key into apiKey;
 			// the token lives in auth.accessToken and apiKey is reserved for
@@ -1148,6 +1166,9 @@ export async function runCli(): Promise<void> {
 				})
 				.catch(() => {});
 		}
+
+	// OPT-08: Ensure userInstructionService.start() completed before we use the service.
+		await userInstructionStartPromise;
 
 	// Check for piped input (skip when stdin is not a real real pipe/file, e.g. headless CI).
 		// Guard `isTTY` first so we never block on fd 0 when stdin is a terminal (and avoid
@@ -1254,7 +1275,9 @@ export async function runCli(): Promise<void> {
 			return;
 		}
 
+		const _runAgentSpan = profiler.start("cli.runAgent", "agent");
 		await runAgent(effectivePrompt, config, userInstructionService);
+		profiler.end(_runAgentSpan);
 		// Exit once agent is done in non-interactive mode
 		return;
 	} finally {

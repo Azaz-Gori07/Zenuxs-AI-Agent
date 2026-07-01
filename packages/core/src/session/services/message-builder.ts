@@ -23,6 +23,7 @@ import {
 	type TextContent,
 	type ToolResultContent,
 	validateAndReserveImageMedia,
+	profiler,
 } from "@cline/shared";
 
 export const DEFAULT_MAX_TOOL_RESULT_CHARS = 8_000;
@@ -117,6 +118,10 @@ export class MessageBuilder {
 	private readonly mediaBudget: MediaBudgetOptions;
 	private readonly maxAssistantTextChars: number;
 	private readonly maxAssistantToolMarkupChars: number;
+	// OPT-05: Cache buildForApi result when input messages haven't changed.
+	private _buildForApiInputLength = 0;
+	private _buildForApiTailRef: Message | undefined;
+	private _buildForApiResult: Message[] | null = null;
 
 	constructor(options: MessageBuilderOptions = {}) {
 		this.maxToolResultChars = normalizePositiveLimit(
@@ -143,6 +148,15 @@ export class MessageBuilder {
 	}
 
 	buildForApi(messages: Message[]): Message[] {
+		const _profId = profiler.start("MessageBuilder.buildForApi", "message", { messageCount: messages.length });
+		// OPT-05: Return cached result if input hasn't changed since last call.
+		const tailUnchanged = messages.length > 0
+			&& messages.length === this._buildForApiInputLength
+			&& messages[messages.length - 1] === this._buildForApiTailRef;
+		if (this._buildForApiResult !== null && tailUnchanged) {
+			profiler.end(_profId, { cached: true });
+			return this._buildForApiResult;
+		}
 		this.reindex(messages);
 		const repairedMessages = this.addMissingToolResults(messages);
 
@@ -179,7 +193,13 @@ export class MessageBuilder {
 		});
 
 		const mediaLimited = this.applyMediaBudget(prepared);
-		return this.truncateToTotalTextBudget(mediaLimited);
+		const result = this.truncateToTotalTextBudget(mediaLimited);
+		profiler.end(_profId, { cached: false });
+		// OPT-05: Cache the result for next call with same input.
+		this._buildForApiInputLength = messages.length;
+		this._buildForApiTailRef = messages.length > 0 ? messages[messages.length - 1] : undefined;
+		this._buildForApiResult = result;
+		return result;
 	}
 
 	private transformBlock(
@@ -526,6 +546,10 @@ export class MessageBuilder {
 		this.latestReadToolUseByLocatorCache.clear();
 		this.latestFullContentOwnerByPathCache.clear();
 		this.readResultLocatorCache = new WeakMap<object, ReadLocator[]>();
+		// OPT-05: Invalidate buildForApi cache on index reset.
+		this._buildForApiResult = null;
+		this._buildForApiInputLength = 0;
+		this._buildForApiTailRef = undefined;
 	}
 
 	private getReadLocators(block: ToolResultContent): ReadLocator[] {

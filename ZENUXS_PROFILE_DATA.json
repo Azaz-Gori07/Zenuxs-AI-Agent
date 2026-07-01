@@ -1,0 +1,217 @@
+{
+  "enabled": true,
+  "processStartMs": 1286.2798,
+  "totalDurationMs": 1966.8182,
+  "peakMemoryMb": 76,
+  "spans": [
+    {
+      "name": "cli.createProviderSettingsManager",
+      "category": "startup",
+      "startMs": 329.52009999999996,
+      "endMs": 340.6542999999999,
+      "durationMs": 11.134199999999964,
+      "parentId": 1,
+      "id": 2,
+      "meta": {}
+    },
+    {
+      "name": "cli.loadCliRuntimeModules",
+      "category": "startup",
+      "startMs": 329.7365,
+      "endMs": 377.20540000000005,
+      "durationMs": 47.468900000000076,
+      "parentId": 2,
+      "id": 3,
+      "meta": {}
+    },
+    {
+      "name": "cli.userInstructionService.start",
+      "category": "startup",
+      "startMs": 378.9994999999999,
+      "endMs": 379.135,
+      "durationMs": 0.13550000000009277,
+      "parentId": 1,
+      "id": 4,
+      "meta": {}
+    },
+    {
+      "name": "cli.resolveProviderConfig",
+      "category": "startup",
+      "startMs": 414.1263999999999,
+      "endMs": 416.69499999999994,
+      "durationMs": 2.5686000000000604,
+      "parentId": 1,
+      "id": 5,
+      "meta": {}
+    },
+    {
+      "name": "cli.resolveSystemPrompt",
+      "category": "startup",
+      "startMs": 421.85120000000006,
+      "endMs": 693.3817999999999,
+      "durationMs": 271.5305999999998,
+      "parentId": 1,
+      "id": 6,
+      "meta": {}
+    },
+    {
+      "name": "cli.runAgent",
+      "category": "agent",
+      "startMs": 696.4984999999999,
+      "endMs": 1962.1706000000001,
+      "durationMs": 1265.6721000000002,
+      "parentId": 1,
+      "id": 7,
+      "meta": {}
+    },
+    {
+      "name": "cli.runCli",
+      "category": "startup",
+      "startMs": 230.62390000000005,
+      "endMs": 1963.5444,
+      "durationMs": 1732.9205,
+      "parentId": null,
+      "id": 1,
+      "meta": {}
+    }
+  ],
+  "timeline": [
+    {
+      "timeMs": 0.03199999999992542,
+      "label": "profiler.enabled",
+      "category": "startup"
+    },
+    {
+      "timeMs": 230.12210000000005,
+      "label": "process.start",
+      "category": "startup"
+    },
+    {
+      "timeMs": 230.26870000000008,
+      "label": "vcr.initialized",
+      "category": "startup"
+    },
+    {
+      "timeMs": 234.0266999999999,
+      "label": "cli.runCli.start",
+      "category": "startup"
+    },
+    {
+      "timeMs": 421.8479,
+      "label": "cli.config.built",
+      "category": "startup"
+    },
+    {
+      "timeMs": 1963.6595,
+      "label": "profiler.finishing",
+      "category": "startup"
+    }
+  ],
+  "functionStats": [
+    {
+      "name": "cli.runCli",
+      "category": "startup",
+      "callCount": 1,
+      "totalMs": 1732.9205,
+      "selfMs": 1732.9205,
+      "avgMs": 1732.9205,
+      "maxMs": 1732.9205,
+      "minMs": 1732.9205
+    },
+    {
+      "name": "cli.runAgent",
+      "category": "agent",
+      "callCount": 1,
+      "totalMs": 1265.6721000000002,
+      "selfMs": 1265.6721000000002,
+      "avgMs": 1265.6721000000002,
+      "maxMs": 1265.6721000000002,
+      "minMs": 1265.6721000000002
+    },
+    {
+      "name": "cli.resolveSystemPrompt",
+      "category": "startup",
+      "callCount": 1,
+      "totalMs": 271.5305999999998,
+      "selfMs": 271.5305999999998,
+      "avgMs": 271.5305999999998,
+      "maxMs": 271.5305999999998,
+      "minMs": 271.5305999999998
+    },
+    {
+      "name": "cli.loadCliRuntimeModules",
+      "category": "startup",
+      "callCount": 1,
+      "totalMs": 47.468900000000076,
+      "selfMs": 47.468900000000076,
+      "avgMs": 47.468900000000076,
+      "maxMs": 47.468900000000076,
+      "minMs": 47.468900000000076
+    },
+    {
+      "name": "cli.createProviderSettingsManager",
+      "category": "startup",
+      "callCount": 1,
+      "totalMs": 11.134199999999964,
+      "selfMs": 11.134199999999964,
+      "avgMs": 11.134199999999964,
+      "maxMs": 11.134199999999964,
+      "minMs": 11.134199999999964
+    },
+    {
+      "name": "cli.resolveProviderConfig",
+      "category": "startup",
+      "callCount": 1,
+      "totalMs": 2.5686000000000604,
+      "selfMs": 2.5686000000000604,
+      "avgMs": 2.5686000000000604,
+      "maxMs": 2.5686000000000604,
+      "minMs": 2.5686000000000604
+    },
+    {
+      "name": "cli.userInstructionService.start",
+      "category": "startup",
+      "callCount": 1,
+      "totalMs": 0.13550000000009277,
+      "selfMs": 0.13550000000009277,
+      "avgMs": 0.13550000000009277,
+      "maxMs": 0.13550000000009277,
+      "minMs": 0.13550000000009277
+    }
+  ],
+  "memorySnapshots": [
+    {
+      "timeMs": 0.09159999999997126,
+      "rssMb": 254,
+      "heapUsedMb": 26,
+      "heapTotalMb": 29,
+      "externalMb": 9,
+      "largeObjectCount": 0
+    },
+    {
+      "timeMs": 693.4048,
+      "rssMb": 328,
+      "heapUsedMb": 75,
+      "heapTotalMb": 78,
+      "externalMb": 18,
+      "largeObjectCount": 0
+    },
+    {
+      "timeMs": 1962.1986,
+      "rssMb": 340,
+      "heapUsedMb": 76,
+      "heapTotalMb": 73,
+      "externalMb": 19,
+      "largeObjectCount": 0
+    },
+    {
+      "timeMs": 1963.668,
+      "rssMb": 340,
+      "heapUsedMb": 76,
+      "heapTotalMb": 73,
+      "externalMb": 19,
+      "largeObjectCount": 0
+    }
+  ],
+  "toolCalls": []
+}

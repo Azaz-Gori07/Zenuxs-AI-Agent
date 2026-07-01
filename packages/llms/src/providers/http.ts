@@ -208,7 +208,7 @@ export function wrapFetchWithRetry(
 
 				if (response.status >= 500 || retryableStatus(response.status)) {
 					const isRateLimit = response.status === 429;
-					const effectiveMaxRetries = isRateLimit ? Math.max(maxRetries, 15) : maxRetries;
+					const effectiveMaxRetries = isRateLimit ? Math.min(maxRetries, 3) : maxRetries;
 					if (attempt >= effectiveMaxRetries) {
 						return response;
 					}
@@ -219,11 +219,15 @@ export function wrapFetchWithRetry(
 							Math.min(baseDelayMs * Math.pow(2, attempt) * (0.8 + Math.random() * 0.4), defaultMaxDelay)
 						);
 
+					const urlStr = input instanceof Request ? input.url : String(input);
+					const statusText = isRateLimit ? "Rate Limited" : `HTTP ${response.status}`;
+					const msg = `\n[${statusText}] Request to ${urlStr} failed. Retrying in ${(delay / 1000).toFixed(1)}s (attempt ${attempt + 1}/${effectiveMaxRetries})...\n`;
+
 					if (logger) {
-						const urlStr = input instanceof Request ? input.url : String(input);
-						logger.log(`[HTTP ${response.status}] Request to ${urlStr} failed. Retrying in ${delay}ms (attempt ${attempt + 1}/${effectiveMaxRetries})...`, {
-							severity: "warn",
-						});
+						logger.log(msg, { severity: "warn" });
+					}
+					if (typeof process !== "undefined" && process.stderr && process.env.NODE_ENV !== "test") {
+						process.stderr.write(msg);
 					}
 
 					await sleep(delay, init?.signal);
@@ -248,11 +252,14 @@ export function wrapFetchWithRetry(
 					Math.min(baseDelayMs * Math.pow(2, attempt) * (0.8 + Math.random() * 0.4), maxDelayMs)
 				);
 
+				const urlStr = input instanceof Request ? input.url : String(input);
+				const msg = `\n[Network/Timeout Error] Request to ${urlStr} failed: ${error.message}. Retrying in ${(delay / 1000).toFixed(1)}s (attempt ${attempt + 1}/${maxRetries})...\n`;
+
 				if (logger) {
-					const urlStr = input instanceof Request ? input.url : String(input);
-					logger.log(`[Network/Timeout Error] Request to ${urlStr} failed: ${error.message}. Retrying in ${delay}ms (attempt ${attempt + 1}/${maxRetries})...`, {
-						severity: "warn",
-					});
+					logger.log(msg, { severity: "warn" });
+				}
+				if (typeof process !== "undefined" && process.stderr && process.env.NODE_ENV !== "test") {
+					process.stderr.write(msg);
 				}
 
 				await sleep(delay, init?.signal);
