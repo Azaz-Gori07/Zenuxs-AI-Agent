@@ -30,6 +30,7 @@ import {
 } from "./routing/anthropic-compatible";
 import { GLM_THINKING_ROUTING_METADATA } from "./routing/glm-thinking";
 import { MINIMAX_THINKING_ROUTING_METADATA } from "./routing/minimax-thinking";
+import { createMyBackupKeyResolver } from "./mybackup-resolver";
 
 export const DEFAULT_INTERNAL_OCA_BASE_URL =
 	"https://code-internal.aiservice.us-chicago-1.oci.oraclecloud.com/20250206/app/litellm";
@@ -38,6 +39,8 @@ export const DEFAULT_EXTERNAL_OCA_BASE_URL =
 const CLINE_DEFAULT_MODEL_ID = "anthropic/claude-sonnet-4.6";
 const CLINE_PASS_PROVIDER_ID = "cline-pass";
 const OPENAI_CODEX_DEFAULT_MODEL_ID = "gpt-5.4";
+export const OPENCODE_ZEN_BASE_URL = "https://opencode.ai/zen/v1";
+const OPENCODE_ZEN_FREE_DEFAULT_MODEL_ID = "deepseek-v4-flash-free";
 
 export type ProviderFamily =
 	| "openai"
@@ -328,6 +331,72 @@ function buildClaudeCodeModels(): Record<string, ModelInfo> {
 
 function buildOpenAICodexModels(): Record<string, ModelInfo> {
 	return filterOpenAICodexModels(generatedModels("openai-native"));
+}
+
+function opencodeZenFreeModel(
+	id: string,
+	name: string,
+	input: Partial<ModelInfo> = {},
+): ModelInfo {
+	return {
+		id,
+		name,
+		contextWindow: 128_000,
+		maxInputTokens: 128_000,
+		capabilities: ["streaming", "tools", "reasoning"],
+		pricing: {
+			input: 0,
+			output: 0,
+			cacheRead: 0,
+			cacheWrite: 0,
+		},
+		status: "active",
+		...input,
+		metadata: {
+			...(input.metadata ?? {}),
+			free: true,
+		},
+	};
+}
+
+function buildOpenCodeZenModels(): Record<string, ModelInfo> {
+	return {
+		"big-pickle": opencodeZenFreeModel("big-pickle", "Big Pickle", {
+			description: "Free OpenCode Zen coding model.",
+		}),
+		"deepseek-v4-flash-free": opencodeZenFreeModel(
+			"deepseek-v4-flash-free",
+			"DeepSeek V4 Flash Free",
+			{
+				family: "deepseek-thinking",
+				description: "Free DeepSeek V4 Flash model on OpenCode Zen.",
+			},
+		),
+		"mimo-v2.5-free": opencodeZenFreeModel(
+			"mimo-v2.5-free",
+			"MiMo V2.5 Free",
+			{
+				family: "mimo-v2.5",
+				description: "Free Xiaomi MiMo V2.5 model on OpenCode Zen.",
+			},
+		),
+		"nemotron-3-ultra-free": opencodeZenFreeModel(
+			"nemotron-3-ultra-free",
+			"Nemotron 3 Ultra Free",
+			{
+				family: "nemotron",
+				description: "Free NVIDIA Nemotron 3 Ultra model on OpenCode Zen.",
+			},
+		),
+		"north-mini-code-free": opencodeZenFreeModel(
+			"north-mini-code-free",
+			"North Mini Code Free",
+			{
+				family: "north",
+				description: "Free Cohere North Mini Code model on OpenCode Zen.",
+			},
+		),
+	};
 }
 
 function buildClineModels(): Record<string, ModelInfo> {
@@ -939,6 +1008,20 @@ const OPENAI_COMPATIBLE_SPECS: BuiltinSpec[] = [
 		defaults: { baseUrl: "https://integrate.api.nvidia.com/v1" },
 		modelsFactory: buildNvidiaModels,
 	},
+	{
+		id: "mybackup",
+		name: "MyBackup",
+		description: "Round-robin fallback using multiple NVIDIA API keys",
+		family: "openai-compatible",
+		capabilities: ["reasoning", "tools", "vision"],
+		defaultModelId: "nvidia/llama-3.1-nemotron-70b-instruct",
+		modelsFactory: buildNvidiaModels,
+		apiKeyEnv: ["MYBACKUP_KEY_1", "MYBACKUP_KEY_2", "MYBACKUP_KEY_3"],
+		defaults: {
+			baseUrl: "https://integrate.api.nvidia.com/v1",
+			apiKeyResolver: createMyBackupKeyResolver(),
+		},
+	},
 ];
 
 function buildNvidiaModels(): Record<string, ModelInfo> {
@@ -961,6 +1044,27 @@ function buildNvidiaModels(): Record<string, ModelInfo> {
 			id: "meta/llama-3.3-70b-instruct",
 			name: "Llama 3.3 70B",
 			capabilities: ["streaming", "tools"],
+			contextWindow: 128_000,
+			maxInputTokens: 128_000,
+		},
+		"deepseek-ai/deepseek-v4-flash": {
+			id: "deepseek-ai/deepseek-v4-flash",
+			name: "DeepSeek V4 Flash",
+			capabilities: ["streaming", "tools"],
+			contextWindow: 128_000,
+			maxInputTokens: 128_000,
+		},
+		"deepseek-ai/deepseek-v4-pro": {
+			id: "deepseek-ai/deepseek-v4-pro",
+			name: "DeepSeek V4 Pro",
+			capabilities: ["streaming", "tools", "reasoning"],
+			contextWindow: 128_000,
+			maxInputTokens: 128_000,
+		},
+		"z-ai/glm-5.2": {
+			id: "z-ai/glm-5.2",
+			name: "GLM 5.2",
+			capabilities: ["streaming", "tools", "reasoning"],
 			contextWindow: 128_000,
 			maxInputTokens: 128_000,
 		},
@@ -1118,16 +1222,16 @@ export const BUILTIN_SPECS: BuiltinSpec[] = [
 		id: "opencode-zen",
 		name: "OpenCode Zen",
 		description:
-			"Curated models including Claude, GPT, Gemini and more via OpenCode's managed gateway",
-		family: "openai",
-		protocol: "openai-responses",
+			"Free coding models via OpenCode's managed Zen gateway",
+		family: "openai-compatible",
 		popular: 15,
-		capabilities: ["tools", "reasoning", "prompt-cache"],
-		defaultModelId: "gpt-5.5",
+		capabilities: ["tools", "reasoning"],
+		defaultModelId: OPENCODE_ZEN_FREE_DEFAULT_MODEL_ID,
 		apiKeyEnv: ["OPENCODE_API_KEY"],
+		modelsFactory: buildOpenCodeZenModels,
 		docsUrl: "https://opencode.ai/zen",
 		defaults: {
-			baseUrl: "https://opencode.ai/zen/v1/responses",
+			baseUrl: OPENCODE_ZEN_BASE_URL,
 		},
 		metadata: {},
 	},

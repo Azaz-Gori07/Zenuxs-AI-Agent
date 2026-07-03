@@ -514,6 +514,17 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 			const config = getProviderConfigFields(provider.id);
 			setActiveProviderId(provider.id);
 			setActiveProviderName(provider.name);
+
+			const fieldKeys = Object.keys(config.fields);
+			if (fieldKeys.length === 0) {
+				saveLocalProviderSettings(providerSettingsManager, {
+					providerId: provider.id,
+					setLastUsed: true,
+				});
+				transitionToModelPicker(provider.id);
+				return;
+			}
+
 			setByoFields(config.fields);
 			setByoDescription(config.description);
 
@@ -624,6 +635,7 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 					}
 				: undefined,
 			sap: hasSapFields ? resolveProviderConfigSap(byoValues) : undefined,
+			setLastUsed: true,
 		});
 		// Emit a single `user.provider_configured` event mirroring the
 		// `{ provider }` payload shape used by the auth funnel. The save above

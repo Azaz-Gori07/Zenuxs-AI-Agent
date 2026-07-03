@@ -22,6 +22,7 @@ export type AiSdkProviderOptionsTarget =
 export type ProviderOptionSuppression = {
 	genericThinking?: boolean;
 	genericEffort?: boolean;
+	genericReasoning?: boolean;
 	genericFanout?: boolean;
 };
 

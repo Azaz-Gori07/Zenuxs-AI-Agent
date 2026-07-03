@@ -10,7 +10,7 @@ import {
 } from "node:fs";
 import { join, resolve } from "node:path";
 import type { GatewayStreamRequest } from "@cline/shared";
-import { estimateTokens } from "@cline/shared";
+import { estimateTokens, profiler } from "@cline/shared";
 
 type CaptureMode = "off" | "summary" | "full";
 type CaptureStage = "ai_sdk_prompt" | "wire_request";
@@ -499,7 +499,8 @@ export function wrapFetchForProviderRequestCapture(
 	baseFetch: typeof fetch | undefined,
 	request: GatewayStreamRequest,
 ): typeof fetch | undefined {
-	if (!isWireCaptureEnabled()) {
+	const shouldTraceNetwork = profiler.enabled;
+	if (!isWireCaptureEnabled() && !shouldTraceNetwork) {
 		return baseFetch;
 	}
 	const delegate = baseFetch ?? globalThis.fetch;
@@ -507,26 +508,47 @@ export function wrapFetchForProviderRequestCapture(
 		return baseFetch;
 	}
 	const captureFetch = (async (input, init) => {
-		void readRequestBody(input, init)
-			.then((body) => {
-				recordProviderRequestCapture({
-					stage: "wire_request",
-					request,
-					payload: {
-						...captureWireMetadata(request, input, init),
-						url: input instanceof Request ? input.url : String(input),
-						method:
-							init?.method ??
-							(input instanceof Request ? input.method : undefined) ??
-							"GET",
-						body,
-					},
+		const url = parseRequestUrl(input);
+		const method =
+			init?.method ?? (input instanceof Request ? input.method : undefined) ?? "GET";
+		const requestMeta = {
+			providerId: request.providerId,
+			modelId: request.modelId,
+			method,
+			endpoint: url ? `${url.protocol}//${url.host}${url.pathname}` : undefined,
+		};
+		const fetchId = profiler.start("network.fetch", "network", requestMeta);
+		profiler.markTimeline("network.fetch.dispatch", "network", requestMeta);
+		if (isWireCaptureEnabled()) {
+			void readRequestBody(input, init)
+				.then((body) => {
+					recordProviderRequestCapture({
+						stage: "wire_request",
+						request,
+						payload: {
+							...captureWireMetadata(request, input, init),
+							url: input instanceof Request ? input.url : String(input),
+							method,
+							body,
+						},
+					});
+				})
+				.catch(() => {
+					// Provider-request capture must never affect model execution.
 				});
-			})
-			.catch(() => {
-				// Provider-request capture must never affect model execution.
+		}
+		try {
+			const response = await delegate(input, init);
+			profiler.markTimeline("network.fetch.response_headers", "network", {
+				...requestMeta,
+				status: response.status,
 			});
-		return delegate(input, init);
+			profiler.end(fetchId, { status: response.status });
+			return response;
+		} catch (error) {
+			profiler.end(fetchId, { error: true });
+			throw error;
+		}
 	}) as typeof fetch;
 	const delegateWithPreconnect = delegate as typeof fetch & {
 		preconnect?: (...args: unknown[]) => unknown;

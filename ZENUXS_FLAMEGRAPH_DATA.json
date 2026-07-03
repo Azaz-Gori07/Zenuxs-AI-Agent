@@ -1,228 +1,2281 @@
 {
   "root": {
     "name": "root",
-    "value": 1966.8182,
+    "value": 902.4202,
     "children": [
       {
-        "name": "cli.runCli",
-        "value": 1732.9205,
+        "name": "snapshot",
+        "value": 0.20390000000020336,
+        "children": [],
+        "category": "message",
+        "self": 0.20390000000020336
+      },
+      {
+        "name": "emit(run-started)",
+        "value": 0.038399999999910506,
+        "children": [],
+        "category": "event",
+        "self": 0.038399999999910506
+      },
+      {
+        "name": "snapshot",
+        "value": 0.051400000000057844,
+        "children": [],
+        "category": "message",
+        "self": 0.051400000000057844
+      },
+      {
+        "name": "emit(message-added)",
+        "value": 0.007800000000088403,
+        "children": [],
+        "category": "event",
+        "self": 0.007800000000088403
+      },
+      {
+        "name": "agentLoop.iteration",
+        "value": 2.259499999999889,
         "children": [
           {
-            "name": "cli.createProviderSettingsManager",
-            "value": 11.134199999999964,
+            "name": "snapshot",
+            "value": 0.036800000000084765,
+            "children": [],
+            "category": "message",
+            "self": 0.036800000000084765
+          },
+          {
+            "name": "emit(turn-started)",
+            "value": 0.007100000000036744,
+            "children": [],
+            "category": "event",
+            "self": 0.007100000000036744
+          },
+          {
+            "name": "generateAssistantMessage",
+            "value": 0.8274000000001251,
             "children": [
               {
-                "name": "cli.loadCliRuntimeModules",
-                "value": 47.468900000000076,
+                "name": "composeSystemPrompt(call)",
+                "value": 0.1228000000000975,
+                "children": [
+                  {
+                    "name": "composeSystemPrompt",
+                    "value": 0.02970000000004802,
+                    "children": [],
+                    "category": "message",
+                    "self": 0.02970000000004802
+                  }
+                ],
+                "category": "message",
+                "self": 0.09310000000004948
+              },
+              {
+                "name": "cloneMessages(generateAssistant)",
+                "value": 0.013999999999896318,
                 "children": [],
-                "category": "startup",
-                "self": 47.468900000000076
+                "category": "message",
+                "self": 0.013999999999896318
+              },
+              {
+                "name": "model.stream.open",
+                "value": 0.09580000000005384,
+                "children": [],
+                "category": "llm",
+                "self": 0.09580000000005384
+              },
+              {
+                "name": "parseToolArguments",
+                "value": 0.016900000000077853,
+                "children": [],
+                "category": "tool",
+                "self": 0.016900000000077853
               }
             ],
-            "category": "startup",
-            "self": 0
+            "category": "llm",
+            "self": 0.5778999999999996
           },
           {
-            "name": "cli.userInstructionService.start",
-            "value": 0.13550000000009277,
+            "name": "snapshot",
+            "value": 0.02860000000009677,
             "children": [],
-            "category": "startup",
-            "self": 0.13550000000009277
+            "category": "message",
+            "self": 0.02860000000009677
           },
           {
-            "name": "cli.resolveProviderConfig",
-            "value": 2.5686000000000604,
+            "name": "emit(message-added)",
+            "value": 0.007399999999961437,
             "children": [],
-            "category": "startup",
-            "self": 2.5686000000000604
+            "category": "event",
+            "self": 0.007399999999961437
           },
           {
-            "name": "cli.resolveSystemPrompt",
-            "value": 271.5305999999998,
+            "name": "snapshot",
+            "value": 0.0036000000000058208,
             "children": [],
-            "category": "startup",
-            "self": 271.5305999999998
+            "category": "message",
+            "self": 0.0036000000000058208
           },
           {
-            "name": "cli.runAgent",
-            "value": 1265.6721000000002,
+            "name": "emit(assistant-message)",
+            "value": 0.0039000000001578883,
             "children": [],
-            "category": "agent",
-            "self": 1265.6721000000002
+            "category": "event",
+            "self": 0.0039000000001578883
+          },
+          {
+            "name": "executeToolCalls",
+            "value": 0.7578000000000884,
+            "children": [
+              {
+                "name": "getTool",
+                "value": 0.006499999999959982,
+                "children": [],
+                "category": "tool",
+                "self": 0.006499999999959982
+              },
+              {
+                "name": "tool.execute(echo)",
+                "value": 0.18879999999990105,
+                "children": [
+                  {
+                    "name": "snapshot",
+                    "value": 0.045900000000074215,
+                    "children": [],
+                    "category": "message",
+                    "self": 0.045900000000074215
+                  },
+                  {
+                    "name": "emit(tool-started)",
+                    "value": 0.00709999999980937,
+                    "children": [],
+                    "category": "event",
+                    "self": 0.00709999999980937
+                  },
+                  {
+                    "name": "snapshot",
+                    "value": 0.0026000000000294676,
+                    "children": [],
+                    "category": "message",
+                    "self": 0.0026000000000294676
+                  },
+                  {
+                    "name": "snapshot",
+                    "value": 0.0024000000000796717,
+                    "children": [],
+                    "category": "message",
+                    "self": 0.0024000000000796717
+                  },
+                  {
+                    "name": "emit(tool-finished)",
+                    "value": 0.00430000000005748,
+                    "children": [],
+                    "category": "event",
+                    "self": 0.00430000000005748
+                  }
+                ],
+                "category": "tool",
+                "self": 0.12649999999985084
+              }
+            ],
+            "category": "tool",
+            "self": 0.5625000000002274
+          },
+          {
+            "name": "snapshot",
+            "value": 0.024699999999938882,
+            "children": [],
+            "category": "message",
+            "self": 0.024699999999938882
+          },
+          {
+            "name": "emit(message-added)",
+            "value": 0.0039999999999054126,
+            "children": [],
+            "category": "event",
+            "self": 0.0039999999999054126
+          },
+          {
+            "name": "snapshot",
+            "value": 0.0016000000000531145,
+            "children": [],
+            "category": "message",
+            "self": 0.0016000000000531145
+          },
+          {
+            "name": "emit(turn-finished)",
+            "value": 0.004100000000107684,
+            "children": [],
+            "category": "event",
+            "self": 0.004100000000107684
           }
         ],
-        "category": "startup",
-        "self": 181.87949999999978
+        "category": "agent",
+        "self": 0.552499999999327
+      },
+      {
+        "name": "getTool",
+        "value": 0.0037999999999556167,
+        "children": [],
+        "category": "tool",
+        "self": 0.0037999999999556167
+      },
+      {
+        "name": "agentLoop.iteration",
+        "value": 0.4715000000001055,
+        "children": [
+          {
+            "name": "snapshot",
+            "value": 0.02159999999980755,
+            "children": [],
+            "category": "message",
+            "self": 0.02159999999980755
+          },
+          {
+            "name": "emit(turn-started)",
+            "value": 0.011400000000094224,
+            "children": [],
+            "category": "event",
+            "self": 0.011400000000094224
+          },
+          {
+            "name": "generateAssistantMessage",
+            "value": 0.17090000000007421,
+            "children": [
+              {
+                "name": "composeSystemPrompt(call)",
+                "value": 0.0020999999999276042,
+                "children": [],
+                "category": "message",
+                "self": 0.0020999999999276042
+              },
+              {
+                "name": "cloneMessages(generateAssistant)",
+                "value": 0.004900000000134241,
+                "children": [],
+                "category": "message",
+                "self": 0.004900000000134241
+              },
+              {
+                "name": "model.stream.open",
+                "value": 0.022199999999884312,
+                "children": [],
+                "category": "llm",
+                "self": 0.022199999999884312
+              },
+              {
+                "name": "parseToolArguments",
+                "value": 0.00980000000004111,
+                "children": [],
+                "category": "tool",
+                "self": 0.00980000000004111
+              }
+            ],
+            "category": "llm",
+            "self": 0.13190000000008695
+          },
+          {
+            "name": "snapshot",
+            "value": 0.039700000000038926,
+            "children": [],
+            "category": "message",
+            "self": 0.039700000000038926
+          },
+          {
+            "name": "emit(message-added)",
+            "value": 0.0060000000000854925,
+            "children": [],
+            "category": "event",
+            "self": 0.0060000000000854925
+          },
+          {
+            "name": "snapshot",
+            "value": 0.003300000000081127,
+            "children": [],
+            "category": "message",
+            "self": 0.003300000000081127
+          },
+          {
+            "name": "emit(assistant-message)",
+            "value": 0.003100000000131331,
+            "children": [],
+            "category": "event",
+            "self": 0.003100000000131331
+          },
+          {
+            "name": "executeToolCalls",
+            "value": 0.12040000000001783,
+            "children": [
+              {
+                "name": "getTool",
+                "value": 0.002199999999902502,
+                "children": [],
+                "category": "tool",
+                "self": 0.002199999999902502
+              },
+              {
+                "name": "tool.execute(echo)",
+                "value": 0.08950000000004366,
+                "children": [
+                  {
+                    "name": "snapshot",
+                    "value": 0.03150000000005093,
+                    "children": [],
+                    "category": "message",
+                    "self": 0.03150000000005093
+                  },
+                  {
+                    "name": "emit(tool-started)",
+                    "value": 0.003300000000081127,
+                    "children": [],
+                    "category": "event",
+                    "self": 0.003300000000081127
+                  },
+                  {
+                    "name": "snapshot",
+                    "value": 0.0018000000000029104,
+                    "children": [],
+                    "category": "message",
+                    "self": 0.0018000000000029104
+                  },
+                  {
+                    "name": "snapshot",
+                    "value": 0.001299999999901047,
+                    "children": [],
+                    "category": "message",
+                    "self": 0.001299999999901047
+                  },
+                  {
+                    "name": "emit(tool-finished)",
+                    "value": 0.004599999999982174,
+                    "children": [],
+                    "category": "event",
+                    "self": 0.004599999999982174
+                  }
+                ],
+                "category": "tool",
+                "self": 0.047000000000025466
+              }
+            ],
+            "category": "tool",
+            "self": 0.028700000000071668
+          },
+          {
+            "name": "snapshot",
+            "value": 0.0181999999999789,
+            "children": [],
+            "category": "message",
+            "self": 0.0181999999999789
+          },
+          {
+            "name": "emit(message-added)",
+            "value": 0.0016000000000531145,
+            "children": [],
+            "category": "event",
+            "self": 0.0016000000000531145
+          },
+          {
+            "name": "snapshot",
+            "value": 0.0008000000000265572,
+            "children": [],
+            "category": "message",
+            "self": 0.0008000000000265572
+          },
+          {
+            "name": "emit(turn-finished)",
+            "value": 0.005699999999933425,
+            "children": [],
+            "category": "event",
+            "self": 0.005699999999933425
+          }
+        ],
+        "category": "agent",
+        "self": 0.06879999999978281
+      },
+      {
+        "name": "getTool",
+        "value": 0.0019999999999527063,
+        "children": [],
+        "category": "tool",
+        "self": 0.0019999999999527063
+      },
+      {
+        "name": "agentLoop.iteration",
+        "value": 0.38269999999988613,
+        "children": [
+          {
+            "name": "snapshot",
+            "value": 0.017900000000054206,
+            "children": [],
+            "category": "message",
+            "self": 0.017900000000054206
+          },
+          {
+            "name": "emit(turn-started)",
+            "value": 0.0017000000000280124,
+            "children": [],
+            "category": "event",
+            "self": 0.0017000000000280124
+          },
+          {
+            "name": "generateAssistantMessage",
+            "value": 0.14190000000007785,
+            "children": [
+              {
+                "name": "composeSystemPrompt(call)",
+                "value": 0.0019999999999527063,
+                "children": [],
+                "category": "message",
+                "self": 0.0019999999999527063
+              },
+              {
+                "name": "cloneMessages(generateAssistant)",
+                "value": 0.003300000000081127,
+                "children": [],
+                "category": "message",
+                "self": 0.003300000000081127
+              },
+              {
+                "name": "model.stream.open",
+                "value": 0.03300000000012915,
+                "children": [],
+                "category": "llm",
+                "self": 0.03300000000012915
+              },
+              {
+                "name": "snapshot",
+                "value": 0.0018999999999778083,
+                "children": [],
+                "category": "message",
+                "self": 0.0018999999999778083
+              },
+              {
+                "name": "emit(assistant-text-delta)",
+                "value": 0.0032999999998537533,
+                "children": [],
+                "category": "event",
+                "self": 0.0032999999998537533
+              }
+            ],
+            "category": "llm",
+            "self": 0.09840000000008331
+          },
+          {
+            "name": "snapshot",
+            "value": 0.025699999999915235,
+            "children": [],
+            "category": "message",
+            "self": 0.025699999999915235
+          },
+          {
+            "name": "emit(message-added)",
+            "value": 0.0025000000000545697,
+            "children": [],
+            "category": "event",
+            "self": 0.0025000000000545697
+          },
+          {
+            "name": "snapshot",
+            "value": 0.0008000000000265572,
+            "children": [],
+            "category": "message",
+            "self": 0.0008000000000265572
+          },
+          {
+            "name": "emit(assistant-message)",
+            "value": 0.001199999999926149,
+            "children": [],
+            "category": "event",
+            "self": 0.001199999999926149
+          },
+          {
+            "name": "snapshot",
+            "value": 0.021600000000034925,
+            "children": [],
+            "category": "message",
+            "self": 0.021600000000034925
+          },
+          {
+            "name": "emit(turn-finished)",
+            "value": 0.0027000000000043656,
+            "children": [],
+            "category": "event",
+            "self": 0.0027000000000043656
+          }
+        ],
+        "category": "agent",
+        "self": 0.16669999999976426
+      },
+      {
+        "name": "snapshot",
+        "value": 0.026399999999966894,
+        "children": [],
+        "category": "message",
+        "self": 0.026399999999966894
+      },
+      {
+        "name": "emit(run-finished)",
+        "value": 0.003500000000030923,
+        "children": [],
+        "category": "event",
+        "self": 0.003500000000030923
       }
     ],
     "category": "startup",
-    "self": 233.8977
+    "self": 898.9693
   },
   "flatNodes": [
     {
       "name": "root",
-      "value": 1966.8182,
+      "value": 902.4202,
       "children": [
         {
-          "name": "cli.runCli",
-          "value": 1732.9205,
+          "name": "snapshot",
+          "value": 0.20390000000020336,
+          "children": [],
+          "category": "message",
+          "self": 0.20390000000020336
+        },
+        {
+          "name": "emit(run-started)",
+          "value": 0.038399999999910506,
+          "children": [],
+          "category": "event",
+          "self": 0.038399999999910506
+        },
+        {
+          "name": "snapshot",
+          "value": 0.051400000000057844,
+          "children": [],
+          "category": "message",
+          "self": 0.051400000000057844
+        },
+        {
+          "name": "emit(message-added)",
+          "value": 0.007800000000088403,
+          "children": [],
+          "category": "event",
+          "self": 0.007800000000088403
+        },
+        {
+          "name": "agentLoop.iteration",
+          "value": 2.259499999999889,
           "children": [
             {
-              "name": "cli.createProviderSettingsManager",
-              "value": 11.134199999999964,
+              "name": "snapshot",
+              "value": 0.036800000000084765,
+              "children": [],
+              "category": "message",
+              "self": 0.036800000000084765
+            },
+            {
+              "name": "emit(turn-started)",
+              "value": 0.007100000000036744,
+              "children": [],
+              "category": "event",
+              "self": 0.007100000000036744
+            },
+            {
+              "name": "generateAssistantMessage",
+              "value": 0.8274000000001251,
               "children": [
                 {
-                  "name": "cli.loadCliRuntimeModules",
-                  "value": 47.468900000000076,
+                  "name": "composeSystemPrompt(call)",
+                  "value": 0.1228000000000975,
+                  "children": [
+                    {
+                      "name": "composeSystemPrompt",
+                      "value": 0.02970000000004802,
+                      "children": [],
+                      "category": "message",
+                      "self": 0.02970000000004802
+                    }
+                  ],
+                  "category": "message",
+                  "self": 0.09310000000004948
+                },
+                {
+                  "name": "cloneMessages(generateAssistant)",
+                  "value": 0.013999999999896318,
                   "children": [],
-                  "category": "startup",
-                  "self": 47.468900000000076
+                  "category": "message",
+                  "self": 0.013999999999896318
+                },
+                {
+                  "name": "model.stream.open",
+                  "value": 0.09580000000005384,
+                  "children": [],
+                  "category": "llm",
+                  "self": 0.09580000000005384
+                },
+                {
+                  "name": "parseToolArguments",
+                  "value": 0.016900000000077853,
+                  "children": [],
+                  "category": "tool",
+                  "self": 0.016900000000077853
                 }
               ],
-              "category": "startup",
-              "self": 0
+              "category": "llm",
+              "self": 0.5778999999999996
             },
             {
-              "name": "cli.userInstructionService.start",
-              "value": 0.13550000000009277,
+              "name": "snapshot",
+              "value": 0.02860000000009677,
               "children": [],
-              "category": "startup",
-              "self": 0.13550000000009277
+              "category": "message",
+              "self": 0.02860000000009677
             },
             {
-              "name": "cli.resolveProviderConfig",
-              "value": 2.5686000000000604,
+              "name": "emit(message-added)",
+              "value": 0.007399999999961437,
               "children": [],
-              "category": "startup",
-              "self": 2.5686000000000604
+              "category": "event",
+              "self": 0.007399999999961437
             },
             {
-              "name": "cli.resolveSystemPrompt",
-              "value": 271.5305999999998,
+              "name": "snapshot",
+              "value": 0.0036000000000058208,
               "children": [],
-              "category": "startup",
-              "self": 271.5305999999998
+              "category": "message",
+              "self": 0.0036000000000058208
             },
             {
-              "name": "cli.runAgent",
-              "value": 1265.6721000000002,
+              "name": "emit(assistant-message)",
+              "value": 0.0039000000001578883,
               "children": [],
-              "category": "agent",
-              "self": 1265.6721000000002
+              "category": "event",
+              "self": 0.0039000000001578883
+            },
+            {
+              "name": "executeToolCalls",
+              "value": 0.7578000000000884,
+              "children": [
+                {
+                  "name": "getTool",
+                  "value": 0.006499999999959982,
+                  "children": [],
+                  "category": "tool",
+                  "self": 0.006499999999959982
+                },
+                {
+                  "name": "tool.execute(echo)",
+                  "value": 0.18879999999990105,
+                  "children": [
+                    {
+                      "name": "snapshot",
+                      "value": 0.045900000000074215,
+                      "children": [],
+                      "category": "message",
+                      "self": 0.045900000000074215
+                    },
+                    {
+                      "name": "emit(tool-started)",
+                      "value": 0.00709999999980937,
+                      "children": [],
+                      "category": "event",
+                      "self": 0.00709999999980937
+                    },
+                    {
+                      "name": "snapshot",
+                      "value": 0.0026000000000294676,
+                      "children": [],
+                      "category": "message",
+                      "self": 0.0026000000000294676
+                    },
+                    {
+                      "name": "snapshot",
+                      "value": 0.0024000000000796717,
+                      "children": [],
+                      "category": "message",
+                      "self": 0.0024000000000796717
+                    },
+                    {
+                      "name": "emit(tool-finished)",
+                      "value": 0.00430000000005748,
+                      "children": [],
+                      "category": "event",
+                      "self": 0.00430000000005748
+                    }
+                  ],
+                  "category": "tool",
+                  "self": 0.12649999999985084
+                }
+              ],
+              "category": "tool",
+              "self": 0.5625000000002274
+            },
+            {
+              "name": "snapshot",
+              "value": 0.024699999999938882,
+              "children": [],
+              "category": "message",
+              "self": 0.024699999999938882
+            },
+            {
+              "name": "emit(message-added)",
+              "value": 0.0039999999999054126,
+              "children": [],
+              "category": "event",
+              "self": 0.0039999999999054126
+            },
+            {
+              "name": "snapshot",
+              "value": 0.0016000000000531145,
+              "children": [],
+              "category": "message",
+              "self": 0.0016000000000531145
+            },
+            {
+              "name": "emit(turn-finished)",
+              "value": 0.004100000000107684,
+              "children": [],
+              "category": "event",
+              "self": 0.004100000000107684
             }
           ],
-          "category": "startup",
-          "self": 181.87949999999978
-        }
-      ],
-      "category": "startup",
-      "self": 233.8977
-    },
-    {
-      "name": "cli.runCli",
-      "value": 1732.9205,
-      "children": [
+          "category": "agent",
+          "self": 0.552499999999327
+        },
         {
-          "name": "cli.createProviderSettingsManager",
-          "value": 11.134199999999964,
+          "name": "getTool",
+          "value": 0.0037999999999556167,
+          "children": [],
+          "category": "tool",
+          "self": 0.0037999999999556167
+        },
+        {
+          "name": "agentLoop.iteration",
+          "value": 0.4715000000001055,
           "children": [
             {
-              "name": "cli.loadCliRuntimeModules",
-              "value": 47.468900000000076,
+              "name": "snapshot",
+              "value": 0.02159999999980755,
               "children": [],
-              "category": "startup",
-              "self": 47.468900000000076
+              "category": "message",
+              "self": 0.02159999999980755
+            },
+            {
+              "name": "emit(turn-started)",
+              "value": 0.011400000000094224,
+              "children": [],
+              "category": "event",
+              "self": 0.011400000000094224
+            },
+            {
+              "name": "generateAssistantMessage",
+              "value": 0.17090000000007421,
+              "children": [
+                {
+                  "name": "composeSystemPrompt(call)",
+                  "value": 0.0020999999999276042,
+                  "children": [],
+                  "category": "message",
+                  "self": 0.0020999999999276042
+                },
+                {
+                  "name": "cloneMessages(generateAssistant)",
+                  "value": 0.004900000000134241,
+                  "children": [],
+                  "category": "message",
+                  "self": 0.004900000000134241
+                },
+                {
+                  "name": "model.stream.open",
+                  "value": 0.022199999999884312,
+                  "children": [],
+                  "category": "llm",
+                  "self": 0.022199999999884312
+                },
+                {
+                  "name": "parseToolArguments",
+                  "value": 0.00980000000004111,
+                  "children": [],
+                  "category": "tool",
+                  "self": 0.00980000000004111
+                }
+              ],
+              "category": "llm",
+              "self": 0.13190000000008695
+            },
+            {
+              "name": "snapshot",
+              "value": 0.039700000000038926,
+              "children": [],
+              "category": "message",
+              "self": 0.039700000000038926
+            },
+            {
+              "name": "emit(message-added)",
+              "value": 0.0060000000000854925,
+              "children": [],
+              "category": "event",
+              "self": 0.0060000000000854925
+            },
+            {
+              "name": "snapshot",
+              "value": 0.003300000000081127,
+              "children": [],
+              "category": "message",
+              "self": 0.003300000000081127
+            },
+            {
+              "name": "emit(assistant-message)",
+              "value": 0.003100000000131331,
+              "children": [],
+              "category": "event",
+              "self": 0.003100000000131331
+            },
+            {
+              "name": "executeToolCalls",
+              "value": 0.12040000000001783,
+              "children": [
+                {
+                  "name": "getTool",
+                  "value": 0.002199999999902502,
+                  "children": [],
+                  "category": "tool",
+                  "self": 0.002199999999902502
+                },
+                {
+                  "name": "tool.execute(echo)",
+                  "value": 0.08950000000004366,
+                  "children": [
+                    {
+                      "name": "snapshot",
+                      "value": 0.03150000000005093,
+                      "children": [],
+                      "category": "message",
+                      "self": 0.03150000000005093
+                    },
+                    {
+                      "name": "emit(tool-started)",
+                      "value": 0.003300000000081127,
+                      "children": [],
+                      "category": "event",
+                      "self": 0.003300000000081127
+                    },
+                    {
+                      "name": "snapshot",
+                      "value": 0.0018000000000029104,
+                      "children": [],
+                      "category": "message",
+                      "self": 0.0018000000000029104
+                    },
+                    {
+                      "name": "snapshot",
+                      "value": 0.001299999999901047,
+                      "children": [],
+                      "category": "message",
+                      "self": 0.001299999999901047
+                    },
+                    {
+                      "name": "emit(tool-finished)",
+                      "value": 0.004599999999982174,
+                      "children": [],
+                      "category": "event",
+                      "self": 0.004599999999982174
+                    }
+                  ],
+                  "category": "tool",
+                  "self": 0.047000000000025466
+                }
+              ],
+              "category": "tool",
+              "self": 0.028700000000071668
+            },
+            {
+              "name": "snapshot",
+              "value": 0.0181999999999789,
+              "children": [],
+              "category": "message",
+              "self": 0.0181999999999789
+            },
+            {
+              "name": "emit(message-added)",
+              "value": 0.0016000000000531145,
+              "children": [],
+              "category": "event",
+              "self": 0.0016000000000531145
+            },
+            {
+              "name": "snapshot",
+              "value": 0.0008000000000265572,
+              "children": [],
+              "category": "message",
+              "self": 0.0008000000000265572
+            },
+            {
+              "name": "emit(turn-finished)",
+              "value": 0.005699999999933425,
+              "children": [],
+              "category": "event",
+              "self": 0.005699999999933425
             }
           ],
-          "category": "startup",
-          "self": 0
-        },
-        {
-          "name": "cli.userInstructionService.start",
-          "value": 0.13550000000009277,
-          "children": [],
-          "category": "startup",
-          "self": 0.13550000000009277
-        },
-        {
-          "name": "cli.resolveProviderConfig",
-          "value": 2.5686000000000604,
-          "children": [],
-          "category": "startup",
-          "self": 2.5686000000000604
-        },
-        {
-          "name": "cli.resolveSystemPrompt",
-          "value": 271.5305999999998,
-          "children": [],
-          "category": "startup",
-          "self": 271.5305999999998
-        },
-        {
-          "name": "cli.runAgent",
-          "value": 1265.6721000000002,
-          "children": [],
           "category": "agent",
-          "self": 1265.6721000000002
+          "self": 0.06879999999978281
+        },
+        {
+          "name": "getTool",
+          "value": 0.0019999999999527063,
+          "children": [],
+          "category": "tool",
+          "self": 0.0019999999999527063
+        },
+        {
+          "name": "agentLoop.iteration",
+          "value": 0.38269999999988613,
+          "children": [
+            {
+              "name": "snapshot",
+              "value": 0.017900000000054206,
+              "children": [],
+              "category": "message",
+              "self": 0.017900000000054206
+            },
+            {
+              "name": "emit(turn-started)",
+              "value": 0.0017000000000280124,
+              "children": [],
+              "category": "event",
+              "self": 0.0017000000000280124
+            },
+            {
+              "name": "generateAssistantMessage",
+              "value": 0.14190000000007785,
+              "children": [
+                {
+                  "name": "composeSystemPrompt(call)",
+                  "value": 0.0019999999999527063,
+                  "children": [],
+                  "category": "message",
+                  "self": 0.0019999999999527063
+                },
+                {
+                  "name": "cloneMessages(generateAssistant)",
+                  "value": 0.003300000000081127,
+                  "children": [],
+                  "category": "message",
+                  "self": 0.003300000000081127
+                },
+                {
+                  "name": "model.stream.open",
+                  "value": 0.03300000000012915,
+                  "children": [],
+                  "category": "llm",
+                  "self": 0.03300000000012915
+                },
+                {
+                  "name": "snapshot",
+                  "value": 0.0018999999999778083,
+                  "children": [],
+                  "category": "message",
+                  "self": 0.0018999999999778083
+                },
+                {
+                  "name": "emit(assistant-text-delta)",
+                  "value": 0.0032999999998537533,
+                  "children": [],
+                  "category": "event",
+                  "self": 0.0032999999998537533
+                }
+              ],
+              "category": "llm",
+              "self": 0.09840000000008331
+            },
+            {
+              "name": "snapshot",
+              "value": 0.025699999999915235,
+              "children": [],
+              "category": "message",
+              "self": 0.025699999999915235
+            },
+            {
+              "name": "emit(message-added)",
+              "value": 0.0025000000000545697,
+              "children": [],
+              "category": "event",
+              "self": 0.0025000000000545697
+            },
+            {
+              "name": "snapshot",
+              "value": 0.0008000000000265572,
+              "children": [],
+              "category": "message",
+              "self": 0.0008000000000265572
+            },
+            {
+              "name": "emit(assistant-message)",
+              "value": 0.001199999999926149,
+              "children": [],
+              "category": "event",
+              "self": 0.001199999999926149
+            },
+            {
+              "name": "snapshot",
+              "value": 0.021600000000034925,
+              "children": [],
+              "category": "message",
+              "self": 0.021600000000034925
+            },
+            {
+              "name": "emit(turn-finished)",
+              "value": 0.0027000000000043656,
+              "children": [],
+              "category": "event",
+              "self": 0.0027000000000043656
+            }
+          ],
+          "category": "agent",
+          "self": 0.16669999999976426
+        },
+        {
+          "name": "snapshot",
+          "value": 0.026399999999966894,
+          "children": [],
+          "category": "message",
+          "self": 0.026399999999966894
+        },
+        {
+          "name": "emit(run-finished)",
+          "value": 0.003500000000030923,
+          "children": [],
+          "category": "event",
+          "self": 0.003500000000030923
         }
       ],
       "category": "startup",
-      "self": 181.87949999999978
+      "self": 898.9693
     },
     {
-      "name": "cli.runAgent",
-      "value": 1265.6721000000002,
-      "children": [],
-      "category": "agent",
-      "self": 1265.6721000000002
-    },
-    {
-      "name": "cli.resolveSystemPrompt",
-      "value": 271.5305999999998,
-      "children": [],
-      "category": "startup",
-      "self": 271.5305999999998
-    },
-    {
-      "name": "cli.loadCliRuntimeModules",
-      "value": 47.468900000000076,
-      "children": [],
-      "category": "startup",
-      "self": 47.468900000000076
-    },
-    {
-      "name": "cli.createProviderSettingsManager",
-      "value": 11.134199999999964,
+      "name": "agentLoop.iteration",
+      "value": 2.259499999999889,
       "children": [
         {
-          "name": "cli.loadCliRuntimeModules",
-          "value": 47.468900000000076,
+          "name": "snapshot",
+          "value": 0.036800000000084765,
           "children": [],
-          "category": "startup",
-          "self": 47.468900000000076
+          "category": "message",
+          "self": 0.036800000000084765
+        },
+        {
+          "name": "emit(turn-started)",
+          "value": 0.007100000000036744,
+          "children": [],
+          "category": "event",
+          "self": 0.007100000000036744
+        },
+        {
+          "name": "generateAssistantMessage",
+          "value": 0.8274000000001251,
+          "children": [
+            {
+              "name": "composeSystemPrompt(call)",
+              "value": 0.1228000000000975,
+              "children": [
+                {
+                  "name": "composeSystemPrompt",
+                  "value": 0.02970000000004802,
+                  "children": [],
+                  "category": "message",
+                  "self": 0.02970000000004802
+                }
+              ],
+              "category": "message",
+              "self": 0.09310000000004948
+            },
+            {
+              "name": "cloneMessages(generateAssistant)",
+              "value": 0.013999999999896318,
+              "children": [],
+              "category": "message",
+              "self": 0.013999999999896318
+            },
+            {
+              "name": "model.stream.open",
+              "value": 0.09580000000005384,
+              "children": [],
+              "category": "llm",
+              "self": 0.09580000000005384
+            },
+            {
+              "name": "parseToolArguments",
+              "value": 0.016900000000077853,
+              "children": [],
+              "category": "tool",
+              "self": 0.016900000000077853
+            }
+          ],
+          "category": "llm",
+          "self": 0.5778999999999996
+        },
+        {
+          "name": "snapshot",
+          "value": 0.02860000000009677,
+          "children": [],
+          "category": "message",
+          "self": 0.02860000000009677
+        },
+        {
+          "name": "emit(message-added)",
+          "value": 0.007399999999961437,
+          "children": [],
+          "category": "event",
+          "self": 0.007399999999961437
+        },
+        {
+          "name": "snapshot",
+          "value": 0.0036000000000058208,
+          "children": [],
+          "category": "message",
+          "self": 0.0036000000000058208
+        },
+        {
+          "name": "emit(assistant-message)",
+          "value": 0.0039000000001578883,
+          "children": [],
+          "category": "event",
+          "self": 0.0039000000001578883
+        },
+        {
+          "name": "executeToolCalls",
+          "value": 0.7578000000000884,
+          "children": [
+            {
+              "name": "getTool",
+              "value": 0.006499999999959982,
+              "children": [],
+              "category": "tool",
+              "self": 0.006499999999959982
+            },
+            {
+              "name": "tool.execute(echo)",
+              "value": 0.18879999999990105,
+              "children": [
+                {
+                  "name": "snapshot",
+                  "value": 0.045900000000074215,
+                  "children": [],
+                  "category": "message",
+                  "self": 0.045900000000074215
+                },
+                {
+                  "name": "emit(tool-started)",
+                  "value": 0.00709999999980937,
+                  "children": [],
+                  "category": "event",
+                  "self": 0.00709999999980937
+                },
+                {
+                  "name": "snapshot",
+                  "value": 0.0026000000000294676,
+                  "children": [],
+                  "category": "message",
+                  "self": 0.0026000000000294676
+                },
+                {
+                  "name": "snapshot",
+                  "value": 0.0024000000000796717,
+                  "children": [],
+                  "category": "message",
+                  "self": 0.0024000000000796717
+                },
+                {
+                  "name": "emit(tool-finished)",
+                  "value": 0.00430000000005748,
+                  "children": [],
+                  "category": "event",
+                  "self": 0.00430000000005748
+                }
+              ],
+              "category": "tool",
+              "self": 0.12649999999985084
+            }
+          ],
+          "category": "tool",
+          "self": 0.5625000000002274
+        },
+        {
+          "name": "snapshot",
+          "value": 0.024699999999938882,
+          "children": [],
+          "category": "message",
+          "self": 0.024699999999938882
+        },
+        {
+          "name": "emit(message-added)",
+          "value": 0.0039999999999054126,
+          "children": [],
+          "category": "event",
+          "self": 0.0039999999999054126
+        },
+        {
+          "name": "snapshot",
+          "value": 0.0016000000000531145,
+          "children": [],
+          "category": "message",
+          "self": 0.0016000000000531145
+        },
+        {
+          "name": "emit(turn-finished)",
+          "value": 0.004100000000107684,
+          "children": [],
+          "category": "event",
+          "self": 0.004100000000107684
         }
       ],
-      "category": "startup",
-      "self": 0
+      "category": "agent",
+      "self": 0.552499999999327
     },
     {
-      "name": "cli.resolveProviderConfig",
-      "value": 2.5686000000000604,
-      "children": [],
-      "category": "startup",
-      "self": 2.5686000000000604
+      "name": "generateAssistantMessage",
+      "value": 0.8274000000001251,
+      "children": [
+        {
+          "name": "composeSystemPrompt(call)",
+          "value": 0.1228000000000975,
+          "children": [
+            {
+              "name": "composeSystemPrompt",
+              "value": 0.02970000000004802,
+              "children": [],
+              "category": "message",
+              "self": 0.02970000000004802
+            }
+          ],
+          "category": "message",
+          "self": 0.09310000000004948
+        },
+        {
+          "name": "cloneMessages(generateAssistant)",
+          "value": 0.013999999999896318,
+          "children": [],
+          "category": "message",
+          "self": 0.013999999999896318
+        },
+        {
+          "name": "model.stream.open",
+          "value": 0.09580000000005384,
+          "children": [],
+          "category": "llm",
+          "self": 0.09580000000005384
+        },
+        {
+          "name": "parseToolArguments",
+          "value": 0.016900000000077853,
+          "children": [],
+          "category": "tool",
+          "self": 0.016900000000077853
+        }
+      ],
+      "category": "llm",
+      "self": 0.5778999999999996
     },
     {
-      "name": "cli.userInstructionService.start",
-      "value": 0.13550000000009277,
+      "name": "executeToolCalls",
+      "value": 0.7578000000000884,
+      "children": [
+        {
+          "name": "getTool",
+          "value": 0.006499999999959982,
+          "children": [],
+          "category": "tool",
+          "self": 0.006499999999959982
+        },
+        {
+          "name": "tool.execute(echo)",
+          "value": 0.18879999999990105,
+          "children": [
+            {
+              "name": "snapshot",
+              "value": 0.045900000000074215,
+              "children": [],
+              "category": "message",
+              "self": 0.045900000000074215
+            },
+            {
+              "name": "emit(tool-started)",
+              "value": 0.00709999999980937,
+              "children": [],
+              "category": "event",
+              "self": 0.00709999999980937
+            },
+            {
+              "name": "snapshot",
+              "value": 0.0026000000000294676,
+              "children": [],
+              "category": "message",
+              "self": 0.0026000000000294676
+            },
+            {
+              "name": "snapshot",
+              "value": 0.0024000000000796717,
+              "children": [],
+              "category": "message",
+              "self": 0.0024000000000796717
+            },
+            {
+              "name": "emit(tool-finished)",
+              "value": 0.00430000000005748,
+              "children": [],
+              "category": "event",
+              "self": 0.00430000000005748
+            }
+          ],
+          "category": "tool",
+          "self": 0.12649999999985084
+        }
+      ],
+      "category": "tool",
+      "self": 0.5625000000002274
+    },
+    {
+      "name": "agentLoop.iteration",
+      "value": 0.4715000000001055,
+      "children": [
+        {
+          "name": "snapshot",
+          "value": 0.02159999999980755,
+          "children": [],
+          "category": "message",
+          "self": 0.02159999999980755
+        },
+        {
+          "name": "emit(turn-started)",
+          "value": 0.011400000000094224,
+          "children": [],
+          "category": "event",
+          "self": 0.011400000000094224
+        },
+        {
+          "name": "generateAssistantMessage",
+          "value": 0.17090000000007421,
+          "children": [
+            {
+              "name": "composeSystemPrompt(call)",
+              "value": 0.0020999999999276042,
+              "children": [],
+              "category": "message",
+              "self": 0.0020999999999276042
+            },
+            {
+              "name": "cloneMessages(generateAssistant)",
+              "value": 0.004900000000134241,
+              "children": [],
+              "category": "message",
+              "self": 0.004900000000134241
+            },
+            {
+              "name": "model.stream.open",
+              "value": 0.022199999999884312,
+              "children": [],
+              "category": "llm",
+              "self": 0.022199999999884312
+            },
+            {
+              "name": "parseToolArguments",
+              "value": 0.00980000000004111,
+              "children": [],
+              "category": "tool",
+              "self": 0.00980000000004111
+            }
+          ],
+          "category": "llm",
+          "self": 0.13190000000008695
+        },
+        {
+          "name": "snapshot",
+          "value": 0.039700000000038926,
+          "children": [],
+          "category": "message",
+          "self": 0.039700000000038926
+        },
+        {
+          "name": "emit(message-added)",
+          "value": 0.0060000000000854925,
+          "children": [],
+          "category": "event",
+          "self": 0.0060000000000854925
+        },
+        {
+          "name": "snapshot",
+          "value": 0.003300000000081127,
+          "children": [],
+          "category": "message",
+          "self": 0.003300000000081127
+        },
+        {
+          "name": "emit(assistant-message)",
+          "value": 0.003100000000131331,
+          "children": [],
+          "category": "event",
+          "self": 0.003100000000131331
+        },
+        {
+          "name": "executeToolCalls",
+          "value": 0.12040000000001783,
+          "children": [
+            {
+              "name": "getTool",
+              "value": 0.002199999999902502,
+              "children": [],
+              "category": "tool",
+              "self": 0.002199999999902502
+            },
+            {
+              "name": "tool.execute(echo)",
+              "value": 0.08950000000004366,
+              "children": [
+                {
+                  "name": "snapshot",
+                  "value": 0.03150000000005093,
+                  "children": [],
+                  "category": "message",
+                  "self": 0.03150000000005093
+                },
+                {
+                  "name": "emit(tool-started)",
+                  "value": 0.003300000000081127,
+                  "children": [],
+                  "category": "event",
+                  "self": 0.003300000000081127
+                },
+                {
+                  "name": "snapshot",
+                  "value": 0.0018000000000029104,
+                  "children": [],
+                  "category": "message",
+                  "self": 0.0018000000000029104
+                },
+                {
+                  "name": "snapshot",
+                  "value": 0.001299999999901047,
+                  "children": [],
+                  "category": "message",
+                  "self": 0.001299999999901047
+                },
+                {
+                  "name": "emit(tool-finished)",
+                  "value": 0.004599999999982174,
+                  "children": [],
+                  "category": "event",
+                  "self": 0.004599999999982174
+                }
+              ],
+              "category": "tool",
+              "self": 0.047000000000025466
+            }
+          ],
+          "category": "tool",
+          "self": 0.028700000000071668
+        },
+        {
+          "name": "snapshot",
+          "value": 0.0181999999999789,
+          "children": [],
+          "category": "message",
+          "self": 0.0181999999999789
+        },
+        {
+          "name": "emit(message-added)",
+          "value": 0.0016000000000531145,
+          "children": [],
+          "category": "event",
+          "self": 0.0016000000000531145
+        },
+        {
+          "name": "snapshot",
+          "value": 0.0008000000000265572,
+          "children": [],
+          "category": "message",
+          "self": 0.0008000000000265572
+        },
+        {
+          "name": "emit(turn-finished)",
+          "value": 0.005699999999933425,
+          "children": [],
+          "category": "event",
+          "self": 0.005699999999933425
+        }
+      ],
+      "category": "agent",
+      "self": 0.06879999999978281
+    },
+    {
+      "name": "agentLoop.iteration",
+      "value": 0.38269999999988613,
+      "children": [
+        {
+          "name": "snapshot",
+          "value": 0.017900000000054206,
+          "children": [],
+          "category": "message",
+          "self": 0.017900000000054206
+        },
+        {
+          "name": "emit(turn-started)",
+          "value": 0.0017000000000280124,
+          "children": [],
+          "category": "event",
+          "self": 0.0017000000000280124
+        },
+        {
+          "name": "generateAssistantMessage",
+          "value": 0.14190000000007785,
+          "children": [
+            {
+              "name": "composeSystemPrompt(call)",
+              "value": 0.0019999999999527063,
+              "children": [],
+              "category": "message",
+              "self": 0.0019999999999527063
+            },
+            {
+              "name": "cloneMessages(generateAssistant)",
+              "value": 0.003300000000081127,
+              "children": [],
+              "category": "message",
+              "self": 0.003300000000081127
+            },
+            {
+              "name": "model.stream.open",
+              "value": 0.03300000000012915,
+              "children": [],
+              "category": "llm",
+              "self": 0.03300000000012915
+            },
+            {
+              "name": "snapshot",
+              "value": 0.0018999999999778083,
+              "children": [],
+              "category": "message",
+              "self": 0.0018999999999778083
+            },
+            {
+              "name": "emit(assistant-text-delta)",
+              "value": 0.0032999999998537533,
+              "children": [],
+              "category": "event",
+              "self": 0.0032999999998537533
+            }
+          ],
+          "category": "llm",
+          "self": 0.09840000000008331
+        },
+        {
+          "name": "snapshot",
+          "value": 0.025699999999915235,
+          "children": [],
+          "category": "message",
+          "self": 0.025699999999915235
+        },
+        {
+          "name": "emit(message-added)",
+          "value": 0.0025000000000545697,
+          "children": [],
+          "category": "event",
+          "self": 0.0025000000000545697
+        },
+        {
+          "name": "snapshot",
+          "value": 0.0008000000000265572,
+          "children": [],
+          "category": "message",
+          "self": 0.0008000000000265572
+        },
+        {
+          "name": "emit(assistant-message)",
+          "value": 0.001199999999926149,
+          "children": [],
+          "category": "event",
+          "self": 0.001199999999926149
+        },
+        {
+          "name": "snapshot",
+          "value": 0.021600000000034925,
+          "children": [],
+          "category": "message",
+          "self": 0.021600000000034925
+        },
+        {
+          "name": "emit(turn-finished)",
+          "value": 0.0027000000000043656,
+          "children": [],
+          "category": "event",
+          "self": 0.0027000000000043656
+        }
+      ],
+      "category": "agent",
+      "self": 0.16669999999976426
+    },
+    {
+      "name": "snapshot",
+      "value": 0.20390000000020336,
       "children": [],
-      "category": "startup",
-      "self": 0.13550000000009277
+      "category": "message",
+      "self": 0.20390000000020336
+    },
+    {
+      "name": "tool.execute(echo)",
+      "value": 0.18879999999990105,
+      "children": [
+        {
+          "name": "snapshot",
+          "value": 0.045900000000074215,
+          "children": [],
+          "category": "message",
+          "self": 0.045900000000074215
+        },
+        {
+          "name": "emit(tool-started)",
+          "value": 0.00709999999980937,
+          "children": [],
+          "category": "event",
+          "self": 0.00709999999980937
+        },
+        {
+          "name": "snapshot",
+          "value": 0.0026000000000294676,
+          "children": [],
+          "category": "message",
+          "self": 0.0026000000000294676
+        },
+        {
+          "name": "snapshot",
+          "value": 0.0024000000000796717,
+          "children": [],
+          "category": "message",
+          "self": 0.0024000000000796717
+        },
+        {
+          "name": "emit(tool-finished)",
+          "value": 0.00430000000005748,
+          "children": [],
+          "category": "event",
+          "self": 0.00430000000005748
+        }
+      ],
+      "category": "tool",
+      "self": 0.12649999999985084
+    },
+    {
+      "name": "generateAssistantMessage",
+      "value": 0.17090000000007421,
+      "children": [
+        {
+          "name": "composeSystemPrompt(call)",
+          "value": 0.0020999999999276042,
+          "children": [],
+          "category": "message",
+          "self": 0.0020999999999276042
+        },
+        {
+          "name": "cloneMessages(generateAssistant)",
+          "value": 0.004900000000134241,
+          "children": [],
+          "category": "message",
+          "self": 0.004900000000134241
+        },
+        {
+          "name": "model.stream.open",
+          "value": 0.022199999999884312,
+          "children": [],
+          "category": "llm",
+          "self": 0.022199999999884312
+        },
+        {
+          "name": "parseToolArguments",
+          "value": 0.00980000000004111,
+          "children": [],
+          "category": "tool",
+          "self": 0.00980000000004111
+        }
+      ],
+      "category": "llm",
+      "self": 0.13190000000008695
+    },
+    {
+      "name": "generateAssistantMessage",
+      "value": 0.14190000000007785,
+      "children": [
+        {
+          "name": "composeSystemPrompt(call)",
+          "value": 0.0019999999999527063,
+          "children": [],
+          "category": "message",
+          "self": 0.0019999999999527063
+        },
+        {
+          "name": "cloneMessages(generateAssistant)",
+          "value": 0.003300000000081127,
+          "children": [],
+          "category": "message",
+          "self": 0.003300000000081127
+        },
+        {
+          "name": "model.stream.open",
+          "value": 0.03300000000012915,
+          "children": [],
+          "category": "llm",
+          "self": 0.03300000000012915
+        },
+        {
+          "name": "snapshot",
+          "value": 0.0018999999999778083,
+          "children": [],
+          "category": "message",
+          "self": 0.0018999999999778083
+        },
+        {
+          "name": "emit(assistant-text-delta)",
+          "value": 0.0032999999998537533,
+          "children": [],
+          "category": "event",
+          "self": 0.0032999999998537533
+        }
+      ],
+      "category": "llm",
+      "self": 0.09840000000008331
+    },
+    {
+      "name": "composeSystemPrompt(call)",
+      "value": 0.1228000000000975,
+      "children": [
+        {
+          "name": "composeSystemPrompt",
+          "value": 0.02970000000004802,
+          "children": [],
+          "category": "message",
+          "self": 0.02970000000004802
+        }
+      ],
+      "category": "message",
+      "self": 0.09310000000004948
+    },
+    {
+      "name": "executeToolCalls",
+      "value": 0.12040000000001783,
+      "children": [
+        {
+          "name": "getTool",
+          "value": 0.002199999999902502,
+          "children": [],
+          "category": "tool",
+          "self": 0.002199999999902502
+        },
+        {
+          "name": "tool.execute(echo)",
+          "value": 0.08950000000004366,
+          "children": [
+            {
+              "name": "snapshot",
+              "value": 0.03150000000005093,
+              "children": [],
+              "category": "message",
+              "self": 0.03150000000005093
+            },
+            {
+              "name": "emit(tool-started)",
+              "value": 0.003300000000081127,
+              "children": [],
+              "category": "event",
+              "self": 0.003300000000081127
+            },
+            {
+              "name": "snapshot",
+              "value": 0.0018000000000029104,
+              "children": [],
+              "category": "message",
+              "self": 0.0018000000000029104
+            },
+            {
+              "name": "snapshot",
+              "value": 0.001299999999901047,
+              "children": [],
+              "category": "message",
+              "self": 0.001299999999901047
+            },
+            {
+              "name": "emit(tool-finished)",
+              "value": 0.004599999999982174,
+              "children": [],
+              "category": "event",
+              "self": 0.004599999999982174
+            }
+          ],
+          "category": "tool",
+          "self": 0.047000000000025466
+        }
+      ],
+      "category": "tool",
+      "self": 0.028700000000071668
+    },
+    {
+      "name": "model.stream.open",
+      "value": 0.09580000000005384,
+      "children": [],
+      "category": "llm",
+      "self": 0.09580000000005384
+    },
+    {
+      "name": "tool.execute(echo)",
+      "value": 0.08950000000004366,
+      "children": [
+        {
+          "name": "snapshot",
+          "value": 0.03150000000005093,
+          "children": [],
+          "category": "message",
+          "self": 0.03150000000005093
+        },
+        {
+          "name": "emit(tool-started)",
+          "value": 0.003300000000081127,
+          "children": [],
+          "category": "event",
+          "self": 0.003300000000081127
+        },
+        {
+          "name": "snapshot",
+          "value": 0.0018000000000029104,
+          "children": [],
+          "category": "message",
+          "self": 0.0018000000000029104
+        },
+        {
+          "name": "snapshot",
+          "value": 0.001299999999901047,
+          "children": [],
+          "category": "message",
+          "self": 0.001299999999901047
+        },
+        {
+          "name": "emit(tool-finished)",
+          "value": 0.004599999999982174,
+          "children": [],
+          "category": "event",
+          "self": 0.004599999999982174
+        }
+      ],
+      "category": "tool",
+      "self": 0.047000000000025466
+    },
+    {
+      "name": "snapshot",
+      "value": 0.051400000000057844,
+      "children": [],
+      "category": "message",
+      "self": 0.051400000000057844
+    },
+    {
+      "name": "snapshot",
+      "value": 0.045900000000074215,
+      "children": [],
+      "category": "message",
+      "self": 0.045900000000074215
+    },
+    {
+      "name": "snapshot",
+      "value": 0.039700000000038926,
+      "children": [],
+      "category": "message",
+      "self": 0.039700000000038926
+    },
+    {
+      "name": "emit(run-started)",
+      "value": 0.038399999999910506,
+      "children": [],
+      "category": "event",
+      "self": 0.038399999999910506
+    },
+    {
+      "name": "snapshot",
+      "value": 0.036800000000084765,
+      "children": [],
+      "category": "message",
+      "self": 0.036800000000084765
+    },
+    {
+      "name": "model.stream.open",
+      "value": 0.03300000000012915,
+      "children": [],
+      "category": "llm",
+      "self": 0.03300000000012915
+    },
+    {
+      "name": "snapshot",
+      "value": 0.03150000000005093,
+      "children": [],
+      "category": "message",
+      "self": 0.03150000000005093
+    },
+    {
+      "name": "composeSystemPrompt",
+      "value": 0.02970000000004802,
+      "children": [],
+      "category": "message",
+      "self": 0.02970000000004802
+    },
+    {
+      "name": "snapshot",
+      "value": 0.02860000000009677,
+      "children": [],
+      "category": "message",
+      "self": 0.02860000000009677
+    },
+    {
+      "name": "snapshot",
+      "value": 0.026399999999966894,
+      "children": [],
+      "category": "message",
+      "self": 0.026399999999966894
+    },
+    {
+      "name": "snapshot",
+      "value": 0.025699999999915235,
+      "children": [],
+      "category": "message",
+      "self": 0.025699999999915235
+    },
+    {
+      "name": "snapshot",
+      "value": 0.024699999999938882,
+      "children": [],
+      "category": "message",
+      "self": 0.024699999999938882
+    },
+    {
+      "name": "model.stream.open",
+      "value": 0.022199999999884312,
+      "children": [],
+      "category": "llm",
+      "self": 0.022199999999884312
+    },
+    {
+      "name": "snapshot",
+      "value": 0.021600000000034925,
+      "children": [],
+      "category": "message",
+      "self": 0.021600000000034925
+    },
+    {
+      "name": "snapshot",
+      "value": 0.02159999999980755,
+      "children": [],
+      "category": "message",
+      "self": 0.02159999999980755
+    },
+    {
+      "name": "snapshot",
+      "value": 0.0181999999999789,
+      "children": [],
+      "category": "message",
+      "self": 0.0181999999999789
+    },
+    {
+      "name": "snapshot",
+      "value": 0.017900000000054206,
+      "children": [],
+      "category": "message",
+      "self": 0.017900000000054206
+    },
+    {
+      "name": "parseToolArguments",
+      "value": 0.016900000000077853,
+      "children": [],
+      "category": "tool",
+      "self": 0.016900000000077853
+    },
+    {
+      "name": "cloneMessages(generateAssistant)",
+      "value": 0.013999999999896318,
+      "children": [],
+      "category": "message",
+      "self": 0.013999999999896318
+    },
+    {
+      "name": "emit(turn-started)",
+      "value": 0.011400000000094224,
+      "children": [],
+      "category": "event",
+      "self": 0.011400000000094224
+    },
+    {
+      "name": "parseToolArguments",
+      "value": 0.00980000000004111,
+      "children": [],
+      "category": "tool",
+      "self": 0.00980000000004111
+    },
+    {
+      "name": "emit(message-added)",
+      "value": 0.007800000000088403,
+      "children": [],
+      "category": "event",
+      "self": 0.007800000000088403
+    },
+    {
+      "name": "emit(message-added)",
+      "value": 0.007399999999961437,
+      "children": [],
+      "category": "event",
+      "self": 0.007399999999961437
+    },
+    {
+      "name": "emit(turn-started)",
+      "value": 0.007100000000036744,
+      "children": [],
+      "category": "event",
+      "self": 0.007100000000036744
+    },
+    {
+      "name": "emit(tool-started)",
+      "value": 0.00709999999980937,
+      "children": [],
+      "category": "event",
+      "self": 0.00709999999980937
+    },
+    {
+      "name": "getTool",
+      "value": 0.006499999999959982,
+      "children": [],
+      "category": "tool",
+      "self": 0.006499999999959982
+    },
+    {
+      "name": "emit(message-added)",
+      "value": 0.0060000000000854925,
+      "children": [],
+      "category": "event",
+      "self": 0.0060000000000854925
+    },
+    {
+      "name": "emit(turn-finished)",
+      "value": 0.005699999999933425,
+      "children": [],
+      "category": "event",
+      "self": 0.005699999999933425
+    },
+    {
+      "name": "cloneMessages(generateAssistant)",
+      "value": 0.004900000000134241,
+      "children": [],
+      "category": "message",
+      "self": 0.004900000000134241
+    },
+    {
+      "name": "emit(tool-finished)",
+      "value": 0.004599999999982174,
+      "children": [],
+      "category": "event",
+      "self": 0.004599999999982174
+    },
+    {
+      "name": "emit(tool-finished)",
+      "value": 0.00430000000005748,
+      "children": [],
+      "category": "event",
+      "self": 0.00430000000005748
+    },
+    {
+      "name": "emit(turn-finished)",
+      "value": 0.004100000000107684,
+      "children": [],
+      "category": "event",
+      "self": 0.004100000000107684
+    },
+    {
+      "name": "emit(message-added)",
+      "value": 0.0039999999999054126,
+      "children": [],
+      "category": "event",
+      "self": 0.0039999999999054126
+    },
+    {
+      "name": "emit(assistant-message)",
+      "value": 0.0039000000001578883,
+      "children": [],
+      "category": "event",
+      "self": 0.0039000000001578883
+    },
+    {
+      "name": "getTool",
+      "value": 0.0037999999999556167,
+      "children": [],
+      "category": "tool",
+      "self": 0.0037999999999556167
+    },
+    {
+      "name": "snapshot",
+      "value": 0.0036000000000058208,
+      "children": [],
+      "category": "message",
+      "self": 0.0036000000000058208
+    },
+    {
+      "name": "emit(run-finished)",
+      "value": 0.003500000000030923,
+      "children": [],
+      "category": "event",
+      "self": 0.003500000000030923
+    },
+    {
+      "name": "snapshot",
+      "value": 0.003300000000081127,
+      "children": [],
+      "category": "message",
+      "self": 0.003300000000081127
+    },
+    {
+      "name": "emit(tool-started)",
+      "value": 0.003300000000081127,
+      "children": [],
+      "category": "event",
+      "self": 0.003300000000081127
+    },
+    {
+      "name": "cloneMessages(generateAssistant)",
+      "value": 0.003300000000081127,
+      "children": [],
+      "category": "message",
+      "self": 0.003300000000081127
+    },
+    {
+      "name": "emit(assistant-text-delta)",
+      "value": 0.0032999999998537533,
+      "children": [],
+      "category": "event",
+      "self": 0.0032999999998537533
+    },
+    {
+      "name": "emit(assistant-message)",
+      "value": 0.003100000000131331,
+      "children": [],
+      "category": "event",
+      "self": 0.003100000000131331
+    },
+    {
+      "name": "emit(turn-finished)",
+      "value": 0.0027000000000043656,
+      "children": [],
+      "category": "event",
+      "self": 0.0027000000000043656
+    },
+    {
+      "name": "snapshot",
+      "value": 0.0026000000000294676,
+      "children": [],
+      "category": "message",
+      "self": 0.0026000000000294676
+    },
+    {
+      "name": "emit(message-added)",
+      "value": 0.0025000000000545697,
+      "children": [],
+      "category": "event",
+      "self": 0.0025000000000545697
+    },
+    {
+      "name": "snapshot",
+      "value": 0.0024000000000796717,
+      "children": [],
+      "category": "message",
+      "self": 0.0024000000000796717
+    },
+    {
+      "name": "getTool",
+      "value": 0.002199999999902502,
+      "children": [],
+      "category": "tool",
+      "self": 0.002199999999902502
+    },
+    {
+      "name": "composeSystemPrompt(call)",
+      "value": 0.0020999999999276042,
+      "children": [],
+      "category": "message",
+      "self": 0.0020999999999276042
+    },
+    {
+      "name": "getTool",
+      "value": 0.0019999999999527063,
+      "children": [],
+      "category": "tool",
+      "self": 0.0019999999999527063
+    },
+    {
+      "name": "composeSystemPrompt(call)",
+      "value": 0.0019999999999527063,
+      "children": [],
+      "category": "message",
+      "self": 0.0019999999999527063
+    },
+    {
+      "name": "snapshot",
+      "value": 0.0018999999999778083,
+      "children": [],
+      "category": "message",
+      "self": 0.0018999999999778083
+    },
+    {
+      "name": "snapshot",
+      "value": 0.0018000000000029104,
+      "children": [],
+      "category": "message",
+      "self": 0.0018000000000029104
+    },
+    {
+      "name": "emit(turn-started)",
+      "value": 0.0017000000000280124,
+      "children": [],
+      "category": "event",
+      "self": 0.0017000000000280124
+    },
+    {
+      "name": "snapshot",
+      "value": 0.0016000000000531145,
+      "children": [],
+      "category": "message",
+      "self": 0.0016000000000531145
+    },
+    {
+      "name": "emit(message-added)",
+      "value": 0.0016000000000531145,
+      "children": [],
+      "category": "event",
+      "self": 0.0016000000000531145
+    },
+    {
+      "name": "snapshot",
+      "value": 0.001299999999901047,
+      "children": [],
+      "category": "message",
+      "self": 0.001299999999901047
+    },
+    {
+      "name": "emit(assistant-message)",
+      "value": 0.001199999999926149,
+      "children": [],
+      "category": "event",
+      "self": 0.001199999999926149
+    },
+    {
+      "name": "snapshot",
+      "value": 0.0008000000000265572,
+      "children": [],
+      "category": "message",
+      "self": 0.0008000000000265572
+    },
+    {
+      "name": "snapshot",
+      "value": 0.0008000000000265572,
+      "children": [],
+      "category": "message",
+      "self": 0.0008000000000265572
     }
   ],
   "metadata": {
-    "totalDurationMs": 1966.8182,
-    "spanCount": 7,
-    "generatedAt": "2026-07-01T12:59:50.021Z"
+    "totalDurationMs": 902.4202,
+    "spanCount": 72,
+    "generatedAt": "2026-07-03T07:03:19.070Z"
   }
 }

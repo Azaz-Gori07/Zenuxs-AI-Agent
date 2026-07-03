@@ -28,6 +28,9 @@ export const normalizeProviderId = Llms.normalizeProviderId;
 
 export type ProviderDefaultsConfig = ProviderDefaults;
 
+const OPENCODE_ZEN_PROVIDER_ID = "opencode-zen";
+const OPENCODE_ZEN_BASE_URL = "https://opencode.ai/zen/v1";
+
 export const ProviderIdSchema = z
 	.string()
 	.min(1)
@@ -199,6 +202,37 @@ function shouldRouteThroughOpenAIResponses(
 	);
 }
 
+export function normalizeProviderBaseUrl(
+	providerId: string,
+	baseUrl: string | undefined,
+): string | undefined {
+	const trimmed = baseUrl?.trim();
+	if (!trimmed) {
+		return baseUrl;
+	}
+	if (normalizeProviderId(providerId) !== OPENCODE_ZEN_PROVIDER_ID) {
+		return baseUrl;
+	}
+
+	try {
+		const url = new URL(trimmed);
+		if (url.hostname.toLowerCase() !== "opencode.ai") {
+			return trimmed;
+		}
+		const pathname = url.pathname.replace(/\/+$/, "").toLowerCase();
+		if (
+			pathname === "/zen" ||
+			pathname === "/zen/v1" ||
+			pathname.startsWith("/zen/v1/")
+		) {
+			return OPENCODE_ZEN_BASE_URL;
+		}
+		return trimmed;
+	} catch {
+		return trimmed;
+	}
+}
+
 export function toProviderConfig(
 	settings: ProviderSettings,
 	options: ToProviderConfigOptions = {},
@@ -230,6 +264,10 @@ export function toProviderConfig(
 				? DEFAULT_INTERNAL_OCA_BASE_URL
 				: DEFAULT_EXTERNAL_OCA_BASE_URL
 			: providerDefaults?.baseUrl);
+	const normalizedBaseUrl = normalizeProviderBaseUrl(
+		normalizedProviderId,
+		resolvedBaseUrl,
+	);
 	const routingProviderId =
 		settings.routingProviderId ??
 		(shouldRouteThroughOpenAIResponses(settings) &&
@@ -258,7 +296,7 @@ export function toProviderConfig(
 		accessToken,
 		refreshToken: settings.auth?.refreshToken,
 		accountId: settings.auth?.accountId,
-		baseUrl: resolvedBaseUrl,
+		baseUrl: normalizedBaseUrl,
 		headers: settings.headers,
 		timeoutMs: settings.timeout,
 		maxOutputTokens: settings.maxTokens,

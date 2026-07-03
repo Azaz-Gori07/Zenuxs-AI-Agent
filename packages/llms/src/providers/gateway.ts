@@ -8,11 +8,12 @@ import type {
 	GatewayModelDefinition,
 	GatewayModelHandleOptions,
 	GatewayModelSelection,
+	GatewayProvider,
 	GatewayProviderRegistration,
 	GatewayStreamRequest,
 	ITelemetryService,
 } from "@cline/shared";
-import { estimateTokens } from "@cline/shared";
+import { estimateTokens, profiler } from "@cline/shared";
 import { toAsyncIterable } from "./async";
 import { BUILTIN_PROVIDER_REGISTRATIONS } from "./builtins-runtime";
 import { GatewayRegistry } from "./registry";
@@ -199,6 +200,7 @@ export class DefaultGateway implements Gateway {
 	private readonly registry: GatewayRegistry;
 	private readonly logger: BasicLogger | undefined;
 	private readonly telemetry: ITelemetryService | undefined;
+	private readonly providerCache = new Map<string, Promise<GatewayProvider>>();
 
 	constructor(config: GatewayConfig = {}) {
 		this.registry = new GatewayRegistry(config.fetch);
@@ -230,6 +232,7 @@ export class DefaultGateway implements Gateway {
 
 	registerProvider(registration: GatewayProviderRegistration): this {
 		this.registry.registerProvider(registration);
+		this.clearProviderCache(registration.manifest.id);
 		return this;
 	}
 
@@ -237,6 +240,7 @@ export class DefaultGateway implements Gateway {
 		config: NonNullable<GatewayConfig["providerConfigs"]>[number],
 	): this {
 		this.registry.configureProvider(config);
+		this.clearProviderCache(config.providerId);
 		return this;
 	}
 
@@ -258,14 +262,26 @@ export class DefaultGateway implements Gateway {
 	async stream(
 		request: GatewayStreamRequest,
 	): Promise<AsyncIterable<AgentModelEvent>> {
+		const resolveModelId = profiler.start("gateway.resolveModel", "llm", {
+			providerId: request.providerId,
+			modelId: request.modelId,
+		});
 		const resolved = this.registry.resolveModel({
 			providerId: request.providerId,
 			modelId: request.modelId || undefined,
 		});
+		profiler.end(resolveModelId, {
+			resolvedProviderId: resolved.provider.id,
+			resolvedModelId: resolved.model.id,
+		});
+		const resolveProviderId = profiler.start("gateway.resolveProviderConfig", "llm", {
+			providerId: request.providerId,
+		});
 		const providerRecord = await this.registry.createProvider(
 			request.providerId,
 		);
-		const provider = await providerRecord.createProvider(providerRecord.config);
+		profiler.end(resolveProviderId);
+		const provider = await this.getProvider(providerRecord);
 		const maxTokens = isPositiveFiniteNumber(request.maxTokens)
 			? resolveGatewayRequestMaxTokens({
 					requestedMaxTokens: request.maxTokens,
@@ -284,27 +300,98 @@ export class DefaultGateway implements Gateway {
 					},
 				})
 			: undefined;
-		const stream = await provider.stream(
-			{
-				...request,
-				modelId: resolved.model.id,
-				providerId: resolved.provider.id,
-				maxTokens,
-			},
-			{
-				provider: resolved.provider,
-				model: resolved.model,
-				config: providerRecord.config,
-				signal: request.signal,
-				logger: this.logger,
-				telemetry: this.telemetry,
-			},
-		);
+		profiler.markTimeline("gateway.provider.stream.dispatch", "llm", {
+			providerId: resolved.provider.id,
+			modelId: resolved.model.id,
+			messageCount: request.messages.length,
+			toolCount: request.tools?.length ?? 0,
+		});
+		const streamId = profiler.start("gateway.provider.stream", "llm", {
+			providerId: resolved.provider.id,
+			modelId: resolved.model.id,
+		});
+		let stream: AsyncIterable<AgentModelEvent>;
+		try {
+			stream = await provider.stream(
+				{
+					...request,
+					modelId: resolved.model.id,
+					providerId: resolved.provider.id,
+					maxTokens,
+				},
+				{
+					provider: resolved.provider,
+					model: resolved.model,
+					config: providerRecord.config,
+					signal: request.signal,
+					logger: this.logger,
+					telemetry: this.telemetry,
+				},
+			);
+			profiler.end(streamId);
+		} catch (error) {
+			profiler.end(streamId, { error: true });
+			throw error;
+		}
 
 		return toAsyncIterable(stream);
+	}
+
+	private getProvider(input: Awaited<ReturnType<GatewayRegistry["createProvider"]>>): Promise<GatewayProvider> {
+		const key = makeProviderCacheKey(input.manifest.id, input.config);
+		const cached = this.providerCache.get(key);
+		if (cached) {
+			profiler.markTimeline("gateway.provider.cache_hit", "llm", {
+				providerId: input.manifest.id,
+			});
+			return cached;
+		}
+		profiler.markTimeline("gateway.provider.cache_miss", "llm", {
+			providerId: input.manifest.id,
+		});
+		const createId = profiler.start("gateway.provider.create", "llm", {
+			providerId: input.manifest.id,
+		});
+		const promise = Promise.resolve(input.createProvider(input.config)).then(
+			(provider) => {
+				profiler.end(createId);
+				return provider;
+			},
+			(error) => {
+				this.providerCache.delete(key);
+				profiler.end(createId, { error: true });
+				throw error;
+			},
+		);
+		this.providerCache.set(key, promise);
+		return promise;
+	}
+
+	private clearProviderCache(providerId: string): void {
+		for (const key of this.providerCache.keys()) {
+			if (key.includes(`"providerId":"${providerId}"`)) {
+				this.providerCache.delete(key);
+			}
+		}
 	}
 }
 
 export function createGateway(config?: GatewayConfig): DefaultGateway {
 	return new DefaultGateway(config);
+}
+
+function makeProviderCacheKey(
+	providerId: string,
+	config: Awaited<ReturnType<GatewayRegistry["createProvider"]>>["config"],
+): string {
+	return safeStringify({
+		providerId,
+		apiKey: config.apiKey,
+		apiKeyEnv: config.apiKeyEnv,
+		baseUrl: config.baseUrl,
+		headers: config.headers,
+		timeoutMs: config.timeoutMs,
+		options: config.options,
+		metadata: config.metadata,
+	});
 }

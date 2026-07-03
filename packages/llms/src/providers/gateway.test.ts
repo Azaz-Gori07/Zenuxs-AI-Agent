@@ -355,6 +355,41 @@ describe("sdk-gateway", () => {
 		expect(events).toContainEqual({ type: "text-delta", text: "lazy" });
 	});
 
+	it("reuses provider instances across streams with the same resolved config", async () => {
+		const createProvider = vi.fn(() => ({
+			async *stream() {
+				yield { type: "text-delta", text: "cached" } satisfies AgentModelEvent;
+				yield { type: "finish", reason: "stop" } satisfies AgentModelEvent;
+			},
+		}));
+		const gateway = createGateway({
+			builtins: false,
+			providers: [
+				{
+					manifest: {
+						id: "custom",
+						name: "Custom",
+						defaultModelId: "alpha",
+						models: [{ id: "alpha", name: "Alpha", providerId: "custom" }],
+					},
+					createProvider,
+				},
+			],
+		});
+
+		for (let i = 0; i < 2; i += 1) {
+			await collect(
+				await gateway.stream({
+					providerId: "custom",
+					modelId: "alpha",
+					messages: baseMessages,
+				}),
+			);
+		}
+
+		expect(createProvider).toHaveBeenCalledOnce();
+	});
+
 	it("exposes old-provider-style builtins with generated manifests", () => {
 		const gateway = createGateway();
 		const providerIds = gateway.listProviders().map((provider) => provider.id);
@@ -3819,8 +3854,10 @@ describe("sdk-gateway", () => {
 		}
 	});
 
-	it("does not wrap provider fetch when wire capture is disabled", async () => {
-		const customFetch = vi.fn() as unknown as typeof fetch;
+	it("does not add wire-capture wrapping when wire capture is disabled", async () => {
+		const customFetch = vi.fn(
+			async () => new Response("ok", { status: 200 }),
+		) as unknown as typeof fetch;
 		streamTextSpy.mockReturnValue({
 			fullStream: makeStreamParts([{ type: "finish", finishReason: "stop" }]),
 		});
@@ -3842,7 +3879,71 @@ describe("sdk-gateway", () => {
 		const config = openaiCompatibleFactorySpy.mock.calls[0]?.[0] as {
 			fetch?: typeof fetch;
 		};
-		expect(config.fetch).toBe(customFetch);
+		await config.fetch?.("https://api.example.com/v1/chat");
+		expect(customFetch).toHaveBeenCalledWith(
+			"https://api.example.com/v1/chat",
+			expect.objectContaining({
+				signal: expect.any(AbortSignal),
+			}),
+		);
+	});
+
+	it("passes provider timeoutMs into the retry fetch wrapper", async () => {
+		let callCount = 0;
+		const customFetch = vi.fn(
+			async (_input: RequestInfo | URL, init?: RequestInit) => {
+				callCount += 1;
+				if (callCount === 1) {
+					await new Promise((resolve, reject) => {
+						const timeout = setTimeout(resolve, 50);
+						const onAbort = () => {
+							clearTimeout(timeout);
+							reject(init?.signal?.reason ?? new Error("aborted"));
+						};
+						init?.signal?.addEventListener("abort", onAbort, { once: true });
+					});
+				}
+				return new Response("ok", { status: 200 });
+			},
+		) as unknown as typeof fetch;
+		streamTextSpy.mockReturnValue({
+			fullStream: makeStreamParts([{ type: "finish", finishReason: "stop" }]),
+		});
+
+		const gateway = createGateway({
+			providerConfigs: [
+				{
+					providerId: "openrouter",
+					apiKey: "test-key",
+					fetch: customFetch,
+					timeoutMs: 10,
+					options: { maxRetries: 1 },
+				},
+			],
+		});
+
+		await collect(
+			await gateway.stream({
+				providerId: "openrouter",
+				modelId: "anthropic/claude-test",
+				messages: baseMessages,
+			}),
+		);
+
+		const config = openaiCompatibleFactorySpy.mock.calls[0]?.[0] as {
+			fetch?: typeof fetch;
+		};
+		expect(config.fetch).not.toBe(customFetch);
+		const response = await config.fetch?.("https://api.example.com/v1/chat");
+		expect(response?.status).toBe(200);
+		expect(customFetch).toHaveBeenCalledTimes(2);
+		expect(customFetch).toHaveBeenNthCalledWith(
+			1,
+			"https://api.example.com/v1/chat",
+			expect.objectContaining({
+				signal: expect.any(AbortSignal),
+			}),
+		);
 	});
 
 	it("wraps provider fetch for wire capture while delegating to the configured fetch", async () => {

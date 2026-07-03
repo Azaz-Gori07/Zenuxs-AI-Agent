@@ -753,6 +753,19 @@ describe("saveLocalProviderSettings", () => {
 		);
 	});
 
+	it("normalizes saved OpenCode Zen endpoint URLs", () => {
+		saveLocalProviderSettings(manager, {
+			providerId: "opencode-zen",
+			enabled: true,
+			apiKey: "zen-key",
+			baseUrl: "https://opencode.ai/zen/v1/responses",
+		});
+
+		expect(manager.getProviderSettings("opencode-zen")?.baseUrl).toBe(
+			"https://opencode.ai/zen/v1",
+		);
+	});
+
 	it("clears apiKey when empty string is provided", () => {
 		// First set a key
 		saveLocalProviderSettings(manager, {

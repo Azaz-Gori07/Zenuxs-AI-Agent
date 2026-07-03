@@ -37,7 +37,7 @@ describe("wrapFetchWithRetry", () => {
 		expect(mockFetch).toHaveBeenCalledTimes(3);
 		expect(logger.log).toHaveBeenCalledTimes(2);
 		expect(logger.log).toHaveBeenCalledWith(
-			expect.stringContaining("[HTTP 429] Request to https://api.example.com/v1/chat failed"),
+			expect.stringContaining("[Rate Limited] Request to https://api.example.com/v1/chat failed"),
 			expect.any(Object)
 		);
 	});
@@ -74,7 +74,7 @@ describe("wrapFetchWithRetry", () => {
 		const response = await retryingFetch("https://api.example.com/v1/chat");
 
 		expect(response.status).toBe(429);
-		expect(mockFetch).toHaveBeenCalledTimes(16); // 1 initial call + 15 retries for 429 rate limits
+		expect(mockFetch).toHaveBeenCalledTimes(3); // 1 initial call + 2 retries
 	});
 
 	it("should not retry on non-retryable 4xx errors", async () => {

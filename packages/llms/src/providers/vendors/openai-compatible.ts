@@ -14,6 +14,29 @@ type FetchWithOptionalPreconnect = typeof fetch & {
 	preconnect?: (...args: unknown[]) => unknown;
 };
 
+function createAuthFetch(
+	config: GatewayResolvedProviderConfig,
+): typeof fetch | undefined {
+	const resolver = config.apiKeyResolver;
+	if (!resolver) return undefined;
+	const delegate = config.fetch ?? globalThis.fetch;
+	if (!delegate) return undefined;
+	const authFetch = (async (input, init) => {
+		const key = await resolver();
+		const headers = new Headers(init?.headers);
+		if (key) {
+			headers.set("Authorization", `Bearer ${key}`);
+		}
+		return delegate(input, { ...init, headers });
+	}) as typeof fetch;
+	const delegateWithPreconnect = delegate as FetchWithOptionalPreconnect;
+	(authFetch as FetchWithOptionalPreconnect).preconnect =
+		typeof delegateWithPreconnect.preconnect === "function"
+			? delegateWithPreconnect.preconnect.bind(delegate)
+			: () => undefined;
+	return authFetch;
+}
+
 function readAzureApiVersion(
 	config: GatewayResolvedProviderConfig,
 ): string | undefined {
@@ -108,12 +131,14 @@ export async function createOpenAICompatibleProviderModule(
 	config: GatewayResolvedProviderConfig,
 	context: GatewayProviderContext,
 ): Promise<ProviderFactoryResult> {
-	// Don't preflight-check for a missing API key. If credentials are
-	// missing or wrong, the provider's own response (e.g. 401) is the
-	// authoritative error and is surfaced to the user as-is. This keeps
-	// `llms` unopinionated about which providers do or don't need a key.
-	const apiKey = await resolveApiKey(config);
-	const fetch = createAzureApiVersionFetch(config);
+	// When apiKeyResolver is set, resolve the key per-request via a custom
+	// fetch wrapper instead of once at provider creation time. This ensures
+	// round-robin/rotation works across requests (the gateway caches the
+	// created provider, so a single resolution would be stuck forever).
+	const { resolvedApiKey, authFetch } = config.apiKeyResolver
+		? { resolvedApiKey: undefined, authFetch: createAuthFetch(config) }
+		: { resolvedApiKey: await resolveApiKey(config), authFetch: undefined };
+	const fetch = createAzureApiVersionFetch({ ...config, fetch: authFetch ?? config.fetch });
 	const onResponseError = readResponseErrorHandler(config);
 	const providerFetch = onResponseError
 		? createResponseErrorFetch({
@@ -123,7 +148,7 @@ export async function createOpenAICompatibleProviderModule(
 		: fetch;
 	const provider = createOpenAICompatible({
 		name: context.provider.id,
-		apiKey,
+		apiKey: resolvedApiKey,
 		...(config.baseUrl ? { baseURL: config.baseUrl } : {}),
 		...(config.headers ? { headers: config.headers } : {}),
 		...(providerFetch ? { fetch: providerFetch } : {}),

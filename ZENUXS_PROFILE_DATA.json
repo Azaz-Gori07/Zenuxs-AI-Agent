@@ -1,217 +1,1222 @@
 {
   "enabled": true,
-  "processStartMs": 1286.2798,
-  "totalDurationMs": 1966.8182,
-  "peakMemoryMb": 76,
+  "processStartMs": 438.6712,
+  "totalDurationMs": 902.4202,
+  "peakMemoryMb": 96,
   "spans": [
     {
-      "name": "cli.createProviderSettingsManager",
-      "category": "startup",
-      "startMs": 329.52009999999996,
-      "endMs": 340.6542999999999,
-      "durationMs": 11.134199999999964,
-      "parentId": 1,
+      "name": "snapshot",
+      "category": "message",
+      "startMs": 894.3056999999999,
+      "endMs": 894.5096000000001,
+      "durationMs": 0.20390000000020336,
+      "parentId": null,
+      "id": 1,
+      "meta": {
+        "messageCount": 60,
+        "cached": false
+      }
+    },
+    {
+      "name": "emit(run-started)",
+      "category": "event",
+      "startMs": 894.683,
+      "endMs": 894.7213999999999,
+      "durationMs": 0.038399999999910506,
+      "parentId": null,
       "id": 2,
       "meta": {}
     },
     {
-      "name": "cli.loadCliRuntimeModules",
-      "category": "startup",
-      "startMs": 329.7365,
-      "endMs": 377.20540000000005,
-      "durationMs": 47.468900000000076,
-      "parentId": 2,
+      "name": "snapshot",
+      "category": "message",
+      "startMs": 894.7991999999999,
+      "endMs": 894.8506,
+      "durationMs": 0.051400000000057844,
+      "parentId": null,
       "id": 3,
-      "meta": {}
+      "meta": {
+        "messageCount": 61,
+        "cached": false
+      }
     },
     {
-      "name": "cli.userInstructionService.start",
-      "category": "startup",
-      "startMs": 378.9994999999999,
-      "endMs": 379.135,
-      "durationMs": 0.13550000000009277,
-      "parentId": 1,
+      "name": "emit(message-added)",
+      "category": "event",
+      "startMs": 894.8642,
+      "endMs": 894.8720000000001,
+      "durationMs": 0.007800000000088403,
+      "parentId": null,
       "id": 4,
       "meta": {}
     },
     {
-      "name": "cli.resolveProviderConfig",
-      "category": "startup",
-      "startMs": 414.1263999999999,
-      "endMs": 416.69499999999994,
-      "durationMs": 2.5686000000000604,
-      "parentId": 1,
-      "id": 5,
-      "meta": {}
-    },
-    {
-      "name": "cli.resolveSystemPrompt",
-      "category": "startup",
-      "startMs": 421.85120000000006,
-      "endMs": 693.3817999999999,
-      "durationMs": 271.5305999999998,
-      "parentId": 1,
+      "name": "snapshot",
+      "category": "message",
+      "startMs": 895.0434,
+      "endMs": 895.0802000000001,
+      "durationMs": 0.036800000000084765,
+      "parentId": 5,
       "id": 6,
-      "meta": {}
+      "meta": {
+        "messageCount": 61,
+        "cached": false
+      }
     },
     {
-      "name": "cli.runAgent",
-      "category": "agent",
-      "startMs": 696.4984999999999,
-      "endMs": 1962.1706000000001,
-      "durationMs": 1265.6721000000002,
-      "parentId": 1,
+      "name": "emit(turn-started)",
+      "category": "event",
+      "startMs": 895.0898,
+      "endMs": 895.0969,
+      "durationMs": 0.007100000000036744,
+      "parentId": 5,
       "id": 7,
       "meta": {}
     },
     {
-      "name": "cli.runCli",
-      "category": "startup",
-      "startMs": 230.62390000000005,
-      "endMs": 1963.5444,
-      "durationMs": 1732.9205,
+      "name": "composeSystemPrompt",
+      "category": "message",
+      "startMs": 895.5264999999999,
+      "endMs": 895.5562,
+      "durationMs": 0.02970000000004802,
+      "parentId": 9,
+      "id": 10,
+      "meta": {}
+    },
+    {
+      "name": "composeSystemPrompt(call)",
+      "category": "message",
+      "startMs": 895.4574,
+      "endMs": 895.5802000000001,
+      "durationMs": 0.1228000000000975,
+      "parentId": 8,
+      "id": 9,
+      "meta": {
+        "cached": true
+      }
+    },
+    {
+      "name": "cloneMessages(generateAssistant)",
+      "category": "message",
+      "startMs": 895.613,
+      "endMs": 895.627,
+      "durationMs": 0.013999999999896318,
+      "parentId": 8,
+      "id": 11,
+      "meta": {
+        "messageCount": 61
+      }
+    },
+    {
+      "name": "model.stream.open",
+      "category": "llm",
+      "startMs": 895.7385999999999,
+      "endMs": 895.8344,
+      "durationMs": 0.09580000000005384,
+      "parentId": 8,
+      "id": 12,
+      "meta": {
+        "iteration": 1
+      }
+    },
+    {
+      "name": "parseToolArguments",
+      "category": "tool",
+      "startMs": 896.1078,
+      "endMs": 896.1247000000001,
+      "durationMs": 0.016900000000077853,
+      "parentId": 8,
+      "id": 13,
+      "meta": {
+        "inputLength": 16,
+        "result": "fast"
+      }
+    },
+    {
+      "name": "generateAssistantMessage",
+      "category": "llm",
+      "startMs": 895.4487999999999,
+      "endMs": 896.2762,
+      "durationMs": 0.8274000000001251,
+      "parentId": 5,
+      "id": 8,
+      "meta": {
+        "iteration": 1,
+        "finishReason": "tool-calls",
+        "contentParts": 1
+      }
+    },
+    {
+      "name": "snapshot",
+      "category": "message",
+      "startMs": 896.2918999999999,
+      "endMs": 896.3205,
+      "durationMs": 0.02860000000009677,
+      "parentId": 5,
+      "id": 14,
+      "meta": {
+        "messageCount": 62,
+        "cached": false
+      }
+    },
+    {
+      "name": "emit(message-added)",
+      "category": "event",
+      "startMs": 896.3404,
+      "endMs": 896.3478,
+      "durationMs": 0.007399999999961437,
+      "parentId": 5,
+      "id": 15,
+      "meta": {}
+    },
+    {
+      "name": "snapshot",
+      "category": "message",
+      "startMs": 896.3575000000001,
+      "endMs": 896.3611000000001,
+      "durationMs": 0.0036000000000058208,
+      "parentId": 5,
+      "id": 16,
+      "meta": {
+        "cached": true,
+        "messageCount": 62
+      }
+    },
+    {
+      "name": "emit(assistant-message)",
+      "category": "event",
+      "startMs": 896.3670999999999,
+      "endMs": 896.3710000000001,
+      "durationMs": 0.0039000000001578883,
+      "parentId": 5,
+      "id": 17,
+      "meta": {}
+    },
+    {
+      "name": "getTool",
+      "category": "tool",
+      "startMs": 896.6223,
+      "endMs": 896.6288,
+      "durationMs": 0.006499999999959982,
+      "parentId": 18,
+      "id": 19,
+      "meta": {
+        "toolName": "echo",
+        "resolved": true,
+        "via": "exact"
+      }
+    },
+    {
+      "name": "snapshot",
+      "category": "message",
+      "startMs": 896.9975,
+      "endMs": 897.0434,
+      "durationMs": 0.045900000000074215,
+      "parentId": 20,
+      "id": 21,
+      "meta": {
+        "messageCount": 62,
+        "cached": false
+      }
+    },
+    {
+      "name": "emit(tool-started)",
+      "category": "event",
+      "startMs": 897.0521000000001,
+      "endMs": 897.0591999999999,
+      "durationMs": 0.00709999999980937,
+      "parentId": 20,
+      "id": 22,
+      "meta": {}
+    },
+    {
+      "name": "snapshot",
+      "category": "message",
+      "startMs": 897.0798,
+      "endMs": 897.0824,
+      "durationMs": 0.0026000000000294676,
+      "parentId": 20,
+      "id": 23,
+      "meta": {
+        "cached": true,
+        "messageCount": 62
+      }
+    },
+    {
+      "name": "snapshot",
+      "category": "message",
+      "startMs": 897.1466,
+      "endMs": 897.1490000000001,
+      "durationMs": 0.0024000000000796717,
+      "parentId": 20,
+      "id": 24,
+      "meta": {
+        "cached": true,
+        "messageCount": 62
+      }
+    },
+    {
+      "name": "emit(tool-finished)",
+      "category": "event",
+      "startMs": 897.1548,
+      "endMs": 897.1591000000001,
+      "durationMs": 0.00430000000005748,
+      "parentId": 20,
+      "id": 25,
+      "meta": {}
+    },
+    {
+      "name": "tool.execute(echo)",
+      "category": "tool",
+      "startMs": 896.9825000000001,
+      "endMs": 897.1713,
+      "durationMs": 0.18879999999990105,
+      "parentId": 18,
+      "id": 20,
+      "meta": {
+        "toolName": "echo",
+        "inputSize": 16,
+        "resultSize": 18
+      }
+    },
+    {
+      "name": "executeToolCalls",
+      "category": "tool",
+      "startMs": 896.4648,
+      "endMs": 897.2226,
+      "durationMs": 0.7578000000000884,
+      "parentId": 5,
+      "id": 18,
+      "meta": {
+        "toolCount": 1
+      }
+    },
+    {
+      "name": "snapshot",
+      "category": "message",
+      "startMs": 897.2319,
+      "endMs": 897.2565999999999,
+      "durationMs": 0.024699999999938882,
+      "parentId": 5,
+      "id": 26,
+      "meta": {
+        "messageCount": 63,
+        "cached": false
+      }
+    },
+    {
+      "name": "emit(message-added)",
+      "category": "event",
+      "startMs": 897.26,
+      "endMs": 897.2639999999999,
+      "durationMs": 0.0039999999999054126,
+      "parentId": 5,
+      "id": 27,
+      "meta": {}
+    },
+    {
+      "name": "snapshot",
+      "category": "message",
+      "startMs": 897.2699,
+      "endMs": 897.2715000000001,
+      "durationMs": 0.0016000000000531145,
+      "parentId": 5,
+      "id": 28,
+      "meta": {
+        "cached": true,
+        "messageCount": 63
+      }
+    },
+    {
+      "name": "emit(turn-finished)",
+      "category": "event",
+      "startMs": 897.2746,
+      "endMs": 897.2787000000001,
+      "durationMs": 0.004100000000107684,
+      "parentId": 5,
+      "id": 29,
+      "meta": {}
+    },
+    {
+      "name": "agentLoop.iteration",
+      "category": "agent",
+      "startMs": 895.0341000000001,
+      "endMs": 897.2936,
+      "durationMs": 2.259499999999889,
       "parentId": null,
-      "id": 1,
+      "id": 5,
+      "meta": {
+        "iteration": 1
+      }
+    },
+    {
+      "name": "getTool",
+      "category": "tool",
+      "startMs": 897.3468,
+      "endMs": 897.3506,
+      "durationMs": 0.0037999999999556167,
+      "parentId": null,
+      "id": 30,
+      "meta": {
+        "toolName": "echo",
+        "resolved": true,
+        "via": "exact"
+      }
+    },
+    {
+      "name": "snapshot",
+      "category": "message",
+      "startMs": 897.3619000000001,
+      "endMs": 897.3834999999999,
+      "durationMs": 0.02159999999980755,
+      "parentId": 31,
+      "id": 32,
+      "meta": {
+        "messageCount": 63,
+        "cached": false
+      }
+    },
+    {
+      "name": "emit(turn-started)",
+      "category": "event",
+      "startMs": 897.3925999999999,
+      "endMs": 897.404,
+      "durationMs": 0.011400000000094224,
+      "parentId": 31,
+      "id": 33,
+      "meta": {}
+    },
+    {
+      "name": "composeSystemPrompt(call)",
+      "category": "message",
+      "startMs": 897.4128000000001,
+      "endMs": 897.4149,
+      "durationMs": 0.0020999999999276042,
+      "parentId": 34,
+      "id": 35,
+      "meta": {
+        "cached": true
+      }
+    },
+    {
+      "name": "cloneMessages(generateAssistant)",
+      "category": "message",
+      "startMs": 897.4332999999999,
+      "endMs": 897.4382,
+      "durationMs": 0.004900000000134241,
+      "parentId": 34,
+      "id": 36,
+      "meta": {
+        "messageCount": 63
+      }
+    },
+    {
+      "name": "model.stream.open",
+      "category": "llm",
+      "startMs": 897.4898000000001,
+      "endMs": 897.512,
+      "durationMs": 0.022199999999884312,
+      "parentId": 34,
+      "id": 37,
+      "meta": {
+        "iteration": 2
+      }
+    },
+    {
+      "name": "parseToolArguments",
+      "category": "tool",
+      "startMs": 897.5510999999999,
+      "endMs": 897.5609,
+      "durationMs": 0.00980000000004111,
+      "parentId": 34,
+      "id": 38,
+      "meta": {
+        "inputLength": 17,
+        "result": "fast"
+      }
+    },
+    {
+      "name": "generateAssistantMessage",
+      "category": "llm",
+      "startMs": 897.4114999999999,
+      "endMs": 897.5824,
+      "durationMs": 0.17090000000007421,
+      "parentId": 31,
+      "id": 34,
+      "meta": {
+        "iteration": 2,
+        "finishReason": "tool-calls",
+        "contentParts": 1
+      }
+    },
+    {
+      "name": "snapshot",
+      "category": "message",
+      "startMs": 897.5930000000001,
+      "endMs": 897.6327000000001,
+      "durationMs": 0.039700000000038926,
+      "parentId": 31,
+      "id": 39,
+      "meta": {
+        "messageCount": 64,
+        "cached": false
+      }
+    },
+    {
+      "name": "emit(message-added)",
+      "category": "event",
+      "startMs": 897.6387,
+      "endMs": 897.6447000000001,
+      "durationMs": 0.0060000000000854925,
+      "parentId": 31,
+      "id": 40,
+      "meta": {}
+    },
+    {
+      "name": "snapshot",
+      "category": "message",
+      "startMs": 897.6498999999999,
+      "endMs": 897.6532,
+      "durationMs": 0.003300000000081127,
+      "parentId": 31,
+      "id": 41,
+      "meta": {
+        "cached": true,
+        "messageCount": 64
+      }
+    },
+    {
+      "name": "emit(assistant-message)",
+      "category": "event",
+      "startMs": 897.6569,
+      "endMs": 897.6600000000001,
+      "durationMs": 0.003100000000131331,
+      "parentId": 31,
+      "id": 42,
+      "meta": {}
+    },
+    {
+      "name": "getTool",
+      "category": "tool",
+      "startMs": 897.6708000000001,
+      "endMs": 897.673,
+      "durationMs": 0.002199999999902502,
+      "parentId": 43,
+      "id": 44,
+      "meta": {
+        "toolName": "echo",
+        "resolved": true,
+        "via": "exact"
+      }
+    },
+    {
+      "name": "snapshot",
+      "category": "message",
+      "startMs": 897.6948,
+      "endMs": 897.7263,
+      "durationMs": 0.03150000000005093,
+      "parentId": 45,
+      "id": 46,
+      "meta": {
+        "messageCount": 64,
+        "cached": false
+      }
+    },
+    {
+      "name": "emit(tool-started)",
+      "category": "event",
+      "startMs": 897.7311,
+      "endMs": 897.7344,
+      "durationMs": 0.003300000000081127,
+      "parentId": 45,
+      "id": 47,
+      "meta": {}
+    },
+    {
+      "name": "snapshot",
+      "category": "message",
+      "startMs": 897.7424000000001,
+      "endMs": 897.7442000000001,
+      "durationMs": 0.0018000000000029104,
+      "parentId": 45,
+      "id": 48,
+      "meta": {
+        "cached": true,
+        "messageCount": 64
+      }
+    },
+    {
+      "name": "snapshot",
+      "category": "message",
+      "startMs": 897.7634,
+      "endMs": 897.7647,
+      "durationMs": 0.001299999999901047,
+      "parentId": 45,
+      "id": 49,
+      "meta": {
+        "cached": true,
+        "messageCount": 64
+      }
+    },
+    {
+      "name": "emit(tool-finished)",
+      "category": "event",
+      "startMs": 897.7692999999999,
+      "endMs": 897.7738999999999,
+      "durationMs": 0.004599999999982174,
+      "parentId": 45,
+      "id": 50,
+      "meta": {}
+    },
+    {
+      "name": "tool.execute(echo)",
+      "category": "tool",
+      "startMs": 897.6895999999999,
+      "endMs": 897.7791,
+      "durationMs": 0.08950000000004366,
+      "parentId": 43,
+      "id": 45,
+      "meta": {
+        "toolName": "echo",
+        "inputSize": 17,
+        "resultSize": 19
+      }
+    },
+    {
+      "name": "executeToolCalls",
+      "category": "tool",
+      "startMs": 897.6677,
+      "endMs": 897.7881,
+      "durationMs": 0.12040000000001783,
+      "parentId": 31,
+      "id": 43,
+      "meta": {
+        "toolCount": 1
+      }
+    },
+    {
+      "name": "snapshot",
+      "category": "message",
+      "startMs": 897.7927,
+      "endMs": 897.8109,
+      "durationMs": 0.0181999999999789,
+      "parentId": 31,
+      "id": 51,
+      "meta": {
+        "messageCount": 65,
+        "cached": false
+      }
+    },
+    {
+      "name": "emit(message-added)",
+      "category": "event",
+      "startMs": 897.8134,
+      "endMs": 897.815,
+      "durationMs": 0.0016000000000531145,
+      "parentId": 31,
+      "id": 52,
+      "meta": {}
+    },
+    {
+      "name": "snapshot",
+      "category": "message",
+      "startMs": 897.8185000000001,
+      "endMs": 897.8193000000001,
+      "durationMs": 0.0008000000000265572,
+      "parentId": 31,
+      "id": 53,
+      "meta": {
+        "cached": true,
+        "messageCount": 65
+      }
+    },
+    {
+      "name": "emit(turn-finished)",
+      "category": "event",
+      "startMs": 897.8224,
+      "endMs": 897.8281,
+      "durationMs": 0.005699999999933425,
+      "parentId": 31,
+      "id": 54,
+      "meta": {}
+    },
+    {
+      "name": "agentLoop.iteration",
+      "category": "agent",
+      "startMs": 897.3597,
+      "endMs": 897.8312000000001,
+      "durationMs": 0.4715000000001055,
+      "parentId": null,
+      "id": 31,
+      "meta": {
+        "iteration": 2
+      }
+    },
+    {
+      "name": "getTool",
+      "category": "tool",
+      "startMs": 897.8353999999999,
+      "endMs": 897.8373999999999,
+      "durationMs": 0.0019999999999527063,
+      "parentId": null,
+      "id": 55,
+      "meta": {
+        "toolName": "echo",
+        "resolved": true,
+        "via": "exact"
+      }
+    },
+    {
+      "name": "snapshot",
+      "category": "message",
+      "startMs": 897.8435999999999,
+      "endMs": 897.8615,
+      "durationMs": 0.017900000000054206,
+      "parentId": 56,
+      "id": 57,
+      "meta": {
+        "messageCount": 65,
+        "cached": false
+      }
+    },
+    {
+      "name": "emit(turn-started)",
+      "category": "event",
+      "startMs": 897.8641,
+      "endMs": 897.8658,
+      "durationMs": 0.0017000000000280124,
+      "parentId": 56,
+      "id": 58,
+      "meta": {}
+    },
+    {
+      "name": "composeSystemPrompt(call)",
+      "category": "message",
+      "startMs": 897.8706999999999,
+      "endMs": 897.8726999999999,
+      "durationMs": 0.0019999999999527063,
+      "parentId": 59,
+      "id": 60,
+      "meta": {
+        "cached": true
+      }
+    },
+    {
+      "name": "cloneMessages(generateAssistant)",
+      "category": "message",
+      "startMs": 897.8905,
+      "endMs": 897.8938,
+      "durationMs": 0.003300000000081127,
+      "parentId": 59,
+      "id": 61,
+      "meta": {
+        "messageCount": 65
+      }
+    },
+    {
+      "name": "model.stream.open",
+      "category": "llm",
+      "startMs": 897.9033,
+      "endMs": 897.9363000000001,
+      "durationMs": 0.03300000000012915,
+      "parentId": 59,
+      "id": 62,
+      "meta": {
+        "iteration": 3
+      }
+    },
+    {
+      "name": "snapshot",
+      "category": "message",
+      "startMs": 897.9766,
+      "endMs": 897.9784999999999,
+      "durationMs": 0.0018999999999778083,
+      "parentId": 59,
+      "id": 63,
+      "meta": {
+        "cached": true,
+        "messageCount": 65
+      }
+    },
+    {
+      "name": "emit(assistant-text-delta)",
+      "category": "event",
+      "startMs": 897.9842000000001,
+      "endMs": 897.9875,
+      "durationMs": 0.0032999999998537533,
+      "parentId": 59,
+      "id": 64,
+      "meta": {}
+    },
+    {
+      "name": "generateAssistantMessage",
+      "category": "llm",
+      "startMs": 897.8695,
+      "endMs": 898.0114000000001,
+      "durationMs": 0.14190000000007785,
+      "parentId": 56,
+      "id": 59,
+      "meta": {
+        "iteration": 3,
+        "finishReason": "stop",
+        "contentParts": 1
+      }
+    },
+    {
+      "name": "snapshot",
+      "category": "message",
+      "startMs": 898.0171,
+      "endMs": 898.0427999999999,
+      "durationMs": 0.025699999999915235,
+      "parentId": 56,
+      "id": 65,
+      "meta": {
+        "messageCount": 66,
+        "cached": false
+      }
+    },
+    {
+      "name": "emit(message-added)",
+      "category": "event",
+      "startMs": 898.0461,
+      "endMs": 898.0486000000001,
+      "durationMs": 0.0025000000000545697,
+      "parentId": 56,
+      "id": 66,
+      "meta": {}
+    },
+    {
+      "name": "snapshot",
+      "category": "message",
+      "startMs": 898.0532000000001,
+      "endMs": 898.0540000000001,
+      "durationMs": 0.0008000000000265572,
+      "parentId": 56,
+      "id": 67,
+      "meta": {
+        "cached": true,
+        "messageCount": 66
+      }
+    },
+    {
+      "name": "emit(assistant-message)",
+      "category": "event",
+      "startMs": 898.0561,
+      "endMs": 898.0572999999999,
+      "durationMs": 0.001199999999926149,
+      "parentId": 56,
+      "id": 68,
+      "meta": {}
+    },
+    {
+      "name": "snapshot",
+      "category": "message",
+      "startMs": 898.1892,
+      "endMs": 898.2108000000001,
+      "durationMs": 0.021600000000034925,
+      "parentId": 56,
+      "id": 69,
+      "meta": {
+        "messageCount": 66,
+        "cached": false
+      }
+    },
+    {
+      "name": "emit(turn-finished)",
+      "category": "event",
+      "startMs": 898.2172,
+      "endMs": 898.2199,
+      "durationMs": 0.0027000000000043656,
+      "parentId": 56,
+      "id": 70,
+      "meta": {}
+    },
+    {
+      "name": "agentLoop.iteration",
+      "category": "agent",
+      "startMs": 897.8421000000001,
+      "endMs": 898.2248,
+      "durationMs": 0.38269999999988613,
+      "parentId": null,
+      "id": 56,
+      "meta": {
+        "iteration": 3
+      }
+    },
+    {
+      "name": "snapshot",
+      "category": "message",
+      "startMs": 898.4328,
+      "endMs": 898.4592,
+      "durationMs": 0.026399999999966894,
+      "parentId": null,
+      "id": 71,
+      "meta": {
+        "messageCount": 66,
+        "cached": false
+      }
+    },
+    {
+      "name": "emit(run-finished)",
+      "category": "event",
+      "startMs": 898.4680000000001,
+      "endMs": 898.4715000000001,
+      "durationMs": 0.003500000000030923,
+      "parentId": null,
+      "id": 72,
       "meta": {}
     }
   ],
   "timeline": [
     {
-      "timeMs": 0.03199999999992542,
+      "timeMs": 0.04460000000000264,
       "label": "profiler.enabled",
       "category": "startup"
     },
     {
-      "timeMs": 230.12210000000005,
-      "label": "process.start",
-      "category": "startup"
+      "timeMs": 895.7338,
+      "label": "model.request.dispatch",
+      "category": "llm",
+      "meta": {
+        "iteration": 1,
+        "messageCount": 61,
+        "toolCount": 1
+      }
     },
     {
-      "timeMs": 230.26870000000008,
-      "label": "vcr.initialized",
-      "category": "startup"
+      "timeMs": 895.8578,
+      "label": "model.stream.opened",
+      "category": "llm",
+      "meta": {
+        "iteration": 1
+      }
     },
     {
-      "timeMs": 234.0266999999999,
-      "label": "cli.runCli.start",
-      "category": "startup"
+      "timeMs": 895.8824999999999,
+      "label": "model.stream.first_event",
+      "category": "llm",
+      "meta": {
+        "iteration": 1,
+        "eventType": "tool-call-delta"
+      }
     },
     {
-      "timeMs": 421.8479,
-      "label": "cli.config.built",
-      "category": "startup"
+      "timeMs": 897.4871,
+      "label": "model.request.dispatch",
+      "category": "llm",
+      "meta": {
+        "iteration": 2,
+        "messageCount": 63,
+        "toolCount": 1
+      }
     },
     {
-      "timeMs": 1963.6595,
+      "timeMs": 897.517,
+      "label": "model.stream.opened",
+      "category": "llm",
+      "meta": {
+        "iteration": 2
+      }
+    },
+    {
+      "timeMs": 897.5355,
+      "label": "model.stream.first_event",
+      "category": "llm",
+      "meta": {
+        "iteration": 2,
+        "eventType": "tool-call-delta"
+      }
+    },
+    {
+      "timeMs": 897.9018000000001,
+      "label": "model.request.dispatch",
+      "category": "llm",
+      "meta": {
+        "iteration": 3,
+        "messageCount": 65,
+        "toolCount": 1
+      }
+    },
+    {
+      "timeMs": 897.942,
+      "label": "model.stream.opened",
+      "category": "llm",
+      "meta": {
+        "iteration": 3
+      }
+    },
+    {
+      "timeMs": 897.9583,
+      "label": "model.stream.first_event",
+      "category": "llm",
+      "meta": {
+        "iteration": 3,
+        "eventType": "text-delta"
+      }
+    },
+    {
+      "timeMs": 897.9677999999999,
+      "label": "model.stream.first_text_token",
+      "category": "llm",
+      "meta": {
+        "iteration": 3,
+        "textLength": 4
+      }
+    },
+    {
+      "timeMs": 902.0065,
       "label": "profiler.finishing",
       "category": "startup"
     }
   ],
   "functionStats": [
     {
-      "name": "cli.runCli",
-      "category": "startup",
-      "callCount": 1,
-      "totalMs": 1732.9205,
-      "selfMs": 1732.9205,
-      "avgMs": 1732.9205,
-      "maxMs": 1732.9205,
-      "minMs": 1732.9205
-    },
-    {
-      "name": "cli.runAgent",
+      "name": "agentLoop.iteration",
       "category": "agent",
-      "callCount": 1,
-      "totalMs": 1265.6721000000002,
-      "selfMs": 1265.6721000000002,
-      "avgMs": 1265.6721000000002,
-      "maxMs": 1265.6721000000002,
-      "minMs": 1265.6721000000002
+      "callCount": 3,
+      "totalMs": 3.1136999999998807,
+      "selfMs": 2.259499999999889,
+      "avgMs": 1.0378999999999603,
+      "maxMs": 2.259499999999889,
+      "minMs": 0.38269999999988613
     },
     {
-      "name": "cli.resolveSystemPrompt",
-      "category": "startup",
-      "callCount": 1,
-      "totalMs": 271.5305999999998,
-      "selfMs": 271.5305999999998,
-      "avgMs": 271.5305999999998,
-      "maxMs": 271.5305999999998,
-      "minMs": 271.5305999999998
+      "name": "generateAssistantMessage",
+      "category": "llm",
+      "callCount": 3,
+      "totalMs": 1.1402000000002772,
+      "selfMs": 0.8274000000001251,
+      "avgMs": 0.3800666666667591,
+      "maxMs": 0.8274000000001251,
+      "minMs": 0.14190000000007785
     },
     {
-      "name": "cli.loadCliRuntimeModules",
-      "category": "startup",
-      "callCount": 1,
-      "totalMs": 47.468900000000076,
-      "selfMs": 47.468900000000076,
-      "avgMs": 47.468900000000076,
-      "maxMs": 47.468900000000076,
-      "minMs": 47.468900000000076
+      "name": "executeToolCalls",
+      "category": "tool",
+      "callCount": 2,
+      "totalMs": 0.8782000000001062,
+      "selfMs": 0.7578000000000884,
+      "avgMs": 0.4391000000000531,
+      "maxMs": 0.7578000000000884,
+      "minMs": 0.12040000000001783
     },
     {
-      "name": "cli.createProviderSettingsManager",
-      "category": "startup",
-      "callCount": 1,
-      "totalMs": 11.134199999999964,
-      "selfMs": 11.134199999999964,
-      "avgMs": 11.134199999999964,
-      "maxMs": 11.134199999999964,
-      "minMs": 11.134199999999964
+      "name": "snapshot",
+      "category": "message",
+      "callCount": 24,
+      "totalMs": 0.6140000000004875,
+      "selfMs": 0.20390000000020336,
+      "avgMs": 0.025583333333353647,
+      "maxMs": 0.20390000000020336,
+      "minMs": 0.0008000000000265572
     },
     {
-      "name": "cli.resolveProviderConfig",
-      "category": "startup",
-      "callCount": 1,
-      "totalMs": 2.5686000000000604,
-      "selfMs": 2.5686000000000604,
-      "avgMs": 2.5686000000000604,
-      "maxMs": 2.5686000000000604,
-      "minMs": 2.5686000000000604
+      "name": "tool.execute(echo)",
+      "category": "tool",
+      "callCount": 2,
+      "totalMs": 0.2782999999999447,
+      "selfMs": 0.18879999999990105,
+      "avgMs": 0.13914999999997235,
+      "maxMs": 0.18879999999990105,
+      "minMs": 0.08950000000004366
     },
     {
-      "name": "cli.userInstructionService.start",
-      "category": "startup",
+      "name": "model.stream.open",
+      "category": "llm",
+      "callCount": 3,
+      "totalMs": 0.1510000000000673,
+      "selfMs": 0.09580000000005384,
+      "avgMs": 0.05033333333335577,
+      "maxMs": 0.09580000000005384,
+      "minMs": 0.022199999999884312
+    },
+    {
+      "name": "composeSystemPrompt(call)",
+      "category": "message",
+      "callCount": 3,
+      "totalMs": 0.1268999999999778,
+      "selfMs": 0.1228000000000975,
+      "avgMs": 0.0422999999999926,
+      "maxMs": 0.1228000000000975,
+      "minMs": 0.0019999999999527063
+    },
+    {
+      "name": "emit(run-started)",
+      "category": "event",
       "callCount": 1,
-      "totalMs": 0.13550000000009277,
-      "selfMs": 0.13550000000009277,
-      "avgMs": 0.13550000000009277,
-      "maxMs": 0.13550000000009277,
-      "minMs": 0.13550000000009277
+      "totalMs": 0.038399999999910506,
+      "selfMs": 0.038399999999910506,
+      "avgMs": 0.038399999999910506,
+      "maxMs": 0.038399999999910506,
+      "minMs": 0.038399999999910506
+    },
+    {
+      "name": "composeSystemPrompt",
+      "category": "message",
+      "callCount": 1,
+      "totalMs": 0.02970000000004802,
+      "selfMs": 0.02970000000004802,
+      "avgMs": 0.02970000000004802,
+      "maxMs": 0.02970000000004802,
+      "minMs": 0.02970000000004802
+    },
+    {
+      "name": "emit(message-added)",
+      "category": "event",
+      "callCount": 6,
+      "totalMs": 0.02930000000014843,
+      "selfMs": 0.007800000000088403,
+      "avgMs": 0.004883333333358071,
+      "maxMs": 0.007800000000088403,
+      "minMs": 0.0016000000000531145
+    },
+    {
+      "name": "parseToolArguments",
+      "category": "tool",
+      "callCount": 2,
+      "totalMs": 0.026700000000118962,
+      "selfMs": 0.016900000000077853,
+      "avgMs": 0.013350000000059481,
+      "maxMs": 0.016900000000077853,
+      "minMs": 0.00980000000004111
+    },
+    {
+      "name": "cloneMessages(generateAssistant)",
+      "category": "message",
+      "callCount": 3,
+      "totalMs": 0.022200000000111686,
+      "selfMs": 0.013999999999896318,
+      "avgMs": 0.007400000000037228,
+      "maxMs": 0.013999999999896318,
+      "minMs": 0.003300000000081127
+    },
+    {
+      "name": "emit(turn-started)",
+      "category": "event",
+      "callCount": 3,
+      "totalMs": 0.02020000000015898,
+      "selfMs": 0.007100000000036744,
+      "avgMs": 0.0067333333333863266,
+      "maxMs": 0.011400000000094224,
+      "minMs": 0.0017000000000280124
+    },
+    {
+      "name": "getTool",
+      "category": "tool",
+      "callCount": 4,
+      "totalMs": 0.014499999999770807,
+      "selfMs": 0.006499999999959982,
+      "avgMs": 0.003624999999942702,
+      "maxMs": 0.006499999999959982,
+      "minMs": 0.0019999999999527063
+    },
+    {
+      "name": "emit(turn-finished)",
+      "category": "event",
+      "callCount": 3,
+      "totalMs": 0.012500000000045475,
+      "selfMs": 0.004100000000107684,
+      "avgMs": 0.004166666666681825,
+      "maxMs": 0.005699999999933425,
+      "minMs": 0.0027000000000043656
+    },
+    {
+      "name": "emit(tool-started)",
+      "category": "event",
+      "callCount": 2,
+      "totalMs": 0.010399999999890497,
+      "selfMs": 0.00709999999980937,
+      "avgMs": 0.005199999999945248,
+      "maxMs": 0.00709999999980937,
+      "minMs": 0.003300000000081127
+    },
+    {
+      "name": "emit(tool-finished)",
+      "category": "event",
+      "callCount": 2,
+      "totalMs": 0.008900000000039654,
+      "selfMs": 0.00430000000005748,
+      "avgMs": 0.004450000000019827,
+      "maxMs": 0.004599999999982174,
+      "minMs": 0.00430000000005748
+    },
+    {
+      "name": "emit(assistant-message)",
+      "category": "event",
+      "callCount": 3,
+      "totalMs": 0.008200000000215368,
+      "selfMs": 0.0039000000001578883,
+      "avgMs": 0.0027333333334051226,
+      "maxMs": 0.0039000000001578883,
+      "minMs": 0.001199999999926149
+    },
+    {
+      "name": "emit(run-finished)",
+      "category": "event",
+      "callCount": 1,
+      "totalMs": 0.003500000000030923,
+      "selfMs": 0.003500000000030923,
+      "avgMs": 0.003500000000030923,
+      "maxMs": 0.003500000000030923,
+      "minMs": 0.003500000000030923
+    },
+    {
+      "name": "emit(assistant-text-delta)",
+      "category": "event",
+      "callCount": 1,
+      "totalMs": 0.0032999999998537533,
+      "selfMs": 0.0032999999998537533,
+      "avgMs": 0.0032999999998537533,
+      "maxMs": 0.0032999999998537533,
+      "minMs": 0.0032999999998537533
     }
   ],
   "memorySnapshots": [
     {
-      "timeMs": 0.09159999999997126,
-      "rssMb": 254,
-      "heapUsedMb": 26,
-      "heapTotalMb": 29,
-      "externalMb": 9,
+      "timeMs": 0.1793999999999869,
+      "rssMb": 94,
+      "heapUsedMb": 28,
+      "heapTotalMb": 38,
+      "externalMb": 5,
       "largeObjectCount": 0
     },
     {
-      "timeMs": 693.4048,
-      "rssMb": 328,
-      "heapUsedMb": 75,
-      "heapTotalMb": 78,
-      "externalMb": 18,
+      "timeMs": 894.3677,
+      "rssMb": 209,
+      "heapUsedMb": 95,
+      "heapTotalMb": 136,
+      "externalMb": 10,
       "largeObjectCount": 0
     },
     {
-      "timeMs": 1962.1986,
-      "rssMb": 340,
-      "heapUsedMb": 76,
-      "heapTotalMb": 73,
-      "externalMb": 19,
-      "largeObjectCount": 0
-    },
-    {
-      "timeMs": 1963.668,
-      "rssMb": 340,
-      "heapUsedMb": 76,
-      "heapTotalMb": 73,
-      "externalMb": 19,
+      "timeMs": 902.0433,
+      "rssMb": 210,
+      "heapUsedMb": 96,
+      "heapTotalMb": 136,
+      "externalMb": 10,
       "largeObjectCount": 0
     }
   ],
-  "toolCalls": []
+  "toolCalls": [
+    {
+      "toolName": "echo",
+      "startMs": 1335.862,
+      "endMs": 1335.8674,
+      "durationMs": 0,
+      "argsSize": 16,
+      "resultSize": 18,
+      "retryCount": 0,
+      "recoveryCount": 0
+    },
+    {
+      "toolName": "echo",
+      "startMs": 1336.4557,
+      "endMs": 1336.4562,
+      "durationMs": 0,
+      "argsSize": 17,
+      "resultSize": 19,
+      "retryCount": 0,
+      "recoveryCount": 0
+    }
+  ]
 }

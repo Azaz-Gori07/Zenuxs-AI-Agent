@@ -1,12 +1,12 @@
 # Zenuxs Runtime Profile
 
-**Generated**: 2026-07-01T12:59:50.019Z
-**Total duration**: 1967ms
-**Peak memory**: 76MB
-**Spans recorded**: 7
-**Timeline events**: 6
-**Tool calls**: 0
-**Memory snapshots**: 4
+**Generated**: 2026-07-03T07:03:19.068Z
+**Total duration**: 902ms
+**Peak memory**: 96MB
+**Spans recorded**: 72
+**Timeline events**: 12
+**Tool calls**: 2
+**Memory snapshots**: 3
 
 
 ---
@@ -15,25 +15,161 @@
 
 ```
      0ms  profiler.enabled
-   230ms  process.start
-   230ms  vcr.initialized
-   231ms  ▶ cli.runCli
-   234ms  cli.runCli.start
-   330ms  ▶ cli.createProviderSettingsManager
-   330ms  ▶ cli.loadCliRuntimeModules
-   341ms  ◀ cli.createProviderSettingsManager (11.1ms)
-   377ms  ◀ cli.loadCliRuntimeModules (47.5ms)
-   379ms  ▶ cli.userInstructionService.start
-   379ms  ◀ cli.userInstructionService.start (0.1ms)
-   414ms  ▶ cli.resolveProviderConfig
-   417ms  ◀ cli.resolveProviderConfig (2.6ms)
-   422ms  cli.config.built
-   422ms  ▶ cli.resolveSystemPrompt
-   693ms  ◀ cli.resolveSystemPrompt (271.5ms)
-   696ms  ▶ cli.runAgent
-  1962ms  ◀ cli.runAgent (1265.7ms)
-  1964ms  ◀ cli.runCli (1732.9ms)
-  1964ms  profiler.finishing
+   894ms  ▶ snapshot
+   895ms  ◀ snapshot (0.2ms)
+   895ms  ▶ emit(run-started)
+   895ms  ◀ emit(run-started) (0.0ms)
+   895ms  ▶ snapshot
+   895ms  ◀ snapshot (0.1ms)
+   895ms  ▶ emit(message-added)
+   895ms  ◀ emit(message-added) (0.0ms)
+   895ms  ▶ agentLoop.iteration
+   895ms  ▶ snapshot
+   895ms  ◀ snapshot (0.0ms)
+   895ms  ▶ emit(turn-started)
+   895ms  ◀ emit(turn-started) (0.0ms)
+   895ms  ▶ generateAssistantMessage
+   895ms  ▶ composeSystemPrompt(call)
+   896ms  ▶ composeSystemPrompt
+   896ms  ◀ composeSystemPrompt (0.0ms)
+   896ms  ◀ composeSystemPrompt(call) (0.1ms)
+   896ms  ▶ cloneMessages(generateAssistant)
+   896ms  ◀ cloneMessages(generateAssistant) (0.0ms)
+   896ms  model.request.dispatch
+   896ms  ▶ model.stream.open
+   896ms  ◀ model.stream.open (0.1ms)
+   896ms  model.stream.opened
+   896ms  model.stream.first_event
+   896ms  ▶ parseToolArguments
+   896ms  ◀ parseToolArguments (0.0ms)
+   896ms  ◀ generateAssistantMessage (0.8ms)
+   896ms  ▶ snapshot
+   896ms  ◀ snapshot (0.0ms)
+   896ms  ▶ emit(message-added)
+   896ms  ◀ emit(message-added) (0.0ms)
+   896ms  ▶ snapshot
+   896ms  ◀ snapshot (0.0ms)
+   896ms  ▶ emit(assistant-message)
+   896ms  ◀ emit(assistant-message) (0.0ms)
+   896ms  ▶ executeToolCalls
+   897ms  ▶ getTool
+   897ms  ◀ getTool (0.0ms)
+   897ms  ▶ tool.execute(echo)
+   897ms  ▶ snapshot
+   897ms  ◀ snapshot (0.0ms)
+   897ms  ▶ emit(tool-started)
+   897ms  ◀ emit(tool-started) (0.0ms)
+   897ms  ▶ snapshot
+   897ms  ◀ snapshot (0.0ms)
+   897ms  ▶ snapshot
+   897ms  ◀ snapshot (0.0ms)
+   897ms  ▶ emit(tool-finished)
+   897ms  ◀ emit(tool-finished) (0.0ms)
+   897ms  ◀ tool.execute(echo) (0.2ms)
+   897ms  ◀ executeToolCalls (0.8ms)
+   897ms  ▶ snapshot
+   897ms  ◀ snapshot (0.0ms)
+   897ms  ▶ emit(message-added)
+   897ms  ◀ emit(message-added) (0.0ms)
+   897ms  ▶ snapshot
+   897ms  ◀ snapshot (0.0ms)
+   897ms  ▶ emit(turn-finished)
+   897ms  ◀ emit(turn-finished) (0.0ms)
+   897ms  ◀ agentLoop.iteration (2.3ms)
+   897ms  ▶ getTool
+   897ms  ◀ getTool (0.0ms)
+   897ms  ▶ agentLoop.iteration
+   897ms  ▶ snapshot
+   897ms  ◀ snapshot (0.0ms)
+   897ms  ▶ emit(turn-started)
+   897ms  ◀ emit(turn-started) (0.0ms)
+   897ms  ▶ generateAssistantMessage
+   897ms  ▶ composeSystemPrompt(call)
+   897ms  ◀ composeSystemPrompt(call) (0.0ms)
+   897ms  ▶ cloneMessages(generateAssistant)
+   897ms  ◀ cloneMessages(generateAssistant) (0.0ms)
+   897ms  model.request.dispatch
+   897ms  ▶ model.stream.open
+   898ms  ◀ model.stream.open (0.0ms)
+   898ms  model.stream.opened
+   898ms  model.stream.first_event
+   898ms  ▶ parseToolArguments
+   898ms  ◀ parseToolArguments (0.0ms)
+   898ms  ◀ generateAssistantMessage (0.2ms)
+   898ms  ▶ snapshot
+   898ms  ◀ snapshot (0.0ms)
+   898ms  ▶ emit(message-added)
+   898ms  ◀ emit(message-added) (0.0ms)
+   898ms  ▶ snapshot
+   898ms  ◀ snapshot (0.0ms)
+   898ms  ▶ emit(assistant-message)
+   898ms  ◀ emit(assistant-message) (0.0ms)
+   898ms  ▶ executeToolCalls
+   898ms  ▶ getTool
+   898ms  ◀ getTool (0.0ms)
+   898ms  ▶ tool.execute(echo)
+   898ms  ▶ snapshot
+   898ms  ◀ snapshot (0.0ms)
+   898ms  ▶ emit(tool-started)
+   898ms  ◀ emit(tool-started) (0.0ms)
+   898ms  ▶ snapshot
+   898ms  ◀ snapshot (0.0ms)
+   898ms  ▶ snapshot
+   898ms  ◀ snapshot (0.0ms)
+   898ms  ▶ emit(tool-finished)
+   898ms  ◀ emit(tool-finished) (0.0ms)
+   898ms  ◀ tool.execute(echo) (0.1ms)
+   898ms  ◀ executeToolCalls (0.1ms)
+   898ms  ▶ snapshot
+   898ms  ◀ snapshot (0.0ms)
+   898ms  ▶ emit(message-added)
+   898ms  ◀ emit(message-added) (0.0ms)
+   898ms  ▶ snapshot
+   898ms  ◀ snapshot (0.0ms)
+   898ms  ▶ emit(turn-finished)
+   898ms  ◀ emit(turn-finished) (0.0ms)
+   898ms  ◀ agentLoop.iteration (0.5ms)
+   898ms  ▶ getTool
+   898ms  ◀ getTool (0.0ms)
+   898ms  ▶ agentLoop.iteration
+   898ms  ▶ snapshot
+   898ms  ◀ snapshot (0.0ms)
+   898ms  ▶ emit(turn-started)
+   898ms  ◀ emit(turn-started) (0.0ms)
+   898ms  ▶ generateAssistantMessage
+   898ms  ▶ composeSystemPrompt(call)
+   898ms  ◀ composeSystemPrompt(call) (0.0ms)
+   898ms  ▶ cloneMessages(generateAssistant)
+   898ms  ◀ cloneMessages(generateAssistant) (0.0ms)
+   898ms  model.request.dispatch
+   898ms  ▶ model.stream.open
+   898ms  ◀ model.stream.open (0.0ms)
+   898ms  model.stream.opened
+   898ms  model.stream.first_event
+   898ms  model.stream.first_text_token
+   898ms  ▶ snapshot
+   898ms  ◀ snapshot (0.0ms)
+   898ms  ▶ emit(assistant-text-delta)
+   898ms  ◀ emit(assistant-text-delta) (0.0ms)
+   898ms  ◀ generateAssistantMessage (0.1ms)
+   898ms  ▶ snapshot
+   898ms  ◀ snapshot (0.0ms)
+   898ms  ▶ emit(message-added)
+   898ms  ◀ emit(message-added) (0.0ms)
+   898ms  ▶ snapshot
+   898ms  ◀ snapshot (0.0ms)
+   898ms  ▶ emit(assistant-message)
+   898ms  ◀ emit(assistant-message) (0.0ms)
+   898ms  ▶ snapshot
+   898ms  ◀ snapshot (0.0ms)
+   898ms  ▶ emit(turn-finished)
+   898ms  ◀ emit(turn-finished) (0.0ms)
+   898ms  ◀ agentLoop.iteration (0.4ms)
+   898ms  ▶ snapshot
+   898ms  ◀ snapshot (0.0ms)
+   898ms  ▶ emit(run-finished)
+   898ms  ◀ emit(run-finished) (0.0ms)
+   902ms  profiler.finishing
 ```
 
 
@@ -41,17 +177,7 @@
 
 ## Startup Analysis
 
-| Phase | Start | End | Duration |
-|-------|-------|-----|----------|
-| cli.runCli | 231ms | 1964ms | 1732.9ms |
-| cli.createProviderSettingsManager | 330ms | 341ms | 11.1ms |
-| cli.loadCliRuntimeModules | 330ms | 377ms | 47.5ms |
-| cli.userInstructionService.start | 379ms | 379ms | 0.1ms |
-| cli.resolveProviderConfig | 414ms | 417ms | 2.6ms |
-| cli.resolveSystemPrompt | 422ms | 693ms | 271.5ms |
-
-**Total startup time**: 1733ms
-
+No startup spans recorded.
 
 ---
 
@@ -59,13 +185,26 @@
 
 | Rank | Function | Category | Calls | Total (ms) | Avg (ms) | Max (ms) | Min (ms) |
 |------|----------|----------|-------|------------|----------|----------|----------|
-| 1 | cli.runCli | startup | 1 | 1732.9 | 1732.92 | 1732.9 | 1732.9 |
-| 2 | cli.runAgent | agent | 1 | 1265.7 | 1265.67 | 1265.7 | 1265.7 |
-| 3 | cli.resolveSystemPrompt | startup | 1 | 271.5 | 271.53 | 271.5 | 271.5 |
-| 4 | cli.loadCliRuntimeModules | startup | 1 | 47.5 | 47.47 | 47.5 | 47.5 |
-| 5 | cli.createProviderSettingsManager | startup | 1 | 11.1 | 11.13 | 11.1 | 11.1 |
-| 6 | cli.resolveProviderConfig | startup | 1 | 2.6 | 2.57 | 2.6 | 2.6 |
-| 7 | cli.userInstructionService.start | startup | 1 | 0.1 | 0.14 | 0.1 | 0.1 |
+| 1 | agentLoop.iteration | agent | 3 | 3.1 | 1.04 | 2.3 | 0.4 |
+| 2 | generateAssistantMessage | llm | 3 | 1.1 | 0.38 | 0.8 | 0.1 |
+| 3 | executeToolCalls | tool | 2 | 0.9 | 0.44 | 0.8 | 0.1 |
+| 4 | snapshot | message | 24 | 0.6 | 0.03 | 0.2 | 0.0 |
+| 5 | tool.execute(echo) | tool | 2 | 0.3 | 0.14 | 0.2 | 0.1 |
+| 6 | model.stream.open | llm | 3 | 0.2 | 0.05 | 0.1 | 0.0 |
+| 7 | composeSystemPrompt(call) | message | 3 | 0.1 | 0.04 | 0.1 | 0.0 |
+| 8 | emit(run-started) | event | 1 | 0.0 | 0.04 | 0.0 | 0.0 |
+| 9 | composeSystemPrompt | message | 1 | 0.0 | 0.03 | 0.0 | 0.0 |
+| 10 | emit(message-added) | event | 6 | 0.0 | 0.00 | 0.0 | 0.0 |
+| 11 | parseToolArguments | tool | 2 | 0.0 | 0.01 | 0.0 | 0.0 |
+| 12 | cloneMessages(generateAssistant) | message | 3 | 0.0 | 0.01 | 0.0 | 0.0 |
+| 13 | emit(turn-started) | event | 3 | 0.0 | 0.01 | 0.0 | 0.0 |
+| 14 | getTool | tool | 4 | 0.0 | 0.00 | 0.0 | 0.0 |
+| 15 | emit(turn-finished) | event | 3 | 0.0 | 0.00 | 0.0 | 0.0 |
+| 16 | emit(tool-started) | event | 2 | 0.0 | 0.01 | 0.0 | 0.0 |
+| 17 | emit(tool-finished) | event | 2 | 0.0 | 0.00 | 0.0 | 0.0 |
+| 18 | emit(assistant-message) | event | 3 | 0.0 | 0.00 | 0.0 | 0.0 |
+| 19 | emit(run-finished) | event | 1 | 0.0 | 0.00 | 0.0 | 0.0 |
+| 20 | emit(assistant-text-delta) | event | 1 | 0.0 | 0.00 | 0.0 | 0.0 |
 
 
 ---
@@ -74,38 +213,95 @@
 
 | Rank | Function | Category | Calls | Total (ms) | Avg (ms) |
 |------|----------|----------|-------|------------|----------|
-| 1 | cli.createProviderSettingsManager | startup | 1 | 11.1 | 11.13 |
-| 2 | cli.loadCliRuntimeModules | startup | 1 | 47.5 | 47.47 |
-| 3 | cli.userInstructionService.start | startup | 1 | 0.1 | 0.14 |
-| 4 | cli.resolveProviderConfig | startup | 1 | 2.6 | 2.57 |
-| 5 | cli.resolveSystemPrompt | startup | 1 | 271.5 | 271.53 |
-| 6 | cli.runAgent | agent | 1 | 1265.7 | 1265.67 |
-| 7 | cli.runCli | startup | 1 | 1732.9 | 1732.92 |
+| 1 | snapshot | message | 24 | 0.6 | 0.03 |
+| 2 | emit(message-added) | event | 6 | 0.0 | 0.00 |
+| 3 | getTool | tool | 4 | 0.0 | 0.00 |
+| 4 | emit(turn-started) | event | 3 | 0.0 | 0.01 |
+| 5 | composeSystemPrompt(call) | message | 3 | 0.1 | 0.04 |
+| 6 | cloneMessages(generateAssistant) | message | 3 | 0.0 | 0.01 |
+| 7 | model.stream.open | llm | 3 | 0.2 | 0.05 |
+| 8 | generateAssistantMessage | llm | 3 | 1.1 | 0.38 |
+| 9 | emit(assistant-message) | event | 3 | 0.0 | 0.00 |
+| 10 | emit(turn-finished) | event | 3 | 0.0 | 0.00 |
+| 11 | agentLoop.iteration | agent | 3 | 3.1 | 1.04 |
+| 12 | parseToolArguments | tool | 2 | 0.0 | 0.01 |
+| 13 | emit(tool-started) | event | 2 | 0.0 | 0.01 |
+| 14 | emit(tool-finished) | event | 2 | 0.0 | 0.00 |
+| 15 | tool.execute(echo) | tool | 2 | 0.3 | 0.14 |
+| 16 | executeToolCalls | tool | 2 | 0.9 | 0.44 |
+| 17 | emit(run-started) | event | 1 | 0.0 | 0.04 |
+| 18 | composeSystemPrompt | message | 1 | 0.0 | 0.03 |
+| 19 | emit(assistant-text-delta) | event | 1 | 0.0 | 0.00 |
+| 20 | emit(run-finished) | event | 1 | 0.0 | 0.00 |
 
 
 ---
 
 ## LLM Analysis
 
-No LLM spans recorded.
+### LLM Spans
+
+| Phase | Duration | Details |
+|-------|----------|---------|
+| generateAssistantMessage | 0.8ms | iteration=1, finishReason=tool-calls, contentParts=1 |
+| model.stream.open | 0.1ms | iteration=1 |
+| generateAssistantMessage | 0.2ms | iteration=2, finishReason=tool-calls, contentParts=1 |
+| model.stream.open | 0.0ms | iteration=2 |
+| generateAssistantMessage | 0.1ms | iteration=3, finishReason=stop, contentParts=1 |
+| model.stream.open | 0.0ms | iteration=3 |
+
+**Total LLM time**: 1ms
+**LLM calls**: 6
+
 
 ---
 
 ## Tool Call Analysis
 
-No tool calls recorded.
+### Per-Tool Summary
+
+| Tool | Calls | Total (ms) | Avg (ms) | Max (ms) | Avg Args Size | Avg Result Size | Retries |
+|------|-------|------------|----------|----------|---------------|-----------------|---------|
+| echo | 2 | 0 | 0.0 | 0 | 17 | 19 | 0 |
+
+### Tool Call Timeline
+
+| # | Tool | Start | Duration | Args Size | Result Size |
+|---|------|-------|----------|-----------|-------------|
+| 1 | echo | 1336ms | 0ms | 16 | 18 |
+| 2 | echo | 1336ms | 0ms | 17 | 19 |
+
 
 ---
 
 ## Message Pipeline Analysis
 
-No message pipeline spans recorded.
+| Function | Calls | Total (ms) | Avg (ms) | Max (ms) |
+|----------|-------|------------|----------|----------|
+| snapshot | 24 | 0.6 | 0.03 | 0.2 |
+| composeSystemPrompt(call) | 3 | 0.1 | 0.04 | 0.1 |
+| composeSystemPrompt | 1 | 0.0 | 0.03 | 0.0 |
+| cloneMessages(generateAssistant) | 3 | 0.0 | 0.01 | 0.0 |
+
+**Total message pipeline time**: 1ms
+
 
 ---
 
 ## Hook & Event Analysis
 
-No hook/event spans recorded.
+| Hook/Event | Calls | Total (ms) | Avg (ms) | Max (ms) |
+|------------|-------|------------|----------|----------|
+| emit(run-started) | 1 | 0.0 | 0.04 | 0.0 |
+| emit(message-added) | 6 | 0.0 | 0.00 | 0.0 |
+| emit(turn-started) | 3 | 0.0 | 0.01 | 0.0 |
+| emit(assistant-message) | 3 | 0.0 | 0.00 | 0.0 |
+| emit(tool-started) | 2 | 0.0 | 0.01 | 0.0 |
+| emit(tool-finished) | 2 | 0.0 | 0.00 | 0.0 |
+| emit(turn-finished) | 3 | 0.0 | 0.00 | 0.0 |
+| emit(assistant-text-delta) | 1 | 0.0 | 0.00 | 0.0 |
+| emit(run-finished) | 1 | 0.0 | 0.00 | 0.0 |
+
 
 ---
 
@@ -113,13 +309,12 @@ No hook/event spans recorded.
 
 | Time (ms) | RSS (MB) | Heap Used (MB) | Heap Total (MB) | External (MB) |
 |-----------|----------|----------------|-----------------|---------------|
-| 0 | 254 | 26 | 29 | 9 |
-| 693 | 328 | 75 | 78 | 18 |
-| 1962 | 340 | 76 | 73 | 19 |
-| 1964 | 340 | 76 | 73 | 19 |
+| 0 | 94 | 28 | 38 | 5 |
+| 894 | 209 | 95 | 136 | 10 |
+| 902 | 210 | 96 | 136 | 10 |
 
-**Peak heap usage**: 76MB at 1962ms
-**Peak RSS**: 340MB
+**Peak heap usage**: 96MB at 902ms
+**Peak RSS**: 210MB
 
 
 ---
@@ -128,5 +323,8 @@ No hook/event spans recorded.
 
 | Category | Spans | Total Time (ms) | % of Total |
 |----------|-------|-----------------|------------|
-| startup | 6 | 2066 | 105.0% |
-| agent | 1 | 1266 | 64.4% |
+| agent | 3 | 3 | 0.3% |
+| llm | 6 | 1 | 0.1% |
+| tool | 10 | 1 | 0.1% |
+| message | 31 | 1 | 0.1% |
+| event | 22 | 0 | 0.0% |

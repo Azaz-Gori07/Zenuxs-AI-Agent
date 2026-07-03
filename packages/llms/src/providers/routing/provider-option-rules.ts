@@ -466,9 +466,11 @@ const nvidiaSuppressGenericOptionsRule: ProviderOptionRule = {
 	id: "provider.nvidia.suppress-generic-options",
 	phase: "provider",
 	description:
-		"NVIDIA API rejects non-standard reasoning parameters. Suppress thinking and effort options.",
-	applies: (input) => input.request.providerId === "nvidia",
-	suppresses: { genericThinking: true, genericEffort: true },
+		"NVIDIA API rejects non-standard reasoning parameters. Suppress thinking, effort, and reasoning options.",
+	applies: (input) =>
+		input.request.providerId === "nvidia" ||
+		input.request.providerId === "mybackup",
+	suppresses: { genericThinking: true, genericEffort: true, genericReasoning: true },
 	build: () => undefined,
 };
 
@@ -487,9 +489,10 @@ const routedGlmReasoningRule: ProviderOptionRule = {
 			input.context,
 			input.providerOptionsKey,
 			{
-				includeProviderBuckets:
-					input.request.providerId !== "openrouter" &&
-					input.request.providerId !== "nvidia",
+			includeProviderBuckets:
+				input.request.providerId !== "openrouter" &&
+				input.request.providerId !== "nvidia" &&
+				input.request.providerId !== "mybackup",
 			},
 		),
 };

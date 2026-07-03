@@ -113,6 +113,36 @@ describe("built-in provider metadata", () => {
 		});
 	});
 
+	it("configures OpenCode Zen with the free OpenAI-compatible model set", async () => {
+		const provider = await getProvider("opencode-zen");
+		const models = await getModelsForProvider("opencode-zen");
+		const modelIds = Object.keys(models).sort();
+
+		expect(provider).toMatchObject({
+			id: "opencode-zen",
+			baseUrl: "https://opencode.ai/zen/v1",
+			client: "openai-compatible",
+			protocol: "openai-chat",
+			defaultModelId: "deepseek-v4-flash-free",
+			capabilities: expect.arrayContaining(["tools", "reasoning"]),
+		});
+		expect(modelIds).toEqual([
+			"big-pickle",
+			"deepseek-v4-flash-free",
+			"mimo-v2.5-free",
+			"nemotron-3-ultra-free",
+			"north-mini-code-free",
+		]);
+		for (const model of Object.values(models)) {
+			expect(model.pricing).toEqual({
+				input: 0,
+				output: 0,
+				cacheRead: 0,
+				cacheWrite: 0,
+			});
+		}
+	});
+
 	it("derives ChatGPT subscription models from the generated OpenAI catalog", async () => {
 		const chatGptModels = await getModelsForProvider("openai-codex");
 		const openAiModels = await getModelsForProvider("openai-native");

@@ -2,6 +2,25 @@ import { describe, expect, it } from "vitest";
 import { safeParseSettings, toProviderConfig } from "./provider-settings";
 
 describe("provider settings", () => {
+	it("normalizes OpenCode Zen docs and endpoint URLs to the API root", () => {
+		for (const baseUrl of [
+			"https://opencode.ai/zen",
+			"https://opencode.ai/zen/",
+			"https://opencode.ai/zen/v1",
+			"https://opencode.ai/zen/v1/responses",
+			"https://opencode.ai/zen/v1/chat/completions",
+		]) {
+			const config = toProviderConfig({
+				provider: "opencode-zen",
+				model: "deepseek-v4-flash-free",
+				apiKey: "zen-key",
+				baseUrl,
+			});
+
+			expect(config.baseUrl, baseUrl).toBe("https://opencode.ai/zen/v1");
+		}
+	});
+
 	it("formats Cline OAuth access tokens for runtime API keys", () => {
 		const config = toProviderConfig({
 			provider: "cline",

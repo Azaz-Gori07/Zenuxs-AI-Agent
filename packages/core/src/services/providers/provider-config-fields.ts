@@ -120,6 +120,10 @@ const PROVIDER_CONFIG_FIELD_METADATA: Partial<
 			},
 		},
 	},
+	mybackup: {
+		mode: "replace",
+		fields: {},
+	},
 	sapaicore: {
 		mode: "replace",
 		description:
@@ -189,6 +193,7 @@ const EDITABLE_BASE_URL_PROVIDER_IDS = new Set([
 	"lmstudio",
 	"litellm",
 	"openai-compatible",
+	"opencode-zen",
 ]);
 
 function shouldExposeBaseUrlField(

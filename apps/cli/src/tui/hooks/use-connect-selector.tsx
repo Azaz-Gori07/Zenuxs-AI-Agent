@@ -83,19 +83,25 @@ export function useConnectSelector(opts: {
 				}
 			} else {
 				const { fields } = getProviderConfigFields(providerId);
-				saved = await dialog.choice<boolean>({
-					style: { maxHeight: termHeight - 2 },
-					closeOnEscape: false,
-					content: (ctx: ChoiceContext<boolean>) => (
-						<ProviderConfigInputContent
-							{...ctx}
-							providerId={providerId}
-							providerName={displayName}
-							fields={fields}
-							providerSettingsManager={manager}
-						/>
-					),
-				});
+				const fieldKeys = Object.keys(fields);
+				if (fieldKeys.length === 0) {
+					manager.saveProviderSettings({ provider: providerId });
+					saved = true;
+				} else {
+					saved = await dialog.choice<boolean>({
+						style: { maxHeight: termHeight - 2 },
+						closeOnEscape: false,
+						content: (ctx: ChoiceContext<boolean>) => (
+							<ProviderConfigInputContent
+								{...ctx}
+								providerId={providerId}
+								providerName={displayName}
+								fields={fields}
+								providerSettingsManager={manager}
+							/>
+						),
+					});
+				}
 
 				if (saved) {
 					// Validate credentials by attempting to refresh models from source

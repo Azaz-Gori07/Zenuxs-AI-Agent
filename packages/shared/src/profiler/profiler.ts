@@ -35,6 +35,7 @@ export type SpanCategory =
 	| "startup"
 	| "agent"
 	| "llm"
+	| "network"
 	| "tool"
 	| "filesystem"
 	| "message"

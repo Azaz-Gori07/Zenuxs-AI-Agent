@@ -45,6 +45,15 @@ describe("getProviderConfigFields", () => {
 		);
 	});
 
+	it("returns api-key auth with editable baseUrl for OpenCode Zen", () => {
+		const result = getProviderConfigFields("opencode-zen");
+		expect(result.authMethod).toBe("api-key");
+		expect(result.fields.apiKey).toEqual({});
+		expect(result.fields.baseUrl?.defaultValue).toBe(
+			"https://opencode.ai/zen/v1",
+		);
+	});
+
 	it("returns api-key auth with apiKey + baseUrl for user-added providers", () => {
 		registerCustomProvider("internal-router", {
 			provider: {

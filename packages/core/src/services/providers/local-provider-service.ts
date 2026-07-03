@@ -17,6 +17,7 @@ import {
 	saveProviderOAuthCredentials,
 } from "../../auth/provider-auth-registry";
 import { resolveProviderConfig } from "../../services/llms/provider-defaults";
+import { normalizeProviderBaseUrl } from "../../services/llms/provider-settings";
 import type {
 	ModelInfo,
 	ProviderClient,
@@ -767,8 +768,12 @@ function applySettingsObjectPatch(
 
 export function saveLocalProviderSettings(
 	manager: ProviderSettingsManager,
-	request: Omit<SaveProviderSettingsActionRequest, "action">,
+	request: Omit<SaveProviderSettingsActionRequest, "action"> & {
+		setLastUsed?: boolean;
+	},
 ): { providerId: string; enabled: boolean; settingsPath: string } {
+	const setLastUsed =
+		request.setLastUsed !== undefined ? request.setLastUsed : false;
 	const providerId = request.providerId.trim();
 
 	if (request.enabled === false) {
@@ -788,9 +793,12 @@ export function saveLocalProviderSettings(
 	// String fields that should be cleared when empty
 	for (const key of ["apiKey", "baseUrl", "model", "region"] as const) {
 		if (Object.hasOwn(request, key) && typeof request[key] === "string") {
-			const val = (request[key] as string).trim();
+			const raw = request[key] as string;
+			const value =
+				key === "baseUrl" ? normalizeProviderBaseUrl(providerId, raw) : raw;
+			const val = value?.trim() ?? "";
 			if (val.length === 0) delete next[key];
-			else next[key] = request[key];
+			else next[key] = value;
 		}
 	}
 
@@ -826,7 +834,7 @@ export function saveLocalProviderSettings(
 		}
 	}
 
-	manager.saveProviderSettings(next, { setLastUsed: false });
+	manager.saveProviderSettings(next, { setLastUsed });
 	return { providerId, enabled: true, settingsPath: manager.getFilePath() };
 }
 
@@ -847,6 +855,10 @@ export async function refreshProviderModelsFromSource(
 		provider?.modelsSourceUrl,
 	);
 	if (!settings || !provider || !baseUrl || !modelsSourceUrl) {
+		const models = await getLocalProviderModels(id, settings as any);
+		if (models.models.length > 0) {
+			return { providerId: id, refreshed: true, modelsCount: models.models.length };
+		}
 		return { providerId: id, refreshed: false };
 	}
 

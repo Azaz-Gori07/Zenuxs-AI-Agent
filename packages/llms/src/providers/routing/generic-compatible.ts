@@ -131,7 +131,10 @@ export function buildCompatibleProviderOptions(options: {
 	const suppressCompatibleReasoningOptions =
 		!usesAnthropicReasoningRoute &&
 		(hasPromptCacheRoute || isQwen || isAnthropicCompatible);
-	const reasoning = buildAnthropicCompatibleReasoningOptions(request, context);
+	const reasoning =
+		!suppressions.genericReasoning
+			? buildAnthropicCompatibleReasoningOptions(request, context)
+			: undefined;
 	const promptCache = hasPromptCacheRoute ? createEphemeralCacheControl() : {};
 
 	return {

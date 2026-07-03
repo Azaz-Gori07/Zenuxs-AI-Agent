@@ -12,12 +12,13 @@ import {
 	type AiSdkFormatterPart,
 	captureSdkError,
 	formatMessagesForAiSdk,
+	profiler,
 	sanitizeSurrogates,
 } from "@cline/shared";
 import { jsonSchema, streamText } from "ai";
 import { nanoid } from "nanoid";
 import { z } from "zod";
-import { wrapFetchWithRetry } from "./http";
+import { wrapFetchWithAgent, wrapFetchWithRetry } from "./http";
 import { extractErrorMessage } from "./format";
 import { isAnthropicCompatibleModel, resolveModelFamily } from "./model-facts";
 import {
@@ -658,10 +659,19 @@ async function* emitAiSdkEvents(
 	let streamError: string | undefined;
 	let finishUsage: unknown;
 	let finishProviderMetadata: unknown;
+	let sawFirstRawPart = false;
 
 	try {
 		if (stream.fullStream) {
 			for await (const part of stream.fullStream) {
+				if (!sawFirstRawPart) {
+					sawFirstRawPart = true;
+					profiler.markTimeline("provider.ai_sdk.first_raw_part", "llm", {
+						providerId: request.providerId,
+						modelId: request.modelId,
+						partType: part.type,
+					});
+				}
 				if (part.type === "text-delta") {
 					const text =
 						(part.textDelta as string | undefined) ??
@@ -776,6 +786,14 @@ async function* emitAiSdkEvents(
 			}
 		} else if (stream.textStream) {
 			for await (const text of stream.textStream) {
+				if (!sawFirstRawPart) {
+					sawFirstRawPart = true;
+					profiler.markTimeline("provider.ai_sdk.first_raw_text", "llm", {
+						providerId: request.providerId,
+						modelId: request.modelId,
+						textLength: text.length,
+					});
+				}
 				yield { type: "text-delta", text };
 			}
 		}
@@ -898,10 +916,26 @@ function createAiSdkProvider(kind: ProviderModuleKind): GatewayProviderFactory {
 			const capturedError: { current: string | undefined } = {
 				current: undefined,
 			};
+			const prepareId = profiler.start("provider.ai_sdk.prepare_request", "llm", {
+				providerId: request.providerId,
+				modelId: request.modelId,
+				providerKind: kind,
+			});
 			try {
 				const defaultMaxRetries = process.env.VITEST ? 0 : 5;
 				const customMaxRetries = typeof config.options?.maxRetries === "number" ? config.options.maxRetries : defaultMaxRetries;
-				const retryFetch = wrapFetchWithRetry(config.fetch, context.logger, customMaxRetries);
+				const agentFetch = wrapFetchWithAgent(config.fetch);
+				const retryFetch = wrapFetchWithRetry(
+					agentFetch,
+					context.logger,
+					customMaxRetries,
+					config.timeoutMs,
+				);
+				const moduleId = profiler.start("provider.ai_sdk.create_provider_module", "llm", {
+					providerId: request.providerId,
+					modelId: request.modelId,
+					providerKind: kind,
+				});
 				const provider = await createProviderModule(
 					kind,
 					{
@@ -909,22 +943,49 @@ function createAiSdkProvider(kind: ProviderModuleKind): GatewayProviderFactory {
 						fetch: wrapFetchForProviderRequestCapture(retryFetch, request),
 					},
 					context,
+				).then(
+					(provider) => {
+						profiler.end(moduleId);
+						return provider;
+					},
+					(error) => {
+						profiler.end(moduleId, { error: true });
+						throw error;
+					},
 				);
-				const tools = providerDisablesExternalToolExecution(context)
-					? undefined
-					: toAiSdkTools(request);
-				const systemPrompt = resolveAiSdkSystemPrompt(request);
-				const useSystemOption =
-					typeof systemPrompt === "string" && systemPrompt.trim().length > 0;
-				const messagesSystemPrompt = useSystemOption ? undefined : systemPrompt;
-				const messages = shouldApplyPromptCache(request, context)
-					? buildCachedAiSdkMessages(request, context, messagesSystemPrompt)
-					: toAiSdkMessages(request.messages, messagesSystemPrompt);
-				const providerOptions = composeAiSdkProviderOptions(
-					request,
-					context,
-					kind,
-				) as never;
+				const formatId = profiler.start("provider.ai_sdk.format_request", "message", {
+					providerId: request.providerId,
+					modelId: request.modelId,
+					messageCount: request.messages.length,
+				});
+				let tools: ReturnType<typeof toAiSdkTools> | undefined;
+				let systemPrompt: ReturnType<typeof resolveAiSdkSystemPrompt>;
+				let useSystemOption = false;
+				let messages: unknown;
+				let providerOptions: unknown;
+				try {
+					tools = providerDisablesExternalToolExecution(context)
+						? undefined
+						: toAiSdkTools(request);
+					systemPrompt = resolveAiSdkSystemPrompt(request);
+					useSystemOption =
+						typeof systemPrompt === "string" && systemPrompt.trim().length > 0;
+					const messagesSystemPrompt = useSystemOption ? undefined : systemPrompt;
+					messages = shouldApplyPromptCache(request, context)
+						? buildCachedAiSdkMessages(request, context, messagesSystemPrompt)
+						: toAiSdkMessages(request.messages, messagesSystemPrompt);
+					providerOptions = composeAiSdkProviderOptions(
+						request,
+						context,
+						kind,
+					) as never;
+					profiler.end(formatId, {
+						toolCount: tools ? Object.keys(tools).length : 0,
+					});
+				} catch (error) {
+					profiler.end(formatId, { error: true });
+					throw error;
+				}
 				recordProviderRequestCapture({
 					stage: "ai_sdk_prompt",
 					request,
@@ -937,46 +998,63 @@ function createAiSdkProvider(kind: ProviderModuleKind): GatewayProviderFactory {
 						temperature: request.temperature,
 					},
 				});
-				stream = streamText({
-					model: provider.model(context.model.id) as never,
-					messages: messages as never,
-					...(useSystemOption ? { system: systemPrompt } : {}),
-					tools: tools as never,
-					temperature: request.temperature,
-					...(request.maxTokens !== undefined
-						? { maxOutputTokens: request.maxTokens }
-						: {}),
-					abortSignal: request.signal,
-					providerOptions,
-					onError: ({ error: streamError }) => {
-						const msg = extractErrorMessage(streamError);
-						capturedError.current = msg;
-						if (log?.error) {
-							log.error("[ai-sdk] stream error", {
-								providerId: request.providerId,
+				const streamTextId = profiler.start("provider.ai_sdk.streamText", "llm", {
+					providerId: request.providerId,
+					modelId: request.modelId,
+					providerKind: kind,
+				});
+				try {
+					stream = streamText({
+						model: provider.model(context.model.id) as never,
+						messages: messages as never,
+						...(useSystemOption ? { system: systemPrompt } : {}),
+						tools: tools as never,
+						temperature: request.temperature,
+						...(request.maxTokens !== undefined
+							? { maxOutputTokens: request.maxTokens }
+							: {}),
+						abortSignal: request.signal,
+						providerOptions: providerOptions as never,
+						onError: ({ error: streamError }) => {
+							const msg = extractErrorMessage(streamError);
+							capturedError.current = msg;
+							if (log?.error) {
+								log.error("[ai-sdk] stream error", {
+									providerId: request.providerId,
+									error: streamError,
+									severity: "error",
+								});
+							} else if (log) {
+								log.log(`[ai-sdk] stream error: ${msg}`, {
+									providerId: request.providerId,
+									severity: "error",
+								});
+							}
+							captureSdkError(context.telemetry, {
+								component: "llms",
+								operation: "provider.stream",
 								error: streamError,
 								severity: "error",
+								handled: true,
+								context: {
+									providerId: request.providerId,
+									modelId: request.modelId,
+									providerKind: kind,
+								},
 							});
-						} else if (log) {
-							log.log(`[ai-sdk] stream error: ${msg}`, {
-								providerId: request.providerId,
-								severity: "error",
-							});
-						}
-						captureSdkError(context.telemetry, {
-							component: "llms",
-							operation: "provider.stream",
-							error: streamError,
-							severity: "error",
-							handled: true,
-							context: {
-								providerId: request.providerId,
-								modelId: request.modelId,
-								providerKind: kind,
-							},
-						});
-					},
-				}) as unknown as AiSdkStreamResult;
+						},
+					}) as unknown as AiSdkStreamResult;
+					profiler.end(streamTextId);
+				} catch (error) {
+					profiler.end(streamTextId, { error: true });
+					throw error;
+				}
+				profiler.end(prepareId);
+				profiler.markTimeline("provider.ai_sdk.stream_created", "llm", {
+					providerId: request.providerId,
+					modelId: request.modelId,
+					providerKind: kind,
+				});
 
 				// Suppress dangling promise rejections (finishReason, totalUsage, steps, etc.)
 				// BEFORE iterating. The AI SDK rejects these DelayedPromises inside the stream's
@@ -992,6 +1070,7 @@ function createAiSdkProvider(kind: ProviderModuleKind): GatewayProviderFactory {
 					capturedError,
 				);
 			} catch (error) {
+				profiler.end(prepareId, { error: true });
 				suppressDanglingStreamPromises(stream);
 				// Prefer the real provider error captured in onError over the generic
 				// NoOutputGeneratedError that the AI SDK throws when 0 steps are recorded.

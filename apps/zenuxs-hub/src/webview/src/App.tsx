@@ -65,6 +65,7 @@ import {
 } from "./components/views/settings/settings-view";
 import { syncHubTheme } from "./lib/theme";
 import { postToHost } from "./vscode";
+import { AdminDashboard } from "./components/views/admin-dashboard";
 
 type View =
 	| "home"
@@ -448,7 +449,7 @@ function Shell({
 	);
 }
 
-function HomeView({
+export function HomeView({
 	hubState,
 	onOpenSession,
 	onRestartHub,
@@ -1307,7 +1308,7 @@ function App() {
 			);
 		}
 		return (
-			<HomeView
+			<AdminDashboard
 				hubState={hubState}
 				onOpenSession={openSession}
 				onRestartHub={restartHub}

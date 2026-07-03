@@ -45,6 +45,36 @@ describe("extractErrorMessage", () => {
 			}),
 		).toBe("Missing upstream API key");
 	});
+
+	it("prefers OpenRouter raw metadata over generic provider errors", () => {
+		expect(
+			extractErrorMessage({
+				statusCode: 429,
+				responseBody: JSON.stringify({
+					error: {
+						message: "Provider returned error",
+						metadata: {
+							provider_name: "Google AI Studio",
+							raw: "Gemini requires thought_signature on function calls",
+						},
+					},
+				}),
+			}),
+		).toBe(
+			"Google AI Studio: Gemini requires thought_signature on function calls",
+		);
+
+		expect(
+			extractErrorMessage({
+				responseBody: {
+					error: "Provider returned error",
+					metadata: {
+						raw: "The upstream provider is temporarily rate-limited",
+					},
+				},
+			}),
+		).toBe("The upstream provider is temporarily rate-limited");
+	});
 });
 
 describe("ClineNotSubscribedError", () => {

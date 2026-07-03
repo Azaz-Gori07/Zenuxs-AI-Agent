@@ -1,5 +1,23 @@
 #!/usr/bin/env bun
 
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
+// Load .env from workspace root (Bun's --cwd may skip root .env)
+const rootEnvPath = join(import.meta.dir, "../../../.env");
+try {
+	const envText = readFileSync(rootEnvPath, "utf-8");
+	for (const line of envText.split("\n")) {
+		const trimmed = line.trim();
+		if (!trimmed || trimmed.startsWith("#")) continue;
+		const eqIdx = trimmed.indexOf("=");
+		if (eqIdx === -1) continue;
+		const key = trimmed.slice(0, eqIdx).trim();
+		const val = trimmed.slice(eqIdx + 1).trim();
+		if (key && !process.env[key]) process.env[key] = val;
+	}
+	} catch {}
+
 import { isMainThread } from "node:worker_threads";
 import { disposeAll, initVcr, isHubDaemonProcess, profiler } from "@cline/shared";
 import { logCliProcessError } from "./logging/errors";

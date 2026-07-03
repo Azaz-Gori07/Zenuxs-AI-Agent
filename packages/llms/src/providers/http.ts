@@ -1,5 +1,53 @@
 import type { GatewayProviderSettings, BasicLogger } from "@cline/shared";
 
+const DEFAULT_STREAM_REQUEST_TIMEOUT_MS = 5 * 60_000;
+
+/**
+ * Creates a custom undici Agent with connection management settings
+ * that reduce stale-connection errors ("socket connection was closed
+ * unexpectedly"). Uses a short keepAliveTimeout so idle connections
+ * are cleaned up before the server can close them.
+ */
+let _agent: unknown = undefined;
+async function getOrCreateAgent(): Promise<unknown> {
+	if (_agent) return _agent;
+	try {
+		// @ts-ignore - undici dynamically imported, fallback handled in catch
+		const { Agent } = await import("undici");
+		_agent = new Agent({
+			pipelining: 1,
+			keepAliveTimeout: 10_000,
+			keepAliveMaxTimeout: 10_000,
+			connections: 128,
+		});
+	} catch {
+		_agent = null;
+	}
+	return _agent;
+}
+
+/**
+ * Wraps `fetch` to pass a custom undici Agent as the `dispatcher`,
+ * preventing connection-reuse failures with servers that close idle
+ * connections aggressively (e.g. free-tier model endpoints).
+ *
+ * Falls back to the original fetch if undici is unavailable or if a
+ * custom fetch implementation (non-native) is provided — the
+ * `dispatcher` option is only meaningful for undici-based fetch.
+ */
+export function wrapFetchWithAgent(baseFetch?: typeof fetch): typeof fetch {
+	const delegate = baseFetch ?? globalThis.fetch;
+	if (!delegate || delegate !== globalThis.fetch) return (baseFetch ?? delegate) as typeof fetch;
+
+	const wrapped = (async (input: any, init?: any) => {
+		const agent = await getOrCreateAgent();
+		if (!agent) return delegate(input, init);
+		return delegate(input, { ...init, dispatcher: agent as any });
+	}) as typeof fetch;
+
+	return wrapped;
+}
+
 export function ensureFetch(fetchImpl?: typeof fetch): typeof fetch {
 	const resolved = fetchImpl ?? globalThis.fetch;
 	if (!resolved) {
@@ -36,7 +84,7 @@ export async function resolveApiKey(
 
 export async function fetchJson(
 	url: string,
-	init: RequestInit,
+	init: any,
 	options: {
 		fetch: typeof fetch;
 		timeoutMs?: number;
@@ -195,8 +243,13 @@ export function wrapFetchWithRetry(
 			const controller = new AbortController();
 			const signal = init?.signal ? mergeSignals(init.signal, controller.signal) : controller.signal;
 
-			// Enforce custom timeoutMs or a default of 60 seconds to prevent permanent hangs.
-			const timeoutMs = requestTimeoutMs && requestTimeoutMs > 0 ? requestTimeoutMs : 60_000;
+			// Long reasoning/tool streams can legitimately take more than a minute
+			// before the first bytes arrive, especially through router providers.
+			// Hosts can still set timeoutMs to tune this per provider.
+			const timeoutMs =
+				requestTimeoutMs && requestTimeoutMs > 0
+					? requestTimeoutMs
+					: DEFAULT_STREAM_REQUEST_TIMEOUT_MS;
 			const timeoutId = setTimeout(() => {
 				controller.abort(new Error("Upstream idle timeout exceeded"));
 			}, timeoutMs);

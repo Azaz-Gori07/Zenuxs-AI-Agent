@@ -535,6 +535,7 @@ export class AgentRuntime {
 			reason instanceof AgentRuntimeAbortError
 				? reason
 				: new AgentRuntimeAbortError(reason);
+		this._invalidateSnapshot();
 		this.state.lastError = abortError.message;
 		this.abortController.abort(abortError);
 	}
@@ -752,6 +753,7 @@ export class AgentRuntime {
 		}
 
 		this.abortController = new AbortController();
+		this._invalidateSnapshot();
 		this.state.runId = createUID("run");
 		this.state.status = "running";
 		this.state.iteration = 0;
@@ -786,6 +788,7 @@ export class AgentRuntime {
 			) {
 				this.throwIfAborted();
 
+				this._invalidateSnapshot();
 				this.state.iteration += 1;
 				const _iterId = profiler.start("agentLoop.iteration", "agent", { iteration: this.state.iteration });
 				await this.emit({
@@ -812,6 +815,7 @@ export class AgentRuntime {
 				});
 
 				if (finishReason === "aborted") {
+					profiler.end(_iterId, { finishReason });
 					throw this.normalizeAbortError();
 				}
 
@@ -820,8 +824,10 @@ export class AgentRuntime {
 						part.type === "tool-call",
 				);
 				if (finishReason === "error" && toolCalls.length === 0) {
+					profiler.end(_iterId, { finishReason });
 					throw new Error(this.state.lastError ?? "Model stream failed");
 				}
+				this._invalidateSnapshot();
 				this.state.pendingToolCalls = toolCalls.map((part) => part.toolCallId);
 
 				// If no structured tool calls were emitted, scan the assistant text
@@ -839,6 +845,7 @@ export class AgentRuntime {
 						toolCalls = extractedParts.filter(
 							(p): p is AgentToolCallPart => p.type === "tool-call",
 						);
+						this._invalidateSnapshot();
 						this.state.pendingToolCalls = toolCalls.map(
 							(part) => part.toolCallId,
 						);
@@ -852,6 +859,7 @@ export class AgentRuntime {
 						iteration: this.state.iteration,
 						toolCallCount: 0,
 					});
+					profiler.end(_iterId);
 					const builderViolation = this.checkForBuilderViolation(message);
 					if (builderViolation) {
 						await this.addUserReminderMessage(builderViolation);
@@ -876,6 +884,7 @@ export class AgentRuntime {
 				}
 
 				const toolMessages = await this.executeToolCalls(toolCalls);
+				this._invalidateSnapshot();
 				this.state.pendingToolCalls = [];
 				for (const toolMessage of toolMessages) {
 					this._invalidateSnapshot();
@@ -924,6 +933,7 @@ export class AgentRuntime {
 				this.abortController.signal.aborted || isControlledStop
 					? "aborted"
 					: "failed";
+			this._invalidateSnapshot();
 			this.state.status = status;
 			this.state.lastError = normalized.message;
 			const result: AgentRunResult = {
@@ -992,8 +1002,8 @@ export class AgentRuntime {
 		}
 		profiler.end(_composeId, { cached: this._systemPromptCached && systemPrompt === this._cachedSystemPrompt });
 		// OPT-13: Clone messages once for the request, reuse cloned array for subsequent operations.
-		const _cloneId = profiler.start("cloneMessages(generateAssistant)", "message", { messageCount: this.state.messages.length });
-		const clonedMessages = cloneMessages(this.state.messages);
+		let clonedMessages = cloneMessages(this.state.messages);
+		const _cloneId = profiler.start("cloneMessages(generateAssistant)", "message", { messageCount: clonedMessages.length });
 		let request: AgentModelRequest = {
 			systemPrompt,
 			messages: clonedMessages,
@@ -1009,7 +1019,9 @@ export class AgentRuntime {
 
 		if (this.state.iteration > 1) {
 			if (await this.consumePendingUserMessage()) {
-				// OPT-13: Reuse clonedMessages reference instead of cloning again.
+				// Pending input mutates runtime state after the initial request clone.
+				// Rebuild the request transcript so the provider sees that user turn.
+				clonedMessages = cloneMessages(this.state.messages);
 				request = { ...request, messages: clonedMessages };
 			}
 		}
@@ -1051,7 +1063,19 @@ export class AgentRuntime {
 			...summarizeModelRequest(request),
 		});
 
+		profiler.markTimeline("model.request.dispatch", "llm", {
+			iteration: this.state.iteration,
+			messageCount: request.messages.length,
+			toolCount: request.tools?.length ?? 0,
+		});
+		const _streamOpenId = profiler.start("model.stream.open", "llm", {
+			iteration: this.state.iteration,
+		});
 		const stream = await this.config.model.stream(request);
+		profiler.end(_streamOpenId);
+		profiler.markTimeline("model.stream.opened", "llm", {
+			iteration: this.state.iteration,
+		});
 		const content: AgentMessagePart[] = [];
 		const toolAssemblies = new Map<string, PendingToolAssembly>();
 		const invalidToolCalls: InvalidToolCall[] = [];
@@ -1062,11 +1086,27 @@ export class AgentRuntime {
 		let finishReason: AgentModelFinishReason = "stop";
 		let accumulatedText = "";
 		let accumulatedReasoning = "";
+		let sawFirstStreamEvent = false;
+		let sawFirstVisibleToken = false;
 
 		for await (const event of stream) {
 			this.throwIfAborted();
+			if (!sawFirstStreamEvent) {
+				sawFirstStreamEvent = true;
+				profiler.markTimeline("model.stream.first_event", "llm", {
+					iteration: this.state.iteration,
+					eventType: event.type,
+				});
+			}
 			switch (event.type) {
 				case "text-delta": {
+					if (!sawFirstVisibleToken) {
+						sawFirstVisibleToken = true;
+						profiler.markTimeline("model.stream.first_text_token", "llm", {
+							iteration: this.state.iteration,
+							textLength: event.text.length,
+						});
+					}
 					accumulatedText += event.text;
 					const last = sequence.at(-1);
 					if (last?.type === "part" && last.part.type === "text") {
@@ -1087,6 +1127,13 @@ export class AgentRuntime {
 					break;
 				}
 				case "reasoning-delta": {
+					if (!sawFirstVisibleToken) {
+						sawFirstVisibleToken = true;
+						profiler.markTimeline("model.stream.first_reasoning_token", "llm", {
+							iteration: this.state.iteration,
+							textLength: event.text.length,
+						});
+					}
 					accumulatedReasoning += event.text;
 					const last = sequence.at(-1);
 					if (last?.type === "part" && last.part.type === "reasoning") {
@@ -1300,6 +1347,7 @@ export class AgentRuntime {
 	}
 
 	private async updateUsage(usage: Partial<AgentUsage>): Promise<void> {
+		this._invalidateSnapshot();
 		this.state.usage = {
 			inputTokens: this.state.usage.inputTokens + (usage.inputTokens ?? 0),
 			outputTokens: this.state.usage.outputTokens + (usage.outputTokens ?? 0),
@@ -2053,6 +2101,7 @@ export class AgentRuntime {
 		assistantMessage?: AgentMessage,
 		outputText?: string,
 	): AgentRunResult {
+		this._invalidateSnapshot();
 		this.state.status = status;
 		return {
 			agentId: this.state.agentId,
