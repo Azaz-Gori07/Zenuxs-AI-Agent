@@ -261,6 +261,22 @@ export interface SessionModelRuntimeService {
 	updateSessionModel(sessionId: string, modelId: string): Promise<void>;
 }
 
+export interface SessionConnectionRuntimeService {
+	updateSessionConnection(
+		sessionId: string,
+		connection: {
+			providerId?: string;
+			modelId?: string;
+			apiKey?: string;
+			baseUrl?: string;
+			headers?: Record<string, string>;
+			providerConfig?: unknown;
+			reasoningEffort?: string;
+			thinking?: boolean;
+		},
+	): Promise<void>;
+}
+
 export interface RuntimeHostSubscribeOptions {
 	sessionId?: string;
 }

@@ -1,4 +1,4 @@
-﻿import process from "node:process";
+import process from "node:process";
 import {
 	type ZenuxsCoreStartInput,
 	type SessionRecord,
@@ -40,6 +40,15 @@ function asWebviewReasonLevel(value: unknown): WebviewReasonLevel | undefined {
 		: undefined;
 }
 
+const DEFAULT_MODELS: Record<string, string> = {
+	openrouter: "openai/gpt-oss-120b:free",
+	nvidia: "nvidia/llama-3.1-nemotron-70b-instruct",
+	mybackup: "z-ai/glm-5.2",
+	openai: "gpt-4o",
+	anthropic: "claude-3-5-sonnet-20241022",
+	google: "gemini-2.5-flash",
+};
+
 export function resolveLaunchContext(
 	ctx: HubContext,
 	override?: Partial<SessionContext> & WebviewConfig,
@@ -51,10 +60,25 @@ export function resolveLaunchContext(
 		providerSettingsManager.getLastUsedProviderSettings()?.provider ??
 		process.env.CLINE_PROVIDER?.trim() ??
 		"";
+
+	// Only fall back to last session's model if the provider is the same.
+	// If the provider has changed, fallback to the last session's model is incorrect.
+	const lastSessionModel =
+		ctx.lastSessionContext?.providerId === providerId
+			? ctx.lastSessionContext?.modelId
+			: undefined;
+
+	// Resolve saved model settings for this specific provider if available
+	const savedModel = providerId
+		? providerSettingsManager.getProviderSettings(providerId)?.model
+		: undefined;
+
 	const modelId =
 		override?.model ??
 		override?.modelId ??
-		ctx.lastSessionContext?.modelId ??
+		lastSessionModel ??
+		savedModel ??
+		DEFAULT_MODELS[providerId] ??
 		providerSettingsManager.getLastUsedProviderSettings()?.model ??
 		process.env.CLINE_MODEL?.trim() ??
 		"";

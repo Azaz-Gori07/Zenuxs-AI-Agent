@@ -194,7 +194,7 @@ function App(props: TuiProps) {
 		const settings = manager.getProviderSettings(providerId);
 		props.config.modelId = settings?.model ?? "";
 		props.config.apiKey = settings?.apiKey ?? "";
-		props.config.baseUrl = settings?.baseUrl ?? "";
+		props.config.baseUrl = settings?.baseUrl?.trim() || undefined;
 		props.config.thinking = settings?.reasoning?.enabled ?? false;
 		props.config.reasoningEffort = settings?.reasoning?.effort === "none" ? undefined : settings?.reasoning?.effort;
 		await handleModelChange();

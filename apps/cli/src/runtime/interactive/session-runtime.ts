@@ -11,6 +11,7 @@ import {
 	type ToolApprovalRequest,
 	type ToolApprovalResult,
 	type UserInstructionConfigService,
+	toProviderConfig,
 } from "@cline/core";
 import type { Message } from "@cline/shared";
 import { syncSessionConversation } from "../../utils/conversation-sync";
@@ -672,8 +673,21 @@ export function createInteractiveSessionRuntime(input: {
 
 	const applyModelChange = async (nextConfig: Config): Promise<void> => {
 		updateConfig(nextConfig);
-		// No session restart: session remains alive; next turns will use the
-		// updated interactive session config via buildSessionConfig().
+		if (sessionManager && activeSessionId) {
+			const providerSettings = input.providerSettingsManager.getProviderSettings(nextConfig.providerId);
+			const providerConfig = providerSettings ? toProviderConfig(providerSettings) : undefined;
+			await sessionManager.updateSessionConnection?.(activeSessionId, {
+				providerId: nextConfig.providerId,
+				modelId: nextConfig.modelId,
+				apiKey: nextConfig.apiKey,
+				baseUrl: nextConfig.baseUrl,
+				providerConfig,
+				reasoningEffort: nextConfig.reasoningEffort,
+				thinking: nextConfig.thinking,
+			}).catch((error) => {
+				input.config.logger?.error?.("Failed to update session connection in backend", { error });
+			});
+		}
 	};
 
 	return {

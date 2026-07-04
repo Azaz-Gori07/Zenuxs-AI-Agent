@@ -168,11 +168,26 @@ function readEnv(key: string): string | undefined {
 	return trimmed.length > 0 ? trimmed : undefined;
 }
 
+async function wrapErrorBodyWithProviderId(response: Response, providerId: string): Promise<Response> {
+	try {
+		const text = await response.text();
+		const wrapped = `[${providerId}] ${text}`;
+		return new Response(wrapped, {
+			status: response.status,
+			statusText: response.statusText,
+			headers: response.headers,
+		});
+	} catch {
+		return response;
+	}
+}
+
 export function wrapFetchWithRetry(
 	baseFetch?: typeof fetch,
 	logger?: BasicLogger,
 	maxRetries = 5,
 	requestTimeoutMs?: number,
+	providerId?: string,
 ): typeof fetch {
 	const delegate = baseFetch ?? globalThis.fetch;
 	if (!delegate || maxRetries <= 0) {
@@ -261,9 +276,8 @@ export function wrapFetchWithRetry(
 
 				if (response.status >= 500 || retryableStatus(response.status)) {
 					const isRateLimit = response.status === 429;
-					const effectiveMaxRetries = isRateLimit ? Math.min(maxRetries, 3) : maxRetries;
-					if (attempt >= effectiveMaxRetries) {
-						return response;
+					if (attempt >= maxRetries) {
+						return providerId ? await wrapErrorBodyWithProviderId(response, providerId) : response;
 					}
 
 					const defaultMaxDelay = isRateLimit ? 30000 : maxDelayMs;
@@ -274,7 +288,7 @@ export function wrapFetchWithRetry(
 
 					const urlStr = input instanceof Request ? input.url : String(input);
 					const statusText = isRateLimit ? "Rate Limited" : `HTTP ${response.status}`;
-					const msg = `\n[${statusText}] Request to ${urlStr} failed. Retrying in ${(delay / 1000).toFixed(1)}s (attempt ${attempt + 1}/${effectiveMaxRetries})...\n`;
+					const msg = `\n[${statusText}] Request to ${urlStr} failed. Retrying in ${(delay / 1000).toFixed(1)}s (attempt ${attempt + 1}/${maxRetries})...\n`;
 
 					if (logger) {
 						logger.log(msg, { severity: "warn" });

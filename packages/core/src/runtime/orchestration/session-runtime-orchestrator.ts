@@ -39,6 +39,8 @@ import {
 	type ContributionRegistry,
 	createContributionRegistry,
 	type ITelemetryService,
+	isContextLengthError,
+	isEmptyModelOutputError,
 	type LegacyAgentUsage,
 	type LoopDetectionConfig,
 	type Message,
@@ -891,7 +893,22 @@ export class SessionRuntime {
 				runResult = await runtime.run("");
 			}
 		} catch (error) {
-			thrownError = error instanceof Error ? error : new Error(String(error));
+			const rawError = error instanceof Error ? error : new Error(String(error));
+			// Detect context-length overflow and surface a friendly, actionable message
+			// instead of the raw provider error. The user can type /compact to reduce
+			// the conversation or enable auto-compaction (basic/agentic mode) to
+			// prevent this automatically.
+			if (isContextLengthError(rawError) || isEmptyModelOutputError(rawError)) {
+				const hasAutoCompaction = this.config.prepareTurn != null;
+				const hint = hasAutoCompaction
+					? "Auto-compaction is enabled but the context still overflowed — try switching to a model with a larger context window, or type /compact to manually compact now."
+					: "Type /compact to reduce the conversation size, or enable auto-compaction (basic or agentic mode) in the settings panel.";
+				thrownError = new Error(
+					`Context window exceeded: the conversation is too long for this model.\n${hint}`,
+				);
+			} else {
+				thrownError = rawError;
+			}
 		} finally {
 			unsubscribe();
 			// Drain any in-flight tracker work (mistake/loop side-effects

@@ -1,5 +1,5 @@
 const ENV_KEYS = ["MYBACKUP_KEY_1", "MYBACKUP_KEY_2", "MYBACKUP_KEY_3"] as const;
-const REQUESTS_PER_KEY = 1;
+const REQUESTS_PER_KEY = 5;
 
 function readKeys(): string[] {
 	return ENV_KEYS

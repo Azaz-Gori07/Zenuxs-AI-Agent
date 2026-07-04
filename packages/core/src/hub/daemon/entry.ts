@@ -55,6 +55,41 @@ async function main(): Promise<void> {
 	const options = parseArgs(process.argv.slice(2));
 	process.chdir(options.cwd);
 
+	// Load workspace .env if present
+	try {
+		const fs = await import("node:fs");
+		const path = await import("node:path");
+		const dotenvPath = path.join(options.cwd, ".env");
+		if (fs.existsSync(dotenvPath)) {
+			const content = fs.readFileSync(dotenvPath, "utf8");
+			for (const line of content.split(/\r?\n/)) {
+				const trimmed = line.trim();
+				if (!trimmed || trimmed.startsWith("#")) {
+					continue;
+				}
+				const equalIndex = trimmed.indexOf("=");
+				if (equalIndex === -1) {
+					continue;
+				}
+				const rawKey = trimmed.slice(0, equalIndex).trim();
+				const rawValue = trimmed.slice(equalIndex + 1).trim();
+				const key = rawKey.startsWith("export ") ? rawKey.slice(7).trim() : rawKey;
+				let value = rawValue;
+				if (
+					(value.startsWith('"') && value.endsWith('"')) ||
+					(value.startsWith("'") && value.endsWith("'"))
+				) {
+					value = value.slice(1, -1);
+				}
+				if (key) {
+					process.env[key] = value;
+				}
+			}
+		}
+	} catch (e) {
+		process.stderr.write(`[hub-daemon] failed to load .env: ${e}\n`);
+	}
+
 	const endpoint = resolveHubEndpointOptions({
 		host: options.host,
 		port: options.port,

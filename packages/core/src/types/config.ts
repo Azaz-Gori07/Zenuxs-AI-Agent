@@ -95,6 +95,14 @@ export interface CoreCompactionConfig {
 		| Promise<CoreCompactionResult | undefined>
 		| CoreCompactionResult
 		| undefined;
+	/**
+	 * If set, auto-compaction triggers when the agent loop iteration count
+	 * reaches this value. This helps avoid provider session rate limits by
+	 * compacting the conversation before hitting per-session request caps.
+	 * The iteration counter resets only on a new session start, so the
+	 * trigger re-fires at multiples of this value.
+	 */
+	requestThreshold?: number;
 }
 
 /**

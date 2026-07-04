@@ -1,0 +1,169 @@
+{
+  "name": "zenuxs-vscode",
+  "displayName": "Zenuxs",
+  "description": "AI coding assistant powered by the Zenuxs runtime — autonomous engineering, multi-file editing, tool execution, and streaming responses.",
+  "version": "0.1.0",
+  "publisher": "zenuxs",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "AI",
+    "Chat",
+    "Programming Languages",
+    "Testing"
+  ],
+  "keywords": [
+    "ai",
+    "coding assistant",
+    "agent",
+    "zenuxs",
+    "autocomplete"
+  ],
+  "activationEvents": [
+    "onView:zenuxs-chat",
+    "onCommand:zenuxs.chat",
+    "onCommand:zenuxs.explain",
+    "onCommand:zenuxs.fix",
+    "onCommand:zenuxs.test",
+    "onCommand:zenuxs.inlineChat"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "zenuxs",
+          "title": "Zenuxs",
+          "icon": "$(zap)"
+        }
+      ]
+    },
+    "views": {
+      "zenuxs": [
+        {
+          "type": "webview",
+          "id": "zenuxs-chat",
+          "name": "Chat"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "zenuxs.chat",
+        "title": "Zenuxs: Open Chat"
+      },
+      {
+        "command": "zenuxs.explain",
+        "title": "Zenuxs: Explain Selection"
+      },
+      {
+        "command": "zenuxs.fix",
+        "title": "Zenuxs: Fix Selection"
+      },
+      {
+        "command": "zenuxs.test",
+        "title": "Zenuxs: Generate Tests"
+      },
+      {
+        "command": "zenuxs.inlineChat",
+        "title": "Zenuxs: Inline Chat"
+      },
+      {
+        "command": "zenuxs.newSession",
+        "title": "Zenuxs: New Session"
+      },
+      {
+        "command": "zenuxs.stopSession",
+        "title": "Zenuxs: Stop Current Session"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "zenuxs.explain",
+          "when": "editorHasSelection",
+          "group": "zenuxs@1"
+        },
+        {
+          "command": "zenuxs.fix",
+          "when": "editorHasSelection",
+          "group": "zenuxs@2"
+        },
+        {
+          "command": "zenuxs.test",
+          "when": "editorHasSelection",
+          "group": "zenuxs@3"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Zenuxs",
+      "properties": {
+        "zenuxs.providerId": {
+          "type": "string",
+          "default": "cline",
+          "description": "Default LLM provider ID"
+        },
+        "zenuxs.modelId": {
+          "type": "string",
+          "default": "",
+          "description": "Default model ID (empty = provider default)"
+        },
+        "zenuxs.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key for the selected provider"
+        },
+        "zenuxs.baseUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Custom base URL for the provider API"
+        },
+        "zenuxs.autoApproveTools": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically approve tool executions"
+        },
+        "zenuxs.thinking": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable thinking/reasoning mode"
+        },
+        "zenuxs.reasoningEffort": {
+          "type": "string",
+          "enum": [
+            "none",
+            "low",
+            "medium",
+            "high"
+          ],
+          "default": "none",
+          "description": "Reasoning effort level"
+        },
+        "zenuxs.maxIterations": {
+          "type": "number",
+          "default": 100,
+          "description": "Maximum agent iterations per session"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "watch": "tsc -watch -p tsconfig.json",
+    "package": "npx vsce package --no-dependencies",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@cline/core": "workspace:*",
+    "@cline/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.90.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.8.3"
+  }
+}

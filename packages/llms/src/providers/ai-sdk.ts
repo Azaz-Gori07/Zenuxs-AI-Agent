@@ -930,6 +930,7 @@ function createAiSdkProvider(kind: ProviderModuleKind): GatewayProviderFactory {
 					context.logger,
 					customMaxRetries,
 					config.timeoutMs,
+					context.provider.id,
 				);
 				const moduleId = profiler.start("provider.ai_sdk.create_provider_module", "llm", {
 					providerId: request.providerId,

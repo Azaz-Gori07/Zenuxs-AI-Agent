@@ -1089,129 +1089,143 @@ export class AgentRuntime {
 		let sawFirstStreamEvent = false;
 		let sawFirstVisibleToken = false;
 
-		for await (const event of stream) {
-			this.throwIfAborted();
-			if (!sawFirstStreamEvent) {
-				sawFirstStreamEvent = true;
-				profiler.markTimeline("model.stream.first_event", "llm", {
-					iteration: this.state.iteration,
-					eventType: event.type,
-				});
-			}
-			switch (event.type) {
-				case "text-delta": {
-					if (!sawFirstVisibleToken) {
-						sawFirstVisibleToken = true;
-						profiler.markTimeline("model.stream.first_text_token", "llm", {
-							iteration: this.state.iteration,
-							textLength: event.text.length,
-						});
-					}
-					accumulatedText += event.text;
-					const last = sequence.at(-1);
-					if (last?.type === "part" && last.part.type === "text") {
-						last.part.text += event.text;
-					} else {
-						sequence.push({
-							type: "part",
-							part: { type: "text", text: event.text },
-						});
-					}
-					await this.emit({
-						type: "assistant-text-delta",
-						snapshot: this.snapshot(),
+		try {
+			for await (const event of stream) {
+				this.throwIfAborted();
+				if (!sawFirstStreamEvent) {
+					sawFirstStreamEvent = true;
+					profiler.markTimeline("model.stream.first_event", "llm", {
 						iteration: this.state.iteration,
-						text: event.text,
-						accumulatedText,
+						eventType: event.type,
 					});
-					break;
 				}
-				case "reasoning-delta": {
-					if (!sawFirstVisibleToken) {
-						sawFirstVisibleToken = true;
-						profiler.markTimeline("model.stream.first_reasoning_token", "llm", {
+				switch (event.type) {
+					case "text-delta": {
+						if (!sawFirstVisibleToken) {
+							sawFirstVisibleToken = true;
+							profiler.markTimeline("model.stream.first_text_token", "llm", {
+								iteration: this.state.iteration,
+								textLength: event.text.length,
+							});
+						}
+						accumulatedText += event.text;
+						const last = sequence.at(-1);
+						if (last?.type === "part" && last.part.type === "text") {
+							last.part.text += event.text;
+						} else {
+							sequence.push({
+								type: "part",
+								part: { type: "text", text: event.text },
+							});
+						}
+						await this.emit({
+							type: "assistant-text-delta",
+							snapshot: this.snapshot(),
 							iteration: this.state.iteration,
-							textLength: event.text.length,
+							text: event.text,
+							accumulatedText,
 						});
+						break;
 					}
-					accumulatedReasoning += event.text;
-					const last = sequence.at(-1);
-					if (last?.type === "part" && last.part.type === "reasoning") {
-						last.part.text += event.text;
-						last.part.redacted = event.redacted ?? last.part.redacted;
-						last.part.metadata = event.metadata ?? last.part.metadata;
-					} else {
-						sequence.push({
-							type: "part",
-							part: {
-								type: "reasoning",
-								text: event.text,
-								redacted: event.redacted,
-								metadata: event.metadata,
-							},
+					case "reasoning-delta": {
+						if (!sawFirstVisibleToken) {
+							sawFirstVisibleToken = true;
+							profiler.markTimeline("model.stream.first_reasoning_token", "llm", {
+								iteration: this.state.iteration,
+								textLength: event.text.length,
+							});
+						}
+						accumulatedReasoning += event.text;
+						const last = sequence.at(-1);
+						if (last?.type === "part" && last.part.type === "reasoning") {
+							last.part.text += event.text;
+							last.part.redacted = event.redacted ?? last.part.redacted;
+							last.part.metadata = event.metadata ?? last.part.metadata;
+						} else {
+							sequence.push({
+								type: "part",
+								part: {
+									type: "reasoning",
+									text: event.text,
+									redacted: event.redacted,
+									metadata: event.metadata,
+								},
+							});
+						}
+						await this.emit({
+							type: "assistant-reasoning-delta",
+							snapshot: this.snapshot(),
+							iteration: this.state.iteration,
+							text: event.text,
+							accumulatedText: accumulatedReasoning,
+							redacted: event.redacted,
+							metadata: event.metadata,
 						});
+						break;
 					}
-					await this.emit({
-						type: "assistant-reasoning-delta",
-						snapshot: this.snapshot(),
-						iteration: this.state.iteration,
-						text: event.text,
-						accumulatedText: accumulatedReasoning,
-						redacted: event.redacted,
-						metadata: event.metadata,
-					});
-					break;
-				}
-				case "tool-call-delta": {
-					const key =
-						event.toolCallId ?? `tool_${event.index ?? nextToolIndex}`;
-					if (event.index == null && event.toolCallId == null) {
-						nextToolIndex += 1;
+					case "tool-call-delta": {
+						const key =
+							event.toolCallId ?? `tool_${event.index ?? nextToolIndex}`;
+						if (event.index == null && event.toolCallId == null) {
+							nextToolIndex += 1;
+						}
+						let assembly = toolAssemblies.get(key);
+						if (!assembly) {
+							assembly = {
+								toolCallId: event.toolCallId ?? createUID("tool"),
+								inputText: "",
+							};
+							toolAssemblies.set(key, assembly);
+							sequence.push({ type: "tool", key });
+						}
+						if (event.toolCallId) {
+							assembly.toolCallId = event.toolCallId;
+						}
+						if (event.toolName) {
+							assembly.toolName = event.toolName;
+						}
+						if (event.input !== undefined) {
+							assembly.inputValue = event.input;
+						}
+						if (event.metadata !== undefined) {
+							assembly.metadata = mergeToolMetadata(
+								assembly.metadata,
+								event.metadata,
+							);
+						}
+						if (event.inputText) {
+							assembly.inputText = mergeToolInputText(
+								assembly.inputText,
+								event.inputText,
+							);
+						}
+						break;
 					}
-					let assembly = toolAssemblies.get(key);
-					if (!assembly) {
-						assembly = {
-							toolCallId: event.toolCallId ?? createUID("tool"),
-							inputText: "",
-						};
-						toolAssemblies.set(key, assembly);
-						sequence.push({ type: "tool", key });
+					case "usage": {
+						await this.updateUsage(event.usage);
+						break;
 					}
-					if (event.toolCallId) {
-						assembly.toolCallId = event.toolCallId;
+					case "finish": {
+						finishReason = event.reason;
+						if (event.error) {
+							this.state.lastError = event.error;
+						}
+						break;
 					}
-					if (event.toolName) {
-						assembly.toolName = event.toolName;
-					}
-					if (event.input !== undefined) {
-						assembly.inputValue = event.input;
-					}
-					if (event.metadata !== undefined) {
-						assembly.metadata = mergeToolMetadata(
-							assembly.metadata,
-							event.metadata,
-						);
-					}
-					if (event.inputText) {
-						assembly.inputText = mergeToolInputText(
-							assembly.inputText,
-							event.inputText,
-						);
-					}
-					break;
-				}
-				case "usage": {
-					await this.updateUsage(event.usage);
-					break;
-				}
-				case "finish": {
-					finishReason = event.reason;
-					if (event.error) {
-						this.state.lastError = event.error;
-					}
-					break;
 				}
 			}
+		} catch (streamError) {
+			// The AI SDK throws when the stream ends with no text and no tool calls
+			// (e.g. "model output must contain either output text or tool calls").
+			// This often signals a context-overflow or a transient model issue.
+			// Capture the error so it surfaces as a recoverable agent failure
+			// instead of crashing the whole session.
+			const msg =
+				streamError instanceof Error
+					? streamError.message
+					: String(streamError);
+			finishReason = "error";
+			this.state.lastError = msg;
 		}
 
 		for (const item of sequence) {

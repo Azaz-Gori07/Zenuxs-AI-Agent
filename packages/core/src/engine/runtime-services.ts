@@ -4,6 +4,7 @@ import type {
 	RuntimeHost,
 	SessionModelRuntimeService,
 	SessionUsageRuntimeService,
+	SessionConnectionRuntimeService,
 } from "../runtime/host/runtime-host";
 import {
 	type ZenuxsCoreSettingsApi,
@@ -27,7 +28,8 @@ export type RuntimeHostServiceExtensions = RuntimeHost &
 	Partial<
 		PendingPromptsRuntimeService &
 			SessionUsageRuntimeService &
-			SessionModelRuntimeService
+			SessionModelRuntimeService &
+			SessionConnectionRuntimeService
 	>;
 
 export function createZenuxsCoreSettingsApi(

@@ -9,6 +9,7 @@
   "scripts": {
     "build": "bun run build:sdk && bun -F zenuxs build",
     "build:sdk": "bun --production -F './packages/*' build",
+    "build:extension": "bun run build:sdk && bun --cwd apps/vscode-extension build",
     "dev": "bun --conditions=development run build:sdk && bun run cli",
     "cli": "bun --conditions=development --cwd apps/cli dev"
   },

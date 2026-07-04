@@ -39,6 +39,7 @@ import type {
 	RuntimeHostSubscribeOptions,
 	SessionModelRuntimeService,
 	SessionUsageRuntimeService,
+	SessionConnectionRuntimeService,
 	StartSessionInput,
 	StartSessionResult,
 } from "./runtime/host/runtime-host";
@@ -584,5 +585,17 @@ export class ZenuxsCore {
 	) => {
 		const service = this.host as RuntimeHostServiceExtensions;
 		return service.updateSessionModel?.(...args) ?? Promise.resolve();
+	};
+
+	/**
+	 * Updates the active LLM connection settings used by a running session.
+	 *
+	 * Useful for mid-session configuration changes without restarting the conversation.
+	 */
+	updateSessionConnection: SessionConnectionRuntimeService["updateSessionConnection"] = (
+		...args
+	) => {
+		const service = this.host as RuntimeHostServiceExtensions;
+		return service.updateSessionConnection?.(...args) ?? Promise.resolve();
 	};
 }

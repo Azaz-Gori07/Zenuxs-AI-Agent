@@ -285,6 +285,14 @@ export function createContextCompactionPrepareTurn(
 				thresholdRatio: userCompaction?.thresholdRatio,
 			},
 		});
+		const effectiveRequestThreshold =
+			userCompaction?.requestThreshold ??
+			(config.providerId === "mybackup" ? 12 : undefined);
+		const requestLimited =
+			typeof effectiveRequestThreshold === "number" &&
+			effectiveRequestThreshold > 0 &&
+			context.iteration >= effectiveRequestThreshold;
+		const shouldCompact = triggerState.shouldCompact || requestLimited;
 		config.logger?.debug("Context compaction diagnostics", {
 			mode,
 			strategy,
@@ -295,13 +303,15 @@ export function createContextCompactionPrepareTurn(
 			maxInputTokens,
 			triggerTokens: triggerState.triggerTokens,
 			thresholdRatio: triggerState.thresholdRatio,
-			shouldCompact: triggerState.shouldCompact,
+			shouldCompact,
+			requestLimited,
+			requestThreshold: userCompaction?.requestThreshold,
 			messageCount: context.messages.length,
 			apiMessageCount: context.apiMessages.length,
 			apiMessagesJsonChars: safeJsonSize(context.apiMessages),
 			...summarizeToolResults(context.apiMessages),
 		});
-		if (mode === "auto" && !triggerState.shouldCompact) {
+		if (mode === "auto" && !shouldCompact) {
 			return undefined;
 		}
 		const targetState =

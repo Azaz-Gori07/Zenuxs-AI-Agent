@@ -81,7 +81,7 @@ import {
 	RuntimeOAuthTokenManager,
 } from "../orchestration/runtime-oauth-token-manager";
 import type { RuntimeBuilder } from "../orchestration/session-runtime";
-import { SessionRuntime } from "../orchestration/session-runtime-orchestrator";
+import { SessionRuntime, type ConnectionOverrides } from "../orchestration/session-runtime-orchestrator";
 import { PendingPromptsController } from "../turn-queue/pending-prompt-service";
 import { manifestToSessionRecord } from "./history";
 import { AgentEventBridge } from "./local/agent-event-bridge";
@@ -977,6 +977,42 @@ export class LocalRuntimeHost implements RuntimeHost {
 			modelId,
 		});
 		session.agent.updateConnection({ modelId });
+	}
+
+	async updateSessionConnection(
+		sessionId: string,
+		connection: ConnectionOverrides,
+	): Promise<void> {
+		const session = this.getSessionOrThrow(sessionId);
+		if (connection.providerId !== undefined) {
+			session.config.providerId = connection.providerId;
+		}
+		if (connection.modelId !== undefined) {
+			session.config.modelId = connection.modelId;
+		}
+		if (connection.apiKey !== undefined) {
+			session.config.apiKey = connection.apiKey;
+		}
+		if (connection.baseUrl !== undefined) {
+			session.config.baseUrl = connection.baseUrl;
+		}
+		if (connection.headers !== undefined) {
+			session.config.headers = connection.headers;
+		}
+		if (connection.providerConfig !== undefined) {
+			session.config.providerConfig = connection.providerConfig as any;
+		}
+		if (connection.reasoningEffort !== undefined) {
+			session.config.reasoningEffort = connection.reasoningEffort;
+		}
+		if (connection.thinking !== undefined) {
+			session.config.thinking = connection.thinking;
+		}
+		
+		session.runtime.delegatedAgentConfigProvider?.updateConnectionDefaults(
+			connection as Record<string, unknown>,
+		);
+		session.agent.updateConnection(connection);
 	}
 
 	// Retained for unit tests that reach in via Reflect.

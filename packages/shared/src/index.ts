@@ -476,7 +476,7 @@ export * from "./session/workspace";
 export * from "./team";
 export { createTool } from "./tools/create";
 export * from "./types";
-export { AUTH_ERROR_PATTERNS, isLikelyAuthError } from "./types/auth";
+export { AUTH_ERROR_PATTERNS, isLikelyAuthError, CONTEXT_LENGTH_ERROR_PATTERNS, isContextLengthError, EMPTY_MODEL_OUTPUT_PATTERNS, isEmptyModelOutputError } from "./types/auth";
 export { initVcr } from "./vcr";
 export { profiler } from "./profiler/profiler";
 export type { ProfileSpan, SpanCategory, TimelineEvent, FunctionStats, MemorySnapshot, FlamegraphNode, ProfileData } from "./profiler/profiler";

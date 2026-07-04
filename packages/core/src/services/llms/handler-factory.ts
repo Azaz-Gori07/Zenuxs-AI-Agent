@@ -156,7 +156,7 @@ export function createAgentModelFromConfig(
 		providerId: config.providerId,
 		modelId: config.modelId,
 		apiKey: config.apiKey ?? baseProviderConfig?.apiKey,
-		baseUrl: config.baseUrl ?? baseProviderConfig?.baseUrl,
+		baseUrl: config.baseUrl?.trim() || baseProviderConfig?.baseUrl,
 		headers: config.headers ?? baseProviderConfig?.headers,
 		knownModels: resolveKnownModelsFromConfig(config),
 		maxOutputTokens: config.maxTokensPerTurn,

@@ -21,13 +21,42 @@ function createAuthFetch(
 	if (!resolver) return undefined;
 	const delegate = config.fetch ?? globalThis.fetch;
 	if (!delegate) return undefined;
+	const providerId = config.providerId;
 	const authFetch = (async (input, init) => {
-		const key = await resolver();
-		const headers = new Headers(init?.headers);
-		if (key) {
-			headers.set("Authorization", `Bearer ${key}`);
+		let lastResponse: Response | undefined;
+		for (let attempt = 0; attempt < 10; attempt++) {
+			const key = await resolver();
+			const headers = new Headers(init?.headers);
+			if (key) {
+				headers.set("Authorization", `Bearer ${key}`);
+			}
+			const response = await delegate(input, { ...init, headers });
+			if (
+				response.status === 429 ||
+				response.status === 503 ||
+				response.status === 502
+			) {
+				lastResponse = response;
+				await new Promise((r) => setTimeout(r, 1000));
+				continue;
+			}
+			return response;
 		}
-		return delegate(input, { ...init, headers });
+		// All keys exhausted — wrap the last response body with the
+		// selected provider name so the error is attributed correctly.
+		try {
+			const body = await lastResponse!.clone().text();
+			const wrapped = body.includes(`[${providerId}]`)
+				? body
+				: `[${providerId}] ${body}`;
+			return new Response(wrapped, {
+				status: lastResponse!.status,
+				statusText: lastResponse!.statusText,
+				headers: lastResponse!.headers,
+			});
+		} catch {
+			return lastResponse!;
+		}
 	}) as typeof fetch;
 	const delegateWithPreconnect = delegate as FetchWithOptionalPreconnect;
 	(authFetch as FetchWithOptionalPreconnect).preconnect =
