@@ -130,7 +130,6 @@ function countSeededRootRuns(
 }
 
 function buildOpenAICodexHeaders(input: {
-	sessionId: string;
 	configHeaders: CoreSessionConfig["headers"];
 	storedHeaders: ProviderSettings["headers"];
 	accountId?: string;
@@ -142,8 +141,13 @@ function buildOpenAICodexHeaders(input: {
 	};
 	const resolvedAccountId =
 		input.accountId?.trim() || deriveOpenAICodexAccountId(input.accessToken);
+
+	delete headers.originator;
+	delete headers.session_id;
+	delete headers["User-Agent"];
+	delete headers["ChatGPT-Account-Id"];
+
 	headers.originator = "cline";
-	headers.session_id = input.sessionId;
 	headers["User-Agent"] = `Cline/${process.env.npm_package_version || "1.0.0"}`;
 	if (resolvedAccountId) {
 		headers["ChatGPT-Account-Id"] = resolvedAccountId;
@@ -181,7 +185,7 @@ function deriveOpenAICodexAccountId(
 
 function buildProviderConfig(
 	config: CoreSessionConfig,
-	sessionId: string,
+	_sessionId: string,
 	providerSettingsManager: ProviderSettingsManager,
 	modelCatalogDefaults?: Partial<ProviderSettings["modelCatalog"]>,
 	defaultFetch?: typeof fetch,
@@ -207,7 +211,6 @@ function buildProviderConfig(
 		headers:
 			config.providerId === "openai-codex"
 				? buildOpenAICodexHeaders({
-						sessionId,
 						configHeaders: config.headers,
 						storedHeaders: stored?.headers,
 						accountId: stored?.auth?.accountId,

@@ -5,6 +5,10 @@
   "version": "0.1.0",
   "publisher": "zenuxs",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zenuxs/zenuxs"
+  },
   "type": "module",
   "engines": {
     "vscode": "^1.90.0"
@@ -28,10 +32,74 @@
     "onCommand:zenuxs.explain",
     "onCommand:zenuxs.fix",
     "onCommand:zenuxs.test",
-    "onCommand:zenuxs.inlineChat"
+    "onCommand:zenuxs.refactor",
+    "onCommand:zenuxs.inlineChat",
+    "onCommand:zenuxs.askAboutFile",
+    "onCommand:zenuxs.newSession",
+    "onCommand:zenuxs.stopSession",
+    "onCommand:zenuxs.toggleSettings",
+    "onCommand:zenuxs.quickAsk",
+    "onCommand:zenuxs.fixDiagnostic",
+    "onStartupFinished"
   ],
   "main": "./dist/extension.js",
   "contributes": {
+    "keybindings": [
+      {
+        "key": "ctrl+shift+i",
+        "command": "zenuxs.chat",
+        "when": "!editorHasSelection"
+      },
+      {
+        "key": "ctrl+shift+e",
+        "command": "zenuxs.explain",
+        "when": "editorHasSelection"
+      },
+      {
+        "key": "ctrl+shift+f",
+        "command": "zenuxs.fix",
+        "when": "editorHasSelection"
+      },
+      {
+        "key": "ctrl+shift+t",
+        "command": "zenuxs.test",
+        "when": "editorHasSelection"
+      },
+      {
+        "key": "ctrl+shift+r",
+        "command": "zenuxs.refactor",
+        "when": "editorHasSelection"
+      },
+      {
+        "key": "ctrl+shift+k",
+        "command": "zenuxs.inlineChat",
+        "when": "editorHasSelection"
+      },
+      {
+        "key": "ctrl+shift+n",
+        "command": "zenuxs.newSession",
+        "when": "view.zenuxs-chat"
+      },
+      {
+        "key": "escape",
+        "command": "zenuxs.stopSession",
+        "when": "view.zenuxs-chat"
+      },
+      {
+        "key": "ctrl+shift+.",
+        "command": "zenuxs.toggleSettings",
+        "when": "view.zenuxs-chat"
+      },
+      {
+        "key": "ctrl+shift+a",
+        "command": "zenuxs.askAboutFile"
+      },
+      {
+        "key": "ctrl+shift+d",
+        "command": "zenuxs.fixDiagnostic",
+        "when": "editorHasDiagnostics"
+      }
+    ],
     "viewsContainers": {
       "activitybar": [
         {
@@ -53,31 +121,63 @@
     "commands": [
       {
         "command": "zenuxs.chat",
-        "title": "Zenuxs: Open Chat"
+        "title": "Zenuxs: Open Chat",
+        "icon": "$(comment-discussion)"
       },
       {
         "command": "zenuxs.explain",
-        "title": "Zenuxs: Explain Selection"
+        "title": "Zenuxs: Explain Selection",
+        "icon": "$(lightbulb)"
       },
       {
         "command": "zenuxs.fix",
-        "title": "Zenuxs: Fix Selection"
+        "title": "Zenuxs: Fix Selection",
+        "icon": "$(wrench)"
       },
       {
         "command": "zenuxs.test",
-        "title": "Zenuxs: Generate Tests"
+        "title": "Zenuxs: Generate Tests",
+        "icon": "$(beaker)"
       },
       {
         "command": "zenuxs.inlineChat",
-        "title": "Zenuxs: Inline Chat"
+        "title": "Zenuxs: Inline Chat",
+        "icon": "$(comment)"
+      },
+      {
+        "command": "zenuxs.refactor",
+        "title": "Zenuxs: Refactor Selection",
+        "icon": "$(symbol-method)"
+      },
+      {
+        "command": "zenuxs.askAboutFile",
+        "title": "Zenuxs: Ask About This File",
+        "icon": "$(file-text)"
       },
       {
         "command": "zenuxs.newSession",
-        "title": "Zenuxs: New Session"
+        "title": "Zenuxs: New Session",
+        "icon": "$(add)"
       },
       {
         "command": "zenuxs.stopSession",
-        "title": "Zenuxs: Stop Current Session"
+        "title": "Zenuxs: Stop Current Session",
+        "icon": "$(debug-stop)"
+      },
+      {
+        "command": "zenuxs.toggleSettings",
+        "title": "Zenuxs: Toggle Settings Panel",
+        "icon": "$(settings-gear)"
+      },
+      {
+        "command": "zenuxs.quickAsk",
+        "title": "Zenuxs: Quick Ask",
+        "icon": "$(question)"
+      },
+      {
+        "command": "zenuxs.fixDiagnostic",
+        "title": "Zenuxs: Fix Diagnostic",
+        "icon": "$(bug)"
       }
     ],
     "menus": {
@@ -96,6 +196,84 @@
           "command": "zenuxs.test",
           "when": "editorHasSelection",
           "group": "zenuxs@3"
+        },
+        {
+          "command": "zenuxs.refactor",
+          "when": "editorHasSelection",
+          "group": "zenuxs@4"
+        },
+        {
+          "command": "zenuxs.inlineChat",
+          "when": "editorHasSelection",
+          "group": "zenuxs@5"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "zenuxs.askAboutFile",
+          "group": "zenuxs@1"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "zenuxs.chat",
+          "when": "true"
+        },
+        {
+          "command": "zenuxs.explain",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "zenuxs.fix",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "zenuxs.test",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "zenuxs.refactor",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "zenuxs.inlineChat",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "zenuxs.askAboutFile",
+          "when": "true"
+        },
+        {
+          "command": "zenuxs.newSession",
+          "when": "true"
+        },
+        {
+          "command": "zenuxs.stopSession",
+          "when": "true"
+        },
+        {
+          "command": "zenuxs.toggleSettings",
+          "when": "true"
+        },
+        {
+          "command": "zenuxs.quickAsk",
+          "when": "true"
+        },
+        {
+          "command": "zenuxs.fixDiagnostic",
+          "when": "editorHasDiagnostics"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "zenuxs.newSession",
+          "when": "view == zenuxs-chat",
+          "group": "navigation"
+        },
+        {
+          "command": "zenuxs.toggleSettings",
+          "when": "view == zenuxs-chat",
+          "group": "navigation"
         }
       ]
     },
@@ -147,23 +325,77 @@
           "type": "number",
           "default": 100,
           "description": "Maximum agent iterations per session"
+        },
+        "zenuxs.backendUrl": {
+          "type": "string",
+          "default": "http://localhost:3000",
+          "description": "Zenuxs backend server URL"
+        },
+        "zenuxs.enableAutocomplete": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable inline autocomplete suggestions"
+        },
+        "zenuxs.theme": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "light",
+            "dark"
+          ],
+          "default": "auto",
+          "description": "Webview theme preference"
+        },
+        "zenuxs.mode": {
+          "type": "string",
+          "enum": ["act", "plan", "yolo", "zen"],
+          "default": "act",
+          "description": "Default agent mode"
+        },
+        "zenuxs.compaction": {
+          "type": "string",
+          "enum": ["off", "basic", "agentic"],
+          "default": "off",
+          "description": "Context compaction strategy"
+        },
+        "zenuxs.retries": {
+          "type": "number",
+          "default": 3,
+          "description": "Max consecutive mistakes before aborting"
+        },
+        "zenuxs.timeout": {
+          "type": "number",
+          "default": 0,
+          "description": "Session timeout in seconds (0 = no timeout)"
+        },
+        "zenuxs.checkpointEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable git-based checkpoints for session snapshots"
         }
       }
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "watch": "tsc -watch -p tsconfig.json",
-    "package": "npx vsce package --no-dependencies",
+    "build:webview": "bun build --production ./src/webview/index.tsx --outfile ./dist/webview.js --target browser --format esm",
+    "build:extension": "bun build ./src/extension.ts --outfile ./dist/extension.js --target node --format esm --external vscode --source-map=external",
+    "build": "bun run build:webview && bun run build:extension",
+    "watch": "bun build ./src/extension.ts --outfile ./dist/extension.js --target node --format esm --external vscode --source-map=external --watch 2>&1 | findstr /V \"is not in the project directory\"",
+    "package": "npm run build && npx @vscode/vsce package --no-dependencies",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
     "@cline/core": "workspace:*",
-    "@cline/shared": "workspace:*"
+    "@cline/shared": "workspace:*",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
   },
   "devDependencies": {
-    "@types/vscode": "^1.90.0",
     "@types/node": "^20.0.0",
+    "@types/vscode": "^1.90.0",
+    "cross-env": "^10.1.0",
     "typescript": "^5.8.3"
   }
 }

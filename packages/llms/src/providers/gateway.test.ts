@@ -19,6 +19,7 @@ import {
 
 const streamTextSpy = vi.fn();
 const openaiCompatibleFactorySpy = vi.fn();
+const openaiFactorySpy = vi.fn();
 const openaiCompatibleSpy = vi.fn((modelId: string) => ({
 	modelId,
 	family: "openai-compatible",
@@ -55,9 +56,12 @@ vi.mock("ai", () => ({
 }));
 
 vi.mock("@ai-sdk/openai", () => ({
-	createOpenAI: () => ({
-		responses: (modelId: string) => openaiResponsesSpy(modelId),
-	}),
+	createOpenAI: (config: unknown) => {
+		openaiFactorySpy(config);
+		return {
+			responses: (modelId: string) => openaiResponsesSpy(modelId),
+		};
+	},
 }));
 
 vi.mock("@ai-sdk/openai-compatible", () => ({
@@ -139,6 +143,7 @@ function readCaptureRecords(dir: string): Array<Record<string, unknown>> {
 describe("sdk-gateway", () => {
 	beforeEach(() => {
 		streamTextSpy.mockReset();
+		openaiFactorySpy.mockReset();
 		openaiCompatibleFactorySpy.mockReset();
 		openaiCompatibleSpy.mockReset();
 		openaiResponsesSpy.mockReset();
@@ -2111,6 +2116,61 @@ describe("sdk-gateway", () => {
 			| { maxOutputTokens?: unknown }
 			| undefined;
 		expect(call).not.toHaveProperty("maxOutputTokens");
+	});
+
+	it("rotates ChatGPT OAuth worker session headers per request", async () => {
+		streamTextSpy.mockReturnValue({
+			fullStream: makeStreamParts([
+				{ type: "finish", usage: { inputTokens: 1, outputTokens: 1 } },
+			]),
+		});
+
+		const gateway = createGateway({
+			providerConfigs: [
+				{
+					providerId: "openai-codex",
+					headers: {
+						originator: "cline",
+						session_id: "stale-local-session",
+						"ChatGPT-Account-Id": "acct_test",
+					},
+				},
+			],
+		});
+
+		await collect(
+			await gateway.stream({
+				providerId: "openai-codex",
+				modelId: "gpt-5.4",
+				messages: baseMessages,
+			}),
+		);
+		await collect(
+			await gateway.stream({
+				providerId: "openai-codex",
+				modelId: "gpt-5.4",
+				messages: baseMessages,
+			}),
+		);
+
+		const firstConfig = openaiFactorySpy.mock.calls[0]?.[0] as
+			| { headers?: Record<string, string> }
+			| undefined;
+		const secondConfig = openaiFactorySpy.mock.calls[1]?.[0] as
+			| { headers?: Record<string, string> }
+			| undefined;
+		const firstSessionId = firstConfig?.headers?.session_id;
+		const secondSessionId = secondConfig?.headers?.session_id;
+
+		expect(firstConfig?.headers).toMatchObject({
+			originator: "cline",
+			"ChatGPT-Account-Id": "acct_test",
+		});
+		expect(firstSessionId).toMatch(/^cline-/);
+		expect(secondSessionId).toMatch(/^cline-/);
+		expect(firstSessionId).not.toBe("stale-local-session");
+		expect(secondSessionId).not.toBe("stale-local-session");
+		expect(secondSessionId).not.toBe(firstSessionId);
 	});
 
 	it("passes Codex instructions through provider options and removes the system message from messages", async () => {

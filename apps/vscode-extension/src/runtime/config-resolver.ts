@@ -12,6 +12,11 @@ export interface ExtensionConfig {
 	thinking: boolean;
 	reasoningEffort: string;
 	maxIterations: number;
+	mode: string;
+	compaction: string;
+	retries: number;
+	timeout: number;
+	checkpointEnabled: boolean;
 }
 
 /**
@@ -28,6 +33,11 @@ export function resolveExtensionConfig(): ExtensionConfig {
 		thinking: config.get<boolean>("thinking", false),
 		reasoningEffort: config.get<string>("reasoningEffort", "none"),
 		maxIterations: config.get<number>("maxIterations", 100),
+		mode: config.get<string>("mode", "act"),
+		compaction: config.get<string>("compaction", "off"),
+		retries: config.get<number>("retries", 3),
+		timeout: config.get<number>("timeout", 0),
+		checkpointEnabled: config.get<boolean>("checkpointEnabled", false),
 	};
 }
 

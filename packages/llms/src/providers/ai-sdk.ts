@@ -301,6 +301,31 @@ function resolveAiSdkSystemPrompt(
 		: request.systemPrompt;
 }
 
+function withOpenAICodexRequestHeaders(
+	config: GatewayResolvedProviderConfig,
+	request: GatewayStreamRequest,
+): GatewayResolvedProviderConfig {
+	if (request.providerId !== "openai-codex") {
+		return config;
+	}
+
+	// ChatGPT Codex treats `session_id` as hosted-worker affinity. Keep it
+	// request-scoped so a completed/failed/cancelled local session cannot carry
+	// a stale worker-local request counter into the next model call.
+	const workerSessionId = `cline-${nanoid()}`;
+	request.metadata = {
+		...(request.metadata ?? {}),
+		openaiCodexWorkerSessionId: workerSessionId,
+	};
+	return {
+		...config,
+		headers: {
+			...(config.headers ?? {}),
+			session_id: workerSessionId,
+		},
+	};
+}
+
 function mapFinishReason(
 	value: unknown,
 	sawToolCalls: boolean,
@@ -940,7 +965,7 @@ function createAiSdkProvider(kind: ProviderModuleKind): GatewayProviderFactory {
 				const provider = await createProviderModule(
 					kind,
 					{
-						...config,
+						...withOpenAICodexRequestHeaders(config, request),
 						fetch: wrapFetchForProviderRequestCapture(retryFetch, request),
 					},
 					context,

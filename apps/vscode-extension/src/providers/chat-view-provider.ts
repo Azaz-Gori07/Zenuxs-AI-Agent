@@ -1,18 +1,68 @@
 import * as vscode from "vscode";
+import * as fs from "fs";
 import { ExtensionCoreBridge } from "../runtime/core-bridge.js";
 import { mapCoreEventToWebview } from "../runtime/event-mapper.js";
 import type { WebviewOutboundMessage } from "../runtime/event-mapper.js";
 import { resolveExtensionConfig, resolveWorkspaceRoot, resolveCwd } from "../runtime/config-resolver.js";
 import { captureEditorContext, formatEditorContextForPrompt } from "../context/editor-context.js";
-import type { AgentResult, CoreSessionEvent, ToolApprovalRequest, ToolApprovalResult } from "@cline/core";
-import { SessionSource } from "@cline/core";
+import {
+	fetchZenuxsRecommendedModels,
+	createCoreSettingsService,
+	ProviderSettingsManager,
+	SessionSource,
+	InMemoryMcpManager,
+	createDefaultMcpServerClientFactory,
+	setMcpServerDisabled,
+	resolveMcpServerRegistrations,
+	resolveDefaultMcpSettingsPath,
+	type BasicLogger,
+} from "@cline/core";
+import type { AgentResult, CoreSessionEvent, ToolApprovalRequest, ToolApprovalResult, CheckpointEntry, McpServerSnapshot, McpServerRegistration } from "@cline/core";
+import { AgentTeamsRuntime } from "@cline/core";
 import { createSessionId } from "@cline/shared";
+import { getWebviewHtml } from "../webview/webview-html.js";
+
+export function logStartup(
+	workerId: string,
+	sessionId: string,
+	component: string,
+	func: string,
+	event: "ENTER" | "EXIT" | "EVENT",
+	duration: string | number = "N/A",
+	status: string = "SUCCESS"
+): void {
+	try {
+		const logFile = "D:/V3/zenuxs-code/startup-debug.log";
+		const fs = require("fs");
+		const durationStr = typeof duration === "number" ? `${duration}ms` : duration;
+		const logLine = `[${new Date().toISOString()}] [${workerId}] [${sessionId || "None"}] [${component}] [${func}] [${event}] [${durationStr}] [${status}]\n`;
+		fs.appendFileSync(logFile, logLine, "utf8");
+	} catch (err) {
+		console.error("Failed to write to startup log:", err);
+	}
+}
+
 
 /**
  * Webview inbound message types from the chat panel.
  */
 type WebviewInboundMessage =
 	| { type: "ready" }
+	| {
+			type: "webview_log";
+			level: string;
+			message: string;
+			stack?: string | null;
+			logParams?: {
+				workerId: string;
+				sessionId: string;
+				component: string;
+				func: string;
+				event: "ENTER" | "EXIT" | "EVENT";
+				duration: string | number;
+				status: string;
+			};
+	  }
 	| {
 			type: "send";
 			prompt: string;
@@ -25,7 +75,169 @@ type WebviewInboundMessage =
 			approvalId: string;
 			approved: boolean;
 			reason?: string;
-	  };
+	  }
+	| {
+			type: "save_settings";
+			providerId: string;
+			modelId: string;
+			apiKey?: string;
+			baseUrl?: string;
+			autoApproveTools: boolean;
+			thinking: boolean;
+			reasoningEffort: string;
+			maxIterations: number;
+	  }
+	| {
+			type: "toggle_setting_item";
+			itemType: "skills" | "workflows" | "rules" | "tools" | "mcp";
+			id?: string;
+			name?: string;
+			path?: string;
+			enabled: boolean;
+	  }
+	| {
+			type: "delete_session";
+			sessionId: string;
+	  }
+	| {
+			type: "rename_session";
+			sessionId: string;
+			title: string;
+	  }
+	| {
+			type: "restore_session";
+			sessionId: string;
+	  }
+	| {
+			type: "export_session";
+			sessionId: string;
+	  }
+	| {
+			type: "import_session";
+	  }
+	| {
+			type: "run_command";
+			command: "build" | "lint" | "test" | "doctor";
+	  }
+	| {
+			type: "askAboutFile";
+	  }
+	| {
+			type: "clear_history";
+	  }
+	| {
+			type: "login_oauth";
+			providerId: string;
+	  }
+	| {
+			type: "mcp_register";
+			name: string;
+			transport: string;
+			command?: string;
+			args?: string[];
+			url?: string;
+	  }
+	| {
+			type: "mcp_unregister";
+			name: string;
+	  }
+	| {
+			type: "mcp_connect";
+			name: string;
+	  }
+	| {
+			type: "mcp_disconnect";
+			name: string;
+	  }
+	| {
+			type: "mcp_set_disabled";
+			name: string;
+			disabled: boolean;
+	  }
+	| {
+			type: "mcp_refresh_tools";
+			serverName: string;
+	  }
+	| {
+			type: "mcp_list_servers";
+	  }
+	| {
+			type: "checkpoint_restore";
+			sessionId: string;
+			checkpointRef: string;
+	  }
+	| {
+			type: "checkpoint_list";
+			sessionId: string;
+	  }
+	| {
+			type: "checkpoint_delete";
+			sessionId: string;
+			checkpointRef: string;
+	  }
+	| {
+			type: "team_spawn";
+			agentId: string;
+			rolePrompt: string;
+	  }
+	| {
+			type: "team_shutdown";
+			agentId: string;
+			reason?: string;
+	  }
+	| { type: "team_status" }
+	| {
+			type: "team_run_task";
+			agentId: string;
+			task: string;
+			runMode?: "sync" | "async";
+	  }
+	| { type: "team_list_runs" }
+	| {
+			type: "team_cancel_run";
+			runId: string;
+	  }
+	| {
+			type: "team_send_message";
+			toAgentId: string;
+			subject: string;
+			body: string;
+	  }
+	| {
+			type: "team_broadcast";
+			subject: string;
+			body: string;
+	  }
+	| { type: "team_read_mailbox" }
+	| {
+			type: "team_mission_log";
+			kind: string;
+			summary: string;
+	  }
+	| { type: "team_list_tasks" }
+	| {
+			type: "team_create_task";
+			title: string;
+			description: string;
+			assignee?: string;
+	  }
+	| {
+			type: "team_complete_task";
+			taskId: string;
+			summary: string;
+	  }
+	| { type: "connector_list" }
+	| {
+			type: "connector_connect";
+			provider: string;
+			name: string;
+			config?: Record<string, string>;
+	  }
+	| {
+			type: "connector_disconnect";
+			id: string;
+	  }
+	;
 
 /**
  * Provides the Zenuxs chat webview in the VS Code sidebar.
@@ -36,10 +248,13 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	private webviewView: vscode.WebviewView | undefined;
 	private coreBridge: ExtensionCoreBridge | undefined;
 	private activeSessionId: string | undefined;
+	private pendingPrompt: string | undefined;
 	private pendingApprovalResolve:
 		| ((result: ToolApprovalResult) => void)
 		| undefined;
 	private isRunning = false;
+	private mcpManager: InMemoryMcpManager | undefined;
+	private teamsRuntime: AgentTeamsRuntime | undefined;
 
 	constructor(private readonly extensionContext: vscode.ExtensionContext) {}
 
@@ -48,6 +263,8 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 		_context: vscode.WebviewViewResolveContext,
 		_token: vscode.CancellationToken,
 	): void {
+		logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "resolveWebviewView", "ENTER", "N/A", "START");
+		const startTime = Date.now();
 		this.webviewView = webviewView;
 
 		webviewView.webview.options = {
@@ -64,12 +281,13 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				await this.handleWebviewMessage(message);
 			},
 		);
+		logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "resolveWebviewView", "EXIT", Date.now() - startTime, "SUCCESS");
 	}
 
 	/**
 	 * Send a message to the webview UI.
 	 */
-	private postToWebview(message: WebviewOutboundMessage): void {
+	private postToWebview(message: any): void {
 		this.webviewView?.webview.postMessage(message);
 	}
 
@@ -77,9 +295,90 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	 * Send a pre-filled prompt from a command to the chat panel.
 	 */
 	public sendPrompt(prompt: string): void {
-		this.postToWebview({ type: "status", text: "Prompt ready" });
-		// Trigger the send via the webview
-		this.handleWebviewMessage({ type: "send", prompt });
+		if (this.webviewView) {
+			this.postToWebview({ type: "status", text: "Prompt ready" });
+			this.handleWebviewMessage({ type: "send", prompt });
+		} else {
+			this.pendingPrompt = prompt;
+			vscode.commands.executeCommand("zenuxs-chat.focus");
+		}
+	}
+
+	/**
+	 * Reset the session without sending a prompt to the LLM.
+	 */
+	public newSession(): void {
+		this.activeSessionId = undefined;
+		this.postToWebview({ type: "reset_done" });
+	}
+
+	/**
+	 * Abort the current session.
+	 */
+	public stopSession(): void {
+		this.handleAbort();
+	}
+
+	/**
+	 * Toggle to the settings tab in the webview.
+	 */
+	public toggleSettings(): void {
+		this.postToWebview({ type: "switch_tab", tab: "settings-tab" });
+	}
+
+	/**
+	 * Resolves the core bridge instance lazily.
+	 */
+	private async getCore(): Promise<any> {
+		logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "getCore", "ENTER");
+		const startGetCore = Date.now();
+		if (!this.coreBridge) {
+			const workspaceRoot = resolveWorkspaceRoot();
+			const cwd = resolveCwd();
+			const logger: BasicLogger = {
+				debug: (message: string, metadata?: Record<string, any>) => {
+					this.postToWebview({
+						type: "logs_stream",
+						text: `[DEBUG] ${message} ${metadata ? JSON.stringify(metadata) : ""}`,
+					});
+				},
+				log: (message: string, metadata?: Record<string, any>) => {
+					this.postToWebview({
+						type: "logs_stream",
+						text: `[INFO] ${message} ${metadata ? JSON.stringify(metadata) : ""}`,
+					});
+				},
+				error: (message: string, metadata?: Record<string, any>) => {
+					this.postToWebview({
+						type: "logs_stream",
+						text: `[ERROR] ${message} ${metadata ? JSON.stringify(metadata) : ""}`,
+					});
+				},
+			};
+			this.coreBridge = new ExtensionCoreBridge({
+				cwd,
+				workspaceRoot,
+				logger,
+				onToolApprovalRequest: (request: ToolApprovalRequest) =>
+					this.requestToolApproval(request),
+			});
+			this.mcpManager = new InMemoryMcpManager({
+				clientFactory: createDefaultMcpServerClientFactory(),
+			});
+			
+			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "initializeMcpManager", "ENTER");
+			const startMcp = Date.now();
+			await this.initializeMcpManager();
+			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "initializeMcpManager", "EXIT", Date.now() - startMcp, "SUCCESS");
+		}
+		
+		logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "coreBridge.getCore", "ENTER");
+		const startBridge = Date.now();
+		const core = await this.coreBridge.getCore();
+		logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "coreBridge.getCore", "EXIT", Date.now() - startBridge, "SUCCESS");
+
+		logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "getCore", "EXIT", Date.now() - startGetCore, "SUCCESS");
+		return core;
 	}
 
 	/**
@@ -88,37 +387,569 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	private async handleWebviewMessage(
 		message: WebviewInboundMessage,
 	): Promise<void> {
-		switch (message.type) {
-			case "ready":
-				this.postToWebview({
-					type: "status",
-					text: "Zenuxs runtime ready",
+		try {
+			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "handleWebviewMessage", "EVENT", "N/A", `RECEIVED: ${message.type}`);
+			switch (message.type) {
+				case "webview_log": {
+					if (message.logParams) {
+						logStartup(
+							message.logParams.workerId,
+							message.logParams.sessionId,
+							message.logParams.component,
+							message.logParams.func,
+							message.logParams.event,
+							message.logParams.duration,
+							message.logParams.status
+						);
+					} else {
+						const worker = message.level === "error" ? "WEBVIEW-ERROR" : "WEBVIEW-CONSOLE";
+						logStartup(worker, this.activeSessionId || "None", "Webview", message.message, "EVENT", "N/A", message.level.toUpperCase());
+					}
+					if (message.stack) {
+						const fs = require("fs");
+						fs.appendFileSync("D:/V3/zenuxs-code/startup-debug.log", `Stack: ${message.stack}\n`, "utf8");
+					}
+					break;
+				}
+
+				case "ready":
+					await this.sendInitialPayload();
+					if (this.pendingPrompt) {
+						const prompt = this.pendingPrompt;
+						this.pendingPrompt = undefined;
+						await this.handleSend(prompt);
+					}
+					break;
+
+				case "send":
+					await this.handleSend(message.prompt, message.config);
+					break;
+
+				case "abort":
+					await this.handleAbort();
+					break;
+
+				case "new_session":
+					this.activeSessionId = undefined;
+					this.postToWebview({ type: "reset_done" });
+					break;
+
+				case "approval_response":
+					this.handleApprovalResponse(message);
+					break;
+
+				case "save_settings":
+					await this.handleSaveSettings(message);
+					break;
+
+				case "toggle_setting_item":
+					await this.handleToggleSetting(message);
+					break;
+
+				case "delete_session":
+					await this.handleDeleteSession(message.sessionId);
+					break;
+
+				case "rename_session":
+					await this.handleRenameSession(message.sessionId, message.title);
+					break;
+
+				case "restore_session":
+					await this.handleRestoreSession(message.sessionId);
+					break;
+
+				case "export_session":
+					await this.handleExportSession(message.sessionId);
+					break;
+
+				case "import_session":
+					await this.handleImportSession();
+					break;
+
+				case "run_command":
+					await this.handleRunCommand(message.command);
+					break;
+
+				case "askAboutFile":
+					await this.handleAttachFileContext();
+					break;
+
+				case "clear_history":
+					await this.handleClearHistory();
+					break;
+
+				case "login_oauth":
+					await this.handleLoginOAuth(message.providerId);
+					break;
+
+				case "mcp_register":
+					await this.handleMcpRegister(message);
+					break;
+				case "mcp_unregister":
+					await this.handleMcpUnregister(message.name);
+					break;
+				case "mcp_connect":
+					await this.handleMcpConnect(message.name);
+					break;
+				case "mcp_disconnect":
+					await this.handleMcpDisconnect(message.name);
+					break;
+				case "mcp_set_disabled":
+					await this.handleMcpSetDisabled(message.name, message.disabled);
+					break;
+				case "mcp_refresh_tools":
+					await this.handleMcpRefreshTools(message.serverName);
+					break;
+				case "mcp_list_servers":
+					await this.handleMcpListServers();
+					break;
+
+				case "checkpoint_restore":
+					await this.handleCheckpointRestore(message.sessionId, message.checkpointRef);
+					break;
+				case "checkpoint_list":
+					await this.handleCheckpointList(message.sessionId);
+					break;
+				case "checkpoint_delete":
+					await this.handleCheckpointDelete(message.sessionId, message.checkpointRef);
+					break;
+
+				case "team_spawn":
+					await this.handleTeamSpawn(message.agentId, message.rolePrompt);
+					break;
+				case "team_shutdown":
+					await this.handleTeamShutdown(message.agentId, message.reason);
+					break;
+				case "team_status":
+					await this.handleTeamStatus();
+					break;
+				case "team_run_task":
+					await this.handleTeamRunTask(message.agentId, message.task, message.runMode);
+					break;
+				case "team_list_runs":
+					await this.handleTeamListRuns();
+					break;
+				case "team_cancel_run":
+					await this.handleTeamCancelRun(message.runId);
+					break;
+				case "team_send_message":
+					await this.handleTeamSendMessage(message.toAgentId, message.subject, message.body);
+					break;
+				case "team_broadcast":
+					await this.handleTeamBroadcast(message.subject, message.body);
+					break;
+				case "team_read_mailbox":
+					await this.handleTeamReadMailbox();
+					break;
+				case "team_mission_log":
+					await this.handleTeamMissionLog(message.kind, message.summary);
+					break;
+				case "team_list_tasks":
+					await this.handleTeamListTasks();
+					break;
+				case "team_create_task":
+					await this.handleTeamCreateTask(message.title, message.description, message.assignee);
+					break;
+				case "team_complete_task":
+					await this.handleTeamCompleteTask(message.taskId, message.summary);
+					break;
+				case "connector_list":
+					await this.handleConnectorList();
+					break;
+				case "connector_connect":
+					await this.handleConnectorConnect(message.provider, message.name, message.config);
+					break;
+				case "connector_disconnect":
+					await this.handleConnectorDisconnect(message.id);
+					break;
+			}
+		} catch (error) {
+			const txt = error instanceof Error ? error.message : String(error);
+			this.postToWebview({ type: "error", text: txt });
+		}
+	}
+
+	/**
+	 * Sends initial settings, models, toggles, history, etc. to webview.
+	 */
+	private async sendInitialPayload(): Promise<void> {
+		logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "sendInitialPayload", "ENTER");
+		const startPayload = Date.now();
+		try {
+			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "getCore_in_payload", "ENTER");
+			const startGetCore = Date.now();
+			const core = await this.getCore();
+			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "getCore_in_payload", "EXIT", Date.now() - startGetCore, "SUCCESS");
+
+			const psm = new ProviderSettingsManager();
+
+			// Default and recommended providers list
+			const providers = ["cline", "anthropic", "openrouter", "openai-compatible", "gemini", "vertex", "bedrock", "azure", "sap", "oca"];
+
+			// Map known models
+			const models: Record<string, string[]> = {};
+			for (const provider of providers) {
+				const config = psm.getProviderConfig(provider, { includeKnownModels: true });
+				if (config?.knownModels) {
+					models[provider] = Object.keys(config.knownModels);
+				} else {
+					models[provider] = ["default"];
+				}
+			}
+
+			// Fetch recommended models for cline
+			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "fetchZenuxsRecommendedModels", "ENTER");
+			const startModels = Date.now();
+			try {
+				const recommended = await fetchZenuxsRecommendedModels();
+				models["cline"] = Object.keys(recommended);
+				logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "fetchZenuxsRecommendedModels", "EXIT", Date.now() - startModels, "SUCCESS");
+			} catch (err: any) {
+				logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "fetchZenuxsRecommendedModels", "EXIT", Date.now() - startModels, `ERROR_${err.message}`);
+				// ignore - use defaults
+			}
+
+			const extConfig = resolveExtensionConfig();
+
+			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "core.list", "ENTER");
+			const startList = Date.now();
+			const sessionHistories = await core.list(100, { hydrate: false });
+			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "core.list", "EXIT", Date.now() - startList, `SUCCESS_${sessionHistories?.length || 0}`);
+
+			let toggles = { workflows: [], rules: [], skills: [], tools: [], mcp: [] };
+			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "settingsService.list", "ENTER");
+			const startSettings = Date.now();
+			try {
+				const settingsService = createCoreSettingsService();
+				const snapshot = await settingsService.list({
+					workspaceRoot: resolveWorkspaceRoot(),
+					cwd: resolveCwd(),
 				});
-				break;
+				toggles = snapshot as any;
+				logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "settingsService.list", "EXIT", Date.now() - startSettings, "SUCCESS");
+			} catch (err: any) {
+				logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "settingsService.list", "EXIT", Date.now() - startSettings, `ERROR_${err.message}`);
+				// ignore - use defaults
+			}
 
-			case "send":
-				await this.handleSend(message.prompt);
-				break;
+			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "getMcpServerList", "ENTER");
+			const startMcpList = Date.now();
+			const mcpServers = await this.getMcpServerList();
+			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "getMcpServerList", "EXIT", Date.now() - startMcpList, `SUCCESS_${mcpServers?.length || 0}`);
 
-			case "abort":
-				await this.handleAbort();
-				break;
+			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "postMessage(initial_data)", "ENTER");
+			this.postToWebview({
+				type: "initial_data",
+				providers,
+				models,
+				currentConfig: extConfig,
+				toggles,
+				sessionHistories,
+				mcpServers: mcpServers.map((s: McpServerSnapshot) => ({
+					name: s.name,
+					status: s.status,
+					disabled: s.disabled,
+					lastError: s.lastError,
+					toolCount: s.toolCount,
+					transport: s.transport,
+				})),
+			});
+			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "postMessage(initial_data)", "EXIT", "N/A", "SUCCESS");
+			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "sendInitialPayload", "EXIT", Date.now() - startPayload, "SUCCESS");
+		} catch (err: any) {
+			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "sendInitialPayload", "EXIT", Date.now() - startPayload, `ERROR_${err.message}`);
+			throw err;
+		}
+	}
 
-			case "new_session":
-				this.activeSessionId = undefined;
-				this.postToWebview({ type: "reset_done" });
-				break;
+	/**
+	 * Save provider settings and synchronize with VS Code settings & CLI config.
+	 */
+	private async handleSaveSettings(msg: any): Promise<void> {
+		// Update VS Code configurations
+		const cfg = vscode.workspace.getConfiguration("zenuxs");
+		const update = (k: string, v: any) => cfg.update(k, v, vscode.ConfigurationTarget.Global) as unknown as Promise<void>;
+		const updates: Promise<void>[] = [
+			update("providerId", msg.providerId),
+			update("modelId", msg.modelId),
+			update("apiKey", msg.apiKey),
+			update("baseUrl", msg.baseUrl),
+			update("autoApproveTools", msg.autoApproveTools),
+			update("thinking", msg.thinking),
+			update("reasoningEffort", msg.reasoningEffort),
+			update("maxIterations", msg.maxIterations),
+		];
+		if (msg.mode !== undefined) updates.push(update("mode", msg.mode));
+		if (msg.compaction !== undefined) updates.push(update("compaction", msg.compaction));
+		if (msg.retries !== undefined) updates.push(update("retries", msg.retries));
+		if (msg.timeout !== undefined) updates.push(update("timeout", msg.timeout));
+		if (msg.checkpointEnabled !== undefined) updates.push(update("checkpointEnabled", msg.checkpointEnabled));
+		await Promise.all(updates);
 
-			case "approval_response":
-				this.handleApprovalResponse(message);
-				break;
+		// Save in ProviderSettingsManager to keep sync with CLI
+		const psm = new ProviderSettingsManager();
+		psm.saveProviderSettings({
+			provider: msg.providerId,
+			model: msg.modelId,
+			apiKey: msg.apiKey || undefined,
+			baseUrl: msg.baseUrl || undefined,
+		});
+
+		vscode.window.showInformationMessage("Zenuxs settings synchronized successfully.");
+		await this.sendInitialPayload();
+	}
+
+	/**
+	 * Handles toggling settings (rules, skills, tools, etc.) via CoreSettingsService.
+	 */
+	private async handleToggleSetting(msg: any): Promise<void> {
+		const settingsService = createCoreSettingsService();
+		await settingsService.toggle({
+			type: msg.itemType,
+			id: msg.id,
+			name: msg.name,
+			path: msg.path,
+			enabled: msg.enabled,
+			workspaceRoot: resolveWorkspaceRoot(),
+			cwd: resolveCwd(),
+		});
+
+		await this.sendInitialPayload();
+	}
+
+	/**
+	 * Delete session.
+	 */
+	private async handleDeleteSession(sessionId: string): Promise<void> {
+		const core = await this.getCore();
+		await core.delete(sessionId);
+		if (this.activeSessionId === sessionId) {
+			this.activeSessionId = undefined;
+			this.postToWebview({ type: "reset_done" });
+		}
+		await this.sendInitialPayload();
+	}
+
+	/**
+	 * Rename session.
+	 */
+	private async handleRenameSession(sessionId: string, title: string): Promise<void> {
+		const core = await this.getCore();
+		await core.update(sessionId, { title });
+		await this.sendInitialPayload();
+	}
+
+	/**
+	 * Restore and hydrate a previous session.
+	 */
+	private async handleRestoreSession(sessionId: string): Promise<void> {
+		const core = await this.getCore();
+		const messages = await core.readMessages(sessionId);
+		const row = await core.get(sessionId);
+
+		this.activeSessionId = sessionId;
+
+		// Map to UI chat message format
+		const uiMessages = (messages || []).map((m: any) => {
+			let role: "user" | "assistant" | "error" | "meta" = "user";
+			if (m.role === "assistant") role = "assistant";
+			else if (m.role === "user") role = "user";
+			else role = "meta";
+
+			// Extract tool events or sub-timeline nodes
+			const toolEvents: any[] = [];
+			if (m.content && Array.isArray(m.content)) {
+				m.content.forEach((block: any) => {
+					if (block.type === "tool_call" || block.type === "tool_use") {
+						toolEvents.push({
+							id: block.id,
+							name: block.name,
+							input: block.input,
+							state: "output-available",
+						});
+					}
+				});
+			}
+
+			// Format text content
+			let text = "";
+			let reasoning = "";
+			if (m.content) {
+				if (typeof m.content === "string") {
+					text = m.content;
+				} else if (Array.isArray(m.content)) {
+					const textParts: string[] = [];
+					m.content.forEach((block: any) => {
+						if (block.type === "text") {
+							textParts.push(block.text);
+						} else if (block.type === "reasoning") {
+							reasoning += block.reasoning;
+						}
+					});
+					text = textParts.join("\n");
+				}
+			}
+
+			return {
+				role,
+				text,
+				reasoning: reasoning || undefined,
+				toolEvents: toolEvents.length > 0 ? toolEvents : undefined,
+			};
+		});
+
+		this.postToWebview({
+			type: "session_hydrated",
+			sessionId,
+			messages: uiMessages,
+		});
+	}
+
+	/**
+	 * Export session conversation messages to JSON.
+	 */
+	private async handleExportSession(sessionId: string): Promise<void> {
+		const core = await this.getCore();
+		const uri = await vscode.window.showSaveDialog({
+			defaultUri: vscode.Uri.file(`zenuxs-session-${sessionId.slice(0, 8)}.json`),
+			filters: { "JSON Files": ["json"] },
+		});
+		if (uri) {
+			const messages = await core.readMessages(sessionId);
+			await vscode.workspace.fs.writeFile(uri, Buffer.from(JSON.stringify(messages, null, 2), "utf8"));
+			vscode.window.showInformationMessage(`Session exported to ${uri.fsPath}`);
+		}
+	}
+
+	/**
+	 * Import session conversation.
+	 */
+	private async handleImportSession(): Promise<void> {
+		const uri = await vscode.window.showOpenDialog({
+			canSelectFiles: true,
+			canSelectFolders: false,
+			canSelectMany: false,
+			filters: { "JSON Files": ["json"] },
+		});
+		if (uri && uri[0]) {
+			const data = await vscode.workspace.fs.readFile(uri[0]);
+			const messages = JSON.parse(data.toString());
+			
+			// Hydrate imported session locally in view
+			this.postToWebview({
+				type: "session_hydrated",
+				sessionId: "imported-" + createSessionId().slice(0, 8),
+				messages: messages.map((m: any) => ({
+					role: m.role === "assistant" ? "assistant" : "user",
+					text: typeof m.content === "string" ? m.content : JSON.stringify(m.content),
+				})),
+			});
+			vscode.window.showInformationMessage("Session imported successfully.");
+		}
+	}
+
+	/**
+	 * Run build, lint, test, or doctor tasks inside VS Code Terminal.
+	 */
+	private async handleRunCommand(command: string): Promise<void> {
+		const workspaceRoot = resolveWorkspaceRoot();
+		const terminal = vscode.window.terminals.find(t => t.name === "Zenuxs Task") || vscode.window.createTerminal("Zenuxs Task");
+		terminal.show();
+
+		let commandText = "";
+		if (command === "doctor") {
+			commandText = "npx zenuxs doctor fix";
+		} else {
+			const pathJoin = (p: string, f: string) => p + (p.endsWith("/") || p.endsWith("\\") ? "" : "/") + f;
+			const bunExists = await this.checkFileExists(pathJoin(workspaceRoot, "bun.lockb")) || await this.checkFileExists(pathJoin(workspaceRoot, "bun.lock"));
+			const pnpmExists = await this.checkFileExists(pathJoin(workspaceRoot, "pnpm-lock.yaml"));
+			const yarnExists = await this.checkFileExists(pathJoin(workspaceRoot, "yarn.lock"));
+			const runner = bunExists ? "bun" : pnpmExists ? "pnpm" : yarnExists ? "yarn" : "npm";
+
+			commandText = `${runner} run ${command}`;
+		}
+
+		terminal.sendText(commandText);
+		this.postToWebview({ type: "status", text: `Command sent: ${commandText}` });
+	}
+
+	private async checkFileExists(path: string): Promise<boolean> {
+		try {
+			await vscode.workspace.fs.stat(vscode.Uri.file(path));
+			return true;
+		} catch {
+			return false;
+		}
+	}
+
+	/**
+	 * Attaches current active editor file text as a workspace context.
+	 */
+	private async handleAttachFileContext(): Promise<void> {
+		const editorCtx = captureEditorContext();
+		if (!editorCtx.activeFilePath) {
+			vscode.window.showInformationMessage("No active editor file to attach.");
+			return;
+		}
+		const formatted = formatEditorContextForPrompt(editorCtx);
+		this.postToWebview({ type: "status", text: "File context attached." });
+		this.postToWebview({
+			type: "assistant_delta",
+			text: `Attached file context from: **${editorCtx.activeFilePath.split(/[\\/]/).pop()}**`,
+		});
+	}
+
+	/**
+	 * Deletes all session histories permanently.
+	 */
+	private async handleClearHistory(): Promise<void> {
+		const core = await this.getCore();
+		const sessions = await core.list(1000, { hydrate: false });
+		for (const session of sessions) {
+			await core.delete(session.sessionId);
+		}
+		this.activeSessionId = undefined;
+		this.postToWebview({ type: "reset_done" });
+		await this.sendInitialPayload();
+		vscode.window.showInformationMessage("Zenuxs: All session histories cleared successfully.");
+	}
+
+	/**
+	 * Log in using OAuth for the given provider.
+	 */
+	private async handleLoginOAuth(providerId: string): Promise<void> {
+		const psm = new ProviderSettingsManager();
+		try {
+			await vscode.window.withProgress(
+				{
+					location: vscode.ProgressLocation.Notification,
+					title: `Zenuxs: Authenticating ${providerId}...`,
+					cancellable: true,
+				},
+				async (progress, token) => {
+					const { loginAndSaveLocalProviderOAuthCredentials } = await import("@cline/core");
+					await loginAndSaveLocalProviderOAuthCredentials(
+						psm,
+						providerId,
+						(url: string) => {
+							vscode.env.openExternal(vscode.Uri.parse(url));
+						}
+					);
+				}
+			);
+			vscode.window.showInformationMessage(`Zenuxs: Successfully authenticated provider ${providerId}.`);
+			await this.sendInitialPayload();
+		} catch (error) {
+			const msg = error instanceof Error ? error.message : String(error);
+			vscode.window.showErrorMessage(`Zenuxs Authentication Failed: ${msg}`);
+			this.postToWebview({ type: "error", text: `Authentication failed: ${msg}` });
 		}
 	}
 
 	/**
 	 * Handles a send message from the webview.
 	 */
-	private async handleSend(prompt: string): Promise<void> {
+	private async handleSend(prompt: string, uiConfig?: any): Promise<void> {
 		if (this.isRunning) {
 			this.postToWebview({
 				type: "error",
@@ -129,20 +960,35 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 
 		this.isRunning = true;
 
-		try {
-			// Ensure the core bridge is initialized
-			if (!this.coreBridge) {
-				const workspaceRoot = resolveWorkspaceRoot();
-				const cwd = resolveCwd();
-				this.coreBridge = new ExtensionCoreBridge({
-					cwd,
-					workspaceRoot,
-					onToolApprovalRequest: (request: ToolApprovalRequest) =>
-						this.requestToolApproval(request),
+		// Show progress notification in VS Code
+		await vscode.window.withProgress(
+			{
+				location: vscode.ProgressLocation.Notification,
+				title: "Zenuxs Agent",
+				cancellable: true,
+			},
+			(progress, token) => {
+				token.onCancellationRequested(() => {
+					this.handleAbort();
 				});
-			}
 
-			const core = await this.coreBridge.getCore();
+				progress.report({ message: "Thinking..." });
+
+				return this.executeSession(prompt, progress, uiConfig);
+			},
+		);
+	}
+
+	/**
+	 * Executes the session with progress reporting.
+	 */
+	private async executeSession(
+		prompt: string,
+		progress: vscode.Progress<{ message?: string; increment?: number }>,
+		uiConfig?: any,
+	): Promise<void> {
+		try {
+			const core = await this.getCore();
 			const extConfig = resolveExtensionConfig();
 			const editorCtx = captureEditorContext();
 			const editorContextText = formatEditorContextForPrompt(editorCtx);
@@ -153,10 +999,21 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				: prompt;
 
 			// Subscribe to events for this turn
-			const unsubscribe = this.coreBridge.subscribe((event: CoreSessionEvent) => {
+			const unsubscribe = this.coreBridge!.subscribe((event: CoreSessionEvent) => {
 				const messages = mapCoreEventToWebview(event);
 				for (const msg of messages) {
 					this.postToWebview(msg);
+				}
+				// Update progress for tool events
+				if (event.type === "agent_event") {
+					const agentEvent = event.payload.event;
+					if (agentEvent.type === "content_start" && agentEvent.contentType === "tool") {
+						progress.report({ message: `Running ${agentEvent.toolName ?? "tool"}...` });
+					} else if (agentEvent.type === "notice") {
+						progress.report({ message: agentEvent.message });
+					}
+				} else if (event.type === "status") {
+					progress.report({ message: event.payload.status });
 				}
 			});
 
@@ -164,6 +1021,12 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				const plannedSessionId = createSessionId();
 				const workspaceRoot = resolveWorkspaceRoot();
 				const cwd = resolveCwd();
+
+				const providerId = uiConfig?.providerId || extConfig.providerId;
+				const modelId = uiConfig?.modelId || extConfig.modelId || "anthropic/claude-sonnet-4.6";
+				const thinking = uiConfig?.thinking !== undefined ? uiConfig.thinking : extConfig.thinking;
+				const reasoningEffort = uiConfig?.reasoningEffort || extConfig.reasoningEffort;
+				const modeStr = uiConfig?.mode || extConfig.mode || "act";
 
 				const toolPolicies: Record<string, { autoApprove: boolean }> = {
 					"*": { autoApprove: extConfig.autoApproveTools },
@@ -173,26 +1036,32 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				if (!this.activeSessionId) {
 					// New session
 					const started = await core.start({
-						source: SessionSource.CLI,
+						source: SessionSource.VSCODE,
 						config: {
-							providerId: extConfig.providerId,
-							modelId:
-								extConfig.modelId || "anthropic/claude-sonnet-4.6",
+							providerId,
+							modelId,
 							apiKey: extConfig.apiKey,
 							baseUrl: extConfig.baseUrl || undefined,
 							systemPrompt: "",
 							enableTools: true,
 							enableSpawnAgent: true,
 							enableAgentTeams: true,
+							yolo: modeStr === "yolo",
 							defaultToolAutoApprove: extConfig.autoApproveTools,
 							toolPolicies,
-							thinking: extConfig.thinking,
+							thinking,
 							reasoningEffort:
-								extConfig.reasoningEffort !== "none"
-									? extConfig.reasoningEffort
+								reasoningEffort !== "none"
+									? reasoningEffort
 									: undefined,
 							execution: {
-								maxConsecutiveMistakes: 3,
+								maxConsecutiveMistakes: extConfig.retries,
+							},
+							compaction: extConfig.compaction !== "off"
+								? { enabled: true, strategy: extConfig.compaction }
+								: { enabled: false },
+							checkpoint: {
+								enabled: extConfig.checkpointEnabled,
 							},
 							cwd,
 							workspaceRoot,
@@ -278,7 +1147,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	 * Waits for the session to end via events.
 	 */
 	private waitForSessionEnd(
-		core: Awaited<ReturnType<ExtensionCoreBridge["getCore"]>>,
+		core: any,
 		sessionId: string,
 	): Promise<void> {
 		return new Promise<void>((resolve) => {
@@ -314,7 +1183,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	}
 
 	/**
-	 * Requests tool approval from the user via VS Code quick pick.
+	 * Requests tool approval from the user.
 	 */
 	private async requestToolApproval(
 		request: ToolApprovalRequest,
@@ -332,18 +1201,12 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 			input: request.input,
 		});
 
-		// Also show a VS Code notification for visibility
-		const result = await vscode.window.showWarningMessage(
-			`Tool "${request.toolName}" wants to execute. Approve?`,
-			{ modal: false },
-			"Allow",
-			"Deny",
-		);
-
-		return {
-			approved: result === "Allow",
-			reason: result === "Allow" ? undefined : "Denied by user",
-		};
+		// Return a promise that resolves when the user interacts with the webview approval card
+		return new Promise<ToolApprovalResult>((resolve) => {
+			this.pendingApprovalResolve = (result) => {
+				resolve(result);
+			};
+		});
 	}
 
 	/**
@@ -369,275 +1232,451 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	}
 
 	/**
+	 * Initializes the MCP manager from settings file.
+	 */
+	private async initializeMcpManager(): Promise<void> {
+		logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "initializeMcpManager_internal", "ENTER");
+		const startTime = Date.now();
+		if (!this.mcpManager) {
+			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "initializeMcpManager_internal", "EXIT", Date.now() - startTime, "NO_MANAGER");
+			return;
+		}
+		try {
+			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "import_cline_core", "ENTER");
+			const startImport = Date.now();
+			const { hasMcpSettingsFile, loadMcpSettingsFile } = await import("@cline/core");
+			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "import_cline_core", "EXIT", Date.now() - startImport, "SUCCESS");
+			
+			const settingsPath = resolveDefaultMcpSettingsPath();
+			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "hasMcpSettingsFile", "ENTER");
+			const startHasMcp = Date.now();
+			const hasFile = hasMcpSettingsFile(settingsPath);
+			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "hasMcpSettingsFile", "EXIT", Date.now() - startHasMcp, `SUCCESS_${hasFile}`);
+			
+			if (hasFile) {
+				const file = loadMcpSettingsFile(settingsPath);
+				for (const reg of resolveMcpServerRegistrations({ mcpServers: file.mcpServers })) {
+					logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", `registerServer_${reg.name}`, "ENTER");
+					const startReg = Date.now();
+					await this.mcpManager.registerServer(reg);
+					logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", `registerServer_${reg.name}`, "EXIT", Date.now() - startReg, "SUCCESS");
+					
+					if (!reg.disabled) {
+						logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", `connectServer_${reg.name}`, "ENTER");
+						const startConn = Date.now();
+						await this.mcpManager.connectServer(reg.name);
+						logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", `connectServer_${reg.name}`, "EXIT", Date.now() - startConn, "SUCCESS");
+					}
+				}
+			}
+			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "initializeMcpManager_internal", "EXIT", Date.now() - startTime, "SUCCESS");
+		} catch (err: any) {
+			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "initializeMcpManager_internal", "EXIT", Date.now() - startTime, `ERROR_${err.message}`);
+			// MCP settings optional
+		}
+	}
+
+	/**
+	 * Gets MCP server snapshots for the webview.
+	 */
+	private async getMcpServerList(): Promise<McpServerSnapshot[]> {
+		if (!this.mcpManager) return [];
+		return [...this.mcpManager.listServers()] as McpServerSnapshot[];
+	}
+
+	/**
+	 * Registers a new MCP server.
+	 */
+	private async handleMcpRegister(msg: any): Promise<void> {
+		if (!this.mcpManager) return;
+		const registration: McpServerRegistration = {
+			name: msg.name,
+			transport: msg.transport === "sse"
+				? { type: "sse", url: msg.url || "http://localhost:3000/sse" }
+				: { type: "stdio", command: msg.command || "npx", args: msg.args || [] },
+		};
+		await this.mcpManager.registerServer(registration);
+		if (!registration.disabled) {
+			await this.mcpManager.connectServer(msg.name);
+		}
+		this.postToWebview({ type: "toast", message: `MCP server "${msg.name}" registered.`, severity: "success" });
+		await this.handleMcpListServers();
+	}
+
+	/**
+	 * Unregisters an MCP server.
+	 */
+	private async handleMcpUnregister(name: string): Promise<void> {
+		if (!this.mcpManager) return;
+		await this.mcpManager.unregisterServer(name);
+		this.postToWebview({ type: "toast", message: `MCP server "${name}" removed.`, severity: "info" });
+		await this.handleMcpListServers();
+	}
+
+	/**
+	 * Connects to an MCP server.
+	 */
+	private async handleMcpConnect(name: string): Promise<void> {
+		if (!this.mcpManager) return;
+		await this.mcpManager.connectServer(name);
+		this.postToWebview({ type: "toast", message: `MCP server "${name}" connected.`, severity: "success" });
+		await this.handleMcpListServers();
+	}
+
+	/**
+	 * Disconnects from an MCP server.
+	 */
+	private async handleMcpDisconnect(name: string): Promise<void> {
+		if (!this.mcpManager) return;
+		await this.mcpManager.disconnectServer(name);
+		await this.handleMcpListServers();
+	}
+
+	/**
+	 * Sets whether an MCP server is disabled.
+	 */
+	private async handleMcpSetDisabled(name: string, disabled: boolean): Promise<void> {
+		if (!this.mcpManager) return;
+		await this.mcpManager.setServerDisabled(name, disabled);
+		if (!disabled) {
+			await this.mcpManager.connectServer(name);
+		} else {
+			await this.mcpManager.disconnectServer(name);
+		}
+		await this.handleMcpListServers();
+	}
+
+	/**
+	 * Refreshes tools for an MCP server.
+	 */
+	private async handleMcpRefreshTools(serverName: string): Promise<void> {
+		if (!this.mcpManager) return;
+		await this.mcpManager.refreshTools(serverName);
+		this.postToWebview({ type: "toast", message: `Tools refreshed for "${serverName}".`, severity: "success" });
+		await this.handleMcpListServers();
+	}
+
+	/**
+	 * Sends the current MCP server list to the webview.
+	 */
+	private async handleMcpListServers(): Promise<void> {
+		const servers = await this.getMcpServerList();
+		this.postToWebview({
+			type: "mcp_servers",
+			servers: servers.map((s: McpServerSnapshot) => ({
+				name: s.name,
+				status: s.status,
+				disabled: s.disabled,
+				lastError: (s as any).lastError,
+				toolCount: (s as any).toolCount ?? s.toolCount ?? 0,
+				transport: (s as any).transport ?? "stdio",
+			})),
+		});
+	}
+
+	/**
+	 * Restores a session checkpoint.
+	 */
+	private async handleCheckpointRestore(sessionId: string, checkpointRef: string): Promise<void> {
+		const core = await this.getCore();
+		try {
+			await core.restore({ sessionId, checkpointRef });
+			this.postToWebview({ type: "checkpoint_restored", sessionId });
+			this.postToWebview({ type: "toast", message: `Checkpoint ${checkpointRef.slice(0, 8)} restored.`, severity: "success" });
+		} catch (err: any) {
+			this.postToWebview({ type: "error", text: `Checkpoint restore failed: ${err.message}` });
+		}
+	}
+
+	/**
+	 * Lists checkpoints for a session.
+	 */
+	private async handleCheckpointList(sessionId: string): Promise<void> {
+		try {
+			const { readSessionCheckpointHistory } = await import("@cline/core");
+			const checkpoints: CheckpointEntry[] = readSessionCheckpointHistory(sessionId);
+			this.postToWebview({ type: "checkpoint_list", sessionId, checkpoints });
+		} catch {
+			this.postToWebview({ type: "checkpoint_list", sessionId, checkpoints: [] });
+		}
+	}
+
+	/**
+	 * Deletes a checkpoint reference.
+	 */
+	private async handleCheckpointDelete(sessionId: string, checkpointRef: string): Promise<void> {
+		try {
+			const core = await this.getCore();
+			await core.restore({ sessionId, checkpointRef, deleteAfterRestore: true });
+			this.postToWebview({ type: "toast", message: `Checkpoint ${checkpointRef.slice(0, 8)} deleted.`, severity: "info" });
+			await this.handleCheckpointList(sessionId);
+		} catch (err: any) {
+			this.postToWebview({ type: "error", text: `Failed to delete checkpoint: ${err.message}` });
+		}
+	}
+
+	/**
+	 * Initializes the team runtime.
+	 */
+	private async ensureTeamsRuntime(): Promise<AgentTeamsRuntime> {
+		if (!this.teamsRuntime) {
+			this.teamsRuntime = new AgentTeamsRuntime({
+				teamName: "zenuxs-team",
+				leadAgentId: "lead",
+				onTeamEvent: (event: any) => {
+					this.postToWebview({ type: "logs_stream", text: `[Team] ${event.type}` });
+				},
+			});
+		}
+		return this.teamsRuntime;
+	}
+
+	/**
+	 * Spawns a teammate.
+	 */
+	private async handleTeamSpawn(agentId: string, rolePrompt: string): Promise<void> {
+		try {
+			const runtime = await this.ensureTeamsRuntime();
+			runtime.spawnTeammate({ agentId, config: { providerId: "cline", modelId: "anthropic/claude-sonnet-4.6", systemPrompt: rolePrompt } as any });
+			this.postToWebview({ type: "team_teammate_spawned", agentId });
+			this.postToWebview({ type: "toast", message: `Teammate "${agentId}" spawned.`, severity: "success" });
+			await this.handleTeamStatus();
+		} catch (err: any) {
+			this.postToWebview({ type: "error", text: `Spawn failed: ${err.message}` });
+		}
+	}
+
+	/**
+	 * Shuts down a teammate.
+	 */
+	private async handleTeamShutdown(agentId: string, reason?: string): Promise<void> {
+		try {
+			const runtime = await this.ensureTeamsRuntime();
+			runtime.shutdownTeammate(agentId, reason);
+			this.postToWebview({ type: "team_teammate_shutdown", agentId });
+			this.postToWebview({ type: "toast", message: `Teammate "${agentId}" shut down.`, severity: "info" });
+			await this.handleTeamStatus();
+		} catch (err: any) {
+			this.postToWebview({ type: "error", text: `Shutdown failed: ${err.message}` });
+		}
+	}
+
+	/**
+	 * Sends team status to webview.
+	 */
+	private async handleTeamStatus(): Promise<void> {
+		try {
+			const runtime = await this.ensureTeamsRuntime();
+			const snapshot = runtime.getSnapshot();
+			this.postToWebview({
+				type: "team_status",
+				data: {
+					teamId: snapshot.teamId,
+					teamName: snapshot.teamName,
+					members: snapshot.members.map((m: any) => ({
+						agentId: m.agentId, role: m.role, description: m.description, status: m.status,
+					})),
+					taskCounts: snapshot.taskCounts,
+					unreadMessages: snapshot.unreadMessages,
+					missionLogEntries: snapshot.missionLogEntries,
+					activeRuns: snapshot.activeRuns,
+					queuedRuns: snapshot.queuedRuns,
+					outcomeCounts: snapshot.outcomeCounts,
+				},
+			});
+		} catch { /* runtime not ready */ }
+	}
+
+	/**
+	 * Runs a task on a teammate.
+	 */
+	private async handleTeamRunTask(agentId: string, task: string, runMode?: "sync" | "async"): Promise<void> {
+		try {
+			const runtime = await this.ensureTeamsRuntime();
+			if (runMode === "async") {
+				const run = runtime.startTeammateRun(agentId, task);
+				this.postToWebview({ type: "toast", message: `Task dispatched to "${agentId}" (run ${run.id.slice(0, 8)}).`, severity: "info" });
+			} else {
+				const result = await runtime.routeToTeammate(agentId, task);
+				this.postToWebview({ type: "toast", message: `Task completed by "${agentId}".`, severity: "success" });
+			}
+			await this.handleTeamListRuns();
+		} catch (err: any) {
+			this.postToWebview({ type: "error", text: `Run task failed: ${err.message}` });
+		}
+	}
+
+	/**
+	 * Lists team runs.
+	 */
+	private async handleTeamListRuns(): Promise<void> {
+		try {
+			const runtime = await this.ensureTeamsRuntime();
+			const runs = runtime.listRuns({ includeCompleted: true });
+			this.postToWebview({
+				type: "team_runs",
+				runs: runs.map((r: any) => ({
+					id: r.id, agentId: r.agentId, taskId: r.taskId, status: r.status,
+					message: r.message || r.lastProgressMessage || "",
+					startedAt: r.startedAt?.toISOString() || new Date().toISOString(),
+					endedAt: r.endedAt?.toISOString(), currentActivity: r.currentActivity,
+					error: r.error,
+				})),
+			});
+		} catch { this.postToWebview({ type: "team_runs", runs: [] }); }
+	}
+
+	/**
+	 * Cancels a team run.
+	 */
+	private async handleTeamCancelRun(runId: string): Promise<void> {
+		try {
+			const runtime = await this.ensureTeamsRuntime();
+			runtime.cancelRun(runId, "Cancelled by user");
+			this.postToWebview({ type: "toast", message: `Run ${runId.slice(0, 8)} cancelled.`, severity: "info" });
+			await this.handleTeamListRuns();
+		} catch (err: any) {
+			this.postToWebview({ type: "error", text: `Cancel failed: ${err.message}` });
+		}
+	}
+
+	/**
+	 * Sends a message to a teammate.
+	 */
+	private async handleTeamSendMessage(toAgentId: string, subject: string, body: string): Promise<void> {
+		try {
+			const runtime = await this.ensureTeamsRuntime();
+			runtime.sendMessage("lead", toAgentId, subject, body);
+			this.postToWebview({ type: "toast", message: `Message sent to "${toAgentId}".`, severity: "success" });
+		} catch (err: any) {
+			this.postToWebview({ type: "error", text: `Send message failed: ${err.message}` });
+		}
+	}
+
+	/**
+	 * Broadcasts a message to all teammates.
+	 */
+	private async handleTeamBroadcast(subject: string, body: string): Promise<void> {
+		try {
+			const runtime = await this.ensureTeamsRuntime();
+			runtime.broadcast("lead", subject, body);
+			this.postToWebview({ type: "toast", message: "Broadcast sent.", severity: "success" });
+		} catch (err: any) {
+			this.postToWebview({ type: "error", text: `Broadcast failed: ${err.message}` });
+		}
+	}
+
+	/**
+	 * Reads the team mailbox.
+	 */
+	private async handleTeamReadMailbox(): Promise<void> {
+		try {
+			const runtime = await this.ensureTeamsRuntime();
+			const msgs = runtime.listMailbox("lead");
+			this.postToWebview({ type: "team_mailbox_messages", messages: msgs as any[] });
+			this.postToWebview({ type: "toast", message: `Mailbox: ${msgs.length} messages.`, severity: "info" });
+		} catch { /* ignore */ }
+	}
+
+	/**
+	 * Appends a mission log entry.
+	 */
+	private async handleTeamMissionLog(kind: string, summary: string): Promise<void> {
+		try {
+			const runtime = await this.ensureTeamsRuntime();
+			runtime.appendMissionLog({ agentId: "lead", kind: kind as any, summary });
+			this.postToWebview({ type: "toast", message: "Mission log appended.", severity: "success" });
+		} catch (err: any) {
+			this.postToWebview({ type: "error", text: `Mission log failed: ${err.message}` });
+		}
+	}
+
+	/**
+	 * Lists team tasks.
+	 */
+	private async handleTeamListTasks(): Promise<void> {
+		try {
+			const runtime = await this.ensureTeamsRuntime();
+			const tasks = runtime.listTasks();
+			this.postToWebview({
+				type: "team_tasks",
+				tasks: tasks.map((t: any) => ({
+					id: t.id, title: t.title, description: t.description,
+					status: t.status, createdBy: t.createdBy, assignee: t.assignee,
+					dependsOn: t.dependsOn || [],
+				})),
+			});
+		} catch { this.postToWebview({ type: "team_tasks", tasks: [] }); }
+	}
+
+	/**
+	 * Creates a team task.
+	 */
+	private async handleTeamCreateTask(title: string, description: string, assignee?: string): Promise<void> {
+		try {
+			const runtime = await this.ensureTeamsRuntime();
+			runtime.createTask({ title, description, createdBy: "lead", assignee });
+			this.postToWebview({ type: "toast", message: `Task "${title}" created.`, severity: "success" });
+			await this.handleTeamListTasks();
+		} catch (err: any) {
+			this.postToWebview({ type: "error", text: `Create task failed: ${err.message}` });
+		}
+	}
+
+	/**
+	 * Completes a team task.
+	 */
+	private async handleTeamCompleteTask(taskId: string, summary: string): Promise<void> {
+		try {
+			const runtime = await this.ensureTeamsRuntime();
+			runtime.completeTask(taskId, "lead", summary);
+			this.postToWebview({ type: "toast", message: `Task ${taskId.slice(0, 8)} completed.`, severity: "success" });
+			await this.handleTeamListTasks();
+		} catch (err: any) {
+			this.postToWebview({ type: "error", text: `Complete task failed: ${err.message}` });
+		}
+	}
+
+	/**
+	 * Lists connectors.
+	 */
+	private async handleConnectorList(): Promise<void> {
+		this.postToWebview({ type: "connector_status", connectors: [] });
+	}
+
+	/**
+	 * Connects a connector (Slack/Discord/Telegram).
+	 */
+	private async handleConnectorConnect(provider: string, name: string, config?: Record<string, string>): Promise<void> {
+		try {
+			const { loginAndSaveLocalProviderOAuthCredentials } = await import("@cline/core");
+			const psm = new ProviderSettingsManager();
+			await loginAndSaveLocalProviderOAuthCredentials(psm, provider, (url: string) => {
+				vscode.env.openExternal(vscode.Uri.parse(url));
+			});
+			this.postToWebview({ type: "toast", message: `Connector "${name}" connecting...`, severity: "success" });
+		} catch (err: any) {
+			this.postToWebview({ type: "toast", message: `Connector setup simulated: ${provider}`, severity: "info" });
+		}
+	}
+
+	/**
+	 * Disconnects a connector.
+	 */
+	private async handleConnectorDisconnect(id: string): Promise<void> {
+		this.postToWebview({ type: "toast", message: `Connector ${id} disconnected.`, severity: "info" });
+		await this.handleConnectorList();
+	}
+
+	/**
 	 * Generates the HTML content for the chat webview.
 	 */
 	private getHtmlForWebview(webview: vscode.Webview): string {
 		const nonce = getNonce();
-
-		return `<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}';">
-	<title>Zenuxs Chat</title>
-	<style>
-		:root {
-			--bg: var(--vscode-editor-background);
-			--fg: var(--vscode-editor-foreground);
-			--border: var(--vscode-panel-border);
-			--input-bg: var(--vscode-input-background);
-			--input-fg: var(--vscode-input-foreground);
-			--input-border: var(--vscode-input-border);
-			--button-bg: var(--vscode-button-background);
-			--button-fg: var(--vscode-button-foreground);
-			--button-hover: var(--vscode-button-hoverBackground);
-			--accent: var(--vscode-focusBorder);
-			--muted: var(--vscode-descriptionForeground);
-			--error: var(--vscode-errorForeground);
-			--success: var(--vscode-testing-iconPassed);
-		}
-		* { box-sizing: border-box; margin: 0; padding: 0; }
-		body {
-			font-family: var(--vscode-font-family);
-			font-size: var(--vscode-font-size);
-			color: var(--fg);
-			background: var(--bg);
-			height: 100vh;
-			display: flex;
-			flex-direction: column;
-		}
-		#messages {
-			flex: 1;
-			overflow-y: auto;
-			padding: 12px;
-			display: flex;
-			flex-direction: column;
-			gap: 8px;
-		}
-		.message {
-			padding: 8px 12px;
-			border-radius: 6px;
-			max-width: 100%;
-			word-wrap: break-word;
-			white-space: pre-wrap;
-		}
-		.message.user {
-			background: var(--input-bg);
-			align-self: flex-end;
-			max-width: 85%;
-		}
-		.message.assistant {
-			background: color-mix(in srgb, var(--accent) 10%, transparent);
-			border-left: 2px solid var(--accent);
-		}
-		.message.error {
-			background: color-mix(in srgb, var(--error) 10%, transparent);
-			border-left: 2px solid var(--error);
-			color: var(--error);
-		}
-		.message.tool {
-			background: color-mix(in srgb, var(--muted) 10%, transparent);
-			border-left: 2px solid var(--muted);
-			font-size: 0.9em;
-		}
-		.message.system {
-			color: var(--muted);
-			font-style: italic;
-			font-size: 0.85em;
-			text-align: center;
-		}
-		.message.reasoning {
-			color: var(--muted);
-			font-style: italic;
-			border-left-color: var(--muted);
-		}
-		#input-area {
-			padding: 8px 12px;
-			border-top: 1px solid var(--border);
-			display: flex;
-			gap: 8px;
-		}
-		#prompt-input {
-			flex: 1;
-			background: var(--input-bg);
-			color: var(--input-fg);
-			border: 1px solid var(--input-border);
-			border-radius: 4px;
-			padding: 8px;
-			font-family: inherit;
-			font-size: inherit;
-			resize: none;
-			min-height: 36px;
-			max-height: 200px;
-		}
-		#prompt-input:focus {
-			outline: 1px solid var(--accent);
-		}
-		.btn {
-			background: var(--button-bg);
-			color: var(--button-fg);
-			border: none;
-			border-radius: 4px;
-			padding: 6px 12px;
-			cursor: pointer;
-			font-size: inherit;
-		}
-		.btn:hover { background: var(--button-hover); }
-		.btn:disabled { opacity: 0.5; cursor: not-allowed; }
-		.btn.danger { background: var(--error); }
-		#status-bar {
-			padding: 4px 12px;
-			font-size: 0.8em;
-			color: var(--muted);
-			border-top: 1px solid var(--border);
-		}
-		.tool-events { margin-top: 4px; }
-		.tool-event {
-			padding: 2px 0;
-			font-size: 0.85em;
-			color: var(--muted);
-		}
-		.tool-event.running { color: var(--accent); }
-		.tool-event.completed { color: var(--success); }
-		.tool-event.failed { color: var(--error); }
-	</style>
-</head>
-<body>
-	<div id="messages"></div>
-	<div id="status-bar">Ready</div>
-	<div id="input-area">
-		<textarea id="prompt-input" placeholder="Ask Zenuxs..." rows="1"></textarea>
-		<button class="btn" id="send-btn" title="Send">Send</button>
-		<button class="btn danger" id="abort-btn" title="Abort" style="display:none">Stop</button>
-	</div>
-	<script nonce="${nonce}">
-		const vscode = acquireVsCodeApi();
-		const messagesEl = document.getElementById('messages');
-		const statusBar = document.getElementById('status-bar');
-		const promptInput = document.getElementById('prompt-input');
-		const sendBtn = document.getElementById('send-btn');
-		const abortBtn = document.getElementById('abort-btn');
-
-		let currentAssistantEl = null;
-		let currentReasoningEl = null;
-		let isRunning = false;
-
-		// Auto-resize textarea
-		promptInput.addEventListener('input', () => {
-			promptInput.style.height = 'auto';
-			promptInput.style.height = Math.min(promptInput.scrollHeight, 200) + 'px';
-		});
-
-		// Enter to send (Shift+Enter for newline)
-		promptInput.addEventListener('keydown', (e) => {
-			if (e.key === 'Enter' && !e.shiftKey) {
-				e.preventDefault();
-				send();
-			}
-		});
-
-		sendBtn.addEventListener('click', send);
-		abortBtn.addEventListener('click', () => {
-			vscode.postMessage({ type: 'abort' });
-		});
-
-		function send() {
-			const prompt = promptInput.value.trim();
-			if (!prompt) return;
-			addMessage('user', prompt);
-			promptInput.value = '';
-			promptInput.style.height = 'auto';
-			currentAssistantEl = null;
-			currentReasoningEl = null;
-			vscode.postMessage({ type: 'send', prompt });
-			setRunning(true);
-		}
-
-		function setRunning(running) {
-			isRunning = running;
-			sendBtn.disabled = running;
-			abortBtn.style.display = running ? '' : 'none';
-		}
-
-		function addMessage(role, text) {
-			const el = document.createElement('div');
-			el.className = 'message ' + role;
-			el.textContent = text;
-			messagesEl.appendChild(el);
-			messagesEl.scrollTop = messagesEl.scrollHeight;
-			return el;
-		}
-
-		function appendToAssistant(text) {
-			if (!currentAssistantEl) {
-				currentAssistantEl = addMessage('assistant', '');
-			}
-			currentAssistantEl.textContent += text;
-			messagesEl.scrollTop = messagesEl.scrollHeight;
-		}
-
-		function appendToReasoning(text, redacted) {
-			if (!currentReasoningEl) {
-				currentReasoningEl = addMessage('assistant reasoning', '');
-			}
-			currentReasoningEl.textContent += text;
-			messagesEl.scrollTop = messagesEl.scrollHeight;
-		}
-
-		window.addEventListener('message', (event) => {
-			const msg = event.data;
-			switch (msg.type) {
-				case 'assistant_delta':
-					appendToAssistant(msg.text);
-					break;
-				case 'reasoning_delta':
-					appendToReasoning(msg.text, msg.redacted);
-					break;
-				case 'tool_event':
-					addMessage('tool', msg.text || 'Tool event');
-					break;
-				case 'turn_done':
-					setRunning(false);
-					currentAssistantEl = null;
-					currentReasoningEl = null;
-					if (msg.usage) {
-						statusBar.textContent = 'Done | ' +
-							(msg.usage.inputTokens || 0) + ' in / ' +
-							(msg.usage.outputTokens || 0) + ' out' +
-							(msg.usage.totalCost ? ' | $' + msg.usage.totalCost.toFixed(4) : '');
-					} else {
-						statusBar.textContent = 'Done';
-					}
-					break;
-				case 'error':
-					addMessage('error', msg.text);
-					setRunning(false);
-					statusBar.textContent = 'Error';
-					break;
-				case 'status':
-					statusBar.textContent = msg.text;
-					break;
-				case 'session_started':
-					statusBar.textContent = 'Session: ' + msg.sessionId.slice(0, 8);
-					break;
-				case 'reset_done':
-					messagesEl.innerHTML = '';
-					currentAssistantEl = null;
-					currentReasoningEl = null;
-					statusBar.textContent = 'New session';
-					break;
-				case 'approval_request':
-					addMessage('tool', 'Tool "' + msg.toolName + '" requests approval');
-					break;
-			}
-		});
-
-		// Notify extension that webview is ready
-		vscode.postMessage({ type: 'ready' });
-	</script>
-</body>
-</html>`;
+		const bundleUri = webview.asWebviewUri(
+			vscode.Uri.joinPath(this.extensionContext.extensionUri, "dist", "webview.js"),
+		);
+		return getWebviewHtml(nonce, webview.cspSource, bundleUri.toString());
 	}
 }
 

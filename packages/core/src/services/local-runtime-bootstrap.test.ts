@@ -429,10 +429,10 @@ describe("prepareLocalRuntimeBootstrap", () => {
 
 		expect(bootstrap.providerConfig.headers).toMatchObject({
 			originator: "cline",
-			session_id: "sess-codex",
 			"ChatGPT-Account-Id": "acct-123",
 			"x-stored": "stored",
 		});
+		expect(bootstrap.providerConfig.headers).not.toHaveProperty("session_id");
 	});
 
 	it("keeps Codex-controlled headers from being overridden by stored or config headers", async () => {
@@ -486,12 +486,12 @@ describe("prepareLocalRuntimeBootstrap", () => {
 
 		expect(bootstrap.providerConfig.headers).toMatchObject({
 			originator: "cline",
-			session_id: "sess-codex-invariants",
 			"ChatGPT-Account-Id": "acct-stored",
 			"x-config": "config",
 			"x-stored": "stored",
 			"x-shared": "config-wins",
 		});
+		expect(bootstrap.providerConfig.headers).not.toHaveProperty("session_id");
 		expect(bootstrap.providerConfig.headers?.["User-Agent"]).toMatch(
 			/^Cline\//,
 		);
@@ -538,8 +538,8 @@ describe("prepareLocalRuntimeBootstrap", () => {
 
 		expect(bootstrap.providerConfig.headers).toMatchObject({
 			originator: "cline",
-			session_id: "sess-codex-derived",
 			"ChatGPT-Account-Id": "acct-derived",
 		});
+		expect(bootstrap.providerConfig.headers).not.toHaveProperty("session_id");
 	});
 });
