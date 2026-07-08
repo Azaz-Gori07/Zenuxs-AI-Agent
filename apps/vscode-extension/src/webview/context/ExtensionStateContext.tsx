@@ -1,6 +1,21 @@
 import { createContext, useContext, useReducer, useCallback, useEffect, type ReactNode } from "react";
 import { postMessage } from "../vscode-api.js";
-import type { AppState, ExtensionMessage, TabId, AgentMode, CompactionStrategy } from "../types.js";
+import type { AppState, ExtensionMessage, TabId, AgentMode, CompactionStrategy, ApprovalKey } from "../types.js";
+
+const buildAutoDefaults = (): Record<ApprovalKey, boolean> => {
+	const out: Record<ApprovalKey, boolean> = {
+		write: true,
+		read: true,
+		read_out_of_workspace: false,
+		write_out_of_workspace: false,
+		mcp: true,
+		mode: true,
+		subtasks: true,
+		execute: false,
+		questions: false,
+	};
+	return out;
+};
 
 const initialState: AppState = {
 	providers: [],
@@ -23,6 +38,7 @@ const initialState: AppState = {
 	teamRuns: [],
 	teamTasks: [],
 	connectors: [],
+	autoApprovals: buildAutoDefaults(),
 };
 
 type Action =
@@ -56,7 +72,8 @@ type Action =
 	| { type: "SET_TEAM_TASKS"; tasks: import("../types.js").TeamTaskEntry[] }
 	| { type: "ADD_TEAM_MEMBER"; agentId: string }
 	| { type: "REMOVE_TEAM_MEMBER"; agentId: string }
-	| { type: "SET_CONNECTORS"; connectors: import("../types.js").ConnectorStatus[] };
+	| { type: "SET_CONNECTORS"; connectors: import("../types.js").ConnectorStatus[] }
+	| { type: "SET_AUTO_APPROVALS"; autoApprovals: Record<ApprovalKey, boolean> };
 
 function reducer(state: AppState, action: Action): AppState {
 	switch (action.type) {
@@ -121,6 +138,7 @@ function reducer(state: AppState, action: Action): AppState {
 		case "ADD_TEAM_MEMBER": return state.teamStatus ? { ...state, teamStatus: { ...state.teamStatus, members: [...state.teamStatus.members, { agentId: action.agentId, role: "teammate" as const, status: "idle" as const }] } } : state;
 		case "REMOVE_TEAM_MEMBER": return state.teamStatus ? { ...state, teamStatus: { ...state.teamStatus, members: state.teamStatus.members.filter(m => m.agentId !== action.agentId) } } : state;
 		case "SET_CONNECTORS": return { ...state, connectors: action.connectors };
+		case "SET_AUTO_APPROVALS": return { ...state, autoApprovals: action.autoApprovals };
 		default: return state;
 	}
 }

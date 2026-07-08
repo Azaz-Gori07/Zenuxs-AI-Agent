@@ -4,7 +4,7 @@
   "description": "AI coding assistant powered by the Zenuxs runtime — autonomous engineering, multi-file editing, tool execution, and streaming responses.",
   "version": "0.1.0",
   "publisher": "zenuxs",
-  "icon": "assets/ChatGPT-1-removebg-preview.png",
+  "icon": "assets/ChatGPT-3.png",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -107,7 +107,7 @@
         {
           "id": "zenuxs",
           "title": "Zenuxs",
-          "icon": "assets/ChatGPT-1-removebg-preview.png"
+          "icon": "assets/ChatGPT-3.png"
         }
       ]
     },

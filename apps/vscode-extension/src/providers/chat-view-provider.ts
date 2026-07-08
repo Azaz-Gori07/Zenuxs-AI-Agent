@@ -130,6 +130,10 @@ type WebviewInboundMessage =
 		providerId: string;
 	}
 	| {
+		type: "models_request";
+		providerId: string;
+	}
+	| {
 		type: "mcp_register";
 		name: string;
 		transport: string;
@@ -481,13 +485,17 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 					await this.handleAttachFileContext();
 					break;
 
-				case "clear_history":
-					await this.handleClearHistory();
-					break;
+			case "clear_history":
+				await this.handleClearHistory();
+				break;
 
-				case "login_oauth":
-					await this.handleLoginOAuth(message.providerId);
-					break;
+			case "models_request":
+				await this.handleModelsRequest(message.providerId);
+				break;
+
+			case "login_oauth":
+				await this.handleLoginOAuth(message.providerId);
+				break;
 
 				case "mcp_register":
 					await this.handleMcpRegister(message);
@@ -590,31 +598,19 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 
 			const psm = new ProviderSettingsManager();
 
-			// Default and recommended providers list
-			const providers = ["cline", "anthropic", "openrouter", "openai-compatible", "gemini", "vertex", "bedrock", "azure", "sap", "oca"];
-
-			// Map known models
-			const models: Record<string, string[]> = {};
-			for (const provider of providers) {
-				const config = psm.getProviderConfig(provider, { includeKnownModels: true });
-				if (config?.knownModels) {
-					models[provider] = Object.keys(config.knownModels);
-				} else {
-					models[provider] = ["default"];
-				}
-			}
-
-			// Fetch recommended models for cline
-			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "fetchZenuxsRecommendedModels", "ENTER");
-			const startModels = Date.now();
+			// Use real listLocalProviders to get all providers dynamically (same as CLI TUI)
+			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "listLocalProviders", "ENTER");
+			const startProv = Date.now();
+			let providers: import("@cline/shared").ProviderListItem[] = [];
 			try {
-				const recommended = await fetchZenuxsRecommendedModels();
-				models["cline"] = Object.keys(recommended);
-				logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "fetchZenuxsRecommendedModels", "EXIT", Date.now() - startModels, "SUCCESS");
-			} catch (err: any) {
-				logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "fetchZenuxsRecommendedModels", "EXIT", Date.now() - startModels, `ERROR_${err.message}`);
-				// ignore - use defaults
+				const { listLocalProviders: listProviders } = await import("@cline/core");
+				const result = await listProviders(psm);
+				providers = result.providers;
+			} catch {
+				// fallback - use hardcoded list
+				providers = [];
 			}
+			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "listLocalProviders", "EXIT", Date.now() - startProv, `SUCCESS_${providers.length}`);
 
 			const extConfig = resolveExtensionConfig();
 
@@ -648,7 +644,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 			this.postToWebview({
 				type: "initial_data",
 				providers,
-				models,
+				models: {},
 				currentConfig: extConfig,
 				toggles,
 				sessionHistories,
@@ -666,6 +662,21 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 		} catch (err: any) {
 			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "sendInitialPayload", "EXIT", Date.now() - startPayload, `ERROR_${err.message}`);
 			throw err;
+		}
+	}
+
+	/**
+	 * Fetches models for a specific provider and sends them to the webview.
+	 */
+	private async handleModelsRequest(providerId: string): Promise<void> {
+		try {
+			const psm = new ProviderSettingsManager();
+			const { getLocalProviderModels } = await import("@cline/core");
+			const result = await getLocalProviderModels(providerId, psm.getProviderSettings(providerId));
+			const models = result.models.map((m: any) => m.id || m);
+			this.postToWebview({ type: "models", providerId, models: models.length > 0 ? models : ["default"] });
+		} catch {
+			this.postToWebview({ type: "models", providerId, models: ["default"] });
 		}
 	}
 

@@ -50,6 +50,7 @@ export function getWebviewHtml(
 			-webkit-font-smoothing: antialiased;
 		}
 		#root { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+		select { color-scheme: dark; }
 		.app-root { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
 		.tabs-header {
 			display: flex; background: var(--header-bg); border-bottom: 1px solid var(--border);
@@ -94,6 +95,17 @@ export function getWebviewHtml(
 			background-position: right 8px center;
 			background-size: 12px;
 			padding-right: 28px;
+		}
+		select::-webkit-listbox,
+		select option {
+			background: #1e1e2e !important;
+			color: #e2e8f0 !important;
+		}
+		select option:hover,
+		select option:focus,
+		select option:active,
+		select option:checked {
+			background: rgba(124, 58, 237, 0.2) !important;
 		}
 		select:focus, input:focus, textarea:focus {
 			outline: none; border-color: var(--accent);

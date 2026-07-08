@@ -28,6 +28,9 @@ import {
 } from "./provider-list-view";
 import { RoutineSchedulesContent } from "./routine-view";
 import { toSettingsPatch } from "./settings-patch";
+import { SkillsContent } from "./skills-view";
+import { AutoApprovalsContent } from "./auto-approvals-view";
+import { AboutContent } from "./about-view";
 
 // -----------------------------------------------------------
 // Settings nav categories
@@ -36,10 +39,13 @@ import { toSettingsPatch } from "./settings-patch";
 const navCategories = [
 	"General",
 	"Providers",
-	"MCP",
+	"Skills",
+	"Auto Approvals",
+	"MCP & Plugins",
 	"Channels",
 	"Schedules",
 	"Account",
+	"About",
 ] as const;
 
 export type SettingsSection = (typeof navCategories)[number];
@@ -61,7 +67,7 @@ let providerCatalogCache: {
 
 export function SettingsView({
 	chrome = "full",
-	initialSection = "General",
+	initialSection = "Providers",
 	onClose,
 	onNavigateSection,
 }: {
@@ -406,9 +412,15 @@ export function SettingsView({
 	);
 
 	const content =
-		activeNav === "Providers" ? (
+		activeNav === "General" ? (
+			<GeneralSettingsContent />
+		) : activeNav === "Providers" ? (
 			providerContent
-		) : activeNav === "MCP" ? (
+		) : activeNav === "Skills" ? (
+			<SkillsContent />
+		) : activeNav === "Auto Approvals" ? (
+			<AutoApprovalsContent />
+		) : activeNav === "MCP & Plugins" ? (
 			<McpServersContent />
 		) : activeNav === "Channels" ? (
 			<ChannelsContent />
@@ -416,8 +428,8 @@ export function SettingsView({
 			<RoutineSchedulesContent />
 		) : activeNav === "Account" ? (
 			<AccountView />
-		) : activeNav === "General" ? (
-			<GeneralSettingsContent />
+		) : activeNav === "About" ? (
+			<AboutContent />
 		) : (
 			<div className="flex h-full items-center justify-center">
 				<p className="text-sm text-muted-foreground">
@@ -680,7 +692,7 @@ function GeneralSettingsContent() {
 					</div>
 					<Switch
 						aria-label="Telemetry"
-						checked={!telemetryOptOut} // If opt-out is true, the switch should be off (unchecked)
+						checked={!telemetryOptOut}
 						disabled={telemetryLoading || telemetrySaving}
 						onCheckedChange={(checked) => void updateTelemetryOptOut(!checked)}
 					/>

@@ -162,8 +162,26 @@ export interface ConnectorStatus {
 	lastActive?: string;
 }
 
+export interface AutoApprovalPref {
+	key: ApprovalKey;
+	label: string;
+	desc: string;
+	defaultEnabled: boolean;
+}
+
+export type ApprovalKey =
+	| "write"
+	| "read"
+	| "read_out_of_workspace"
+	| "write_out_of_workspace"
+	| "mcp"
+	| "mode"
+	| "subtasks"
+	| "execute"
+	| "questions";
+
 export type ExtensionMessage =
-	| { type: "initial_data"; providers: string[]; models: Record<string, string[]>; currentConfig: ExtensionConfig; toggles: Toggles; sessionHistories: SessionHistory[]; dashboard?: DashboardData; mcpServers?: McpServerEntry[]; checkpoints?: CheckpointEntry[] }
+	| { type: "initial_data"; providers: import("@cline/shared").ProviderListItem[]; models: Record<string, string[]>; currentConfig: ExtensionConfig; toggles: Toggles; sessionHistories: SessionHistory[]; dashboard?: DashboardData; mcpServers?: McpServerEntry[]; checkpoints?: CheckpointEntry[] }
 	| { type: "assistant_delta"; text: string }
 	| { type: "reasoning_delta"; text: string; redacted?: boolean }
 	| { type: "tool_event"; text: string; event?: ToolEventData }
@@ -177,6 +195,7 @@ export type ExtensionMessage =
 	| { type: "logs_stream"; text: string }
 	| { type: "switch_tab"; tab: string }
 	| { type: "models"; providerId: string; models: unknown[] }
+	| { type: "models_request"; providerId: string }
 	| { type: "reset_done" }
 	| { type: "mcp_servers"; servers: McpServerEntry[] }
 	| { type: "checkpoint_list"; sessionId: string; checkpoints: CheckpointEntry[] }
@@ -206,6 +225,8 @@ export type WebviewMessage =
 	| { type: "askAboutFile" }
 	| { type: "clear_history" }
 	| { type: "login_oauth"; providerId: string }
+	| { type: "models_request"; providerId: string }
+	| { type: "status"; text: string }
 	| { type: "mcp_register"; name: string; transport: string; command?: string; args?: string[]; url?: string }
 	| { type: "mcp_unregister"; name: string }
 	| { type: "mcp_connect"; name: string }
@@ -234,7 +255,7 @@ export type WebviewMessage =
 	| { type: "connector_disconnect"; id: string };
 
 export interface AppState {
-	providers: string[];
+	providers: import("@cline/shared").ProviderListItem[];
 	models: Record<string, string[]>;
 	currentConfig: ExtensionConfig;
 	toggles: Toggles;
@@ -254,4 +275,5 @@ export interface AppState {
 	teamRuns: TeamRunEntry[];
 	teamTasks: TeamTaskEntry[];
 	connectors: ConnectorStatus[];
+	autoApprovals: Record<ApprovalKey, boolean>;
 }
