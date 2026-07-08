@@ -1,6 +1,6 @@
 export type TabId = "chat" | "history" | "settings" | "dashboard" | "logs" | "teams";
 
-export type AgentMode = "act" | "plan" | "yolo" | "zen";
+export type AgentMode = "act" | "plan" | "yolo" | "zen" | "ask" | "debug" | "god";
 
 export type CompactionStrategy = "basic" | "agentic" | "off";
 

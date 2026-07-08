@@ -49,194 +49,194 @@ export function logStartup(
 type WebviewInboundMessage =
 	| { type: "ready" }
 	| {
-			type: "webview_log";
-			level: string;
-			message: string;
-			stack?: string | null;
-			logParams?: {
-				workerId: string;
-				sessionId: string;
-				component: string;
-				func: string;
-				event: "ENTER" | "EXIT" | "EVENT";
-				duration: string | number;
-				status: string;
-			};
-	  }
+		type: "webview_log";
+		level: string;
+		message: string;
+		stack?: string | null;
+		logParams?: {
+			workerId: string;
+			sessionId: string;
+			component: string;
+			func: string;
+			event: "ENTER" | "EXIT" | "EVENT";
+			duration: string | number;
+			status: string;
+		};
+	}
 	| {
-			type: "send";
-			prompt: string;
-			config?: Record<string, unknown>;
-	  }
+		type: "send";
+		prompt: string;
+		config?: Record<string, unknown>;
+	}
 	| { type: "abort" }
 	| { type: "new_session" }
 	| {
-			type: "approval_response";
-			approvalId: string;
-			approved: boolean;
-			reason?: string;
-	  }
+		type: "approval_response";
+		approvalId: string;
+		approved: boolean;
+		reason?: string;
+	}
 	| {
-			type: "save_settings";
-			providerId: string;
-			modelId: string;
-			apiKey?: string;
-			baseUrl?: string;
-			autoApproveTools: boolean;
-			thinking: boolean;
-			reasoningEffort: string;
-			maxIterations: number;
-	  }
+		type: "save_settings";
+		providerId: string;
+		modelId: string;
+		apiKey?: string;
+		baseUrl?: string;
+		autoApproveTools: boolean;
+		thinking: boolean;
+		reasoningEffort: string;
+		maxIterations: number;
+	}
 	| {
-			type: "toggle_setting_item";
-			itemType: "skills" | "workflows" | "rules" | "tools" | "mcp";
-			id?: string;
-			name?: string;
-			path?: string;
-			enabled: boolean;
-	  }
+		type: "toggle_setting_item";
+		itemType: "skills" | "workflows" | "rules" | "tools" | "mcp";
+		id?: string;
+		name?: string;
+		path?: string;
+		enabled: boolean;
+	}
 	| {
-			type: "delete_session";
-			sessionId: string;
-	  }
+		type: "delete_session";
+		sessionId: string;
+	}
 	| {
-			type: "rename_session";
-			sessionId: string;
-			title: string;
-	  }
+		type: "rename_session";
+		sessionId: string;
+		title: string;
+	}
 	| {
-			type: "restore_session";
-			sessionId: string;
-	  }
+		type: "restore_session";
+		sessionId: string;
+	}
 	| {
-			type: "export_session";
-			sessionId: string;
-	  }
+		type: "export_session";
+		sessionId: string;
+	}
 	| {
-			type: "import_session";
-	  }
+		type: "import_session";
+	}
 	| {
-			type: "run_command";
-			command: "build" | "lint" | "test" | "doctor";
-	  }
+		type: "run_command";
+		command: "build" | "lint" | "test" | "doctor";
+	}
 	| {
-			type: "askAboutFile";
-	  }
+		type: "askAboutFile";
+	}
 	| {
-			type: "clear_history";
-	  }
+		type: "clear_history";
+	}
 	| {
-			type: "login_oauth";
-			providerId: string;
-	  }
+		type: "login_oauth";
+		providerId: string;
+	}
 	| {
-			type: "mcp_register";
-			name: string;
-			transport: string;
-			command?: string;
-			args?: string[];
-			url?: string;
-	  }
+		type: "mcp_register";
+		name: string;
+		transport: string;
+		command?: string;
+		args?: string[];
+		url?: string;
+	}
 	| {
-			type: "mcp_unregister";
-			name: string;
-	  }
+		type: "mcp_unregister";
+		name: string;
+	}
 	| {
-			type: "mcp_connect";
-			name: string;
-	  }
+		type: "mcp_connect";
+		name: string;
+	}
 	| {
-			type: "mcp_disconnect";
-			name: string;
-	  }
+		type: "mcp_disconnect";
+		name: string;
+	}
 	| {
-			type: "mcp_set_disabled";
-			name: string;
-			disabled: boolean;
-	  }
+		type: "mcp_set_disabled";
+		name: string;
+		disabled: boolean;
+	}
 	| {
-			type: "mcp_refresh_tools";
-			serverName: string;
-	  }
+		type: "mcp_refresh_tools";
+		serverName: string;
+	}
 	| {
-			type: "mcp_list_servers";
-	  }
+		type: "mcp_list_servers";
+	}
 	| {
-			type: "checkpoint_restore";
-			sessionId: string;
-			checkpointRef: string;
-	  }
+		type: "checkpoint_restore";
+		sessionId: string;
+		checkpointRef: string;
+	}
 	| {
-			type: "checkpoint_list";
-			sessionId: string;
-	  }
+		type: "checkpoint_list";
+		sessionId: string;
+	}
 	| {
-			type: "checkpoint_delete";
-			sessionId: string;
-			checkpointRef: string;
-	  }
+		type: "checkpoint_delete";
+		sessionId: string;
+		checkpointRef: string;
+	}
 	| {
-			type: "team_spawn";
-			agentId: string;
-			rolePrompt: string;
-	  }
+		type: "team_spawn";
+		agentId: string;
+		rolePrompt: string;
+	}
 	| {
-			type: "team_shutdown";
-			agentId: string;
-			reason?: string;
-	  }
+		type: "team_shutdown";
+		agentId: string;
+		reason?: string;
+	}
 	| { type: "team_status" }
 	| {
-			type: "team_run_task";
-			agentId: string;
-			task: string;
-			runMode?: "sync" | "async";
-	  }
+		type: "team_run_task";
+		agentId: string;
+		task: string;
+		runMode?: "sync" | "async";
+	}
 	| { type: "team_list_runs" }
 	| {
-			type: "team_cancel_run";
-			runId: string;
-	  }
+		type: "team_cancel_run";
+		runId: string;
+	}
 	| {
-			type: "team_send_message";
-			toAgentId: string;
-			subject: string;
-			body: string;
-	  }
+		type: "team_send_message";
+		toAgentId: string;
+		subject: string;
+		body: string;
+	}
 	| {
-			type: "team_broadcast";
-			subject: string;
-			body: string;
-	  }
+		type: "team_broadcast";
+		subject: string;
+		body: string;
+	}
 	| { type: "team_read_mailbox" }
 	| {
-			type: "team_mission_log";
-			kind: string;
-			summary: string;
-	  }
+		type: "team_mission_log";
+		kind: string;
+		summary: string;
+	}
 	| { type: "team_list_tasks" }
 	| {
-			type: "team_create_task";
-			title: string;
-			description: string;
-			assignee?: string;
-	  }
+		type: "team_create_task";
+		title: string;
+		description: string;
+		assignee?: string;
+	}
 	| {
-			type: "team_complete_task";
-			taskId: string;
-			summary: string;
-	  }
+		type: "team_complete_task";
+		taskId: string;
+		summary: string;
+	}
 	| { type: "connector_list" }
 	| {
-			type: "connector_connect";
-			provider: string;
-			name: string;
-			config?: Record<string, string>;
-	  }
+		type: "connector_connect";
+		provider: string;
+		name: string;
+		config?: Record<string, string>;
+	}
 	| {
-			type: "connector_disconnect";
-			id: string;
-	  }
+		type: "connector_disconnect";
+		id: string;
+	}
 	;
 
 /**
@@ -256,7 +256,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	private mcpManager: InMemoryMcpManager | undefined;
 	private teamsRuntime: AgentTeamsRuntime | undefined;
 
-	constructor(private readonly extensionContext: vscode.ExtensionContext) {}
+	constructor(private readonly extensionContext: vscode.ExtensionContext) { }
 
 	resolveWebviewView(
 		webviewView: vscode.WebviewView,
@@ -327,6 +327,13 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	}
 
 	/**
+	 * Toggle to the history tab in the webview.
+	 */
+	public toggleHistory(): void {
+		this.postToWebview({ type: "switch_tab", tab: "history-tab" });
+	}
+
+	/**
 	 * Resolves the core bridge instance lazily.
 	 */
 	private async getCore(): Promise<any> {
@@ -365,13 +372,13 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 			this.mcpManager = new InMemoryMcpManager({
 				clientFactory: createDefaultMcpServerClientFactory(),
 			});
-			
+
 			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "initializeMcpManager", "ENTER");
 			const startMcp = Date.now();
 			await this.initializeMcpManager();
 			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "initializeMcpManager", "EXIT", Date.now() - startMcp, "SUCCESS");
 		}
-		
+
 		logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "coreBridge.getCore", "ENTER");
 		const startBridge = Date.now();
 		const core = await this.coreBridge.getCore();
@@ -721,22 +728,60 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	 * Delete session.
 	 */
 	private async handleDeleteSession(sessionId: string): Promise<void> {
-		const core = await this.getCore();
-		await core.delete(sessionId);
-		if (this.activeSessionId === sessionId) {
-			this.activeSessionId = undefined;
-			this.postToWebview({ type: "reset_done" });
+		try {
+			const core = await this.getCore();
+			const session = await core.get(sessionId);
+			const title = session?.metadata?.title || session?.prompt || `Session ${sessionId.slice(0, 8)}`;
+			
+			const choice = await vscode.window.showWarningMessage(
+				`Are you sure you want to permanently delete the chat session "${title}"?`,
+				{ modal: true },
+				"Delete",
+			);
+			
+			if (choice !== "Delete") {
+				return;
+			}
+			
+			const deleted = await core.delete(sessionId);
+			if (!deleted) {
+				vscode.window.showWarningMessage(`Zenuxs: Session not found or could not be deleted.`);
+			}
+			if (this.activeSessionId === sessionId) {
+				this.activeSessionId = undefined;
+				this.isRunning = false;
+				this.postToWebview({ type: "reset_done" });
+			}
+			await this.sendInitialPayload();
+		} catch (error: any) {
+			vscode.window.showErrorMessage(`Zenuxs: Error deleting session: ${error.message || error}`);
+			this.postToWebview({ type: "error", text: `Failed to delete session: ${error.message || error}` });
 		}
-		await this.sendInitialPayload();
 	}
 
 	/**
 	 * Rename session.
 	 */
-	private async handleRenameSession(sessionId: string, title: string): Promise<void> {
-		const core = await this.getCore();
-		await core.update(sessionId, { title });
-		await this.sendInitialPayload();
+	private async handleRenameSession(sessionId: string, title?: string): Promise<void> {
+		try {
+			const core = await this.getCore();
+			const session = await core.get(sessionId);
+			const currentTitle = title || session?.metadata?.title || session?.prompt || "";
+			
+			const newTitle = await vscode.window.showInputBox({
+				prompt: "Enter new session title",
+				value: currentTitle,
+			});
+			
+			if (newTitle === undefined) {
+				return;
+			}
+			
+			await core.update(sessionId, { title: newTitle });
+			await this.sendInitialPayload();
+		} catch (error: any) {
+			vscode.window.showErrorMessage(`Zenuxs: Error renaming session: ${error.message || error}`);
+		}
 	}
 
 	/**
@@ -834,7 +879,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 		if (uri && uri[0]) {
 			const data = await vscode.workspace.fs.readFile(uri[0]);
 			const messages = JSON.parse(data.toString());
-			
+
 			// Hydrate imported session locally in view
 			this.postToWebview({
 				type: "session_hydrated",
@@ -903,15 +948,21 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	 * Deletes all session histories permanently.
 	 */
 	private async handleClearHistory(): Promise<void> {
-		const core = await this.getCore();
-		const sessions = await core.list(1000, { hydrate: false });
-		for (const session of sessions) {
-			await core.delete(session.sessionId);
+		try {
+			const core = await this.getCore();
+			const sessions = await core.list(1000, { hydrate: false });
+			for (const session of sessions) {
+				await core.delete(session.sessionId);
+			}
+			this.activeSessionId = undefined;
+			this.isRunning = false;
+			this.postToWebview({ type: "reset_done" });
+			await this.sendInitialPayload();
+			vscode.window.showInformationMessage("Zenuxs: All session histories cleared successfully.");
+		} catch (error: any) {
+			vscode.window.showErrorMessage(`Zenuxs: Error clearing history: ${error.message || error}`);
+			this.postToWebview({ type: "error", text: `Failed to clear history: ${error.message || error}` });
 		}
-		this.activeSessionId = undefined;
-		this.postToWebview({ type: "reset_done" });
-		await this.sendInitialPayload();
-		vscode.window.showInformationMessage("Zenuxs: All session histories cleared successfully.");
 	}
 
 	/**
@@ -1133,12 +1184,12 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 			iterations: result.iterations ?? 0,
 			usage: result.usage
 				? {
-						inputTokens: result.usage.inputTokens,
-						outputTokens: result.usage.outputTokens,
-						cacheReadInputTokens: result.usage.cacheReadTokens,
-						cacheCreationInputTokens: result.usage.cacheWriteTokens,
-						totalCost: result.usage.totalCost,
-					}
+					inputTokens: result.usage.inputTokens,
+					outputTokens: result.usage.outputTokens,
+					cacheReadInputTokens: result.usage.cacheReadTokens,
+					cacheCreationInputTokens: result.usage.cacheWriteTokens,
+					totalCost: result.usage.totalCost,
+				}
 				: undefined,
 		});
 	}
@@ -1246,13 +1297,13 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 			const startImport = Date.now();
 			const { hasMcpSettingsFile, loadMcpSettingsFile } = await import("@cline/core");
 			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "import_cline_core", "EXIT", Date.now() - startImport, "SUCCESS");
-			
+
 			const settingsPath = resolveDefaultMcpSettingsPath();
 			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "hasMcpSettingsFile", "ENTER");
 			const startHasMcp = Date.now();
 			const hasFile = hasMcpSettingsFile(settingsPath);
 			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "hasMcpSettingsFile", "EXIT", Date.now() - startHasMcp, `SUCCESS_${hasFile}`);
-			
+
 			if (hasFile) {
 				const file = loadMcpSettingsFile(settingsPath);
 				for (const reg of resolveMcpServerRegistrations({ mcpServers: file.mcpServers })) {
@@ -1260,7 +1311,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 					const startReg = Date.now();
 					await this.mcpManager.registerServer(reg);
 					logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", `registerServer_${reg.name}`, "EXIT", Date.now() - startReg, "SUCCESS");
-					
+
 					if (!reg.disabled) {
 						logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", `connectServer_${reg.name}`, "ENTER");
 						const startConn = Date.now();
@@ -1676,7 +1727,10 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 		const bundleUri = webview.asWebviewUri(
 			vscode.Uri.joinPath(this.extensionContext.extensionUri, "dist", "webview.js"),
 		);
-		return getWebviewHtml(nonce, webview.cspSource, bundleUri.toString());
+		const logoUri = webview.asWebviewUri(
+			vscode.Uri.joinPath(this.extensionContext.extensionUri, "assets", "ChatGPT-2.png"),
+		);
+		return getWebviewHtml(nonce, webview.cspSource, bundleUri.toString(), logoUri.toString());
 	}
 }
 

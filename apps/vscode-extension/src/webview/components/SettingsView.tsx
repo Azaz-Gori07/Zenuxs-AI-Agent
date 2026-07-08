@@ -27,7 +27,7 @@ const COMPACTION_STRATEGIES: { value: CompactionStrategy; label: string; desc: s
 ];
 
 export function SettingsView() {
-	const { state, saveSettings, toggleItem, loginOAuth } = useExtensionState();
+	const { state, saveSettings, toggleItem, loginOAuth, switchTab } = useExtensionState();
 	const cfg = state.currentConfig;
 	const [activeSubtab, setActiveSubtab] = useState<SettingsSubtab>("skills");
 	const [showApiKey, setShowApiKey] = useState(false);
@@ -47,6 +47,11 @@ export function SettingsView() {
 
 	return (
 		<div className="settings-container">
+			<div style={{ marginBottom: 12 }}>
+				<button className="btn secondary sm" onClick={() => switchTab("chat")}>
+					← Back to Chat
+				</button>
+			</div>
 			<div className="settings-section">
 				<h3 className="settings-section-title">Provider Connection</h3>
 				<div className="form-group">

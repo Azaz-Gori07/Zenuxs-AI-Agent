@@ -154,6 +154,14 @@ export function registerCommands(
 		}),
 	);
 
+	// Toggle history panel
+	context.subscriptions.push(
+		vscode.commands.registerCommand("zenuxs.toggleHistory", async () => {
+			await vscode.commands.executeCommand("zenuxs-chat.focus");
+			chatProvider.toggleHistory();
+		}),
+	);
+
 	// Quick ask - quick question without opening chat
 	context.subscriptions.push(
 		vscode.commands.registerCommand("zenuxs.quickAsk", async () => {

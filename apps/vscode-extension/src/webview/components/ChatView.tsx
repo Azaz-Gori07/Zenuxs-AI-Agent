@@ -12,11 +12,27 @@ const SLASH_COMMANDS = [
 	{ cmd: "/mode", desc: "Switch agent mode (act/plan/yolo/zen)" },
 ];
 
-const MODE_LABELS: Record<AgentMode, string> = { act: "Act", plan: "Plan", yolo: "YOLO", zen: "Zen" };
-const MODE_COLORS: Record<AgentMode, string> = { act: "var(--accent)", plan: "var(--success)", yolo: "var(--error)", zen: "var(--muted)" };
+const MODE_LABELS: Record<AgentMode, string> = {
+	act: "Act",
+	plan: "Plan",
+	yolo: "YOLO",
+	zen: "Zen",
+	ask: "Ask",
+	debug: "Debug",
+	god: "God Mode"
+};
+const MODE_COLORS: Record<AgentMode, string> = {
+	act: "var(--accent)",
+	plan: "var(--success)",
+	yolo: "var(--error)",
+	zen: "var(--muted)",
+	ask: "var(--warning)",
+	debug: "#38bdf8",
+	god: "var(--error)"
+};
 
 export function ChatView() {
-	const { state, dispatch, sendMessage, abort, approveTool, attachFile } = useExtensionState();
+	const { state, dispatch, sendMessage, abort, approveTool, attachFile, saveSettings, switchTab, restoreSession } = useExtensionState();
 	if (typeof window !== "undefined") {
 		(window as any).logStartup?.("WEBVIEW", state.activeSessionId || "None", "React", "ChatView_render", "EVENT", "N/A", "SUCCESS");
 	}
@@ -25,13 +41,48 @@ export function ChatView() {
 	const [autocompleteIdx, setAutocompleteIdx] = useState(-1);
 	const [editingIndex, setEditingIndex] = useState<number | null>(null);
 	const [editText, setEditText] = useState("");
+	const [showModeMenu, setShowModeMenu] = useState(false);
+	const [showModelMenu, setShowModelMenu] = useState(false);
 	const inputRef = useRef<HTMLTextAreaElement>(null);
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 	const messagesContainerRef = useRef<HTMLDivElement>(null);
 
+	const selectMode = useCallback((m: AgentMode) => {
+		dispatch({ type: "UPDATE_CONFIG", config: { mode: m } });
+		saveSettings({ ...state.currentConfig, mode: m });
+		setShowModeMenu(false);
+	}, [state.currentConfig, saveSettings, dispatch]);
+
+	const selectModel = useCallback((modelId: string) => {
+		dispatch({ type: "UPDATE_CONFIG", config: { modelId } });
+		saveSettings({ ...state.currentConfig, modelId });
+		setShowModelMenu(false);
+	}, [state.currentConfig, saveSettings, dispatch]);
+
 	useEffect(() => {
 		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
 	}, [state.messages]);
+
+	useEffect(() => {
+		const textarea = inputRef.current;
+		if (textarea) {
+			textarea.style.height = "auto";
+			textarea.style.height = `${Math.max(80, Math.min(textarea.scrollHeight, 150))}px`;
+		}
+	}, [input]);
+
+	useEffect(() => {
+		if (!showModeMenu && !showModelMenu) return;
+		const handleDocumentClick = (e: MouseEvent) => {
+			const container = document.querySelector(".bottom-left-controls");
+			if (container && !container.contains(e.target as Node)) {
+				setShowModeMenu(false);
+				setShowModelMenu(false);
+			}
+		};
+		document.addEventListener("click", handleDocumentClick);
+		return () => document.removeEventListener("click", handleDocumentClick);
+	}, [showModeMenu, showModelMenu]);
 
 	const handleInputChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
 		const val = e.target.value;
@@ -72,15 +123,16 @@ export function ChatView() {
 
 		if (trimmed.startsWith("/mode ")) {
 			const modeStr = trimmed.replace("/mode ", "").trim().toLowerCase();
-			const validModes: AgentMode[] = ["act", "plan", "yolo", "zen"];
+			const validModes: AgentMode[] = ["act", "plan", "yolo", "zen", "ask", "debug", "god"];
 			if (validModes.includes(modeStr as AgentMode)) {
-				const mode = modeStr as AgentMode;
-				dispatch({ type: "UPDATE_CONFIG", config: { mode } });
+				const m = modeStr as AgentMode;
+				dispatch({ type: "UPDATE_CONFIG", config: { mode: m } });
+				saveSettings({ ...state.currentConfig, mode: m });
 				dispatch({ type: "ADD_USER_MESSAGE", text: trimmed });
-				dispatch({ type: "APPEND_ASSISTANT_TEXT", text: `Switched to **${MODE_LABELS[mode]}** mode` });
+				dispatch({ type: "APPEND_ASSISTANT_TEXT", text: `Switched to **${MODE_LABELS[m]}** mode` });
 			} else {
 				dispatch({ type: "ADD_USER_MESSAGE", text: trimmed });
-				dispatch({ type: "APPEND_ASSISTANT_TEXT", text: `Unknown mode: **${modeStr}**. Available: act, plan, yolo, zen` });
+				dispatch({ type: "APPEND_ASSISTANT_TEXT", text: `Unknown mode: **${modeStr}**. Available: act, plan, yolo, zen, ask, debug, god` });
 			}
 			setInput("");
 			return;
@@ -154,6 +206,9 @@ export function ChatView() {
 		: [];
 
 	const mode = state.currentConfig.mode || "act";
+	const providerId = state.currentConfig.providerId || "default";
+	const activeModel = state.currentConfig.modelId || "default";
+	const availableModels = state.models[providerId] || ["default"];
 
 	return (
 		<div className="chat-view" role="region" aria-label="Chat">
@@ -161,13 +216,42 @@ export function ChatView() {
 			<div className="messages-container" id="chat-messages" ref={messagesContainerRef} role="log" aria-label="Messages" aria-live="polite">
 				{state.messages.length === 0 && !state.isRunning && (
 					<div className="welcome-placeholder">
-						<div className="welcome-icon">Z</div>
+						{(window as any).logoUri ? (
+							<img className="welcome-icon" src={(window as any).logoUri} alt="Logo" />
+						) : (
+							<div className="welcome-icon">Z</div>
+						)}
 						<h2>Zenuxs AI</h2>
-						<p className="text-muted">Mode: <strong>{MODE_LABELS[mode]}</strong> &mdash; try <code>/explain</code>, <code>/fix</code>, <code>/mode plan</code></p>
+						{state.sessionHistories && state.sessionHistories.length > 0 && (
+							<div className="recent-chats-container" style={{ marginTop: 24, width: "100%", maxWidth: 300, display: "flex", flexDirection: "column", gap: 8, alignItems: "stretch" }}>
+								<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+									<button className="link-btn" onClick={() => switchTab("history")}>
+										View All
+									</button>
+									<span style={{ fontSize: "0.8em", color: "var(--muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>Recent Chats</span>
+								</div>
+								{state.sessionHistories.slice(0, 2).map((session) => {
+									const title = session.metadata?.title || session.prompt || "Untitled Session";
+									return (
+										<button
+											key={session.sessionId}
+											className="recent-chat-item"
+											onClick={() => restoreSession(session.sessionId)}
+											title={title}
+										>
+											<span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{title}</span>
+											<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+												<polyline points="9 18 15 12 9 6" />
+											</svg>
+										</button>
+									);
+								})}
+							</div>
+						)}
 					</div>
 				)}
 				{state.messages.map((msg, i) => (
-					<div key={i} className={`message ${msg.role}`} role="article">
+					<div key={i} className={`message ${msg.role} ${editingIndex === i ? "editing" : ""}`} role="article">
 						<div className="message-header">
 							<span>{msg.role === "user" ? "You" : msg.role === "assistant" ? "Zenuxs" : "Error"}</span>
 							<div className="message-actions">
@@ -259,15 +343,74 @@ export function ChatView() {
 						value={input}
 						onChange={handleInputChange}
 						onKeyDown={handleKeyDown}
-						style={{ height: "auto", minHeight: 52, maxHeight: 100 }}
+						style={{ minHeight: 80, maxHeight: 150 }}
 						aria-label="Chat input"
 					/>
-					<button className="send-icon-btn" disabled={state.isRunning || !input.trim()} onClick={handleSend} title="Send (Enter)" aria-label="Send message">
-						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-							<line x1="22" y1="2" x2="11" y2="13" />
-							<polygon points="22 2 15 22 11 13 2 9 22 2" />
-						</svg>
-					</button>
+					<div className="bottom-left-controls">
+						{/* Model Switcher */}
+						<div style={{ position: "relative", display: "inline-block" }}>
+							<button
+								className="model-switcher-btn"
+								onClick={() => setShowModelMenu(!showModelMenu)}
+								title={`Active Model: ${activeModel}`}
+								aria-label="Select model"
+							>
+								{activeModel.split("/").pop() || "Model"} ▾
+							</button>
+							{showModelMenu && (
+								<div className="model-dropdown">
+									{availableModels.map((m) => (
+										<div
+											key={m}
+											className={`model-dropdown-item ${activeModel === m ? "active" : ""}`}
+											onClick={() => selectModel(m)}
+											title={m}
+										>
+											{m}
+										</div>
+									))}
+								</div>
+							)}
+						</div>
+
+						{/* Divider */}
+						<span style={{ color: "var(--border)", fontSize: "0.8em" }}>|</span>
+
+						{/* Mode Switcher */}
+						<div style={{ position: "relative", display: "inline-block" }}>
+							<button
+								className="mode-switcher-btn"
+								onClick={() => setShowModeMenu(!showModeMenu)}
+								style={{ color: MODE_COLORS[mode] || "var(--fg)" }}
+								title="Select Agent Mode"
+								aria-label="Select agent mode"
+							>
+								{MODE_LABELS[mode] || "Mode"} ▾
+							</button>
+							{showModeMenu && (
+								<div className="mode-dropdown">
+									{(["act", "plan", "ask", "debug", "god"] as AgentMode[]).map((m) => (
+										<div
+											key={m}
+											className={`mode-dropdown-item ${mode === m ? "active" : ""}`}
+											onClick={() => selectMode(m)}
+											style={{ color: mode === m ? "#fff" : MODE_COLORS[m] }}
+										>
+											{MODE_LABELS[m]}
+										</div>
+									))}
+								</div>
+							)}
+						</div>
+					</div>
+					{input.trim() && (
+						<button className="send-icon-btn" disabled={state.isRunning} onClick={handleSend} title="Send (Enter)" aria-label="Send message">
+							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+								<line x1="22" y1="2" x2="11" y2="13" />
+								<polygon points="22 2 15 22 11 13 2 9 22 2" />
+							</svg>
+						</button>
+					)}
 				</div>
 				<button className="stop-btn" style={{ display: state.isRunning ? "block" : "none" }} onClick={abort} aria-label="Stop execution">Stop Execution</button>
 				<div className="chat-bottom-bar">

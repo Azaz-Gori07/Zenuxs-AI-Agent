@@ -32,26 +32,7 @@ export function App() {
 
 	return (
 		<div className="app-root">
-			<div className="tabs-header">
-				<button
-					className={`tab-btn ${state.activeTab === "chat" ? "active" : ""}`}
-					onClick={() => { newSession(); switchTab("chat"); }}
-				>
-					New Chat
-				</button>
-				<button
-					className={`tab-btn ${state.activeTab === "history" ? "active" : ""}`}
-					onClick={() => switchTab("history")}
-				>
-					Recent
-				</button>
-				<button
-					className={`tab-btn ${state.activeTab === "settings" ? "active" : ""}`}
-					onClick={() => switchTab("settings")}
-				>
-					Settings
-				</button>
-			</div>
+
 			{state.activeTab === "chat" && <ChatView />}
 			{state.activeTab === "history" && <HistoryView />}
 			{state.activeTab === "settings" && <SettingsView />}

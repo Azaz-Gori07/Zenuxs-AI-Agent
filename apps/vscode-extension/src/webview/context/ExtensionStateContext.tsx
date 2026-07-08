@@ -96,13 +96,17 @@ function reducer(state: AppState, action: Action): AppState {
 		case "SET_TURN_DONE": return { ...state, isRunning: false, usage: action.usage || null };
 		case "SET_SESSION_STARTED": return { ...state, activeSessionId: action.sessionId, isRunning: true };
 		case "HYDRATE_SESSION": return { ...state, activeSessionId: action.sessionId, messages: action.messages, isRunning: false };
-		case "RESET_SESSION": return { ...state, messages: [], activeSessionId: null, isRunning: false, usage: null, pendingApproval: null };
+		case "RESET_SESSION": return { ...state, messages: [], activeSessionId: null, isRunning: false, usage: null, pendingApproval: null, activeTab: "chat" };
 		case "ADD_USER_MESSAGE": return { ...state, messages: [...state.messages, { role: "user", text: action.text }], isRunning: true };
 		case "ADD_ERROR": return { ...state, messages: [...state.messages, { role: "error", text: action.text }], isRunning: false };
 		case "SET_RUNNING": return { ...state, isRunning: action.isRunning };
 		case "ADD_LOG": return { ...state, logs: [...state.logs, `[${new Date().toLocaleTimeString()}] ${action.text}`] };
 		case "CLEAR_LOGS": return { ...state, logs: ["System logs cleared..."] };
-		case "SET_TAB": return { ...state, activeTab: action.tab };
+		case "SET_TAB":
+			if (state.activeTab === action.tab && (action.tab === "settings" || action.tab === "history")) {
+				return { ...state, activeTab: "chat" };
+			}
+			return { ...state, activeTab: action.tab };
 		case "UPDATE_CONFIG": return { ...state, currentConfig: { ...state.currentConfig, ...action.config } };
 		case "SET_HISTORIES": return { ...state, sessionHistories: action.histories };
 		case "SET_TOGGLES": return { ...state, toggles: action.toggles };

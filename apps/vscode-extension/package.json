@@ -4,6 +4,7 @@
   "description": "AI coding assistant powered by the Zenuxs runtime — autonomous engineering, multi-file editing, tool execution, and streaming responses.",
   "version": "0.1.0",
   "publisher": "zenuxs",
+  "icon": "assets/ChatGPT-1-removebg-preview.png",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -38,6 +39,7 @@
     "onCommand:zenuxs.newSession",
     "onCommand:zenuxs.stopSession",
     "onCommand:zenuxs.toggleSettings",
+    "onCommand:zenuxs.toggleHistory",
     "onCommand:zenuxs.quickAsk",
     "onCommand:zenuxs.fixDiagnostic",
     "onStartupFinished"
@@ -105,7 +107,7 @@
         {
           "id": "zenuxs",
           "title": "Zenuxs",
-          "icon": "$(zap)"
+          "icon": "assets/ChatGPT-1-removebg-preview.png"
         }
       ]
     },
@@ -114,7 +116,7 @@
         {
           "type": "webview",
           "id": "zenuxs-chat",
-          "name": "Chat"
+          "name": "Zenuxs"
         }
       ]
     },
@@ -168,6 +170,11 @@
         "command": "zenuxs.toggleSettings",
         "title": "Zenuxs: Toggle Settings Panel",
         "icon": "$(settings-gear)"
+      },
+      {
+        "command": "zenuxs.toggleHistory",
+        "title": "Zenuxs: Toggle History Panel",
+        "icon": "$(history)"
       },
       {
         "command": "zenuxs.quickAsk",
@@ -256,6 +263,10 @@
           "when": "true"
         },
         {
+          "command": "zenuxs.toggleHistory",
+          "when": "true"
+        },
+        {
           "command": "zenuxs.quickAsk",
           "when": "true"
         },
@@ -268,12 +279,17 @@
         {
           "command": "zenuxs.newSession",
           "when": "view == zenuxs-chat",
-          "group": "navigation"
+          "group": "navigation@1"
+        },
+        {
+          "command": "zenuxs.toggleHistory",
+          "when": "view == zenuxs-chat",
+          "group": "navigation@2"
         },
         {
           "command": "zenuxs.toggleSettings",
           "when": "view == zenuxs-chat",
-          "group": "navigation"
+          "group": "navigation@3"
         }
       ]
     },
@@ -348,13 +364,25 @@
         },
         "zenuxs.mode": {
           "type": "string",
-          "enum": ["act", "plan", "yolo", "zen"],
+          "enum": [
+            "act",
+            "plan",
+            "yolo",
+            "zen",
+            "ask",
+            "debug",
+            "god"
+          ],
           "default": "act",
           "description": "Default agent mode"
         },
         "zenuxs.compaction": {
           "type": "string",
-          "enum": ["off", "basic", "agentic"],
+          "enum": [
+            "off",
+            "basic",
+            "agentic"
+          ],
           "default": "off",
           "description": "Context compaction strategy"
         },
