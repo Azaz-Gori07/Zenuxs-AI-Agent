@@ -157,38 +157,6 @@ export function ChatView() {
 
 	return (
 		<div className="chat-view" role="region" aria-label="Chat">
-			<div className="selector-bar">
-				<div className="selector-row">
-					<select value={state.currentConfig.providerId} title="Provider" onChange={(e) => changeProvider(e.target.value)} aria-label="Provider">
-						{state.providers.map((p) => (
-							<option key={p} value={p}>{getProviderLabel(p)}</option>
-						))}
-					</select>
-					<select value={state.currentConfig.modelId} title="Model" onChange={(e) => changeModel(e.target.value)} aria-label="Model">
-						{(state.models[state.currentConfig.providerId] || ["default"]).map((m) => (
-							<option key={m} value={m}>{m}</option>
-						))}
-					</select>
-					<div className="mode-badge" style={{
-						display: "flex", alignItems: "center", gap: 4, padding: "2px 8px",
-						borderRadius: 10, fontSize: "0.8em", fontWeight: 600, flexShrink: 0,
-						background: `color-mix(in srgb, ${MODE_COLORS[mode]} 20%, transparent)`,
-						color: MODE_COLORS[mode],
-					}} role="status" aria-label={`Mode: ${mode}`}>{MODE_LABELS[mode]}</div>
-				</div>
-				<div className="option-checkbox-row">
-					<label className="checkbox-label">
-						<input type="checkbox" checked={state.currentConfig.thinking} onChange={(e) => changeThinking(e.target.checked)} aria-label="Toggle thinking mode" />
-						Thinking
-					</label>
-					<select value={state.currentConfig.reasoningEffort} onChange={(e) => changeReasoningEffort(e.target.value)} aria-label="Reasoning effort">
-						<option value="none">Effort: None</option>
-						<option value="low">Effort: Low</option>
-						<option value="medium">Effort: Medium</option>
-						<option value="high">Effort: High</option>
-					</select>
-				</div>
-			</div>
 
 			<div className="messages-container" id="chat-messages" ref={messagesContainerRef} role="log" aria-label="Messages" aria-live="polite">
 				{state.messages.length === 0 && !state.isRunning && (
@@ -291,7 +259,7 @@ export function ChatView() {
 						value={input}
 						onChange={handleInputChange}
 						onKeyDown={handleKeyDown}
-						style={{ height: "auto", minHeight: 40, maxHeight: 180 }}
+						style={{ height: "auto", minHeight: 52, maxHeight: 100 }}
 						aria-label="Chat input"
 					/>
 					<button className="send-icon-btn" disabled={state.isRunning || !input.trim()} onClick={handleSend} title="Send (Enter)" aria-label="Send message">

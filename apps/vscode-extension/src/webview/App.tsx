@@ -18,7 +18,7 @@ const TABS: { id: TabId; label: string }[] = [
 ];
 
 export function App() {
-	const { state, dispatch, switchTab } = useExtensionState();
+	const { state, dispatch, switchTab, newSession } = useExtensionState();
 	if (typeof window !== "undefined") {
 		(window as any).logStartup?.("WEBVIEW", state.activeSessionId || "None", "React", "App_render", "EVENT", "N/A", `activeTab:${state.activeTab}`);
 	}
@@ -33,15 +33,24 @@ export function App() {
 	return (
 		<div className="app-root">
 			<div className="tabs-header">
-				{TABS.map((tab) => (
-					<button
-						key={tab.id}
-						className={`tab-btn ${state.activeTab === tab.id ? "active" : ""}`}
-						onClick={() => switchTab(tab.id)}
-					>
-						{tab.label}
-					</button>
-				))}
+				<button
+					className={`tab-btn ${state.activeTab === "chat" ? "active" : ""}`}
+					onClick={() => { newSession(); switchTab("chat"); }}
+				>
+					New Chat
+				</button>
+				<button
+					className={`tab-btn ${state.activeTab === "history" ? "active" : ""}`}
+					onClick={() => switchTab("history")}
+				>
+					Recent
+				</button>
+				<button
+					className={`tab-btn ${state.activeTab === "settings" ? "active" : ""}`}
+					onClick={() => switchTab("settings")}
+				>
+					Settings
+				</button>
 			</div>
 			{state.activeTab === "chat" && <ChatView />}
 			{state.activeTab === "history" && <HistoryView />}

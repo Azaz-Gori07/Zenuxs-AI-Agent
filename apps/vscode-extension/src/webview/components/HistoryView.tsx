@@ -45,12 +45,8 @@ export function HistoryView() {
 	return (
 		<div className="history-view">
 			<div className="selector-bar">
-				<div className="search-box">
-					<input type="text" placeholder="Search sessions..." value={search} onChange={(e) => setSearch(e.target.value)} />
-				</div>
 				<div className="row">
-					<button className="btn sm secondary col" onClick={() => { newSession(); switchTab("chat"); }}>+ New Session</button>
-					<button className="btn sm secondary col" onClick={importSession}>Import JSON</button>
+					<button className="btn sm secondary col" onClick={() => { newSession(); switchTab("chat"); }}>New Session</button>
 					<button className="btn sm danger col" onClick={() => { if (confirm("Permanently clear all session histories? This cannot be undone.")) clearHistory(); }}>Clear History</button>
 				</div>
 			</div>
@@ -72,9 +68,12 @@ export function HistoryView() {
 											</div>
 										</div>
 										<div className="history-actions">
-											<button className="action-btn" title="Rename" onClick={(e) => { e.stopPropagation(); handleRename(s.sessionId, s.metadata?.title); }}>✏️</button>
-											<button className="action-btn" title="Export" onClick={(e) => { e.stopPropagation(); exportSession(s.sessionId); }}>💾</button>
-											<button className="action-btn" title="Delete" onClick={(e) => { e.stopPropagation(); handleDelete(s.sessionId); }}>🗑️</button>
+											<button className="delete-btn" title="Delete" onClick={(e) => { e.stopPropagation(); handleDelete(s.sessionId); }}>
+												<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+													<polyline points="3 6 5 6 21 6"></polyline>
+													<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+												</svg>
+											</button>
 										</div>
 									</div>
 								))}
