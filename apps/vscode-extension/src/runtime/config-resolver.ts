@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 
 /**
  * Resolved extension configuration for a session.
+ * Mirrors the CLI's Config type from apps/cli/src/utils/types.ts
  */
 export interface ExtensionConfig {
 	providerId: string;
@@ -17,10 +18,13 @@ export interface ExtensionConfig {
 	retries: number;
 	timeout: number;
 	checkpointEnabled: boolean;
+	systemPrompt: string;
+	verbose: boolean;
 }
 
 /**
  * Reads the extension configuration from VS Code settings.
+ * Mirrors the CLI's config resolution from apps/cli/src/main.ts
  */
 export function resolveExtensionConfig(): ExtensionConfig {
 	const config = vscode.workspace.getConfiguration("zenuxs");
@@ -38,6 +42,8 @@ export function resolveExtensionConfig(): ExtensionConfig {
 		retries: config.get<number>("retries", 3),
 		timeout: config.get<number>("timeout", 0),
 		checkpointEnabled: config.get<boolean>("checkpointEnabled", false),
+		systemPrompt: config.get<string>("systemPrompt", ""),
+		verbose: config.get<boolean>("verbose", false),
 	};
 }
 

@@ -1,21 +1,19 @@
 import * as vscode from "vscode";
 import { captureEditorContext, formatEditorContextForPrompt } from "../context/editor-context.js";
 import { ZenuxsChatViewProvider } from "../providers/chat-view-provider.js";
-import { ZenuxsBackendBridge } from "../runtime/backend-bridge.js";
 import { resolveExtensionConfig } from "../runtime/config-resolver.js";
 
 /**
  * Registers all Zenuxs commands.
+ * Uses the chat provider which internally uses @cline/core runtime (same as CLI).
  */
 export function registerCommands(
 	context: vscode.ExtensionContext,
 	chatProvider: ZenuxsChatViewProvider,
-	backendBridge: ZenuxsBackendBridge,
 ): void {
 	// Open chat panel
 	context.subscriptions.push(
 		vscode.commands.registerCommand("zenuxs.chat", async () => {
-			// Focus the chat view
 			await vscode.commands.executeCommand("zenuxs-chat.focus");
 		}),
 	);
@@ -114,7 +112,7 @@ export function registerCommands(
 		}),
 	);
 
-	// Inline chat (placeholder for future implementation)
+	// Inline chat
 	context.subscriptions.push(
 		vscode.commands.registerCommand("zenuxs.inlineChat", async () => {
 			const input = await vscode.window.showInputBox({
@@ -172,7 +170,6 @@ export function registerCommands(
 			});
 			if (!input) return;
 
-			// Show progress notification
 			await vscode.window.withProgress(
 				{
 					location: vscode.ProgressLocation.Notification,
@@ -242,7 +239,6 @@ export function registerCommands(
 				return;
 			}
 
-			// Build diagnostic context
 			const lines: string[] = [];
 			if (errors.length > 0) {
 				lines.push("Errors:");

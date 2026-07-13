@@ -1,246 +1,69 @@
-# Architecture Map - Zenuxs-Code
+# Zenuxs-Code Architecture Map
 
-## Layer Definitions
-
-### Layer 1: CLI Entry Point
+## Monorepo Structure
 ```
-apps/cli/src/
-├── index.ts           # Entry bootstrap
-├── main.ts            # Commander routing, config resolution
-├── commands/          # Subcommand implementations
-│   ├── program.ts     # Base program setup
-│   ├── auth.ts        # Provider authentication
-│   ├── config.ts      # Configuration display
-│   ├── plugin.ts      # Plugin management
-│   ├── mcp.ts         # MCP server management
-│   ├── history.ts     # Session history
-│   └── schedule.ts    # Task scheduling
-└── runtime/           # Agent runtime wrappers
-    ├── run-agent.ts   # Headless agent execution
-    ├── run-interactive.ts # TUI interactive mode
-    └── prompt.ts      # System prompt resolution
+zenuxs-code/
+├── packages/
+│   ├── core/          # @cline/core - Core runtime, services, providers
+│   ├── agents/        # @cline/agents - Agent execution engine
+│   ├── llms/          # @cline/llms - LLM provider integrations
+│   └── shared/        # @cline/shared - Shared types, utilities, storage
+├── apps/
+│   ├── cli/           # Zenuxs CLI - Terminal interface
+│   ├── vscode-extension/  # VS Code Extension - Graphical interface
+│   └── zenuxs-hub/    # Hub daemon server
 ```
 
-### Layer 2: Core Runtime
-```
-packages/core/src/
-├── index.ts           # Barrel exports
-├── extensions/        # Enhanced tool infrastructure
-│   └── tools/
-│       ├── definitions.ts   # Default tool factory
-│       ├── executors/       # Built-in executors
-│       │   ├── bash.ts       # Shell execution
-│       │   ├── file-read.ts  # File reading
-│       │   ├── editor.ts     # File editing
-│       │   └── web-fetch.ts  # URL fetching
-│       ├── shell-enhanced.ts    # Enhanced shell (unused)
-│       ├── file-read-enhanced.ts # Enhanced read (unused)
-│       ├── editor-enhanced.ts   # Enhanced editor (unused)
-│       ├── glob-grep-enhanced.ts # Enhanced grep/glob (unused)
-│       └── todo-enhanced.ts     # TODO tool (unused)
-├── cron/              # Scheduled tasks
-│   ├── schedule/scheduler.ts   # Cron parsing
-│   ├── service/schedule-service.ts # Service layer
-│   ├── runner/cron-runner.ts     # Execution engine
-│   └── events/                 # Event triggers
-└── services/          # Core services
-    ├── telemetry/     # OpenTelemetry
-    ├── storage/       # SQLite, provider settings
-    └── workspace/     # File indexing, workspace info
-```
+## Shared Runtime Architecture
 
-### Layer 3: Agent Runtime
-```
-packages/agents/src/
-├── index.ts           # Agent exports
-├── agent-runtime.ts   # AgentRuntime class
-├── agent-graph.ts     # LangGraph workflow
-├── subagents/         # Multi-agent support
-│   ├── roles.ts       # Planner, coder, reviewer configs
-│   └── subAgentNode.ts # Sub-agent workflow node
-└── mcp/               # MCP abstraction layer
-    ├── mcpClient.ts   # McpLayer main class
-    ├── types.ts       # MCP types and built-in catalog
-    ├── connectionManager.ts # Server connections
-    ├── discoveryEngine.ts   # Server discovery
-    └── toolRegistry.ts    # Tool registration wrapper
-```
+### @cline/core (Single Source of Truth)
+- **ZenuxsCore** - Main runtime class (create, start, send, abort, dispose)
+- **ProviderSettingsManager** - Provider config persistence
+- **CoreSettingsService** - Rules, skills, workflows, tools, MCP toggles
+- **InMemoryMcpManager** - MCP server lifecycle management
+- **AgentTeamsRuntime** - Multi-agent team orchestration
+- **Session management** - start, send, abort, list, delete, update, readMessages
+- **Auth services** - OAuth, device auth, provider auth registry
+- **Telemetry** - Event capture and usage tracking
+- **Feature flags** - PostHog integration
 
-### Layer 4: Shared Types & Utilities
-```
-packages/shared/src/
-├── agent.ts           # AgentRuntime types (tools, messages, events)
-├── tools/             # Tool definition system
-│   ├── definition.ts  # make(), makeDynamic(), ToolRuntime
-│   └── dispatch.ts    # dispatch(), dispatchAll()
-├── hooks/             # Hook system
-│   ├── events.ts      # Hook event types and payloads
-│   └── contracts.ts   # Hook control types
-├── llms/              # LLM provider types
-│   └── model-info.ts  # Model information types
-└── services/          # Shared utilities
-    └── zenuxs-memory.ts # Memory service
-```
+### CLI Interface (apps/cli)
+- **main.ts** - Entry point, command routing, config building
+- **session/session.ts** - `createCliCore()` wraps ZenuxsCore.create()
+- **runtime/run-agent.ts** - Agent execution with event handling
+- **runtime/run-interactive.ts** - Interactive TUI mode
+- **commands/** - Subcommand implementations (auth, config, history, etc.)
+- **connectors/** - External channel adapters (Slack, Discord, etc.)
+- **tui/** - Terminal UI components (Ink/React)
+- **utils/** - Provider auth, feature flags, telemetry, helpers
 
-### Layer 5: LLM Providers
-```
-packages/llms/src/
-├── index.ts           # Provider exports
-├── providers/         # Provider implementations
-│   ├── gateway.ts     # Provider gateway
-│   ├── registry.ts    # Provider registry
-│   └── vendors/       # Individual providers
-│       ├── openai.ts
-│       ├── anthropic.ts
-│       └── ...
-└── services/           # Runtime services
-    ├── runtime-config.ts
-    └── runtime-registry.ts
-```
+### VS Code Extension Interface (apps/vscode-extension)
+- **extension.ts** - Activation entry point
+- **runtime/core-bridge.ts** - `ExtensionCoreBridge` wraps ZenuxsCore
+- **runtime/backend-bridge.ts** - **LEGACY** HTTP backend bridge (to be removed)
+- **runtime/event-mapper.ts** - Maps CoreSessionEvent → Webview messages
+- **runtime/config-resolver.ts** - VS Code settings → ExtensionConfig
+- **providers/chat-view-provider.ts** - Webview message handler
+- **webview/** - React UI (Chat, Settings, History, Teams, Dashboard, Logs)
 
----
+## Key Integration Points
 
-## Data Flow Diagram
+### What the Extension Already Does Right:
+1. Uses `ExtensionCoreBridge` to wrap `ZenuxsCore.create()` ✓
+2. Maps core events to webview messages via `event-mapper.ts` ✓
+3. Uses `ProviderSettingsManager` for provider config ✓
+4. Uses `InMemoryMcpManager` for MCP servers ✓
+5. Uses `createCoreSettingsService()` for toggles ✓
+6. Uses `listLocalProviders()` for dynamic provider listing ✓
 
-```
-┌─────────────┐
-│   User      │
-│ (CLI/TUI)   │
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐     ┌──────────────┐
-│  main.ts    │────▶│ UserInstrSrv │
-│ (CLI entry) │     │ (skills/rules│
-└──────┬──────┘     └──────────────┘
-       │
-       ▼
-┌─────────────┐
-│ run-agent.ts│
-│ (headless)  │
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐     ┌──────────────┐
-│ SessionMgr  │────▶│ AgentRuntime │
-│ (core)      │     │ (agents)     │
-└──────┬──────┘     └──────┬───────┘
-       │                   │
-       │                   ├──────▶┌──────────────┐
-       │                   │       │ ToolRegistry │
-       │                   │       └──────┬───────┘
-       │                   │              │
-       │                   │              ▼
-       │                   │       ┌──────────────┐
-       │                   └──────▶│ MCPToolRegistry│
-       │                            └──────────────┘
-       │                                   │
-       │                                   ▼
-       │                            ┌──────────────┐
-       │                            │   McpLayer   │
-       │                            └──────────────┘
-       │                                   │
-       ▼                                   ▼
-┌─────────────┐                   ┌──────────────┐
-│   State     │                   │ ConnectionMgr│
-│   Persist   │                   │ (MCP conn)   │
-└─────────────┘                   └──────────────┘
-```
-
----
-
-## Tool Registration Architecture
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                  AgentRuntime.tools Map                  │
-│  (Runtime tool registry for native execution)            │
-├─────────────────────────────────────────────────────────┤
-│  read_files  ──▶ executors/file-read.ts                │
-│  run_commands ──▶ executors/bash.ts                    │
-│  editor      ──▶ executors/editor.ts                  │
-│  ...                                                   │
-└─────────────────────────────────────────────────────────┘
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────────┐
-│              Enhanced Tool Registry (unused)              │
-│  ToolRegistry in registry.ts                           │
-├─────────────────────────────────────────────────────────┤
-│  read        ──▶ file-read-enhanced.ts (DISCONNECTED)   │
-│  bash        ──▶ shell-enhanced.ts (DISCONNECTED)      │
-│  ...                                                   │
-└─────────────────────────────────────────────────────────┘
-```
-
----
-
-## MCP Integration Architecture
-
-```
-                    ┌──────────────────┐
-                    │  McpLayer        │
-                    │  (mcpClient.ts)  │
-                    └────────┬─────────┘
-                             │
-           discoverAll()    │    getCapabilitiesForTask()
-              │            │            │
-              ▼            ▼            ▼
-    ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
-    │ CapabilityReg    │  │ DiscoveryEngine  │  │ Tool Descriptions│
-    │ (registry)       │  │                  │  │ (for prompts)     │
-    └──────────────────┘  └──────────────────┘  └──────────────────┘
-              │
-              ▼
-    ┌──────────────────┐
-    │ ConnectionMgr    │
-    │ (connections)  │
-    └────────┬─────────┘
-             │
-      connect() ──▶ StdioClientTransport / SSEClientTransport
-             │
-             ▼
-    ┌──────────────────┐
-    │  MCP Servers     │
-    │  (filesystem,    │
-    │   github, etc.)  │
-    └──────────────────┘
-```
-
----
-
-## Agent Loop Flow
-
-```
-┌─────────────┐
-│   Planner   │──messages──▶ Model
-│   (graph    │◀──response──┤
-│   node)     │
-└──────┬──────┘
-       │
-       ├──── has tool calls?
-       │              │
-       ▼              ▼
-┌─────────────┐ ┌─────────────┐
-│ tool_selector│ │ crew_dispatch│
-└──────┬──────┘ └──────┬──────┘
-       │               │
-       ▼               ▼
-┌─────────────┐ ┌─────────────┐
-│MCP tools    │ │Sub-agents   │
-│(tool_executor)│ │(agent_*)    │
-└─────────────┘ └──────┬──────┘
-       │               │
-       ▼               ▼
-┌─────────────┐ ┌─────────────┐
-│Executor     │ │Reasoning    │
-│(native tools)│ │(self-       │
-└──────┬──────┘ │critique)    │
-       │       └──────┬──────┘
-       └──────────────┬──────┘
-                      │
-                      ▼
-              ┌─────────────┐
-              │   done      │
-              └─────────────┘
-```
+### What Needs to Change:
+1. **Remove `ZenuxsBackendBridge`** - Replace all HTTP calls with direct @cline/core calls
+2. **Fix `handleSend`** - Match CLI's `runAgent()` flow exactly
+3. **Add missing CLI features** - Checkpoints, compaction, thinking, reasoning effort
+4. **Add missing commands** - Doctor, MCP wizard, plugin management
+5. **Fix provider auth** - Use shared `loginAndSaveLocalProviderOAuthCredentials`
+6. **Add conversation sync** - Mirror CLI's `syncSessionConversation`
+7. **Add file index prewarming** - Match CLI's `prewarmFileIndex`
+8. **Add proper abort handling** - Match CLI's signal handling
+9. **Add timeout support** - Match CLI's timeoutSeconds
+10. **Add tool approval UI** - Proper approval request/response flow

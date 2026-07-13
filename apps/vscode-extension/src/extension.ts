@@ -3,7 +3,6 @@ import { ZenuxsChatViewProvider } from "./providers/chat-view-provider.js";
 import { registerCommands } from "./commands/index.js";
 import { ZenuxsStatusBar } from "./status/status-bar.js";
 import { registerCodeActions } from "./providers/code-action-provider.js";
-import { ZenuxsBackendBridge } from "./runtime/backend-bridge.js";
 import { ZenuxsInlineCompletionProvider } from "./providers/inline-completion-provider.js";
 
 /**
@@ -11,12 +10,13 @@ import { ZenuxsInlineCompletionProvider } from "./providers/inline-completion-pr
  *
  * Called by VS Code when the extension is activated (via activationEvents
  * defined in package.json).
+ *
+ * Uses the same ZenuxsCore runtime as the CLI - no separate backend bridge.
+ * All provider, model, session, and tool operations go through @cline/core
+ * directly, ensuring feature parity with the CLI.
  */
 export function activate(context: vscode.ExtensionContext): void {
-	// Initialize backend bridge (connects to zenuxs-code backend)
-	const backendBridge = new ZenuxsBackendBridge(context);
-
-	// Create the chat view provider
+	// Create the chat view provider (manages its own ExtensionCoreBridge)
 	const chatProvider = new ZenuxsChatViewProvider(context);
 
 	// Register the webview view provider for the sidebar chat panel
@@ -33,7 +33,7 @@ export function activate(context: vscode.ExtensionContext): void {
 	);
 
 	// Register commands
-	registerCommands(context, chatProvider, backendBridge);
+	registerCommands(context, chatProvider);
 
 	// Register code actions (quick fixes, refactor)
 	registerCodeActions(context, chatProvider);
@@ -53,19 +53,11 @@ export function activate(context: vscode.ExtensionContext): void {
 	// Log activation
 	const outputChannel = vscode.window.createOutputChannel("Zenuxs");
 	outputChannel.appendLine("Zenuxs extension activated");
-	outputChannel.appendLine(`Backend URL: ${backendBridge.getBaseUrl()}`);
+	outputChannel.appendLine("Runtime: @cline/core (shared with CLI)");
 	context.subscriptions.push(outputChannel);
 
-	// Check backend connection on startup
-	backendBridge.checkConnection().then((connected) => {
-		if (connected) {
-			outputChannel.appendLine("Backend connection established");
-			statusBar.setIdle();
-		} else {
-			outputChannel.appendLine("Backend not available - running in standalone mode");
-			statusBar.setIdle();
-		}
-	});
+	// Set idle status
+	statusBar.setIdle();
 }
 
 /**

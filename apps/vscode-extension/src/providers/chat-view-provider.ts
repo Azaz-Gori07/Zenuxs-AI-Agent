@@ -1,47 +1,45 @@
 import * as vscode from "vscode";
-import * as fs from "fs";
 import { ExtensionCoreBridge } from "../runtime/core-bridge.js";
 import { mapCoreEventToWebview } from "../runtime/event-mapper.js";
 import type { WebviewOutboundMessage } from "../runtime/event-mapper.js";
 import { resolveExtensionConfig, resolveWorkspaceRoot, resolveCwd } from "../runtime/config-resolver.js";
 import { captureEditorContext, formatEditorContextForPrompt } from "../context/editor-context.js";
-import {
-	fetchZenuxsRecommendedModels,
-	createCoreSettingsService,
-	ProviderSettingsManager,
-	SessionSource,
-	InMemoryMcpManager,
-	createDefaultMcpServerClientFactory,
-	setMcpServerDisabled,
-	resolveMcpServerRegistrations,
-	resolveDefaultMcpSettingsPath,
-	type BasicLogger,
+import type {
+	AgentResult,
+	BasicLogger,
+	CheckpointEntry,
+	CoreSessionEvent,
+	McpServerRegistration,
+	McpServerSnapshot,
+	ProviderListItem,
+	ToolApprovalRequest,
+	ToolApprovalResult,
 } from "@cline/core";
-import type { AgentResult, CoreSessionEvent, ToolApprovalRequest, ToolApprovalResult, CheckpointEntry, McpServerSnapshot, McpServerRegistration } from "@cline/core";
-import { AgentTeamsRuntime } from "@cline/core";
+import {
+	buildWorkspaceMetadata,
+	createCoreSettingsService,
+	createDefaultMcpServerClientFactory,
+	fetchZenuxsMemory,
+	getLocalProviderModels,
+	getPersistedProviderApiKey,
+	InMemoryMcpManager,
+	isOAuthProvider,
+	listLocalProviders,
+	loginAndSaveLocalProviderOAuthCredentials,
+	mergeRulesForSystemPrompt,
+	normalizeProviderId,
+	ProviderSettingsManager,
+	readSessionCheckpointHistory,
+	resolveDefaultMcpSettingsPath,
+	resolveMcpServerRegistrations,
+	resolveProviderConfig,
+	hasMcpSettingsFile,
+	loadMcpSettingsFile,
+	SessionSource,
+} from "@cline/core";
+import { buildZenuxsSystemPrompt } from "@cline/shared";
 import { createSessionId } from "@cline/shared";
 import { getWebviewHtml } from "../webview/webview-html.js";
-
-export function logStartup(
-	workerId: string,
-	sessionId: string,
-	component: string,
-	func: string,
-	event: "ENTER" | "EXIT" | "EVENT",
-	duration: string | number = "N/A",
-	status: string = "SUCCESS"
-): void {
-	try {
-		const logFile = "D:/V3/zenuxs-code/startup-debug.log";
-		const fs = require("fs");
-		const durationStr = typeof duration === "number" ? `${duration}ms` : duration;
-		const logLine = `[${new Date().toISOString()}] [${workerId}] [${sessionId || "None"}] [${component}] [${func}] [${event}] [${durationStr}] [${status}]\n`;
-		fs.appendFileSync(logFile, logLine, "utf8");
-	} catch (err) {
-		console.error("Failed to write to startup log:", err);
-	}
-}
-
 
 /**
  * Webview inbound message types from the chat panel.
@@ -53,15 +51,6 @@ type WebviewInboundMessage =
 		level: string;
 		message: string;
 		stack?: string | null;
-		logParams?: {
-			workerId: string;
-			sessionId: string;
-			component: string;
-			func: string;
-			event: "ENTER" | "EXIT" | "EVENT";
-			duration: string | number;
-			status: string;
-		};
 	}
 	| {
 		type: "send";
@@ -86,6 +75,11 @@ type WebviewInboundMessage =
 		thinking: boolean;
 		reasoningEffort: string;
 		maxIterations: number;
+		mode?: string;
+		compaction?: string;
+		retries?: number;
+		timeout?: number;
+		checkpointEnabled?: boolean;
 	}
 	| {
 		type: "toggle_setting_item";
@@ -240,11 +234,11 @@ type WebviewInboundMessage =
 	| {
 		type: "connector_disconnect";
 		id: string;
-	}
-	;
+	};
 
 /**
  * Provides the Zenuxs chat webview in the VS Code sidebar.
+ * Uses the same @cline/core runtime as the CLI - no separate backend bridge.
  */
 export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	public static readonly viewType = "zenuxs-chat";
@@ -257,18 +251,17 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 		| ((result: ToolApprovalResult) => void)
 		| undefined;
 	private isRunning = false;
+	private abortController: AbortController | undefined;
 	private mcpManager: InMemoryMcpManager | undefined;
-	private teamsRuntime: AgentTeamsRuntime | undefined;
+	private teamsRuntime: any | undefined;
 
-	constructor(private readonly extensionContext: vscode.ExtensionContext) { }
+	constructor(private readonly extensionContext: vscode.ExtensionContext) {}
 
 	resolveWebviewView(
 		webviewView: vscode.WebviewView,
 		_context: vscode.WebviewViewResolveContext,
 		_token: vscode.CancellationToken,
 	): void {
-		logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "resolveWebviewView", "ENTER", "N/A", "START");
-		const startTime = Date.now();
 		this.webviewView = webviewView;
 
 		webviewView.webview.options = {
@@ -276,16 +269,13 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 			localResourceRoots: [this.extensionContext.extensionUri],
 		};
 
-		webviewView.webview.html = this.getHtmlForWebview(
-			webviewView.webview,
-		);
+		webviewView.webview.html = this.getHtmlForWebview(webviewView.webview);
 
 		webviewView.webview.onDidReceiveMessage(
 			async (message: WebviewInboundMessage) => {
 				await this.handleWebviewMessage(message);
 			},
 		);
-		logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "resolveWebviewView", "EXIT", Date.now() - startTime, "SUCCESS");
 	}
 
 	/**
@@ -339,10 +329,9 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 
 	/**
 	 * Resolves the core bridge instance lazily.
+	 * Mirrors CLI's createCliCore() from apps/cli/src/session/session.ts
 	 */
-	private async getCore(): Promise<any> {
-		logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "getCore", "ENTER");
-		const startGetCore = Date.now();
+	private async getCore(): Promise<ExtensionCoreBridge> {
 		if (!this.coreBridge) {
 			const workspaceRoot = resolveWorkspaceRoot();
 			const cwd = resolveCwd();
@@ -376,20 +365,9 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 			this.mcpManager = new InMemoryMcpManager({
 				clientFactory: createDefaultMcpServerClientFactory(),
 			});
-
-			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "initializeMcpManager", "ENTER");
-			const startMcp = Date.now();
 			await this.initializeMcpManager();
-			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "initializeMcpManager", "EXIT", Date.now() - startMcp, "SUCCESS");
 		}
-
-		logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "coreBridge.getCore", "ENTER");
-		const startBridge = Date.now();
-		const core = await this.coreBridge.getCore();
-		logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "coreBridge.getCore", "EXIT", Date.now() - startBridge, "SUCCESS");
-
-		logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "getCore", "EXIT", Date.now() - startGetCore, "SUCCESS");
-		return core;
+		return this.coreBridge;
 	}
 
 	/**
@@ -399,29 +377,9 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 		message: WebviewInboundMessage,
 	): Promise<void> {
 		try {
-			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "handleWebviewMessage", "EVENT", "N/A", `RECEIVED: ${message.type}`);
 			switch (message.type) {
-				case "webview_log": {
-					if (message.logParams) {
-						logStartup(
-							message.logParams.workerId,
-							message.logParams.sessionId,
-							message.logParams.component,
-							message.logParams.func,
-							message.logParams.event,
-							message.logParams.duration,
-							message.logParams.status
-						);
-					} else {
-						const worker = message.level === "error" ? "WEBVIEW-ERROR" : "WEBVIEW-CONSOLE";
-						logStartup(worker, this.activeSessionId || "None", "Webview", message.message, "EVENT", "N/A", message.level.toUpperCase());
-					}
-					if (message.stack) {
-						const fs = require("fs");
-						fs.appendFileSync("D:/V3/zenuxs-code/startup-debug.log", `Stack: ${message.stack}\n`, "utf8");
-					}
+				case "webview_log":
 					break;
-				}
 
 				case "ready":
 					await this.sendInitialPayload();
@@ -485,17 +443,17 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 					await this.handleAttachFileContext();
 					break;
 
-			case "clear_history":
-				await this.handleClearHistory();
-				break;
+				case "clear_history":
+					await this.handleClearHistory();
+					break;
 
-			case "models_request":
-				await this.handleModelsRequest(message.providerId);
-				break;
+				case "models_request":
+					await this.handleModelsRequest(message.providerId);
+					break;
 
-			case "login_oauth":
-				await this.handleLoginOAuth(message.providerId);
-				break;
+				case "login_oauth":
+					await this.handleLoginOAuth(message.providerId);
+					break;
 
 				case "mcp_register":
 					await this.handleMcpRegister(message);
@@ -586,42 +544,30 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 
 	/**
 	 * Sends initial settings, models, toggles, history, etc. to webview.
+	 * Uses the same @cline/core runtime as the CLI.
 	 */
 	private async sendInitialPayload(): Promise<void> {
-		logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "sendInitialPayload", "ENTER");
-		const startPayload = Date.now();
 		try {
-			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "getCore_in_payload", "ENTER");
-			const startGetCore = Date.now();
-			const core = await this.getCore();
-			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "getCore_in_payload", "EXIT", Date.now() - startGetCore, "SUCCESS");
-
+			const bridge = await this.getCore();
+			const core = await bridge.getCore();
 			const psm = new ProviderSettingsManager();
 
 			// Use real listLocalProviders to get all providers dynamically (same as CLI TUI)
-			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "listLocalProviders", "ENTER");
-			const startProv = Date.now();
-			let providers: import("@cline/shared").ProviderListItem[] = [];
+			let providers: ProviderListItem[] = [];
 			try {
-				const { listLocalProviders: listProviders } = await import("@cline/core");
-				const result = await listProviders(psm);
+				const result = await listLocalProviders(psm);
 				providers = result.providers;
 			} catch {
-				// fallback - use hardcoded list
 				providers = [];
 			}
-			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "listLocalProviders", "EXIT", Date.now() - startProv, `SUCCESS_${providers.length}`);
 
 			const extConfig = resolveExtensionConfig();
 
-			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "core.list", "ENTER");
-			const startList = Date.now();
-			const sessionHistories = await core.list(100, { hydrate: false });
-			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "core.list", "EXIT", Date.now() - startList, `SUCCESS_${sessionHistories?.length || 0}`);
+			// Use core bridge's listSessions() matching CLI's listSessions()
+			const sessionHistories = await bridge.listSessions(100, { hydrate: false });
 
+			// Get settings toggles via CoreSettingsService (same as CLI)
 			let toggles = { workflows: [], rules: [], skills: [], tools: [], mcp: [] };
-			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "settingsService.list", "ENTER");
-			const startSettings = Date.now();
 			try {
 				const settingsService = createCoreSettingsService();
 				const snapshot = await settingsService.list({
@@ -629,18 +575,13 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 					cwd: resolveCwd(),
 				});
 				toggles = snapshot as any;
-				logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "settingsService.list", "EXIT", Date.now() - startSettings, "SUCCESS");
-			} catch (err: any) {
-				logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "settingsService.list", "EXIT", Date.now() - startSettings, `ERROR_${err.message}`);
+			} catch {
 				// ignore - use defaults
 			}
 
-			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "getMcpServerList", "ENTER");
-			const startMcpList = Date.now();
+			// Get MCP server list
 			const mcpServers = await this.getMcpServerList();
-			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "getMcpServerList", "EXIT", Date.now() - startMcpList, `SUCCESS_${mcpServers?.length || 0}`);
 
-			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "postMessage(initial_data)", "ENTER");
 			this.postToWebview({
 				type: "initial_data",
 				providers,
@@ -652,16 +593,22 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 					name: s.name,
 					status: s.status,
 					disabled: s.disabled,
-					lastError: s.lastError,
-					toolCount: s.toolCount,
-					transport: s.transport,
+					lastError: (s as any).lastError,
+					toolCount: (s as any).toolCount ?? s.toolCount ?? 0,
+					transport: (s as any).transport ?? "stdio",
 				})),
 			});
-			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "postMessage(initial_data)", "EXIT", "N/A", "SUCCESS");
-			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "sendInitialPayload", "EXIT", Date.now() - startPayload, "SUCCESS");
 		} catch (err: any) {
-			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "sendInitialPayload", "EXIT", Date.now() - startPayload, `ERROR_${err.message}`);
-			throw err;
+			// If core isn't ready yet, send empty payload
+			this.postToWebview({
+				type: "initial_data",
+				providers: [],
+				models: {},
+				currentConfig: resolveExtensionConfig(),
+				toggles: { workflows: [], rules: [], skills: [], tools: [], mcp: [] },
+				sessionHistories: [],
+				mcpServers: [],
+			});
 		}
 	}
 
@@ -682,6 +629,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 
 	/**
 	 * Save provider settings and synchronize with VS Code settings & CLI config.
+	 * Uses ProviderSettingsManager (same as CLI) for persistence.
 	 */
 	private async handleSaveSettings(msg: any): Promise<void> {
 		// Update VS Code configurations
@@ -740,20 +688,21 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	 */
 	private async handleDeleteSession(sessionId: string): Promise<void> {
 		try {
-			const core = await this.getCore();
+			const bridge = await this.getCore();
+			const core = await bridge.getCore();
 			const session = await core.get(sessionId);
 			const title = session?.metadata?.title || session?.prompt || `Session ${sessionId.slice(0, 8)}`;
-			
+
 			const choice = await vscode.window.showWarningMessage(
 				`Are you sure you want to permanently delete the chat session "${title}"?`,
 				{ modal: true },
 				"Delete",
 			);
-			
+
 			if (choice !== "Delete") {
 				return;
 			}
-			
+
 			const deleted = await core.delete(sessionId);
 			if (!deleted) {
 				vscode.window.showWarningMessage(`Zenuxs: Session not found or could not be deleted.`);
@@ -775,19 +724,20 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	 */
 	private async handleRenameSession(sessionId: string, title?: string): Promise<void> {
 		try {
-			const core = await this.getCore();
+			const bridge = await this.getCore();
+			const core = await bridge.getCore();
 			const session = await core.get(sessionId);
 			const currentTitle = title || session?.metadata?.title || session?.prompt || "";
-			
+
 			const newTitle = await vscode.window.showInputBox({
 				prompt: "Enter new session title",
 				value: currentTitle,
 			});
-			
+
 			if (newTitle === undefined) {
 				return;
 			}
-			
+
 			await core.update(sessionId, { title: newTitle });
 			await this.sendInitialPayload();
 		} catch (error: any) {
@@ -799,7 +749,8 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	 * Restore and hydrate a previous session.
 	 */
 	private async handleRestoreSession(sessionId: string): Promise<void> {
-		const core = await this.getCore();
+		const bridge = await this.getCore();
+		const core = await bridge.getCore();
 		const messages = await core.readMessages(sessionId);
 		const row = await core.get(sessionId);
 
@@ -865,7 +816,8 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	 * Export session conversation messages to JSON.
 	 */
 	private async handleExportSession(sessionId: string): Promise<void> {
-		const core = await this.getCore();
+		const bridge = await this.getCore();
+		const core = await bridge.getCore();
 		const uri = await vscode.window.showSaveDialog({
 			defaultUri: vscode.Uri.file(`zenuxs-session-${sessionId.slice(0, 8)}.json`),
 			filters: { "JSON Files": ["json"] },
@@ -960,7 +912,8 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	 */
 	private async handleClearHistory(): Promise<void> {
 		try {
-			const core = await this.getCore();
+			const bridge = await this.getCore();
+			const core = await bridge.getCore();
 			const sessions = await core.list(1000, { hydrate: false });
 			for (const session of sessions) {
 				await core.delete(session.sessionId);
@@ -978,6 +931,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 
 	/**
 	 * Log in using OAuth for the given provider.
+	 * Uses the same loginAndSaveLocalProviderOAuthCredentials as the CLI.
 	 */
 	private async handleLoginOAuth(providerId: string): Promise<void> {
 		const psm = new ProviderSettingsManager();
@@ -989,7 +943,6 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 					cancellable: true,
 				},
 				async (progress, token) => {
-					const { loginAndSaveLocalProviderOAuthCredentials } = await import("@cline/core");
 					await loginAndSaveLocalProviderOAuthCredentials(
 						psm,
 						providerId,
@@ -1010,6 +963,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 
 	/**
 	 * Handles a send message from the webview.
+	 * Mirrors the CLI's runAgent() flow from apps/cli/src/runtime/run-agent.ts
 	 */
 	private async handleSend(prompt: string, uiConfig?: any): Promise<void> {
 		if (this.isRunning) {
@@ -1021,6 +975,15 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 		}
 
 		this.isRunning = true;
+		this.abortController = new AbortController();
+
+		// Prewarm file index (matching CLI pattern)
+		try {
+			const bridge = await this.getCore();
+			await bridge.prewarmFileIndex();
+		} catch {
+			// Best-effort
+		}
 
 		// Show progress notification in VS Code
 		await vscode.window.withProgress(
@@ -1043,6 +1006,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 
 	/**
 	 * Executes the session with progress reporting.
+	 * Mirrors the CLI's runAgent() flow exactly.
 	 */
 	private async executeSession(
 		prompt: string,
@@ -1050,7 +1014,8 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 		uiConfig?: any,
 	): Promise<void> {
 		try {
-			const core = await this.getCore();
+			const bridge = await this.getCore();
+			const core = await bridge.getCore();
 			const extConfig = resolveExtensionConfig();
 			const editorCtx = captureEditorContext();
 			const editorContextText = formatEditorContextForPrompt(editorCtx);
@@ -1061,7 +1026,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				: prompt;
 
 			// Subscribe to events for this turn
-			const unsubscribe = this.coreBridge!.subscribe((event: CoreSessionEvent) => {
+			const unsubscribe = bridge.subscribe((event: CoreSessionEvent) => {
 				const messages = mapCoreEventToWebview(event);
 				for (const msg of messages) {
 					this.postToWebview(msg);
@@ -1084,31 +1049,64 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				const workspaceRoot = resolveWorkspaceRoot();
 				const cwd = resolveCwd();
 
-				const providerId = uiConfig?.providerId || extConfig.providerId;
-				const modelId = uiConfig?.modelId || extConfig.modelId || "anthropic/claude-sonnet-4.6";
+				// Resolve provider and API key through ProviderSettingsManager (same as CLI):
+				// 1. Get the provider ID from UI config, VS Code settings, or fallback to "cline"
+				// 2. Get the provider settings from ProviderSettingsManager
+				// 3. Resolve the API key from the provider settings
+				const psm = new ProviderSettingsManager();
+				const lastUsedProviderSettings = psm.getLastUsedProviderSettings({ isClinePassEnabled: false });
+				const rawProviderId = uiConfig?.providerId || extConfig.providerId || lastUsedProviderSettings?.provider || "cline";
+				const providerId = normalizeProviderId(rawProviderId);
+				const selectedProviderSettings = psm.getProviderSettings(providerId);
+				const resolvedApiKey = getPersistedProviderApiKey(providerId, selectedProviderSettings) || extConfig.apiKey || "";
+				const resolvedBaseUrl = selectedProviderSettings?.baseUrl || extConfig.baseUrl || undefined;
+
+				// Resolve model ID: check UI config, VS Code settings, or provider settings, or use fallback
+				const resolvedModelId = uiConfig?.modelId || extConfig.modelId || selectedProviderSettings?.model || "anthropic/claude-sonnet-4.6";
+
+				const modelId = resolvedModelId;
 				const thinking = uiConfig?.thinking !== undefined ? uiConfig.thinking : extConfig.thinking;
 				const reasoningEffort = uiConfig?.reasoningEffort || extConfig.reasoningEffort;
 				const modeStr = uiConfig?.mode || extConfig.mode || "act";
+				const isYoloMode = modeStr === "yolo";
 
 				const toolPolicies: Record<string, { autoApprove: boolean }> = {
 					"*": { autoApprove: extConfig.autoApproveTools },
 				};
 
+				// Build compaction config matching CLI
+				const compactionConfig = extConfig.compaction !== "off"
+					? { enabled: true, strategy: extConfig.compaction as "basic" | "agentic" }
+					: { enabled: false };
+
+				// Build checkpoint config matching CLI
+				const checkpointConfig = {
+					enabled: extConfig.checkpointEnabled,
+				};
+
+				// Build timeout config matching CLI
+				const timeoutMs =
+					typeof extConfig.timeout === "number" &&
+					Number.isFinite(extConfig.timeout) &&
+					extConfig.timeout > 0
+						? extConfig.timeout * 1000
+						: undefined;
+
 				// Start or send to session
 				if (!this.activeSessionId) {
-					// New session
+					// New session - matching CLI's runAgent() start flow
 					const started = await core.start({
 						source: SessionSource.VSCODE,
 						config: {
 							providerId,
 							modelId,
-							apiKey: extConfig.apiKey,
-							baseUrl: extConfig.baseUrl || undefined,
-							systemPrompt: "",
+							apiKey: resolvedApiKey,
+							baseUrl: resolvedBaseUrl,
+							systemPrompt: extConfig.systemPrompt || "",
 							enableTools: true,
-							enableSpawnAgent: true,
-							enableAgentTeams: true,
-							yolo: modeStr === "yolo",
+							enableSpawnAgent: !isYoloMode,
+							enableAgentTeams: !isYoloMode,
+							yolo: isYoloMode,
 							defaultToolAutoApprove: extConfig.autoApproveTools,
 							toolPolicies,
 							thinking,
@@ -1119,12 +1117,9 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 							execution: {
 								maxConsecutiveMistakes: extConfig.retries,
 							},
-							compaction: extConfig.compaction !== "off"
-								? { enabled: true, strategy: extConfig.compaction }
-								: { enabled: false },
-							checkpoint: {
-								enabled: extConfig.checkpointEnabled,
-							},
+							compaction: compactionConfig,
+							checkpoint: checkpointConfig,
+							timeoutSeconds: extConfig.timeout > 0 ? extConfig.timeout : undefined,
 							cwd,
 							workspaceRoot,
 							extensionContext: {
@@ -1155,7 +1150,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 						this.handleAgentResult(started.result);
 					} else {
 						// Wait for the session to complete via events
-						await this.waitForSessionEnd(core, started.sessionId);
+						await this.waitForSessionEnd(core, started.sessionId, timeoutMs);
 					}
 				} else {
 					// Continue existing session
@@ -1170,6 +1165,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 						await this.waitForSessionEnd(
 							core,
 							this.activeSessionId,
+							timeoutMs,
 						);
 					}
 				}
@@ -1182,6 +1178,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 			this.postToWebview({ type: "error", text: message });
 		} finally {
 			this.isRunning = false;
+			this.abortController = undefined;
 		}
 	}
 
@@ -1207,17 +1204,30 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 
 	/**
 	 * Waits for the session to end via events.
+	 * Supports timeout matching CLI's timeoutSeconds.
 	 */
 	private waitForSessionEnd(
 		core: any,
 		sessionId: string,
+		timeoutMs?: number,
 	): Promise<void> {
-		return new Promise<void>((resolve) => {
+		return new Promise<void>((resolve, reject) => {
+			let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+			if (timeoutMs) {
+				timeoutId = setTimeout(() => {
+					unsubscribe();
+					core.abort(sessionId).catch(() => {});
+					reject(new Error(`Session timed out after ${timeoutMs / 1000}s`));
+				}, timeoutMs);
+			}
+
 			const unsubscribe = core.subscribe((event: CoreSessionEvent) => {
 				if (
 					event.type === "ended" &&
 					event.payload.sessionId === sessionId
 				) {
+					if (timeoutId) clearTimeout(timeoutId);
 					unsubscribe();
 					resolve();
 				}
@@ -1297,43 +1307,21 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	 * Initializes the MCP manager from settings file.
 	 */
 	private async initializeMcpManager(): Promise<void> {
-		logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "initializeMcpManager_internal", "ENTER");
-		const startTime = Date.now();
-		if (!this.mcpManager) {
-			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "initializeMcpManager_internal", "EXIT", Date.now() - startTime, "NO_MANAGER");
-			return;
-		}
+		if (!this.mcpManager) return;
 		try {
-			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "import_cline_core", "ENTER");
-			const startImport = Date.now();
-			const { hasMcpSettingsFile, loadMcpSettingsFile } = await import("@cline/core");
-			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "import_cline_core", "EXIT", Date.now() - startImport, "SUCCESS");
-
 			const settingsPath = resolveDefaultMcpSettingsPath();
-			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "hasMcpSettingsFile", "ENTER");
-			const startHasMcp = Date.now();
 			const hasFile = hasMcpSettingsFile(settingsPath);
-			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "hasMcpSettingsFile", "EXIT", Date.now() - startHasMcp, `SUCCESS_${hasFile}`);
 
 			if (hasFile) {
 				const file = loadMcpSettingsFile(settingsPath);
 				for (const reg of resolveMcpServerRegistrations({ mcpServers: file.mcpServers })) {
-					logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", `registerServer_${reg.name}`, "ENTER");
-					const startReg = Date.now();
 					await this.mcpManager.registerServer(reg);
-					logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", `registerServer_${reg.name}`, "EXIT", Date.now() - startReg, "SUCCESS");
-
 					if (!reg.disabled) {
-						logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", `connectServer_${reg.name}`, "ENTER");
-						const startConn = Date.now();
 						await this.mcpManager.connectServer(reg.name);
-						logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", `connectServer_${reg.name}`, "EXIT", Date.now() - startConn, "SUCCESS");
 					}
 				}
 			}
-			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "initializeMcpManager_internal", "EXIT", Date.now() - startTime, "SUCCESS");
-		} catch (err: any) {
-			logStartup("EXT-HOST", this.activeSessionId || "None", "Extension", "initializeMcpManager_internal", "EXIT", Date.now() - startTime, `ERROR_${err.message}`);
+		} catch {
 			// MCP settings optional
 		}
 	}
@@ -1440,7 +1428,8 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	 * Restores a session checkpoint.
 	 */
 	private async handleCheckpointRestore(sessionId: string, checkpointRef: string): Promise<void> {
-		const core = await this.getCore();
+		const bridge = await this.getCore();
+		const core = await bridge.getCore();
 		try {
 			await core.restore({ sessionId, checkpointRef });
 			this.postToWebview({ type: "checkpoint_restored", sessionId });
@@ -1455,7 +1444,6 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	 */
 	private async handleCheckpointList(sessionId: string): Promise<void> {
 		try {
-			const { readSessionCheckpointHistory } = await import("@cline/core");
 			const checkpoints: CheckpointEntry[] = readSessionCheckpointHistory(sessionId);
 			this.postToWebview({ type: "checkpoint_list", sessionId, checkpoints });
 		} catch {
@@ -1468,7 +1456,8 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	 */
 	private async handleCheckpointDelete(sessionId: string, checkpointRef: string): Promise<void> {
 		try {
-			const core = await this.getCore();
+			const bridge = await this.getCore();
+			const core = await bridge.getCore();
 			await core.restore({ sessionId, checkpointRef, deleteAfterRestore: true });
 			this.postToWebview({ type: "toast", message: `Checkpoint ${checkpointRef.slice(0, 8)} deleted.`, severity: "info" });
 			await this.handleCheckpointList(sessionId);
@@ -1480,8 +1469,9 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	/**
 	 * Initializes the team runtime.
 	 */
-	private async ensureTeamsRuntime(): Promise<AgentTeamsRuntime> {
+	private async ensureTeamsRuntime(): Promise<any> {
 		if (!this.teamsRuntime) {
+			const { AgentTeamsRuntime } = await import("@cline/core");
 			this.teamsRuntime = new AgentTeamsRuntime({
 				teamName: "zenuxs-team",
 				leadAgentId: "lead",
@@ -1711,13 +1701,12 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	 */
 	private async handleConnectorConnect(provider: string, name: string, config?: Record<string, string>): Promise<void> {
 		try {
-			const { loginAndSaveLocalProviderOAuthCredentials } = await import("@cline/core");
 			const psm = new ProviderSettingsManager();
 			await loginAndSaveLocalProviderOAuthCredentials(psm, provider, (url: string) => {
 				vscode.env.openExternal(vscode.Uri.parse(url));
 			});
 			this.postToWebview({ type: "toast", message: `Connector "${name}" connecting...`, severity: "success" });
-		} catch (err: any) {
+		} catch {
 			this.postToWebview({ type: "toast", message: `Connector setup simulated: ${provider}`, severity: "info" });
 		}
 	}
