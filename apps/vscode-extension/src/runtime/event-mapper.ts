@@ -87,10 +87,9 @@ export function mapCoreEventToWebview(
 ): WebviewOutboundMessage[] {
 	switch (event.type) {
 		case "chunk": {
-			// stdout/stderr chunks are not displayed in the chat
-			if (event.payload.stream === "agent") {
-				return [{ type: "assistant_delta", text: event.payload.chunk }];
-			}
+			// stdout/stderr and agent stream chunks are not displayed in the chat.
+			// Agent stream chunks are serialized AgentEvents, which are handled
+			// via the "agent_event" case.
 			return [];
 		}
 
@@ -210,17 +209,9 @@ function mapAgentEvent(event: AgentEvent): WebviewOutboundMessage[] {
 		}
 
 		case "content_end": {
-			if (event.contentType === "text" && event.text) {
-				return [{ type: "assistant_delta", text: event.text }];
-			}
-			if (event.contentType === "reasoning" && event.reasoning) {
-				return [
-					{
-						type: "reasoning_delta",
-						text: event.reasoning,
-					},
-				];
-			}
+			// Don't emit assistant_delta for text/reasoning here — the
+			// content was already streamed incrementally via content_start.
+			// Only tool results need to be finalized at content_end.
 			if (event.contentType === "tool") {
 				const failed = !!event.error;
 				return [
@@ -255,22 +246,9 @@ function mapAgentEvent(event: AgentEvent): WebviewOutboundMessage[] {
 		}
 
 		case "done": {
-			return [
-				{
-					type: "turn_done",
-					finishReason: event.reason ?? "completed",
-					iterations: event.iterations ?? 0,
-					usage: event.usage
-						? {
-								inputTokens: event.usage.inputTokens,
-								outputTokens: event.usage.outputTokens,
-								cacheReadInputTokens: event.usage.cacheReadTokens,
-								cacheCreationInputTokens: event.usage.cacheWriteTokens,
-								totalCost: event.usage.totalCost,
-							}
-						: undefined,
-				},
-			];
+			// turn_done is handled by handleAgentResult() in the provider.
+			// Suppress the duplicate from the event stream.
+			return [];
 		}
 
 		case "error": {

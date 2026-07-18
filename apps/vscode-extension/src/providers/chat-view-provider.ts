@@ -36,7 +36,10 @@ import {
 	hasMcpSettingsFile,
 	loadMcpSettingsFile,
 	SessionSource,
+	resolveSystemPrompt,
+	resolveLocalClineAuthToken,
 } from "@cline/core";
+import { loggerService, devLogs, LogLevel, LogCategory, type LogEntry } from "@cline/core";
 import { buildZenuxsSystemPrompt } from "@cline/shared";
 import { createSessionId } from "@cline/shared";
 import { getWebviewHtml } from "../webview/webview-html.js";
@@ -234,6 +237,10 @@ type WebviewInboundMessage =
 	| {
 		type: "connector_disconnect";
 		id: string;
+	}
+	| {
+		type: "developer_logs";
+		action: "subscribe" | "unsubscribe" | "clear" | "pause" | "resume";
 	};
 
 /**
@@ -254,6 +261,9 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	private abortController: AbortController | undefined;
 	private mcpManager: InMemoryMcpManager | undefined;
 	private teamsRuntime: any | undefined;
+	private developerSubscribed = false;
+	private developerPaused = false;
+	private developerUnsubscribe: (() => void) | undefined;
 
 	constructor(private readonly extensionContext: vscode.ExtensionContext) {}
 
@@ -303,6 +313,8 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	 */
 	public newSession(): void {
 		this.activeSessionId = undefined;
+		// Dispose and reset core bridge and MCP manager to ensure fresh state for new session
+		this.resetCore();
 		this.postToWebview({ type: "reset_done" });
 	}
 
@@ -371,6 +383,20 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	}
 
 	/**
+	 * Dispose and reset the core bridge and MCP manager to clear cached state.
+	 */
+	private async resetCore(): Promise<void> {
+		if (this.coreBridge) {
+			await this.coreBridge.dispose();
+			this.coreBridge = undefined;
+		}
+		if (this.mcpManager) {
+			await this.mcpManager.dispose();
+			this.mcpManager = undefined;
+		}
+	}
+
+	/**
 	 * Handles messages from the webview.
 	 */
 	private async handleWebviewMessage(
@@ -379,6 +405,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 		try {
 			switch (message.type) {
 				case "webview_log":
+					this.handleWebviewLog(message);
 					break;
 
 				case "ready":
@@ -400,6 +427,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 
 				case "new_session":
 					this.activeSessionId = undefined;
+					await this.resetCore();
 					this.postToWebview({ type: "reset_done" });
 					break;
 
@@ -535,11 +563,75 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				case "connector_disconnect":
 					await this.handleConnectorDisconnect(message.id);
 					break;
+
+				case "developer_logs":
+					this.handleDeveloperLogs(message);
+					break;
 			}
 		} catch (error) {
 			const txt = error instanceof Error ? error.message : String(error);
 			this.postToWebview({ type: "error", text: txt });
 		}
+	}
+
+	// ---------------------------------------------------------------- Developer Logs
+
+	/**
+	 * Handle developer_logs messages from the webview (subscribe, unsubscribe, clear, pause, resume).
+	 */
+	private handleDeveloperLogs(msg: { action: "subscribe" | "unsubscribe" | "clear" | "pause" | "resume" }): void {
+		switch (msg.action) {
+			case "subscribe":
+				if (!this.developerSubscribed) {
+					this.developerSubscribed = true;
+					// Replay existing backlog
+					const backlog = loggerService.getEntries();
+					if (backlog.length > 0) {
+						this.postToWebview({ type: "developer_logs_batch", entries: backlog });
+					}
+					// Subscribe to live entries
+					this.developerUnsubscribe = loggerService.subscribe((entry: LogEntry) => {
+						if (this.developerPaused) return;
+						this.postToWebview({ type: "developer_logs_batch", entries: [entry] });
+					});
+				}
+				break;
+			case "unsubscribe":
+				this.developerSubscribed = false;
+				this.developerUnsubscribe?.();
+				this.developerUnsubscribe = undefined;
+				break;
+			case "clear":
+				loggerService.clear();
+				break;
+			case "pause":
+				this.developerPaused = true;
+				break;
+			case "resume":
+				this.developerPaused = false;
+				break;
+		}
+	}
+
+	/**
+	 * Handle webview_log messages from the webview and forward to loggerService.
+	 */
+	private handleWebviewLog(msg: { level: string; message: string; stack?: string | null }): void {
+		const levelMap: Record<string, LogLevel> = {
+			log: LogLevel.INFO,
+			info: LogLevel.INFO,
+			warn: LogLevel.WARNING,
+			error: LogLevel.ERROR,
+			debug: LogLevel.DEBUG,
+			trace: LogLevel.TRACE,
+		};
+		loggerService.log({
+			level: levelMap[msg.level] || LogLevel.DEBUG,
+			category: LogCategory.CONSOLE,
+			message: msg.message,
+			source: "webview",
+			stack: msg.stack || undefined,
+		});
 	}
 
 	/**
@@ -565,6 +657,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 
 			// Use core bridge's listSessions() matching CLI's listSessions()
 			const sessionHistories = await bridge.listSessions(100, { hydrate: false });
+			loggerService.log({ level: LogLevel.DEBUG, category: LogCategory.CONVERSATION, message: `Session history loaded: ${sessionHistories.length} sessions`, source: "session" });
 
 			// Get settings toggles via CoreSettingsService (same as CLI)
 			let toggles = { workflows: [], rules: [], skills: [], tools: [], mcp: [] };
@@ -754,6 +847,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 		const messages = await core.readMessages(sessionId);
 		const row = await core.get(sessionId);
 
+		loggerService.log({ level: LogLevel.INFO, category: LogCategory.CONVERSATION, message: "Session restored", source: "session", sessionId, data: { messageCount: (messages || []).length } });
 		this.activeSessionId = sessionId;
 
 		// Map to UI chat message format
@@ -1031,6 +1125,23 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				for (const msg of messages) {
 					this.postToWebview(msg);
 				}
+				// Debug logging for Developer panel
+				if (event.type === "agent_event") {
+					const ae = event.payload.event;
+					if (ae.type === "content_start" && ae.contentType === "text") {
+						loggerService.log({ level: LogLevel.DEBUG, category: LogCategory.CONVERSATION, message: "Assistant placeholder created / stream chunk", source: "session", sessionId: this.activeSessionId, data: { textLength: (ae.text ?? "").length } });
+					}
+					if (ae.type === "content_end" && ae.contentType === "text") {
+						loggerService.log({ level: LogLevel.DEBUG, category: LogCategory.CONVERSATION, message: "Stream finished for text content", source: "session", sessionId: this.activeSessionId, data: { textLength: (ae.text ?? "").length } });
+					}
+					if (ae.type === "content_end" && ae.contentType === "tool") {
+						loggerService.log({ level: LogLevel.DEBUG, category: LogCategory.CONVERSATION, message: "Tool execution completed", source: "session", sessionId: this.activeSessionId, data: { toolName: ae.toolName, status: ae.error ? "failed" : "completed" } });
+					}
+				} else if (event.type === "ended") {
+					loggerService.log({ level: LogLevel.DEBUG, category: LogCategory.CONVERSATION, message: "Session ended", source: "session", sessionId: this.activeSessionId, data: { reason: event.payload.reason } });
+				} else if (event.type === "status") {
+					loggerService.log({ level: LogLevel.DEBUG, category: LogCategory.CONVERSATION, message: `Session status: ${event.payload.status}`, source: "session", sessionId: this.activeSessionId });
+				}
 				// Update progress for tool events
 				if (event.type === "agent_event") {
 					const agentEvent = event.payload.event;
@@ -1092,6 +1203,19 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 						? extConfig.timeout * 1000
 						: undefined;
 
+				// Resolve the system prompt using workspace rules, custom instructions, and remote memories (matching CLI prompt compilation)
+				const psmForAuth = new ProviderSettingsManager();
+				const settingsForAuth = psmForAuth.getProviderSettings("cline");
+				const zenuxsAuthToken = resolveLocalClineAuthToken(settingsForAuth)?.trim();
+
+				const compiledSystemPrompt = await resolveSystemPrompt({
+					cwd,
+					explicitSystemPrompt: extConfig.systemPrompt || "",
+					providerId,
+					mode: modeStr as any,
+					zenuxsAuthToken,
+				});
+
 				// Start or send to session
 				if (!this.activeSessionId) {
 					// New session - matching CLI's runAgent() start flow
@@ -1102,7 +1226,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 							modelId,
 							apiKey: resolvedApiKey,
 							baseUrl: resolvedBaseUrl,
-							systemPrompt: extConfig.systemPrompt || "",
+							systemPrompt: compiledSystemPrompt,
 							enableTools: true,
 							enableSpawnAgent: !isYoloMode,
 							enableAgentTeams: !isYoloMode,
@@ -1135,11 +1259,12 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 							},
 						},
 						prompt: fullPrompt,
-						interactive: false,
+						interactive: true,
 						sessionId: plannedSessionId,
 					});
 
 					this.activeSessionId = started.sessionId;
+					loggerService.log({ level: LogLevel.INFO, category: LogCategory.CONVERSATION, message: "Session created / active session set", source: "session", sessionId: started.sessionId, data: { providerId, modelId } });
 					this.postToWebview({
 						type: "session_started",
 						sessionId: started.sessionId,
@@ -1154,6 +1279,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 					}
 				} else {
 					// Continue existing session
+					loggerService.log({ level: LogLevel.DEBUG, category: LogCategory.CONVERSATION, message: "Session send", source: "session", sessionId: this.activeSessionId });
 					const result = await core.send({
 						sessionId: this.activeSessionId,
 						prompt: fullPrompt,
@@ -1176,6 +1302,17 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 			const message =
 				error instanceof Error ? error.message : String(error);
 			this.postToWebview({ type: "error", text: message });
+			loggerService.log({ level: LogLevel.ERROR, category: LogCategory.CONVERSATION, message: `Session error: ${message}`, source: "session", sessionId: this.activeSessionId });
+			// Recover from "session not found": reset state so user can start fresh
+			if (
+				message.toLowerCase().includes("session not found") ||
+				message.toLowerCase().includes("session_not_found")
+			) {
+				loggerService.log({ level: LogLevel.INFO, category: LogCategory.CONVERSATION, message: "Session recovery triggered - resetting active session", source: "session", sessionId: this.activeSessionId });
+				this.activeSessionId = undefined;
+				this.isRunning = false;
+				this.postToWebview({ type: "reset_done" });
+			}
 		} finally {
 			this.isRunning = false;
 			this.abortController = undefined;

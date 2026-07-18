@@ -930,6 +930,10 @@ async function createProviderModule(
 			);
 			return createSapAiCoreProviderModule(config);
 		}
+		case "ollama": {
+			const { createOllamaProviderModule } = await import("./vendors/ollama");
+			return createOllamaProviderModule(config, context);
+		}
 	}
 }
 

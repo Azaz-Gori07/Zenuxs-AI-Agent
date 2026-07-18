@@ -12,6 +12,7 @@ import type {
 import { createOAuthClientCallbacks } from "../../auth/client";
 import {
 	getProviderAuthHandler,
+	isOAuthProvider,
 	loginAndSaveProviderOAuthCredentials,
 	type ProviderOAuthCredentials,
 	saveProviderOAuthCredentials,
@@ -38,7 +39,7 @@ import {
 	resolveModelsSourceUrl,
 } from "./model-source";
 
-export { ensureCustomProvidersLoaded } from "./local-provider-registry";
+export { ensureCustomProvidersLoaded, syncStoredProviderRegistration } from "./local-provider-registry";
 
 const CLINE_PASS_PROVIDER_ID = "cline-pass";
 
@@ -682,6 +683,7 @@ export async function listLocalProviders(
 						apiKey: persistedSettings
 							? resolveVisibleApiKey(persistedSettings)
 							: undefined,
+						isOAuth: isOAuthProvider(id),
 						oauthAccessTokenPresent: persistedSettings
 							? hasOAuthAccessToken(persistedSettings)
 							: undefined,

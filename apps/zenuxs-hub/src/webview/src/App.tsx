@@ -106,6 +106,7 @@ const CHAT_SESSION_QUERY_PARAM = "id";
 const SETTINGS_SECTION_PATHS: Record<SettingsSection, string> = {
 	General: "/settings",
 	Providers: "/settings/providers",
+	"Developer Logs": "/settings/developer-logs",
 	MCP: "/settings/mcp",
 	Channels: "/settings/channels",
 	Schedules: "/settings/schedules",

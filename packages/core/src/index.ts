@@ -504,6 +504,10 @@ export {
 	mergeRulesForSystemPrompt,
 } from "./runtime/safety/rules";
 export {
+	resolveSystemPrompt,
+	PLAN_MODE_INSTRUCTIONS,
+} from "./runtime";
+export {
 	type SandboxCallOptions,
 	SubprocessSandbox,
 	type SubprocessSandboxOptions,
@@ -566,6 +570,7 @@ export {
 	type DeleteLocalProviderRequest,
 	deleteLocalProvider,
 	ensureCustomProvidersLoaded,
+	syncStoredProviderRegistration,
 	getLocalProviderModels,
 	listLocalProviders,
 	loginAndSaveLocalProviderOAuthCredentials,
@@ -683,6 +688,30 @@ export type {
 	WorkspaceManagerEvent,
 } from "./services/workspace/workspace-manager";
 export { InMemoryWorkspaceManager } from "./services/workspace/workspace-manager";
+export {
+	LoggerService,
+	loggerService,
+	LogLevel,
+	LOG_LEVEL_ORDER,
+	ALL_LOG_LEVELS,
+	LogCategory,
+	ALL_LOG_CATEGORIES,
+	maskSecret,
+	maskSecretString,
+	devLogs,
+} from "./services/logging";
+export type {
+	LogEntry,
+	LogSubscriber,
+	LoggerServiceOptions,
+	LogSeverity,
+} from "./services/logging";
+export {
+	setSdkLogger,
+	getSdkLogger,
+	hashSecret,
+	sdkDebug,
+} from "./logging/early-logger";
 export {
 	buildWorkspaceMetadata,
 	generateWorkspaceInfo,

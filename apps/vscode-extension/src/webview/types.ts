@@ -206,7 +206,9 @@ export type ExtensionMessage =
 	| { type: "team_tasks"; tasks: TeamTaskEntry[] }
 	| { type: "team_teammate_spawned"; agentId: string }
 	| { type: "team_teammate_shutdown"; agentId: string }
-	| { type: "connector_status"; connectors: ConnectorStatus[] };
+	| { type: "connector_status"; connectors: ConnectorStatus[] }
+	| { type: "developer_logs_batch"; entries: any[] }
+	| { type: "developer_logs_state"; enabled: boolean };
 
 export type WebviewMessage =
 	| { type: "ready" }
@@ -252,7 +254,9 @@ export type WebviewMessage =
 	| { type: "team_complete_task"; taskId: string; summary: string }
 	| { type: "connector_list" }
 	| { type: "connector_connect"; provider: string; name: string; config?: Record<string, string> }
-	| { type: "connector_disconnect"; id: string };
+	| { type: "connector_disconnect"; id: string }
+	| { type: "developer_logs"; action: "subscribe" | "unsubscribe" | "clear" | "pause" | "resume" }
+	| { type: "webview_log"; level: string; message: string; stack?: string | null };
 
 export interface AppState {
 	providers: import("@cline/shared").ProviderListItem[];

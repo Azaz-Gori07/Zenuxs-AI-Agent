@@ -28,9 +28,9 @@ export function captureEditorContext(): EditorContext {
 	const selection = editor?.selection;
 	const document = editor?.document;
 
-	const openFilePaths = vscode.workspace.textDocuments.map(
-		(doc) => doc.uri.fsPath,
-	);
+	const openFilePaths = vscode.workspace.textDocuments
+		.filter((doc) => doc.uri.scheme === "file" || doc.uri.scheme === "untitled")
+		.map((doc) => doc.uri.fsPath);
 
 	const workspaceFolders = vscode.workspace.workspaceFolders;
 	const workspaceRoot =
@@ -43,15 +43,15 @@ export function captureEditorContext(): EditorContext {
 		workspaceRoot,
 	};
 
-	if (document) {
+	if (document && (document.uri.scheme === "file" || document.uri.scheme === "untitled")) {
 		context.activeFilePath = document.uri.fsPath;
 		context.activeLanguageId = document.languageId;
-	}
 
-	if (selection && !selection.isEmpty) {
-		context.selectedText = document?.getText(selection) ?? "";
-		context.selectionStartLine = selection.start.line + 1;
-		context.selectionEndLine = selection.end.line + 1;
+		if (selection && !selection.isEmpty) {
+			context.selectedText = document.getText(selection);
+			context.selectionStartLine = selection.start.line + 1;
+			context.selectionEndLine = selection.end.line + 1;
+		}
 	}
 
 	return context;

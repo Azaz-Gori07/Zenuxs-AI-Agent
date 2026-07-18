@@ -227,6 +227,57 @@ export type WebviewHubState = {
 	lastWorkspaceRoot?: string;
 };
 
+export type WebviewDeveloperLogLevel =
+	| "TRACE"
+	| "DEBUG"
+	| "INFO"
+	| "SUCCESS"
+	| "WARNING"
+	| "ERROR"
+	| "CRITICAL";
+
+export type WebviewDeveloperLogCategory =
+	| "auth"
+	| "provider"
+	| "model"
+	| "api_request"
+	| "api_response"
+	| "streaming"
+	| "tool"
+	| "agent"
+	| "conversation"
+	| "prompt"
+	| "memory"
+	| "api_key"
+	| "storage"
+	| "network"
+	| "performance"
+	| "extension"
+	| "ui"
+	| "error"
+	| "console"
+	| "insights";
+
+export type WebviewDeveloperLog = {
+	id: string;
+	seq: number;
+	timestamp: number;
+	iso: string;
+	level: WebviewDeveloperLogLevel;
+	category: WebviewDeveloperLogCategory;
+	message: string;
+	source?: string;
+	requestId?: string;
+	sessionId?: string;
+	conversationId?: string;
+	provider?: string;
+	model?: string;
+	data?: Record<string, unknown>;
+	stack?: string;
+	parentId?: string;
+	childIds?: string[];
+};
+
 export type WebviewInboundMessage =
 	| { type: "ready" }
 	| { type: "restart_hub" }
@@ -268,7 +319,11 @@ export type WebviewInboundMessage =
 			metadata: Record<string, unknown>;
 	  }
 	| { type: "restore"; checkpointRunCount: number }
-	| { type: "forkSession" };
+	| { type: "forkSession" }
+	| {
+			type: "developer_logs";
+			action: "subscribe" | "unsubscribe" | "clear" | "pause" | "resume";
+	  };
 
 export type WebviewOutboundMessage =
 	| { type: "status"; text: string }
@@ -341,4 +396,9 @@ export type WebviewOutboundMessage =
 			forkedFromSessionId: string;
 			newSessionId: string;
 	  }
-	| { type: "fork_error"; text: string };
+	| { type: "fork_error"; text: string }
+	| { type: "developer_logs_state"; enabled: boolean }
+	| {
+			type: "developer_logs_batch";
+			entries: WebviewDeveloperLog[];
+	  };

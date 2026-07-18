@@ -31,6 +31,7 @@ import { toSettingsPatch } from "./settings-patch";
 import { SkillsContent } from "./skills-view";
 import { AutoApprovalsContent } from "./auto-approvals-view";
 import { AboutContent } from "./about-view";
+import { DeveloperLogsView } from "./developer-logs-view";
 
 // -----------------------------------------------------------
 // Settings nav categories
@@ -44,6 +45,7 @@ const navCategories = [
 	"MCP & Plugins",
 	"Channels",
 	"Schedules",
+	"Developer Logs",
 	"Account",
 	"About",
 ] as const;
@@ -426,6 +428,8 @@ export function SettingsView({
 			<ChannelsContent />
 		) : activeNav === "Schedules" ? (
 			<RoutineSchedulesContent />
+		) : activeNav === "Developer Logs" ? (
+			<DeveloperLogsView chrome="content" />
 		) : activeNav === "Account" ? (
 			<AccountView />
 		) : activeNav === "About" ? (

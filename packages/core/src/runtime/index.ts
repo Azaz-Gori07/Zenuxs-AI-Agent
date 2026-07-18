@@ -22,3 +22,7 @@ export {
 	type DesktopToolApprovalOptions,
 	requestDesktopToolApproval,
 } from "./tools/tool-approval";
+export {
+	resolveSystemPrompt,
+	PLAN_MODE_INSTRUCTIONS,
+} from "./prompt";

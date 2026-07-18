@@ -35,6 +35,7 @@ export {
 	isClineNotSubscribedError,
 	isClineNotSubscribedMessage,
 } from "./providers/errors";
+export { OLLAMA_DEFAULT_CONTEXT_WINDOW } from "./providers/builtins";
 export {
 	getRegisteredHandler,
 	getRegisteredHandlerAsync,

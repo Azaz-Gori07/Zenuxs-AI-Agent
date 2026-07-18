@@ -39,6 +39,10 @@ import {
 	selectSession,
 	sendMessage,
 } from "./server/sessions";
+import {
+	detachDeveloperLogsFromPeer,
+	handleDeveloperLogsMessage,
+} from "./server/developer-logs";
 import { HubContext } from "./server/state";
 import { broadcastHubState, hubStatusPayload } from "./server/state-payloads";
 import type { BrowserFrame, BrowserPeer } from "./server/types";
@@ -211,6 +215,8 @@ export async function startClineHubDashboardServer(): Promise<ClineHubDashboardS
 						);
 					} else if (frame.type === "restart_hub") {
 						await restartHub(ctx);
+					} else if (frame.type === "developer_logs") {
+						handleDeveloperLogsMessage(ctx, peer, frame.action);
 					}
 				} catch (error) {
 					ctx.send(peer, {
@@ -222,6 +228,7 @@ export async function startClineHubDashboardServer(): Promise<ClineHubDashboardS
 			close(socket) {
 				const peer = socket.data;
 				peer.unsubscribeEvents?.();
+				detachDeveloperLogsFromPeer(peer);
 				ctx.peers.delete(peer);
 				rejectOrphanedApprovals(ctx);
 			},

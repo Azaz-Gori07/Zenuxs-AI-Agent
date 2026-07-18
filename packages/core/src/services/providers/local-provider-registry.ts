@@ -1,8 +1,9 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import * as LlmsModels from "@cline/llms";
 import {
+	ApiFormatSchema,
 	type ModelCapability,
 	ModelCapabilitySchema,
 	type ModelInfo,
@@ -15,23 +16,44 @@ import {
 	ProviderProtocolSchema,
 } from "@cline/shared";
 import { z } from "zod";
+import { sdkDebug } from "../../logging/early-logger";
 import type {
 	ProviderSettings,
 	StoredProviderSettings,
 } from "../../types/provider-settings";
 import type { ProviderSettingsManager } from "../storage/provider-settings-manager";
 
+const OptionalPositiveFiniteNumberSchema = z
+	.number()
+	.finite()
+	.positive()
+	.optional()
+	.catch(undefined);
+const OptionalNonNegativeFiniteNumberSchema = z
+	.number()
+	.finite()
+	.nonnegative()
+	.optional()
+	.catch(undefined);
+
 export const StoredModelEntrySchema = z
 	.object({
 		id: z.string().optional(),
 		name: z.string().optional(),
-		maxTokens: z.number().optional(),
-		contextWindow: z.number().optional(),
-		maxInputTokens: z.number().optional(),
+		maxTokens: OptionalPositiveFiniteNumberSchema,
+		contextWindow: OptionalPositiveFiniteNumberSchema,
+		maxInputTokens: OptionalPositiveFiniteNumberSchema,
 		capabilities: z.array(ModelCapabilitySchema).optional(),
 		supportsVision: z.boolean().optional(),
 		supportsAttachments: z.boolean().optional(),
 		supportsReasoning: z.boolean().optional(),
+		inputPrice: OptionalNonNegativeFiniteNumberSchema,
+		outputPrice: OptionalNonNegativeFiniteNumberSchema,
+		cacheReadsPrice: OptionalNonNegativeFiniteNumberSchema,
+		cacheWritesPrice: OptionalNonNegativeFiniteNumberSchema,
+		temperature: OptionalNonNegativeFiniteNumberSchema,
+		apiFormat: ApiFormatSchema.optional(),
+		isR1FormatRequired: z.boolean().optional(),
 	})
 	.passthrough();
 
@@ -93,6 +115,9 @@ export function emptyModelsFile(): StoredModelsFile {
 export function parseModelsFile(input: unknown): StoredModelsFile {
 	const result = StoredModelsFileEnvelopeSchema.safeParse(input);
 	if (!result.success) {
+		sdkDebug(
+			"models.json content is not a valid models file envelope; starting from an empty registry",
+		);
 		return emptyModelsFile();
 	}
 
@@ -101,6 +126,10 @@ export function parseModelsFile(input: unknown): StoredModelsFile {
 		const provider = StoredProviderEntrySchema.safeParse(entry);
 		if (provider.success) {
 			providers[providerId] = provider.data;
+		} else {
+			sdkDebug(
+				`models.json: dropping invalid entry for provider=${providerId}`,
+			);
 		}
 	}
 	return { version: 1, providers };
@@ -114,7 +143,9 @@ export function readModelsFileSync(filePath: string): StoredModelsFile {
 		const raw = readFileSync(filePath, "utf8");
 		return parseModelsFile(JSON.parse(raw) as unknown);
 	} catch {
-		// Invalid or missing files fall back to an empty registry.
+		sdkDebug(
+			`models.json at ${filePath} exists but is unreadable or invalid JSON; treating as an empty registry`,
+		);
 	}
 	return emptyModelsFile();
 }
@@ -125,8 +156,12 @@ export async function readModelsFile(
 	try {
 		const raw = await readFile(filePath, "utf8");
 		return parseModelsFile(JSON.parse(raw) as unknown);
-	} catch {
-		// Invalid or missing files fall back to an empty registry.
+	} catch (error) {
+		if ((error as NodeJS.ErrnoException | undefined)?.code !== "ENOENT") {
+			sdkDebug(
+				`models.json at ${filePath} exists but is unreadable or invalid JSON; treating as an empty registry`,
+			);
+		}
 	}
 	return emptyModelsFile();
 }
@@ -137,7 +172,14 @@ export function writeModelsFileSync(
 ): void {
 	mkdirSync(dirname(filePath), { recursive: true });
 	const parsed = StoredModelsFileSchema.parse(state);
-	writeFileSync(filePath, `${JSON.stringify(parsed, null, 2)}\n`, "utf8");
+	const tempPath = `${filePath}.${process.pid}.tmp`;
+	try {
+		writeFileSync(tempPath, `${JSON.stringify(parsed, null, 2)}\n`, "utf8");
+		renameSync(tempPath, filePath);
+	} catch (error) {
+		rmSync(tempPath, { force: true });
+		throw error;
+	}
 }
 
 export async function writeModelsFile(
@@ -146,7 +188,14 @@ export async function writeModelsFile(
 ): Promise<void> {
 	await mkdir(dirname(filePath), { recursive: true });
 	const parsed = StoredModelsFileSchema.parse(state);
-	await writeFile(filePath, `${JSON.stringify(parsed, null, 2)}\n`, "utf8");
+	const tempPath = `${filePath}.${process.pid}.tmp`;
+	try {
+		await writeFile(tempPath, `${JSON.stringify(parsed, null, 2)}\n`, "utf8");
+		await rename(tempPath, filePath);
+	} catch (error) {
+		await rm(tempPath, { force: true }).catch(() => {});
+		throw error;
+	}
 }
 
 export function toProviderModel(
@@ -245,17 +294,58 @@ function toStoredModelInfo(
 	const capabilities = new Set<ModelCapability>(
 		model?.capabilities ?? fallbackCapabilities ?? [],
 	);
-	if (model?.supportsVision) capabilities.add("images");
-	if (model?.supportsAttachments) capabilities.add("files");
-	if (model?.supportsReasoning) capabilities.add("reasoning");
+	if (model?.supportsVision !== undefined) {
+		if (model.supportsVision) capabilities.add("images");
+		else capabilities.delete("images");
+	}
+	if (model?.supportsAttachments !== undefined) {
+		if (model.supportsAttachments) capabilities.add("files");
+		else capabilities.delete("files");
+	}
+	if (model?.supportsReasoning !== undefined) {
+		if (model.supportsReasoning) capabilities.add("reasoning");
+		else capabilities.delete("reasoning");
+	}
 
+	const apiFormat = model?.isR1FormatRequired ? "r1" : model?.apiFormat;
+	const hasPricing =
+		model?.inputPrice !== undefined ||
+		model?.outputPrice !== undefined ||
+		model?.cacheReadsPrice !== undefined ||
+		model?.cacheWritesPrice !== undefined;
 	return {
 		id: modelId,
 		name: model?.name ?? modelId,
-		maxTokens: model?.maxTokens,
-		contextWindow: model?.contextWindow,
-		maxInputTokens: model?.maxInputTokens,
-		capabilities: capabilities.size > 0 ? [...capabilities] : undefined,
+		...(model?.maxTokens !== undefined ? { maxTokens: model.maxTokens } : {}),
+		...(model?.contextWindow !== undefined
+			? { contextWindow: model.contextWindow }
+			: {}),
+		...(model?.maxInputTokens !== undefined
+			? { maxInputTokens: model.maxInputTokens }
+			: {}),
+		...(capabilities.size > 0 ? { capabilities: [...capabilities] } : {}),
+		...(model?.temperature !== undefined
+			? { temperature: model.temperature }
+			: {}),
+		...(apiFormat !== undefined ? { apiFormat } : {}),
+		...(hasPricing
+			? {
+					pricing: {
+						...(model?.inputPrice !== undefined
+							? { input: model.inputPrice }
+							: {}),
+						...(model?.outputPrice !== undefined
+							? { output: model.outputPrice }
+							: {}),
+						...(model?.cacheReadsPrice !== undefined
+							? { cacheRead: model.cacheReadsPrice }
+							: {}),
+						...(model?.cacheWritesPrice !== undefined
+							? { cacheWrite: model.cacheWritesPrice }
+							: {}),
+					},
+				}
+			: {}),
 	};
 }
 
@@ -465,4 +555,40 @@ export async function ensureCustomProvidersLoaded(
 		registerCustomProvider(providerId, entry);
 	}
 	LOADED_MODELS_REGISTRY_PATHS.add(modelsPath);
+}
+
+export function syncStoredProviderRegistration(
+	providerId: string,
+	previous: StoredProviderEntry | undefined,
+	next: StoredProviderEntry | undefined,
+): void {
+	const nextModels = next?.models ?? {};
+	const removedModelIds = new Set<string>();
+	for (const [modelKey, model] of Object.entries(previous?.models ?? {})) {
+		if (Object.hasOwn(nextModels, modelKey)) {
+			continue;
+		}
+		const modelId = model.id?.trim() || modelKey.trim();
+		if (modelId) {
+			removedModelIds.add(modelId);
+			LlmsModels.unregisterModel(providerId, modelId);
+		}
+	}
+	if (!next) {
+		return;
+	}
+	const liveCollection = LlmsModels.getProviderCollectionSync(providerId);
+	registerCustomProvider(providerId, next);
+	const registered = LlmsModels.getProviderCollectionSync(providerId);
+	if (liveCollection && registered && registered !== liveCollection) {
+		const preservedModels = Object.fromEntries(
+			Object.entries(liveCollection.models).filter(
+				([modelId]) => !removedModelIds.has(modelId),
+			),
+		);
+		LlmsModels.registerProvider({
+			...registered,
+			models: { ...preservedModels, ...registered.models },
+		});
+	}
 }

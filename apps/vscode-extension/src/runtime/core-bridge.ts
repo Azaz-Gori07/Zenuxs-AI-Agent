@@ -217,7 +217,7 @@ export class ExtensionCoreBridge {
 		this.eventListeners.clear();
 
 		if (this.userInstructionService) {
-			await this.userInstructionService.stop().catch(() => {});
+			this.userInstructionService.stop();
 			this.userInstructionService = undefined;
 		}
 

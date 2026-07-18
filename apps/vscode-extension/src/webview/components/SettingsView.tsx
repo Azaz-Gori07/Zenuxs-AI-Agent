@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { useExtensionState } from "../context/ExtensionStateContext.js";
 import { McpManagementView } from "./McpManagementView.js";
+import { DeveloperLogsView } from "./DeveloperLogsView.js";
 import type { ToggleItem } from "../types.js";
 import { postMessage } from "../vscode-api.js";
 
-type SettingsSectionKey = "provider" | "skills" | "auto" | "mcp" | "plugins" | "about";
+type SettingsSectionKey = "provider" | "skills" | "auto" | "mcp" | "plugins" | "about" | "developer";
 
 type ApprovalKey =
 	| "write"
@@ -72,6 +73,13 @@ const InfoIcon = () => (
 	</svg>
 );
 
+const CodeIcon = () => (
+	<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+		<polyline points="16 18 22 12 16 6" />
+		<polyline points="8 6 2 12 8 18" />
+	</svg>
+);
+
 const SIDEBAR_TABS: SidebarTab[] = [
 	{ key: "provider", icon: <ZapIcon />, label: "Provider" },
 	{ key: "skills", icon: <WrenchIcon />, label: "Skills" },
@@ -79,6 +87,7 @@ const SIDEBAR_TABS: SidebarTab[] = [
 	{ key: "mcp", icon: <PlugIcon />, label: "MCP" },
 	{ key: "plugins", icon: <PuzzleIcon />, label: "Plugins" },
 	{ key: "about", icon: <InfoIcon />, label: "About" },
+	{ key: "developer", icon: <CodeIcon />, label: "Developer" },
 ];
 
 const AUTO_APPROVALS: ApprovalPref[] = [
@@ -111,8 +120,6 @@ export function SettingsView() {
 
 	const handleSaveProvider = useCallback(() => {
 		saveSettings(localCfg);
-		// mask api key after save
-		setLocalCfg(prev => ({ ...prev, apiKey: prev.apiKey ? "•".repeat(Math.min(prev.apiKey.length, 12)) : "" }));
 		setShowApiKey(false);
 	}, [localCfg, saveSettings]);
 
@@ -149,8 +156,10 @@ export function SettingsView() {
 		}
 	}, []);
 
+	const selectedProvider = state.providers?.find((p: any) => p && (p.id === localCfg.providerId || p === localCfg.providerId));
+	const isOAuth = selectedProvider && typeof selectedProvider === "object" ? !!selectedProvider.isOAuth : ["cline", "cline-pass", "oca", "openai-codex", "zenuxs"].includes(localCfg.providerId);
 	const isBuiltinProvider = ["cline", "anthropic", "gemini", "vertex", "bedrock", "azure", "openrouter", "openai-compatible", "sap", "oca"].includes(localCfg.providerId);
-	const needsApiKey = localCfg.providerId !== "cline";
+	const needsApiKey = !isOAuth;
 	const handleOAuth = useCallback(() => {
 		setOauthStatus((prev) => ({ ...prev, [localCfg.providerId]: "idle" }));
 		loginOAuth(localCfg.providerId);
@@ -216,20 +225,22 @@ export function SettingsView() {
 
 						<button className="btn" onClick={handleSaveProvider}>Save Connection</button>
 
-						<div className="oauth-section">
-							<span className="oauth-title">Authentication</span>
-							<div className="text-muted" style={{ fontSize: "0.85em", marginBottom: 4 }}>
-								{localCfg.providerId === "cline"
-									? "Zenuxs provider does not require separate API key or OAuth."
-									: "OAuth login may be required for this provider. If not authenticated, you will be redirected to the login page."}
+						{isOAuth && (
+							<div className="oauth-section">
+								<span className="oauth-title">Authentication</span>
+								<div className="text-muted" style={{ fontSize: "0.85em", marginBottom: 4 }}>
+									{localCfg.providerId === "cline"
+										? "Zenuxs provider does not require separate API key or OAuth."
+										: "OAuth login may be required for this provider. If not authenticated, you will be redirected to the login page."}
+								</div>
+								<button className="btn secondary" style={{ width: "100%" }} onClick={handleOAuth}>
+									Login / Authenticate via Browser
+								</button>
+								{oauthStatus[localCfg.providerId] === "error" && (
+									<div className="text-muted" style={{ fontSize: "0.8em", color: "var(--warning)" }}>Authentication failed or cancelled.</div>
+								)}
 							</div>
-							<button className="btn secondary" style={{ width: "100%" }} onClick={handleOAuth}>
-								Login / Authenticate via Browser
-							</button>
-							{oauthStatus[localCfg.providerId] === "error" && (
-								<div className="text-muted" style={{ fontSize: "0.8em", color: "var(--warning)" }}>Authentication failed or cancelled.</div>
-							)}
-						</div>
+						)}
 					</div>
 				);
 
@@ -352,6 +363,9 @@ export function SettingsView() {
 						<div className="text-muted" style={{ fontSize: "0.82em" }}>Welcome to Zenuxs. This extension connects your VS Code environment to the Zenuxs agent runtime.</div>
 					</div>
 				);
+
+			case "developer":
+				return <DeveloperLogsView />;
 
 			default:
 				return null;

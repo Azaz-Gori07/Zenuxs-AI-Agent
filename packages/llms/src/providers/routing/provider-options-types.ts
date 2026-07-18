@@ -17,7 +17,8 @@ export type AiSdkProviderOptionsTarget =
 	| "openai-codex"
 	| "opencode"
 	| "dify"
-	| "sapaicore";
+	| "sapaicore"
+	| "ollama";
 
 export type ProviderOptionSuppression = {
 	genericThinking?: boolean;
@@ -87,6 +88,8 @@ export function inferProviderOptionsTarget(
 			return "dify";
 		case "sapaicore":
 			return "sapaicore";
+		case "ollama":
+			return "ollama";
 		default:
 			return "openai-compatible";
 	}

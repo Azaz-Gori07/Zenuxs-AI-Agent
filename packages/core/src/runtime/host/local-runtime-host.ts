@@ -9,11 +9,11 @@ import {
 	captureSdkError,
 	createSessionId,
 	type ITelemetryService,
-	isLikelyAuthError,
 	normalizeUserInput,
 } from "@cline/shared";
 import { setHomeDirIfUnset } from "@cline/shared/storage";
 import { isOAuthProvider } from "../../auth/provider-auth-registry";
+import { AuthenticationStrategy, OAuthStrategy, ApiKeyStrategy } from "../../auth/strategy";
 import { createContextCompactionPrepareTurn } from "../../extensions/context/compaction";
 import type { ToolExecutors } from "../../extensions/tools";
 import { DefaultToolNames } from "../../extensions/tools";
@@ -76,8 +76,6 @@ import type { RuntimeCapabilities } from "../capabilities";
 import { normalizeRuntimeCapabilities } from "../capabilities";
 import { DefaultRuntimeBuilder } from "../orchestration/runtime-builder";
 import {
-	OAuthReauthRequiredError,
-	type RuntimeOAuthResolution,
 	RuntimeOAuthTokenManager,
 } from "../orchestration/runtime-oauth-token-manager";
 import type { RuntimeBuilder } from "../orchestration/session-runtime";
@@ -270,30 +268,67 @@ export class LocalRuntimeHost implements RuntimeHost {
 		});
 	}
 
+	private logAuthenticationDecision(
+		stage: string,
+		sessionConfig: any,
+		context: {
+			enteredOAuthPipeline: boolean;
+			enteredApiKeyPipeline: boolean;
+			retryInvoked: boolean;
+			authManagerInvoked: boolean;
+			error?: unknown;
+		}
+	): void {
+		const providerId = sessionConfig.providerId;
+		const isOAuth = isOAuthProvider(providerId);
+		const settings = this.providerSettingsManager.getProviderSettings(providerId);
+		
+		const apiKeyExists = !!(sessionConfig.apiKey || settings?.apiKey);
+		const oauthCredsExist = !!(settings?.auth?.accessToken);
+		const strategy = isOAuth ? "OAuthStrategy" : "ApiKeyStrategy";
+		const reason = isOAuth 
+			? "Provider is registered in providerAuthHandlers (OAuth)" 
+			: "Provider is not registered in providerAuthHandlers (API Key)";
+		
+		const headersBuilt = apiKeyExists 
+			? `Authorization: Bearer ${sessionConfig.apiKey ? "****" : "missing"}` 
+			: (oauthCredsExist ? "Authorization: Bearer **** (OAuth)" : "None");
+
+		console.log(`\n=================== AUTHENTICATION DECISION [${stage}] ===================`);
+		console.log(`Selected Provider:            ${providerId}`);
+		console.log(`Resolved Provider:            ${providerId}`);
+		console.log(`Provider Metadata:            ${settings ? JSON.stringify(settings) : "None"}`);
+		console.log(`Authentication Type:          ${isOAuth ? "OAuth" : "API Key"}`);
+		console.log(`Selected Strategy:            ${strategy}`);
+		console.log(`Reason Strategy Was Selected: ${reason}`);
+		console.log(`API Key Exists:               ${apiKeyExists ? "YES" : "NO"}`);
+		console.log(`OAuth Credentials Exist:      ${oauthCredsExist ? "YES" : "NO"}`);
+		console.log(`Entered OAuth Pipeline:        ${context.enteredOAuthPipeline ? "YES" : "NO"}`);
+		console.log(`Entered ApiKey Pipeline:       ${context.enteredApiKeyPipeline ? "YES" : "NO"}`);
+		console.log(`Retry Invoked:                ${context.retryInvoked ? "YES" : "NO"}`);
+		console.log(`AuthenticationManager Invoked: ${context.authManagerInvoked ? "YES" : "NO"}`);
+		console.log(`Request Headers Built:        ${headersBuilt}`);
+		if (context.error) {
+			console.log(`Encountered Error:            ${context.error instanceof Error ? context.error.message : String(context.error)}`);
+		}
+		console.log(`========================================================================\n`);
+	}
+
+	private getAuthStrategy(providerId: string, sessionConfig?: any): AuthenticationStrategy {
+		const logCallback = (stage: string, context: any) => {
+			this.logAuthenticationDecision(stage, sessionConfig ?? { providerId }, context);
+		};
+		if (isOAuthProvider(providerId)) {
+			return new OAuthStrategy(this.oauthTokenManager, logCallback);
+		}
+		return new ApiKeyStrategy(logCallback);
+	}
+
 	private async applyInitialOAuthCredentials(
 		input: StartSessionInput,
 	): Promise<StartSessionInput> {
-		if (input.config.apiKey?.trim()) {
-			return input;
-		}
-		if (!isOAuthProvider(input.config.providerId)) {
-			return input;
-		}
-
-		const resolved = await this.oauthTokenManager.resolveProviderApiKey({
-			providerId: input.config.providerId,
-		});
-		if (!resolved?.apiKey) {
-			return input;
-		}
-
-		return {
-			...input,
-			config: {
-				...input.config,
-				apiKey: resolved.apiKey,
-			},
-		};
+		const strategy = this.getAuthStrategy(input.config.providerId, input.config);
+		return strategy.applyInitialCredentials(input);
 	}
 
 	// ── Public API ──────────────────────────────────────────────────────
@@ -1623,50 +1658,16 @@ export class LocalRuntimeHost implements RuntimeHost {
 		run: () => Promise<AgentResult>,
 		baselineMessages: LlmsProviders.Message[],
 	): Promise<AgentResult> {
-		try {
-			return await run();
-		} catch (error) {
-			if (
-				!isOAuthProvider(session.config.providerId) ||
-				!isLikelyAuthError(error)
-			) {
-				throw error;
-			}
-			await this.syncOAuthCredentials(session, { forceRefresh: true });
-			session.agent.restore(baselineMessages);
-			return run();
-		}
+		const strategy = this.getAuthStrategy(session.config.providerId, session.config);
+		return strategy.runWithRetry(session, run, baselineMessages);
 	}
 
 	private async syncOAuthCredentials(
 		session: ActiveSession,
 		options?: { forceRefresh?: boolean },
 	): Promise<void> {
-		if (!isOAuthProvider(session.config.providerId)) {
-			return;
-		}
-
-		let resolved: RuntimeOAuthResolution | null = null;
-		try {
-			resolved = await this.oauthTokenManager.resolveProviderApiKey({
-				providerId: session.config.providerId,
-				forceRefresh: options?.forceRefresh,
-			});
-		} catch (error) {
-			if (error instanceof OAuthReauthRequiredError) {
-				throw new Error(`${error.providerId} requires re-authentication.`);
-			}
-			throw error;
-		}
-		if (!resolved?.apiKey || session.config.apiKey === resolved.apiKey) return;
-		session.config.apiKey = resolved.apiKey;
-		session.agent.updateConnection({ apiKey: resolved.apiKey });
-		session.runtime.delegatedAgentConfigProvider?.updateConnectionDefaults({
-			apiKey: resolved.apiKey,
-		});
-		session.runtime.teamRuntime?.updateTeammateConnections({
-			apiKey: resolved.apiKey,
-		});
+		const strategy = this.getAuthStrategy(session.config.providerId, session.config);
+		await strategy.syncCredentials(session, options);
 	}
 
 	// ── Utility methods ─────────────────────────────────────────────────
