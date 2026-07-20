@@ -1,7 +1,7 @@
 import {
-	type ClineCore,
 	CORE_BUILD_VERSION,
 	type HubUIClient,
+	type ZenuxsCore,
 } from "@cline/core";
 import type { WebviewHubEvent } from "../webview-protocol";
 import type {
@@ -27,7 +27,7 @@ export class HubContext {
 	hubUrl = "";
 	hubAuthToken = "";
 	hubHealthy = false;
-	cline: ClineCore | undefined;
+	cline: ZenuxsCore | undefined;
 	uiClient: HubUIClient | undefined;
 	hubStartedAt: string | undefined;
 	coreVersion: string | undefined = CORE_BUILD_VERSION;

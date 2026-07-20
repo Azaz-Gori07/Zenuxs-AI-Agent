@@ -40,14 +40,14 @@ describe("CLI distribution package shape", () => {
 	});
 
 	it("packs the generated npm wrapper package", async () => {
-		const packageDir = await mkdtemp(join(tmpdir(), "cline-cli-pack-"));
+		const packageDir = await mkdtemp(join(tmpdir(), "zenuxs-code-pack-"));
 		try {
 			await mkdir(join(packageDir, "bin"), { recursive: true });
 			await writeFile(
 				join(packageDir, "package.json"),
 				`${JSON.stringify(
 					{
-						name: "cline",
+						name: "zenuxs-code",
 						version: "1.2.3",
 						description: "CLI test package",
 						license: "Apache-2.0",
@@ -58,7 +58,7 @@ describe("CLI distribution package shape", () => {
 							postinstall: "node ./postinstall.mjs || true",
 						},
 						optionalDependencies: {
-							"@cline/cli-linux-x64": "1.2.3",
+							"zenuxs-code-linux-x64": "1.2.3",
 						},
 					},
 					null,

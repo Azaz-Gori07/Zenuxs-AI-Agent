@@ -4,7 +4,7 @@ import type {
 	WebviewDeveloperLogLevel,
 	WebviewOutboundMessage,
 } from "../../../../webview-protocol";
-import { postToHost } from "../vscode";
+import { postToHost } from "../../vscode";
 
 export type DeveloperLog = WebviewDeveloperLog;
 export type DeveloperLogLevel = WebviewDeveloperLogLevel;

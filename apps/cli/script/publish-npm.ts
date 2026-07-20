@@ -1,17 +1,26 @@
 #!/usr/bin/env bun
 
-// Publishes cline and all platform-specific binary packages to npm.
+// Publishes zenuxs-code and all platform-specific binary packages to npm.
 //
 // Usage:
 //   bun script/publish-npm.ts                 # publish with "latest" tag
 //   bun script/publish-npm.ts --tag next     # publish with "next" tag
 //   bun script/publish-npm.ts --dry-run      # preview without publishing
+//   bun script/publish-npm.ts --allow-partial # publish only built platforms (testing only)
 //
 // Prerequisites:
 //   - Run script/build.ts first to generate dist/ packages
 //   - GitHub trusted publishing or `npm login` for authentication
 
-import { existsSync, readdirSync, readFileSync, rmSync } from "node:fs";
+import {
+	copyFileSync,
+	cpSync,
+	existsSync,
+	mkdirSync,
+	readdirSync,
+	readFileSync,
+	rmSync,
+} from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { $ } from "bun";
@@ -23,30 +32,24 @@ const { values } = parseArgs({
 	args: Bun.argv.slice(2),
 	options: {
 		"dry-run": { type: "boolean", default: false },
+		"allow-partial": { type: "boolean", default: false },
 		tag: { type: "string", default: "latest" },
 	},
 	strict: true,
 });
 
 const dryRun = values["dry-run"] ?? false;
+const allowPartial = values["allow-partial"] ?? false;
 const npmTag = values.tag ?? "latest";
-const wrapperPackageName = "cline";
+const wrapperPackageName = "zenuxs-code";
 
 const expectedPlatformPackages = [
-	"@cline/cli-darwin-arm64",
-	"@cline/cli-darwin-x64",
-	"@cline/cli-linux-arm64",
-	"@cline/cli-linux-x64",
-	"@cline/cli-windows-arm64",
-	"@cline/cli-windows-x64",
-] as const;
-
-const hostSdkPackages = [
-	{ name: "@cline/sdk", directory: "sdk" },
-	{ name: "@cline/core", directory: "core" },
-	{ name: "@cline/agents", directory: "agents" },
-	{ name: "@cline/llms", directory: "llms" },
-	{ name: "@cline/shared", directory: "shared" },
+	"zenuxs-code-darwin-arm64",
+	"zenuxs-code-darwin-x64",
+	"zenuxs-code-linux-arm64",
+	"zenuxs-code-linux-x64",
+	"zenuxs-code-windows-arm64",
+	"zenuxs-code-windows-x64",
 ] as const;
 
 interface PlatformPackageManifest {
@@ -76,26 +79,6 @@ function isPlatformPackageManifest(
 	);
 }
 
-function readPackageVersion(name: string, packageJsonPath: string): string {
-	const pkg: unknown = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
-	if (!isRecord(pkg) || pkg.name !== name || typeof pkg.version !== "string") {
-		console.error(`Invalid package manifest for ${name}: ${packageJsonPath}`);
-		process.exit(1);
-	}
-	return pkg.version;
-}
-
-function buildHostSdkDependencies(): Record<string, string> {
-	const dependencies: Record<string, string> = {};
-	for (const pkg of hostSdkPackages) {
-		dependencies[pkg.name] = readPackageVersion(
-			pkg.name,
-			join(cliDir, "../../sdk/packages", pkg.directory, "package.json"),
-		);
-	}
-	return dependencies;
-}
-
 function removePackedTarballs(dir: string): void {
 	for (const entry of readdirSync(dir)) {
 		if (entry.endsWith(".tgz")) {
@@ -117,28 +100,6 @@ async function npmPackageVersionExists(
 		},
 	);
 	return result.exitCode === 0;
-}
-
-async function verifyPublishedDependencies(
-	dependencies: Record<string, string>,
-): Promise<void> {
-	const missingDependencies: string[] = [];
-	for (const [name, version] of Object.entries(dependencies).sort()) {
-		if (!(await npmPackageVersionExists(name, version))) {
-			missingDependencies.push(`${name}@${version}`);
-		}
-	}
-
-	if (missingDependencies.length === 0) {
-		return;
-	}
-
-	console.error("Wrapper package dependencies are not published:");
-	for (const dependency of missingDependencies) {
-		console.error(`  ${dependency}`);
-	}
-	console.error("Publish the SDK packages before publishing the CLI wrapper.");
-	process.exit(1);
 }
 
 async function publishPackage(input: {
@@ -196,7 +157,21 @@ if (missingPackages.length > 0) {
 	for (const name of missingPackages) {
 		console.error(`  ${name}`);
 	}
-	process.exit(1);
+	console.error("");
+	console.error("For a complete `npx zenuxs-code` release, build all platforms first:");
+	console.error("  bun run --cwd apps/cli build:platforms");
+	console.error("  bun run --cwd apps/cli publish:npm:dry");
+	console.error("  bun run --cwd apps/cli publish:npm");
+	console.error("");
+	console.error("On Windows, Bun may fail to cross-compile Linux/macOS targets.");
+	console.error("Use the GitHub workflow or a Linux release machine for the full release.");
+	if (!allowPartial) {
+		console.error("");
+		console.error("Testing only: pass --allow-partial to publish only the packages currently in dist/.");
+		process.exit(1);
+	}
+	console.error("");
+	console.error("Continuing because --allow-partial was provided. This is not an any-laptop release.");
 }
 
 const versions = new Set(Object.values(binaries));
@@ -225,8 +200,6 @@ if (sourceVersion !== version) {
 }
 const sourceRepository =
 	"repository" in sourcePkgRecord ? sourcePkgRecord.repository : undefined;
-const hostSdkDependencies = buildHostSdkDependencies();
-
 console.log(`Publishing ${wrapperPackageName} v${version}`);
 console.log(`  Tag: ${npmTag}`);
 console.log(`  Dry run: ${dryRun}`);
@@ -235,16 +208,12 @@ for (const name of Object.keys(binaries)) {
 	console.log(`    ${name}`);
 }
 
-if (!dryRun) {
-	await verifyPublishedDependencies(hostSdkDependencies);
-}
-
 // Step 1: Publish platform-specific packages (in parallel)
 console.log("\nPublishing platform packages...");
 const platformTasks = Object.keys(binaries)
 	.sort()
 	.map(async (name) => {
-		const dirName = name.replace("@cline/", "");
+		const dirName = name;
 		const pkgDir = join(cliDir, "dist", dirName);
 
 		await publishPackage({
@@ -261,15 +230,18 @@ await Promise.all(platformTasks);
 console.log("\nPreparing main package...");
 const mainPkgDir = join(cliDir, "dist", "cli");
 
-await $`rm -rf ${mainPkgDir}`;
-await $`mkdir -p ${mainPkgDir}`;
-await $`cp -r ${join(cliDir, "bin")} ${join(mainPkgDir, "bin")}`;
-await $`cp ${join(cliDir, "script/postinstall.mjs")} ${join(mainPkgDir, "postinstall.mjs")}`;
+rmSync(mainPkgDir, { recursive: true, force: true });
+mkdirSync(mainPkgDir, { recursive: true });
+cpSync(join(cliDir, "bin"), join(mainPkgDir, "bin"), { recursive: true });
+copyFileSync(
+	join(cliDir, "script/postinstall.mjs"),
+	join(mainPkgDir, "postinstall.mjs"),
+);
 
 // Copy LICENSE from repo root if it exists
 const licenseFrom = join(cliDir, "../../LICENSE");
 if (existsSync(licenseFrom)) {
-	await $`cp ${licenseFrom} ${join(mainPkgDir, "LICENSE")}`;
+	copyFileSync(licenseFrom, join(mainPkgDir, "LICENSE"));
 }
 
 // Copy README.md so the npm registry listing has the same landing page
@@ -278,7 +250,7 @@ if (existsSync(licenseFrom)) {
 // automatically.
 const readmeFrom = join(cliDir, "README.md");
 if (existsSync(readmeFrom)) {
-	await $`cp ${readmeFrom} ${join(mainPkgDir, "README.md")}`;
+	copyFileSync(readmeFrom, join(mainPkgDir, "README.md"));
 } else {
 	console.error(
 		`Missing ${readmeFrom}. The CLI README must exist before publishing.`,
@@ -320,12 +292,12 @@ const wrapperPackageJson = {
 	...(bugs ? { bugs } : {}),
 	...(sourceRepository ? { repository: sourceRepository } : {}),
 	bin: {
+		"zenuxs-code": "./bin/zenuxs",
 		zenuxs: "./bin/zenuxs",
 	},
 	scripts: {
 		postinstall: "node ./postinstall.mjs || true",
 	},
-	dependencies: hostSdkDependencies,
 	optionalDependencies: binaries,
 };
 
@@ -353,4 +325,5 @@ if (dryRun) {
 
 	console.log("\nInstall with:");
 	console.log(`  npm install -g ${wrapperPackageName}`);
+	console.log(`  npx ${wrapperPackageName}`);
 }

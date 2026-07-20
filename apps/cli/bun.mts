@@ -21,6 +21,7 @@ const hubWebviewSourcePath = join(repoRoot, "apps/zenuxs-hub/src/webview");
 const hubWebviewDistPath = join(repoRoot, "apps/zenuxs-hub/dist/webview");
 const hubWebviewIndexPath = join(hubWebviewDistPath, "index.html");
 const cliHubWebviewDistPath = join(rootDir, "dist/zenuxs-hub/webview");
+const skipHubWebviewBuild = process.env.ZENUXS_SKIP_HUB_WEBVIEW_BUILD === "1";
 
 function newestFileMtimeMs(dir: string): number {
 	let newest = 0;
@@ -56,9 +57,11 @@ function shouldBuildHubWebview(): boolean {
 	}
 }
 
-if (shouldBuildHubWebview()) {
+if (!skipHubWebviewBuild && shouldBuildHubWebview()) {
 	console.log("Building Cline Hub webview...");
 	await $`bun -F @zenuxs/zenuxs-hub build:webview`.cwd(repoRoot);
+} else if (skipHubWebviewBuild) {
+	console.log("Skipping Zenuxs Hub webview build.");
 }
 
 const result = await Bun.build({
@@ -141,7 +144,7 @@ const cliBootstrapPath = join(
 mkdirSync(dirname(cliBootstrapPath), { recursive: true });
 copyFileSync(coreBootstrapPath, cliBootstrapPath);
 
-if (existsSync(hubWebviewDistPath)) {
+if (existsSync(hubWebviewIndexPath)) {
 	mkdirSync(dirname(cliHubWebviewDistPath), { recursive: true });
 	cpSync(hubWebviewDistPath, cliHubWebviewDistPath, { recursive: true });
 }

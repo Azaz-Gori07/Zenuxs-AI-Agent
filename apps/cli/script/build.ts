@@ -1,12 +1,15 @@
 ﻿#!/usr/bin/env bun
 
 import {
+	chmodSync,
+	copyFileSync,
 	cpSync,
 	existsSync,
 	mkdirSync,
 	readdirSync,
 	readFileSync,
 	realpathSync,
+	rmSync,
 	statSync,
 } from "node:fs";
 import { join, relative, resolve } from "node:path";
@@ -48,8 +51,9 @@ function buildInlinedEnvDefines(): Record<string, string> {
 const pkg = JSON.parse(readFileSync(join(cliDir, "package.json"), "utf-8"));
 const version: string = pkg.version;
 const repository: unknown = pkg.repository;
+const skipHubWebviewBuild = process.env.ZENUXS_SKIP_HUB_WEBVIEW_BUILD === "1";
 
-console.log(`Building @cline/cli v${version}`);
+console.log(`Building zenuxs-code v${version}`);
 
 const buildOptions = parseBuildOptions(process.argv.slice(2));
 
@@ -100,7 +104,7 @@ if (!buildOptions.skipSdkBuild) {
 	await $`bun run build:sdk`.cwd(rootDir);
 
 	console.log("Building CLI bundle...");
-	await $`bun -F @cline/cli build`.cwd(rootDir);
+	await $`bun -F zenuxs-code build`.cwd(rootDir);
 }
 
 const hubWebviewSource = join(cliDir, "../zenuxs-hub/src/webview");
@@ -140,9 +144,11 @@ function shouldBuildHubWebview(): boolean {
 	}
 }
 
-if (shouldBuildHubWebview()) {
+if (!skipHubWebviewBuild && shouldBuildHubWebview()) {
 	console.log("Building Cline Hub webview...");
 	await $`bun -F @zenuxs/zenuxs-hub build:webview`.cwd(rootDir);
+} else if (skipHubWebviewBuild) {
+	console.log("Skipping Zenuxs Hub webview build.");
 }
 
 const binaries: Record<string, string> = {};
@@ -183,14 +189,15 @@ async function buildCompiledBinary(input: {
 	// Build to /tmp first so Bun's temp-file rename stays on one filesystem
 	// layer in containerized environments (virtiofs, overlayfs).
 	const entrypoint = join(cliDir, "src/index.ts");
-	const tmpDir = join("/tmp", `cline-build-${input.dirName}`);
+	const tmpRoot = join(rootDir, ".tmp");
+	const tmpDir = join(tmpRoot, `zenuxs-code-build-${input.dirName}`);
 	const tmpOutfile = join(
 		tmpDir,
-		input.outfile.endsWith(".exe") ? "zenuxs.exe" : "zenuxs",
+		input.outfile.endsWith(".exe") ? "zenuxs-code.exe" : "zenuxs-code",
 	);
 	mkdirSync(tmpDir, { recursive: true });
 
-	process.chdir("/tmp");
+	process.chdir(tmpRoot);
 	const result = await Bun.build({
 		entrypoints: [entrypoint, parserWorker],
 		splitting: true,
@@ -218,16 +225,17 @@ async function buildCompiledBinary(input: {
 		process.exit(1);
 	}
 
-	await $`cp ${tmpOutfile} ${input.outfile} && chmod 755 ${input.outfile}`;
-	await $`rm -rf ${tmpDir}`;
+	copyFileSync(tmpOutfile, input.outfile);
+	chmodSync(input.outfile, 0o755);
+	rmSync(tmpDir, { recursive: true, force: true });
 }
 
 for (const item of targets) {
 	// npm treats "win32" specially in os field, but for package naming use "windows"
 	const displayOs = item.os === "win32" ? "windows" : item.os;
-	const name = `@cline/cli-${displayOs}-${item.arch}`;
-	const dirName = `cli-${displayOs}-${item.arch}`;
-	const binaryName = item.os === "win32" ? "zenuxs.exe" : "zenuxs";
+	const name = `zenuxs-code-${displayOs}-${item.arch}`;
+	const dirName = name;
+	const binaryName = item.os === "win32" ? "zenuxs-code.exe" : "zenuxs-code";
 	const bunTarget = getBunTarget(item);
 
 	console.log(`\nBuilding ${name} (target: ${bunTarget})...`);
@@ -268,7 +276,7 @@ for (const item of targets) {
 		await Bun.write(join(bootstrapDir, "plugin-sandbox-bootstrap.js"), content);
 	}
 
-	if (existsSync(hubWebviewDist)) {
+	if (existsSync(hubWebviewIndex)) {
 		const hubWebviewDest = join(cliDir, `dist/${dirName}/zenuxs-hub/webview`);
 		mkdirSync(join(cliDir, `dist/${dirName}/zenuxs-hub`), {
 			recursive: true,
@@ -283,12 +291,12 @@ for (const item of targets) {
 			{
 				name,
 				version,
-				description: `Cline CLI binary for ${displayOs} ${item.arch}`,
+				description: `Zenuxs Code CLI binary for ${displayOs} ${item.arch}`,
 				os: [item.os],
 				cpu: [item.arch],
 				...(repository ? { repository } : {}),
 				bin: {
-					zenuxs: `bin/${binaryName}`,
+					"zenuxs-code": `bin/${binaryName}`,
 				},
 			},
 			null,

@@ -105,7 +105,7 @@ function resolveDefaultWebviewDistDir(): string | undefined {
 		join(moduleDir, "../../../zenuxs-hub/dist/webview"),
 		// Node bundle: apps/cli/dist/index.js
 		join(moduleDir, "zenuxs-hub/webview"),
-		// Compiled platform package: apps/cli/dist/<platform>/bin/cline
+		// Compiled platform package: apps/cli/dist/<platform>/bin/zenuxs-code
 		join(dirname(process.execPath), "../zenuxs-hub/webview"),
 	];
 
@@ -117,6 +117,9 @@ function resolveInstalledPlatformPackageWebviewCandidates(): string[] {
 	const starts = [
 		process.env.CLINE_WRAPPER_PATH
 			? dirname(process.env.CLINE_WRAPPER_PATH)
+			: undefined,
+		process.env.ZENUXS_CODE_WRAPPER_PATH
+			? dirname(process.env.ZENUXS_CODE_WRAPPER_PATH)
 			: undefined,
 		dirname(process.execPath),
 	].filter((value): value is string => !!value?.trim());
@@ -137,7 +140,7 @@ function resolveInstalledPlatformPackageWebviewCandidates(): string[] {
 
 function resolvePlatformPackageName(): string {
 	const platformName = platform() === "win32" ? "windows" : platform();
-	return `@cline/cli-${platformName}-${arch()}`;
+	return `zenuxs-code-${platformName}-${arch()}`;
 }
 
 async function startDefaultDashboardServer(): Promise<DashboardServerHandle> {
