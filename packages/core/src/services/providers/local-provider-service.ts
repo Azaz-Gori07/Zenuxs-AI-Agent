@@ -38,6 +38,7 @@ import {
 	fetchModelIdsFromSource,
 	resolveModelsSourceUrl,
 } from "./model-source";
+import { devLogs } from "../logging/developer-logs";
 
 export { ensureCustomProvidersLoaded, syncStoredProviderRegistration } from "./local-provider-registry";
 
@@ -445,6 +446,7 @@ export async function addLocalProvider(
 	};
 	await writeModelsFile(modelsPath, modelsState);
 	registerCustomProvider(providerId, modelsState.providers[providerId]);
+	devLogs.provider.resolved({ providerId, baseUrl, modelsCount: modelIds.length });
 
 	return {
 		providerId,
@@ -640,6 +642,7 @@ export async function deleteLocalProvider(
 	LlmsModels.unregisterProvider(providerId);
 
 	removeProviderFromSettingsState(manager, providerId);
+	devLogs.provider.failure({ providerId, deleted: true });
 
 	return {
 		providerId,

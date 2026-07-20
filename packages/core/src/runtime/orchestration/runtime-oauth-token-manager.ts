@@ -6,6 +6,7 @@ import {
 } from "../../auth/provider-auth-registry";
 import { ProviderSettingsManager } from "../../services/storage/provider-settings-manager";
 import type { ProviderSettings } from "../../types/provider-settings";
+import { devLogs } from "../../services/logging/developer-logs";
 
 type ManagedOAuthProviderId = string;
 
@@ -70,6 +71,7 @@ export class RuntimeOAuthTokenManager {
 		if (!handler) {
 			return null;
 		}
+		devLogs.auth.sessionStart(input.providerId);
 		return this.resolveWithSingleFlight(
 			handler.providerId,
 			handler.storageProviderId,
@@ -144,12 +146,14 @@ export class RuntimeOAuthTokenManager {
 		});
 		const wasRefreshed = !authSettingsEqual(settings.auth, nextSettings.auth);
 		if (wasRefreshed) {
+			devLogs.auth.tokenRefresh({ providerId, accountId: nextCredentials.accountId });
 			this.providerSettingsManager.saveProviderSettings(nextSettings, {
 				setLastUsed: false,
 				tokenSource: "oauth",
 			});
 		}
 
+		devLogs.auth.apiKeyAuth({ providerId, resolved: true, refreshed: wasRefreshed });
 		return {
 			apiKey: handler.getApiKey(nextSettings) ?? nextCredentials.access,
 			accountId: nextCredentials.accountId,

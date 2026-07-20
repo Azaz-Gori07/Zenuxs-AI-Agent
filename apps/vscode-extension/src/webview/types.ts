@@ -1,4 +1,4 @@
-export type TabId = "chat" | "history" | "settings" | "dashboard" | "logs" | "teams";
+export type TabId = "chat" | "history" | "settings" | "dashboard" | "logs" | "teams" | "console";
 
 export type AgentMode = "act" | "plan" | "yolo" | "zen" | "ask" | "debug" | "god";
 
@@ -181,7 +181,7 @@ export type ApprovalKey =
 	| "questions";
 
 export type ExtensionMessage =
-	| { type: "initial_data"; providers: import("@cline/shared").ProviderListItem[]; models: Record<string, string[]>; currentConfig: ExtensionConfig; toggles: Toggles; sessionHistories: SessionHistory[]; dashboard?: DashboardData; mcpServers?: McpServerEntry[]; checkpoints?: CheckpointEntry[] }
+	| { type: "initial_data"; providers: import("@cline/shared").ProviderListItem[]; models: Record<string, string[]>; currentConfig: ExtensionConfig; toggles: Toggles; sessionHistories: SessionHistory[]; dashboard?: DashboardData; mcpServers?: McpServerEntry[]; checkpoints?: CheckpointEntry[]; autoApprovals?: Record<string, boolean> }
 	| { type: "assistant_delta"; text: string }
 	| { type: "reasoning_delta"; text: string; redacted?: boolean }
 	| { type: "tool_event"; text: string; event?: ToolEventData }
@@ -215,8 +215,8 @@ export type WebviewMessage =
 	| { type: "send"; prompt: string; config?: Record<string, unknown> }
 	| { type: "abort" }
 	| { type: "new_session" }
-	| { type: "approval_response"; approvalId: string; approved: boolean; reason?: string }
-	| { type: "save_settings"; providerId: string; modelId: string; apiKey?: string; baseUrl?: string; autoApproveTools: boolean; thinking: boolean; reasoningEffort: string; maxIterations: number; mode?: AgentMode; compaction?: CompactionStrategy; retries?: number; timeout?: number; checkpointEnabled?: boolean }
+	| { type: "approval_response"; approvalId: string; approved: boolean; reason?: string; input?: unknown; policy?: string }
+	| { type: "save_settings"; providerId: string; modelId: string; apiKey?: string; baseUrl?: string; autoApproveTools: boolean; thinking: boolean; reasoningEffort: string; maxIterations: number; mode?: AgentMode; compaction?: CompactionStrategy; retries?: number; timeout?: number; checkpointEnabled?: boolean; autoApprovals?: Record<string, boolean> }
 	| { type: "toggle_setting_item"; itemType: string; id?: string; name?: string; path?: string; enabled: boolean }
 	| { type: "delete_session"; sessionId: string }
 	| { type: "rename_session"; sessionId: string; title: string }

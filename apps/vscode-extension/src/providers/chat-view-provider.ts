@@ -83,6 +83,7 @@ type WebviewInboundMessage =
 		retries?: number;
 		timeout?: number;
 		checkpointEnabled?: boolean;
+		autoApprovals?: Record<string, boolean>;
 	}
 	| {
 		type: "toggle_setting_item";
@@ -264,6 +265,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	private developerSubscribed = false;
 	private developerPaused = false;
 	private developerUnsubscribe: (() => void) | undefined;
+	private restoredMessagesCache: any[] | undefined;
 
 	constructor(private readonly extensionContext: vscode.ExtensionContext) {}
 
@@ -286,6 +288,13 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				await this.handleWebviewMessage(message);
 			},
 		);
+
+		webviewView.onDidDispose(() => {
+			this.webviewView = undefined;
+			this.developerSubscribed = false;
+			this.developerUnsubscribe?.();
+			this.developerUnsubscribe = undefined;
+		});
 	}
 
 	/**
@@ -312,6 +321,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	 * Reset the session without sending a prompt to the LLM.
 	 */
 	public newSession(): void {
+		loggerService.log({ level: LogLevel.DEBUG, category: LogCategory.CONVERSATION, message: "New chat triggered via newSession()", source: "session", sessionId: this.activeSessionId });
 		this.activeSessionId = undefined;
 		// Dispose and reset core bridge and MCP manager to ensure fresh state for new session
 		this.resetCore();
@@ -426,6 +436,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 					break;
 
 				case "new_session":
+					loggerService.log({ level: LogLevel.DEBUG, category: LogCategory.CONVERSATION, message: "New chat triggered via new_session webview message", source: "session", sessionId: this.activeSessionId });
 					this.activeSessionId = undefined;
 					await this.resetCore();
 					this.postToWebview({ type: "reset_done" });
@@ -675,6 +686,13 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 			// Get MCP server list
 			const mcpServers = await this.getMcpServerList();
 
+			// Read persisted auto-approvals
+			let autoApprovals: Record<string, boolean> | undefined;
+			try {
+				const raw = vscode.workspace.getConfiguration("zenuxs").get<string>("autoApprovals");
+				if (raw) autoApprovals = JSON.parse(raw);
+			} catch { /* ignore */ }
+
 			this.postToWebview({
 				type: "initial_data",
 				providers,
@@ -690,6 +708,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 					toolCount: (s as any).toolCount ?? s.toolCount ?? 0,
 					transport: (s as any).transport ?? "stdio",
 				})),
+				autoApprovals,
 			});
 		} catch (err: any) {
 			// If core isn't ready yet, send empty payload
@@ -743,6 +762,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 		if (msg.retries !== undefined) updates.push(update("retries", msg.retries));
 		if (msg.timeout !== undefined) updates.push(update("timeout", msg.timeout));
 		if (msg.checkpointEnabled !== undefined) updates.push(update("checkpointEnabled", msg.checkpointEnabled));
+		if (msg.autoApprovals !== undefined) updates.push(update("autoApprovals", JSON.stringify(msg.autoApprovals)));
 		await Promise.all(updates);
 
 		// Save in ProviderSettingsManager to keep sync with CLI
@@ -848,7 +868,13 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 		const row = await core.get(sessionId);
 
 		loggerService.log({ level: LogLevel.INFO, category: LogCategory.CONVERSATION, message: "Session restored", source: "session", sessionId, data: { messageCount: (messages || []).length } });
-		this.activeSessionId = sessionId;
+		// Cache restored messages so executeSession seeds a new runtime session with them.
+		// The old sessionId is NOT registered in the runtime's in-memory session registry;
+		// setting activeSessionId to it would cause "session not found" on core.send().
+		// By caching messages and keeping activeSessionId undefined, the next send goes
+		// through core.start() with initialMessages, creating a properly registered session.
+		this.restoredMessagesCache = messages;
+		this.activeSessionId = undefined;
 
 		// Map to UI chat message format
 		const uiMessages = (messages || []).map((m: any) => {
@@ -1176,6 +1202,22 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				const resolvedModelId = uiConfig?.modelId || extConfig.modelId || selectedProviderSettings?.model || "anthropic/claude-sonnet-4.6";
 
 				const modelId = resolvedModelId;
+
+				// Pre-flight readiness check: API-key-based providers (e.g. OpenRouter)
+				// must have a key configured before we contact the model. Without it the
+				// request fails with an opaque upstream error (e.g. OpenRouter's
+				// "User not found." 500) and the session silently returns to idle, which
+				// looks like the chat "closing". Surface a clear, actionable error instead.
+				if (!isOAuthProvider(providerId) && !resolvedApiKey) {
+					const message =
+						`Cannot start chat: the "${providerId}" provider has no API key configured. ` +
+						`Open VS Code Settings → Zenuxs → Provider, select "${providerId}", ` +
+						`and paste your API key (for OpenRouter, create one at https://openrouter.ai/keys).`;
+					this.postToWebview({ type: "error", text: message });
+					loggerService.log({ level: LogLevel.ERROR, category: LogCategory.CONVERSATION, message: `Provider not ready: ${message}`, source: "session" });
+					return;
+				}
+
 				const thinking = uiConfig?.thinking !== undefined ? uiConfig.thinking : extConfig.thinking;
 				const reasoningEffort = uiConfig?.reasoningEffort || extConfig.reasoningEffort;
 				const modeStr = uiConfig?.mode || extConfig.mode || "act";
@@ -1219,6 +1261,22 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				// Start or send to session
 				if (!this.activeSessionId) {
 					// New session - matching CLI's runAgent() start flow
+					// If restoredMessagesCache is set, seed the new session with the restored conversation
+					const initialMessages = this.restoredMessagesCache;
+					this.restoredMessagesCache = undefined;
+					if (initialMessages) {
+						loggerService.log({ level: LogLevel.DEBUG, category: LogCategory.CONVERSATION, message: "Session started with restored messages", source: "session", data: { restoredMessageCount: initialMessages.length } });
+					}
+
+					// Tell the webview BEFORE core.start() so SET_SESSION_STARTED
+					// sets isRunning=true before any events arrive. Without this,
+					// events (including turn_done) arrive first, then session_started
+					// overwrites isRunning back to true, making the chat appear stuck.
+					this.postToWebview({
+						type: "session_started",
+						sessionId: plannedSessionId,
+					});
+
 					const started = await core.start({
 						source: SessionSource.VSCODE,
 						config: {
@@ -1261,14 +1319,11 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 						prompt: fullPrompt,
 						interactive: true,
 						sessionId: plannedSessionId,
+						initialMessages,
 					});
 
 					this.activeSessionId = started.sessionId;
 					loggerService.log({ level: LogLevel.INFO, category: LogCategory.CONVERSATION, message: "Session created / active session set", source: "session", sessionId: started.sessionId, data: { providerId, modelId } });
-					this.postToWebview({
-						type: "session_started",
-						sessionId: started.sessionId,
-					});
 
 					// If start() already returned a result (non-interactive), use it
 					if (started.result) {
@@ -1280,6 +1335,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				} else {
 					// Continue existing session
 					loggerService.log({ level: LogLevel.DEBUG, category: LogCategory.CONVERSATION, message: "Session send", source: "session", sessionId: this.activeSessionId });
+					loggerService.log({ level: LogLevel.DEBUG, category: LogCategory.CONVERSATION, message: "Session lookup", source: "session", sessionId: this.activeSessionId });
 					const result = await core.send({
 						sessionId: this.activeSessionId,
 						prompt: fullPrompt,
@@ -1303,19 +1359,78 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				error instanceof Error ? error.message : String(error);
 			this.postToWebview({ type: "error", text: message });
 			loggerService.log({ level: LogLevel.ERROR, category: LogCategory.CONVERSATION, message: `Session error: ${message}`, source: "session", sessionId: this.activeSessionId });
-			// Recover from "session not found": reset state so user can start fresh
+			// Recover from "session not found": restore session instead of destroying it
 			if (
 				message.toLowerCase().includes("session not found") ||
 				message.toLowerCase().includes("session_not_found")
 			) {
-				loggerService.log({ level: LogLevel.INFO, category: LogCategory.CONVERSATION, message: "Session recovery triggered - resetting active session", source: "session", sessionId: this.activeSessionId });
-				this.activeSessionId = undefined;
-				this.isRunning = false;
-				this.postToWebview({ type: "reset_done" });
+				const lostSessionId = this.activeSessionId;
+				loggerService.log({ level: LogLevel.INFO, category: LogCategory.CONVERSATION, message: "Session recovery triggered - attempting to restore from persistent storage", source: "session", sessionId: lostSessionId });
+				try {
+					// Read the missing session's messages from persistent storage
+					const bridge = await this.getCore();
+					const core = await bridge.getCore();
+					const recoveredMessages = await core.readMessages(lostSessionId);
+					if (recoveredMessages && recoveredMessages.length > 0) {
+						// Cache messages so the next send seeds a new runtime session
+						this.restoredMessagesCache = recoveredMessages;
+						this.activeSessionId = undefined;
+						this.isRunning = false;
+
+						// Re-hydrate the webview so the chat stays intact
+						const uiMessages = (recoveredMessages || []).map((m: any) => {
+							let role: "user" | "assistant" | "error" | "meta" = "user";
+							if (m.role === "assistant") role = "assistant";
+							else if (m.role === "user") role = "user";
+							else role = "meta";
+							const toolEvents: any[] = [];
+							if (m.content && Array.isArray(m.content)) {
+								m.content.forEach((block: any) => {
+									if (block.type === "tool_call" || block.type === "tool_use") {
+										toolEvents.push({ id: block.id, name: block.name, input: block.input, state: "output-available" });
+									}
+								});
+							}
+							let text = "";
+							let reasoning = "";
+							if (m.content) {
+								if (typeof m.content === "string") text = m.content;
+								else if (Array.isArray(m.content)) {
+									const textParts: string[] = [];
+									m.content.forEach((block: any) => {
+										if (block.type === "text") textParts.push(block.text);
+										else if (block.type === "reasoning") reasoning += block.reasoning;
+									});
+									text = textParts.join("\n");
+								}
+							}
+							return { role, text, reasoning: reasoning || undefined, toolEvents: toolEvents.length > 0 ? toolEvents : undefined };
+						});
+						this.postToWebview({ type: "session_hydrated", sessionId: lostSessionId, messages: uiMessages });
+						this.postToWebview({ type: "status", text: "Session recovered. You may re-send your message." });
+						loggerService.log({ level: LogLevel.INFO, category: LogCategory.CONVERSATION, message: "Session recovery completed - session restored from persistent storage", source: "session", sessionId: lostSessionId, data: { messageCount: recoveredMessages.length } });
+					} else {
+						// No messages to recover - fall back to clean reset
+						loggerService.log({ level: LogLevel.INFO, category: LogCategory.CONVERSATION, message: "Session recovery - no messages to restore, resetting", source: "session", sessionId: lostSessionId });
+						this.activeSessionId = undefined;
+						this.isRunning = false;
+						this.postToWebview({ type: "reset_done" });
+					}
+				} catch (recoveryError) {
+					// Recovery itself failed - fall back to clean reset
+					loggerService.log({ level: LogLevel.ERROR, category: LogCategory.CONVERSATION, message: `Session recovery failed: ${recoveryError instanceof Error ? recoveryError.message : String(recoveryError)}`, source: "session", sessionId: lostSessionId });
+					this.activeSessionId = undefined;
+					this.isRunning = false;
+					this.postToWebview({ type: "reset_done" });
+				}
 			}
 		} finally {
 			this.isRunning = false;
 			this.abortController = undefined;
+			// Refresh session history so new sessions appear in the history list
+			// without requiring an extension reload. Fire-and-forget to avoid
+			// blocking the session clean-up path.
+			this.sendInitialPayload().catch(() => {});
 		}
 	}
 
@@ -1323,6 +1438,32 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	 * Handles an agent result.
 	 */
 	private handleAgentResult(result: AgentResult): void {
+		// Surface upstream/auth failures (e.g. OpenRouter "User not found.") to the
+		// chat instead of letting the session silently return to idle.
+		if (result.finishReason === "error") {
+			const detail = result.text?.trim() || undefined;
+			const text = detail
+				? `Agent run failed: ${detail}`
+				: "Agent run failed. Check the provider API key in Settings and try again.";
+			this.postToWebview({ type: "error", text });
+			loggerService.log({ level: LogLevel.ERROR, category: LogCategory.CONVERSATION, message: text, source: "session", sessionId: this.activeSessionId });
+			this.postToWebview({
+				type: "turn_done",
+				finishReason: result.finishReason ?? "completed",
+				iterations: result.iterations ?? 0,
+				usage: result.usage
+					? {
+						inputTokens: result.usage.inputTokens,
+						outputTokens: result.usage.outputTokens,
+						cacheReadInputTokens: result.usage.cacheReadTokens,
+						cacheCreationInputTokens: result.usage.cacheWriteTokens,
+						totalCost: result.usage.totalCost,
+					}
+					: undefined,
+			});
+			return;
+		}
+
 		this.postToWebview({
 			type: "turn_done",
 			finishReason: result.finishReason ?? "completed",
@@ -1363,6 +1504,18 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				if (
 					event.type === "ended" &&
 					event.payload.sessionId === sessionId
+				) {
+					if (timeoutId) clearTimeout(timeoutId);
+					unsubscribe();
+					resolve();
+				}
+				// The core may not emit an explicit "ended" event for successful
+				// single-turn sessions — it transitions to "idle" instead. Treat
+				// idle as terminal so the promise doesn't hang indefinitely.
+				if (
+					event.type === "status" &&
+					event.payload?.status === "idle" &&
+					event.payload?.sessionId === sessionId
 				) {
 					if (timeoutId) clearTimeout(timeoutId);
 					unsubscribe();

@@ -2,10 +2,10 @@ import { useState, useEffect, useCallback } from "react";
 import { useExtensionState } from "../context/ExtensionStateContext.js";
 import { McpManagementView } from "./McpManagementView.js";
 import { DeveloperLogsView } from "./DeveloperLogsView.js";
-import type { ToggleItem } from "../types.js";
+import type { ToggleItem, CompactionStrategy } from "../types.js";
 import { postMessage } from "../vscode-api.js";
 
-type SettingsSectionKey = "provider" | "skills" | "auto" | "mcp" | "plugins" | "about" | "developer";
+type SettingsSectionKey = "provider" | "skills" | "auto" | "mcp" | "plugins" | "about" | "developer" | "execution";
 
 type ApprovalKey =
 	| "write"
@@ -50,6 +50,13 @@ const CheckSquareIcon = () => (
 	</svg>
 );
 
+const SettingsIcon = () => (
+	<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+		<circle cx="12" cy="12" r="3" />
+		<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+	</svg>
+);
+
 const PlugIcon = () => (
 	<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
 		<path d="M12 22v-5" />
@@ -84,6 +91,7 @@ const SIDEBAR_TABS: SidebarTab[] = [
 	{ key: "provider", icon: <ZapIcon />, label: "Provider" },
 	{ key: "skills", icon: <WrenchIcon />, label: "Skills" },
 	{ key: "auto", icon: <CheckSquareIcon />, label: "Auto Approves" },
+	{ key: "execution", icon: <SettingsIcon />, label: "Execution" },
 	{ key: "mcp", icon: <PlugIcon />, label: "MCP" },
 	{ key: "plugins", icon: <PuzzleIcon />, label: "Plugins" },
 	{ key: "about", icon: <InfoIcon />, label: "About" },
@@ -118,13 +126,19 @@ export function SettingsView() {
 		setLocalCfg({ ...cfg });
 	}, [cfg.providerId, cfg.modelId, cfg.apiKey, cfg.baseUrl, cfg.mode, cfg.compaction, cfg.retries, cfg.timeout, cfg.checkpointEnabled, cfg.thinking, cfg.reasoningEffort, cfg.maxIterations, cfg.autoApproveTools]);
 
+	useEffect(() => {
+		if (state.autoApprovals && Object.keys(state.autoApprovals).length > 0) {
+			setAutos(state.autoApprovals as Record<ApprovalKey, boolean>);
+		}
+	}, [state.autoApprovals]);
+
 	const handleSaveProvider = useCallback(() => {
 		saveSettings(localCfg);
 		setShowApiKey(false);
 	}, [localCfg, saveSettings]);
 
 	const handleSaveAutos = useCallback(() => {
-		saveSettings(localCfg);
+		saveSettings({ ...localCfg, autoApprovals: autos });
 	}, [autos, localCfg, saveSettings]);
 
 	const handleProviderChange = useCallback((value: string) => {
@@ -302,33 +316,98 @@ export function SettingsView() {
 				);
 
 			case "mcp":
+				return <McpManagementView />;
+
+			case "execution":
 				return (
-					<div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-						<div className="text-muted" style={{ fontSize: "0.85em" }}>Manage MCP server connections. Servers provide tools and resources to the agent.</div>
-						<div style={{ display: "flex", gap: 8 }}>
-							<button className="btn" onClick={() => postMessage({ type: "status", text: "Open MCP connect dialog coming soon" })}>+ Connect MCP Server</button>
+					<div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+						<div className="form-group">
+							<label className="checkbox-label" style={{ fontWeight: 600 }}>
+								<input
+									type="checkbox"
+									checked={!!localCfg.checkpointEnabled}
+									onChange={(e) => setLocalCfg({ ...localCfg, checkpointEnabled: e.target.checked })}
+								/>
+								<span>Enable Version Checkpoints</span>
+							</label>
+							<div className="text-muted" style={{ fontSize: "0.82em" }}>Automatically creates a lightweight checkpoint before and after tool calls.</div>
 						</div>
-						<div className="mcp-server-list">
-							{state.mcpServers.length === 0 ? (
-								<div className="text-center text-muted" style={{ padding: 10 }}>No MCP servers configured.</div>
-							) : (
-								state.mcpServers.map((s) => (
-									<div key={s.name} className="mcp-server-item">
-										<div className="mcp-server-info">
-											<div className="mcp-server-name">
-												<span className={`status-dot ${s.status}`} style={{ marginRight: 8 }} />
-												<span>{s.name}</span>
-											</div>
-											<div className="mcp-server-meta">{s.transport} • {s.toolCount} tools • {s.disabled ? "Disabled" : s.status}</div>
-										</div>
-										<div className="mcp-server-actions">
-										<button className="btn secondary sm" onClick={() => postMessage({ type: "mcp_connect", name: s.name })}>Connect</button>
-										<button className="btn secondary sm" onClick={() => postMessage({ type: "mcp_disconnect", name: s.name })}>Disconnect</button>
-										</div>
-									</div>
-								))
-							)}
+
+						<div className="form-group">
+							<label>Compaction Strategy</label>
+							<select
+								value={localCfg.compaction || "off"}
+								onChange={(e) => setLocalCfg({ ...localCfg, compaction: e.target.value as CompactionStrategy })}
+							>
+								<option value="off">Off (No context compaction)</option>
+								<option value="basic">Basic (Summarizes older messages)</option>
+								<option value="agentic">Agentic (Compacts context using LLM reasoning)</option>
+							</select>
+							<div className="text-muted" style={{ fontSize: "0.82em" }}>Optimizes context window to prevent token overflow.</div>
 						</div>
+
+						<div className="form-group">
+							<label className="checkbox-label" style={{ fontWeight: 600 }}>
+								<input
+									type="checkbox"
+									checked={!!localCfg.thinking}
+									onChange={(e) => setLocalCfg({ ...localCfg, thinking: e.target.checked })}
+								/>
+								<span>Enable Model Reasoning (Thinking)</span>
+							</label>
+							<div className="text-muted" style={{ fontSize: "0.82em" }}>Allows models to generate reasoning/thinking blocks before answering.</div>
+						</div>
+
+						{localCfg.thinking && (
+							<div className="form-group" style={{ paddingLeft: 20 }}>
+								<label>Reasoning Effort</label>
+								<select
+									value={localCfg.reasoningEffort || "none"}
+									onChange={(e) => setLocalCfg({ ...localCfg, reasoningEffort: e.target.value })}
+								>
+									<option value="none">None</option>
+									<option value="low">Low</option>
+									<option value="medium">Medium</option>
+									<option value="high">High</option>
+								</select>
+							</div>
+						)}
+
+						<div className="row" style={{ gap: 12 }}>
+							<div className="form-group col">
+								<label>Max Iterations</label>
+								<input
+									type="number"
+									min="1"
+									max="1000"
+									value={localCfg.maxIterations || 100}
+									onChange={(e) => setLocalCfg({ ...localCfg, maxIterations: parseInt(e.target.value) || 100 })}
+								/>
+							</div>
+							<div className="form-group col">
+								<label>Mistake Retries</label>
+								<input
+									type="number"
+									min="0"
+									max="20"
+									value={localCfg.retries || 3}
+									onChange={(e) => setLocalCfg({ ...localCfg, retries: parseInt(e.target.value) || 3 })}
+								/>
+							</div>
+						</div>
+
+						<div className="form-group">
+							<label>Execution Timeout (seconds)</label>
+							<input
+								type="number"
+								min="0"
+								value={localCfg.timeout || 0}
+								onChange={(e) => setLocalCfg({ ...localCfg, timeout: parseInt(e.target.value) || 0 })}
+								placeholder="0 for no timeout"
+							/>
+						</div>
+
+						<button className="btn" onClick={() => saveSettings(localCfg)}>Save Execution Settings</button>
 					</div>
 				);
 

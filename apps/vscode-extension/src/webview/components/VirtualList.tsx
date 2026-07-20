@@ -124,6 +124,7 @@ export function VirtualList<T>({
 
 	// Measure actual row heights after render
 	const rowRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+	const [heightStamp, setHeightStamp] = useState(0);
 
 	useEffect(() => {
 		let changed = false;
@@ -134,9 +135,8 @@ export function VirtualList<T>({
 				changed = true;
 			}
 		}
-		// If heights changed, force re-render by updating offsets
 		if (changed) {
-			setScrollTop((prev) => prev);
+			setHeightStamp((c) => c + 1);
 		}
 	});
 

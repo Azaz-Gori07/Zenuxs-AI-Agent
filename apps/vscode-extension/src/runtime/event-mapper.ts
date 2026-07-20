@@ -246,9 +246,30 @@ function mapAgentEvent(event: AgentEvent): WebviewOutboundMessage[] {
 		}
 
 		case "done": {
-			// turn_done is handled by handleAgentResult() in the provider.
-			// Suppress the duplicate from the event stream.
-			return [];
+			const errorReasons = new Set(["error", "api_error", "invalid_tool_call", "tool_execution_failed", "mistake_limit"]);
+			const isError = errorReasons.has(event.reason);
+			const finishReason = isError ? "error" : event.reason !== "auto_compaction" ? event.reason ?? "completed" : "completed";
+			const msgs: WebviewOutboundMessage[] = [
+				{
+					type: "turn_done",
+					finishReason,
+					iterations: event.iterations ?? 0,
+					usage: event.usage
+						? {
+							inputTokens: event.usage.inputTokens,
+							outputTokens: event.usage.outputTokens,
+							cacheReadInputTokens: event.usage.cacheReadTokens,
+							cacheCreationInputTokens: event.usage.cacheWriteTokens,
+							totalCost: event.usage.totalCost,
+						}
+						: undefined,
+				},
+			];
+			if (isError) {
+				const errorText = event.text?.trim() ? event.text : `The API returned an error (${event.reason}). Check the developer logs for details.`;
+				msgs.push({ type: "error", text: errorText });
+			}
+			return msgs;
 		}
 
 		case "error": {

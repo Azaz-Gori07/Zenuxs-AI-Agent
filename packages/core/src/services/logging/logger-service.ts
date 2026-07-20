@@ -144,22 +144,22 @@ function nextSeq(): number {
 /**
  * Recursively mask secrets in arbitrary values. API keys and tokens are
  * replaced with a masked form (`sk-********************abcd`) so the dashboard
- * never renders raw credentials.
+ * never renders raw credentials. Non-secret strings pass through unchanged.
  */
 export function maskSecret(value: unknown): unknown {
-	if (typeof value === "string") {
-		return maskSecretString(value);
-	}
+	if (value === null || value === undefined) return value;
 	if (Array.isArray(value)) {
 		return value.map((item) => maskSecret(item));
 	}
-	if (value && typeof value === "object") {
+	if (typeof value === "object") {
 		const out: Record<string, unknown> = {};
 		for (const [key, val] of Object.entries(value)) {
 			if (isSecretKey(key)) {
 				out[key] = maskSecretString(String(val));
-			} else {
+			} else if (typeof val === "object" && val !== null) {
 				out[key] = maskSecret(val);
+			} else {
+				out[key] = val;
 			}
 		}
 		return out;
@@ -250,9 +250,10 @@ export class LoggerService {
 		if (!this.enabled) return null;
 
 		const now = Date.now();
+		const seq = input.seq ?? nextSeq();
 		const entry: LogEntry = {
-			id: input.id ?? `${now}-${nextSeq()}`,
-			seq: input.seq ?? nextSeq(),
+			id: input.id ?? `${now}-${seq}`,
+			seq,
 			timestamp: input.timestamp ?? now,
 			iso: input.iso ?? new Date(now).toISOString(),
 			level: input.level,

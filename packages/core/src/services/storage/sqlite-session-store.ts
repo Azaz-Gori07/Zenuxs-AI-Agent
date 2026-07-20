@@ -17,6 +17,7 @@ import {
 } from "../../types/common";
 import type { SessionRecord } from "../../types/sessions";
 import type { SessionStore } from "../../types/storage";
+import { devLogs } from "../logging/developer-logs";
 
 export interface SqliteSessionStoreOptions {
 	sessionsDir?: string;
@@ -82,6 +83,7 @@ export class SqliteSessionStore implements SessionStore {
 
 	create(record: SessionRecord): void {
 		const now = nowIso();
+		devLogs.storage.fileSystem({ operation: "create", entity: "session", id: record.sessionId });
 		this.run(
 			`INSERT OR REPLACE INTO sessions (
 				session_id, source, pid, started_at, ended_at, exit_code, status, status_lock, interactive,

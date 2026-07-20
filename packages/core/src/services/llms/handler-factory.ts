@@ -8,6 +8,8 @@ import {
 import type {
 	AgentConfig,
 	AgentModel,
+	AgentModelEvent,
+	AgentModelRequest,
 	BasicLogger,
 	GatewayModelDefinition,
 	ITelemetryService,
@@ -15,6 +17,7 @@ import type {
 } from "@cline/shared";
 import { createAgentModelFromApiHandler } from "./apihandler-agent-model-adapter";
 import type { ProviderConfig } from "./provider-settings";
+import { devLogs } from "../logging/developer-logs";
 
 function compactOptions(
 	options: Record<string, unknown>,
@@ -183,7 +186,7 @@ export function createAgentModelFromConfig(
 		);
 	}
 
-	return createGateway({
+	const agentModel = createGateway({
 		providerConfigs: [
 			{
 				providerId: normalizedProviderConfig.providerId,
@@ -209,4 +212,72 @@ export function createAgentModelFromConfig(
 		},
 		{ maxTokens: normalizedProviderConfig.maxOutputTokens },
 	);
+
+	const providerId = normalizedProviderConfig.providerId;
+	const modelId = normalizedProviderConfig.modelId;
+	devLogs.model.selected({ providerId, modelId });
+
+	return wrapAgentModelWithLogging(agentModel, providerId, modelId);
+}
+
+function wrapAgentModelWithLogging(
+	model: AgentModel,
+	providerId: string,
+	modelId: string | undefined,
+): AgentModel {
+	return {
+		async stream(request: AgentModelRequest) {
+			const requestId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+			devLogs.request.start({
+				requestId,
+				provider: providerId,
+				model: modelId,
+				method: "POST",
+				endpoint: "/v1/messages",
+				payloadSize: JSON.stringify(request.messages).length,
+			});
+
+			const iterable = await model.stream(request);
+			let chunkCount = 0;
+			let firstTokenMs: number | undefined;
+
+			const wrappedIterable: AsyncIterable<AgentModelEvent> = {
+				async *[Symbol.asyncIterator]() {
+					const generator = iterable[Symbol.asyncIterator]();
+					try {
+						while (true) {
+							const result = await generator.next();
+							if (result.done) {
+								devLogs.stream.ended({ requestId, chunkCount });
+								return result;
+							}
+							const event = result.value;
+							chunkCount++;
+							if (!firstTokenMs && event.type !== "finish") {
+								firstTokenMs = Date.now();
+								devLogs.stream.firstToken(requestId, { latencyMs: Date.now() });
+							}
+							if (event.type === "finish") {
+								if (event.error) {
+									devLogs.stream.parserError({ requestId, error: event.error });
+								}
+								devLogs.response.received({
+									requestId,
+									status: event.error ? 500 : 200,
+									finishReason: event.reason,
+									errors: event.error ? [event.error] : undefined,
+								});
+							}
+							yield event;
+						}
+					} catch (error: unknown) {
+						devLogs.stream.parserError({ requestId, error: String(error) });
+						throw error;
+					}
+				},
+			};
+
+			return wrappedIterable;
+		},
+	};
 }

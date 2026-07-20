@@ -77,6 +77,7 @@ import {
 import { RuntimeEventAdapter } from "./runtime-event-adapter";
 import { createIntentRouterHooks } from "../intent-router-integration";
 import { createObservationHooks } from "../observation-integration";
+import { devLogs } from "../../services/logging/developer-logs";
 
 function formatToolResultError(output: unknown): string {
 	if (typeof output === "string") {
@@ -894,10 +895,7 @@ export class SessionRuntime {
 			}
 		} catch (error) {
 			const rawError = error instanceof Error ? error : new Error(String(error));
-			// Detect context-length overflow and surface a friendly, actionable message
-			// instead of the raw provider error. The user can type /compact to reduce
-			// the conversation or enable auto-compaction (basic/agentic mode) to
-			// prevent this automatically.
+			devLogs.error.capture({ message: rawError.message, type: rawError.name, stack: rawError.stack, source: "session-runtime.orchestrator", severity: "error" });
 			if (isContextLengthError(rawError) || isEmptyModelOutputError(rawError)) {
 				const hasAutoCompaction = this.config.prepareTurn != null;
 				const hint = hasAutoCompaction
@@ -1163,12 +1161,16 @@ export class SessionRuntime {
 				this.syncToZenuxsRemote(event.message);
 				break;
 			}
+			case "run-started":
+				devLogs.agent.started({ agentId: event.snapshot.agentId, runId: event.snapshot.runId, iteration: event.snapshot.iteration });
+				break;
+			case "run-finished":
+				devLogs.agent.finished({ agentId: event.snapshot.agentId, status: event.result.status, iterations: event.result.iterations });
+				break;
+			case "run-failed":
+				devLogs.agent.finished({ agentId: event.snapshot.agentId, status: "failed", error: event.error?.message });
+				break;
 			case "turn-started": {
-				// Reset per-turn tool-outcome counters used by the
-				// MistakeTracker wiring. Parity with pre-Step-9
-				// agent.ts which accumulates per-iteration success/fail
-				// counts and feeds them into recordMistake at the
-				// turn boundary.
 				this.currentTurnSuccessfulTools = 0;
 				this.currentTurnFailedTools = 0;
 				this.currentTurnFailureDetails = [];
@@ -1177,12 +1179,7 @@ export class SessionRuntime {
 			case "tool-started": {
 				this.toolStartedAt.set(event.toolCall.toolCallId, new Date());
 				this.toolInputs.set(event.toolCall.toolCallId, event.toolCall.input);
-				// Loop-detection inspection: identical consecutive
-				// tool-call signatures trip the tracker. On "soft"
-				// verdict we append a recovery notice; on "hard"
-				// verdict we feed the mistake tracker with
-				// forceAtLimit:true and abort. Parity with pre-Step-9
-				// agent.ts L917-954.
+				devLogs.tool.started(event.toolCall.toolName, { toolCallId: event.toolCall.toolCallId, iteration: event.iteration });
 				this.inspectLoopForToolCall(
 					event.toolCall.toolName,
 					event.toolCall.input,
@@ -1223,8 +1220,8 @@ export class SessionRuntime {
 					endedAt,
 				};
 				this.currentRunToolCalls.push(record);
-				// Per-turn success/failure bookkeeping for MistakeTracker.
 				if (isError) {
+					devLogs.tool.failed(event.toolCall.toolName, { toolCallId: event.toolCall.toolCallId, durationMs: record.durationMs, error: errorText });
 					this.currentTurnFailedTools += 1;
 					if (errorText) {
 						this.currentTurnFailureDetails.push(
@@ -1232,6 +1229,7 @@ export class SessionRuntime {
 						);
 					}
 				} else {
+					devLogs.tool.completed(event.toolCall.toolName, { toolCallId: event.toolCall.toolCallId, durationMs: record.durationMs });
 					this.currentTurnSuccessfulTools += 1;
 				}
 				break;

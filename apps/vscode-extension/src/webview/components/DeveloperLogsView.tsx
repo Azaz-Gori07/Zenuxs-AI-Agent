@@ -19,6 +19,7 @@ import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { VirtualList, type VirtualListRow } from "./VirtualList.js";
 import { JsonView } from "./JsonView.js";
 import { postMessage } from "../vscode-api.js";
+import { useExtensionState } from "../context/ExtensionStateContext.js";
 
 // ---------------------------------------------------------------- Types
 
@@ -158,6 +159,7 @@ const DEFAULT_FILTER: FilterState = {
 // ---------------------------------------------------------------- Component
 
 export function DeveloperLogsView() {
+	const { runCommand, switchTab } = useExtensionState();
 	const [entries, setEntries] = useState<LogEntry[]>([]);
 	const [paused, setPaused] = useState(false);
 	const [autoScroll, setAutoScroll] = useState(true);
@@ -165,15 +167,33 @@ export function DeveloperLogsView() {
 	const [filter, setFilter] = useState<FilterState>(DEFAULT_FILTER);
 	const [showFilters, setShowFilters] = useState(false);
 	const [showExportMenu, setShowExportMenu] = useState(false);
-	const [subscribed, setSubscribed] = useState(false);
+	const subscribedRef = useRef(false);
 	const containerRef = useRef<HTMLDivElement>(null);
 	const bufferRef = useRef<LogEntry[]>([]);
 	const rafRef = useRef<number | null>(null);
 
+	// Batch flush for smooth rendering
+	const scheduleFlush = useCallback(() => {
+		if (rafRef.current) return;
+		rafRef.current = requestAnimationFrame(() => {
+			rafRef.current = null;
+			if (bufferRef.current.length === 0) return;
+			const batch = bufferRef.current;
+			bufferRef.current = [];
+			setEntries((prev) => {
+				const next = [...prev, ...batch];
+				if (next.length > 100_000) {
+					return next.slice(next.length - 100_000);
+				}
+				return next;
+			});
+		});
+	}, []);
+
 	// Subscribe to developer logs from the extension host
 	useEffect(() => {
-		if (subscribed) return;
-		setSubscribed(true);
+		if (subscribedRef.current) return;
+		subscribedRef.current = true;
 		postMessage({ type: "developer_logs", action: "subscribe" });
 
 		const handler = (event: MessageEvent) => {
@@ -188,29 +208,11 @@ export function DeveloperLogsView() {
 
 		window.addEventListener("message", handler);
 		return () => {
+			subscribedRef.current = false;
 			postMessage({ type: "developer_logs", action: "unsubscribe" });
 			window.removeEventListener("message", handler);
 		};
-	}, [subscribed]);
-
-	// Batch flush for smooth rendering
-	const scheduleFlush = useCallback(() => {
-		if (rafRef.current) return;
-		rafRef.current = requestAnimationFrame(() => {
-			rafRef.current = null;
-			if (bufferRef.current.length === 0) return;
-			const batch = bufferRef.current;
-			bufferRef.current = [];
-			setEntries((prev) => {
-				const next = [...prev, ...batch];
-				// Keep max 100k entries in memory
-				if (next.length > 100_000) {
-					return next.slice(next.length - 100_000);
-				}
-				return next;
-			});
-		});
-	}, []);
+	}, [scheduleFlush]);
 
 	// Cleanup RAF on unmount
 	useEffect(() => {
@@ -315,6 +317,11 @@ export function DeveloperLogsView() {
 		const text = filteredEntries
 			.map((e) => `[${e.iso}] [${e.level}] [${e.category}] ${e.message}${e.source ? ` (${e.source})` : ""}`)
 			.join("\n");
+		navigator.clipboard.writeText(text).catch(() => {});
+	}, [filteredEntries]);
+
+	const handleCopyFullDetails = useCallback(() => {
+		const text = filteredEntries.map((e) => JSON.stringify(e, null, 2)).join("\n\n");
 		navigator.clipboard.writeText(text).catch(() => {});
 	}, [filteredEntries]);
 
@@ -701,7 +708,10 @@ export function DeveloperLogsView() {
 				<button className="btn secondary sm" onClick={handleClear} title="Clear all logs">
 					🗑 Clear
 				</button>
-				<button className="btn secondary sm" onClick={handleCopy} title="Copy all visible logs">
+				<button className="btn secondary sm" onClick={handleCopyFullDetails} title="Copy all visible logs with full JSON details">
+					📋 Copy Details
+				</button>
+				<button className="btn secondary sm" onClick={handleCopy} title="Copy all visible logs (summary)">
 					📋 Copy
 				</button>
 				<div style={{ position: "relative" }}>
@@ -741,6 +751,15 @@ export function DeveloperLogsView() {
 				<span style={{ color: "var(--muted, #888)", fontSize: "0.78em", flexShrink: 0 }}>
 					{filteredEntries.length.toLocaleString()} / {entries.length.toLocaleString()} entries
 				</span>
+
+				{/* Build commands */}
+				<div style={{ display: "flex", gap: 4, marginLeft: "auto", borderLeft: "1px solid var(--border, #333)", paddingLeft: 8 }}>
+					<button className="btn secondary sm" onClick={() => runCommand("build")} title="Run build">Build</button>
+					<button className="btn secondary sm" onClick={() => runCommand("lint")} title="Run linter">Lint</button>
+					<button className="btn secondary sm" onClick={() => runCommand("test")} title="Run tests">Test</button>
+					<button className="btn secondary sm danger" onClick={() => runCommand("doctor")} title="Auto-fix issues">Doctor</button>
+					<button className="btn secondary sm" onClick={() => switchTab("console")} title="Switch to build console">Console</button>
+				</div>
 			</div>
 
 			{/* Filters panel */}

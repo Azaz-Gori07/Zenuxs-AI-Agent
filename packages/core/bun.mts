@@ -22,7 +22,12 @@ const sourcemap = Bun.env.CLINE_SOURCEMAPS === "1" ? "linked" : "none";
 const buildConfig = {
 	target: "node",
 	format: "esm",
-	minify: true,
+	// Use syntax+whitespace minification only — DO NOT mangle identifiers.
+	// Mangling produces short names ($5, $0, etc.) that collide with the
+	// extension bundler's own variables when the core dist is re-bundled
+	// via ../../apps/vscode-extension/bun build (which does not re-mangle
+	// the already-minified output, so the collision survives).
+	minify: { syntax: true, whitespace: true, identifiers: false },
 	packages: "bundle",
 	sourcemap,
 	external,

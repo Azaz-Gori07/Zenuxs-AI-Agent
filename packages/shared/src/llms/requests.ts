@@ -1,8 +1,8 @@
 export const DEFAULT_REQUEST_HEADERS: Record<string, string> = {
-	"HTTP-Referer": "https://cline.bot",
-	"X-Title": "Cline",
+	"HTTP-Referer": "https://zenuxs.ai",
+	"X-Title": "Zenuxs",
 	"X-IS-MULTIROOT": "false",
-	"X-CLIENT-TYPE": "cline-sdk",
+	"X-CLIENT-TYPE": "zenuxs-sdk",
 };
 
 export function serializeAbortReason(reason: unknown): unknown {

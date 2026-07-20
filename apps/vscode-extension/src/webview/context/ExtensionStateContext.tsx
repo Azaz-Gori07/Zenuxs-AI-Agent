@@ -1,6 +1,7 @@
-import { createContext, useContext, useReducer, useCallback, useEffect, type ReactNode } from "react";
+import { createContext, useContext, useReducer, useCallback, useEffect, useRef, type ReactNode } from "react";
 import { postMessage } from "../vscode-api.js";
 import type { AppState, ExtensionMessage, TabId, AgentMode, CompactionStrategy, ApprovalKey } from "../types.js";
+import { AgentEventBus } from "./stores.js";
 
 const buildAutoDefaults = (): Record<ApprovalKey, boolean> => {
 	const out: Record<ApprovalKey, boolean> = {
@@ -110,7 +111,7 @@ function reducer(state: AppState, action: Action): AppState {
 		case "SET_APPROVAL_REQUEST": return { ...state, pendingApproval: action.payload };
 		case "CLEAR_APPROVAL": return { ...state, pendingApproval: null };
 		case "SET_APPROVAL_RESOLVED": return state.pendingApproval?.approvalId === action.approvalId ? { ...state, pendingApproval: null } : state;
-		case "SET_TURN_DONE": return { ...state, isRunning: false, usage: action.usage || null };
+		case "SET_TURN_DONE": return { ...state, isRunning: false, usage: action.usage ?? state.usage };
 		case "SET_SESSION_STARTED": return { ...state, activeSessionId: action.sessionId, isRunning: true };
 		case "HYDRATE_SESSION": return { ...state, activeSessionId: action.sessionId, messages: action.messages, isRunning: false };
 		case "RESET_SESSION": return { ...state, messages: [], activeSessionId: null, isRunning: false, usage: null, pendingApproval: null, activeTab: "chat" };
@@ -154,6 +155,7 @@ interface ExtensionStateContextValue {
 		autoApproveTools: boolean; thinking: boolean; reasoningEffort: string;
 		maxIterations: number; mode?: AgentMode; compaction?: CompactionStrategy; retries?: number;
 		timeout?: number; checkpointEnabled?: boolean;
+		autoApprovals?: Record<string, boolean>;
 	}) => void;
 	toggleItem: (itemType: string, id: string | undefined, name: string | undefined, path: string | undefined, enabled: boolean) => void;
 	deleteSession: (sessionId: string) => void;
@@ -199,23 +201,31 @@ const ExtensionStateContext = createContext<ExtensionStateContextValue | null>(n
 
 export function ExtensionStateProvider({ children }: { children: ReactNode }) {
 	const [state, dispatch] = useReducer(reducer, initialState);
-	if (typeof window !== "undefined") {
+	const stateRef = useRef(state);
+	stateRef.current = state;
+
+	useEffect(() => {
 		(window as any).logStartup?.("WEBVIEW", state.activeSessionId || "None", "React", "ExtensionStateProvider_mount", "EVENT", "N/A", "SUCCESS");
-	}
+	}, []);
 
 	const handleMessage = useCallback((event: MessageEvent<ExtensionMessage>) => {
 		const msg = event.data;
 		if (!msg || typeof msg !== "object") {
 			return;
 		}
+		AgentEventBus.publish(msg.type, msg);
+
 		switch (msg.type) {
 			case "initial_data":
 				if (typeof window !== "undefined") {
-					(window as any).logStartup?.("WEBVIEW", state.activeSessionId || "None", "React", "handleMessage_initial_data", "EVENT", "N/A", "RECEIVED");
+					(window as any).logStartup?.("WEBVIEW", stateRef.current.activeSessionId || "None", "React", "handleMessage_initial_data", "EVENT", "N/A", "RECEIVED");
 				}
 				dispatch({ type: "SET_INITIAL_DATA", payload: { providers: msg.providers, models: msg.models, currentConfig: msg.currentConfig, toggles: msg.toggles, sessionHistories: msg.sessionHistories, dashboardData: msg.dashboard || calculateFallback(msg.sessionHistories), mcpServers: (msg as any).mcpServers || [], checkpoints: (msg as any).checkpoints || [] } });
+				if ((msg as any).autoApprovals) {
+					dispatch({ type: "SET_AUTO_APPROVALS", autoApprovals: (msg as any).autoApprovals });
+				}
 				if (typeof window !== "undefined") {
-					(window as any).logStartup?.("WEBVIEW", state.activeSessionId || "None", "React", "dispatch_initial_data", "EVENT", "N/A", "DISPATCHED");
+					(window as any).logStartup?.("WEBVIEW", stateRef.current.activeSessionId || "None", "React", "dispatch_initial_data", "EVENT", "N/A", "DISPATCHED");
 				}
 				break;
 			case "assistant_delta": dispatch({ type: "APPEND_ASSISTANT_TEXT", text: msg.text }); break;
@@ -223,15 +233,15 @@ export function ExtensionStateProvider({ children }: { children: ReactNode }) {
 			case "tool_event": dispatch({ type: "UPDATE_TOOL_EVENT", text: msg.text, event: msg.event }); break;
 			case "approval_request": dispatch({ type: "SET_APPROVAL_REQUEST", payload: msg }); break;
 			case "approval_resolved": dispatch({ type: "SET_APPROVAL_RESOLVED", approvalId: msg.approvalId, approved: msg.approved, reason: msg.reason }); break;
-			case "turn_done": dispatch({ type: "SET_TURN_DONE", finishReason: msg.finishReason, iterations: msg.iterations, usage: msg.usage }); postMessage({ type: "ready" }); break;
+			case "turn_done": dispatch({ type: "SET_TURN_DONE", finishReason: msg.finishReason, iterations: msg.iterations, usage: msg.usage }); break;
 			case "session_started": dispatch({ type: "SET_SESSION_STARTED", sessionId: msg.sessionId }); break;
 			case "session_hydrated": dispatch({ type: "HYDRATE_SESSION", sessionId: msg.sessionId, messages: msg.messages }); break;
 			case "reset_done": dispatch({ type: "RESET_SESSION" }); break;
-			case "error": dispatch({ type: "ADD_ERROR", text: msg.text }); dispatch({ type: "ADD_LOG", text: `Error: ${msg.text}` }); break;
+			case "error": dispatch({ type: "ADD_ERROR", text: msg.text }); dispatch({ type: "ADD_LOG", text: `Error: ${msg.text}` }); AgentEventBus.publish("error_occurred", { text: msg.text }); break;
 			case "status": dispatch({ type: "ADD_LOG", text: msg.text }); break;
 			case "logs_stream": dispatch({ type: "ADD_LOG", text: msg.text }); break;
 			case "switch_tab": dispatch({ type: "SET_TAB", tab: msg.tab.replace("-tab", "") as TabId }); break;
-			case "models": dispatch({ type: "SET_INITIAL_DATA", payload: { models: { ...state.models, [msg.providerId]: msg.models.map((m: any) => typeof m === "string" ? m : m.id || m.name || String(m)) } } }); break;
+			case "models": dispatch({ type: "SET_INITIAL_DATA", payload: { models: { ...stateRef.current.models, [msg.providerId]: msg.models.map((m: any) => typeof m === "string" ? m : m.id || m.name || String(m)) } } }); break;
 			case "mcp_servers": dispatch({ type: "SET_MCP_SERVERS", servers: msg.servers }); break;
 			case "checkpoint_list": dispatch({ type: "SET_CHECKPOINTS", sessionId: msg.sessionId, checkpoints: msg.checkpoints }); break;
 			case "checkpoint_restored": dispatch({ type: "ADD_LOG", text: `Checkpoint restored: ${msg.sessionId}` }); break;
@@ -243,19 +253,19 @@ export function ExtensionStateProvider({ children }: { children: ReactNode }) {
 			case "team_teammate_shutdown": dispatch({ type: "REMOVE_TEAM_MEMBER", agentId: msg.agentId }); break;
 			case "connector_status": dispatch({ type: "SET_CONNECTORS", connectors: msg.connectors }); break;
 		}
-	}, [state.models]);
+	}, []);
 
 	useEffect(() => {
 		window.addEventListener("message", handleMessage);
 		if (typeof window !== "undefined") {
-			(window as any).logStartup?.("WEBVIEW", state.activeSessionId || "None", "React", "ready_message_sent", "EVENT", "N/A", "START");
+			(window as any).logStartup?.("WEBVIEW", stateRef.current.activeSessionId || "None", "React", "ready_message_sent", "EVENT", "N/A", "START");
 		}
 		postMessage({ type: "ready" });
 		return () => window.removeEventListener("message", handleMessage);
-	}, [handleMessage, state.activeSessionId]);
+	}, [handleMessage]);
 
 	const actions = {
-		sendMessage: (prompt: string, config?: Record<string, unknown>) => { dispatch({ type: "ADD_USER_MESSAGE", text: prompt }); postMessage({ type: "send", prompt, config }); },
+		sendMessage: (prompt: string, config?: Record<string, unknown>) => { dispatch({ type: "ADD_USER_MESSAGE", text: prompt }); AgentEventBus.publish("user_message_sent", { text: prompt }); postMessage({ type: "send", prompt, config }); },
 		abort: () => { dispatch({ type: "SET_RUNNING", isRunning: false }); postMessage({ type: "abort" }); },
 		newSession: () => { dispatch({ type: "RESET_SESSION" }); postMessage({ type: "new_session" }); },
 		saveSettings: (settings: Parameters<ExtensionStateContextValue["saveSettings"]>[0]) => { dispatch({ type: "UPDATE_CONFIG", config: settings as any }); postMessage({ type: "save_settings", ...settings }); },
