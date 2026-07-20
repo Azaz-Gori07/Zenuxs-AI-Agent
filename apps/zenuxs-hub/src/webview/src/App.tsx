@@ -471,7 +471,7 @@ export function HomeView({
 	const latestEvents = hubState.events.slice(0, 3);
 	const sessionPreview = (
 		recentSessions.length > 0 ? recentSessions : activeSessions
-	).slice(0, 2);
+	).slice(0, 5);
 	const [restartDialogOpen, setRestartDialogOpen] = useState(false);
 
 	const copyText = useCallback((value?: string) => {

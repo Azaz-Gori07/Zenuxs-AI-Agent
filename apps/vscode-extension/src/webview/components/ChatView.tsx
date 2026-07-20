@@ -491,6 +491,81 @@ export function ChatView() {
 							<div className="welcome-icon">Z</div>
 						)}
 						<h2>Zenuxs AI</h2>
+						{state.sessionHistories.length > 0 && (
+							<div className="welcome-recent-sessions">
+								<p className="welcome-recent-label">Recent sessions</p>
+								{state.sessionHistories.slice(0, 5).map((s) => (
+									<button
+										className="recent-chat-item"
+										key={s.sessionId}
+										onClick={() => restoreSession(s.sessionId)}
+										type="button"
+									>
+										<span className="welcome-session-title">
+											{s.metadata?.title || s.prompt?.slice(0, 60) || s.sessionId.slice(0, 12)}
+										</span>
+										<span className="welcome-session-meta">
+											{s.provider || ""}{s.model ? ` / ${s.model}` : ""}
+										</span>
+									</button>
+								))}
+							</div>
+						)}
+					</div>
+				)}
+
+				{/* Chat Messages */}
+				{timelineState.messages.length > 0 && !activeTask && (
+					<div className="chat-messages-list">
+						{timelineState.messages.map((msg, idx) => {
+							const isUser = msg.role === "user";
+							const isAssistant = msg.role === "assistant";
+							const isError = msg.role === "error";
+							const isEditing = editingIndex === idx;
+							return (
+								<div key={idx} className={`message ${isUser ? "user" : isAssistant ? "assistant" : isError ? "error" : ""}`}>
+									<div className="message-header">
+										<span className="brand-zenuxs">{isUser ? "You" : "Zenuxs AI"}</span>
+										<div className="message-actions">
+											{isAssistant && !isEditing && (
+												<button className="msg-action-btn" onClick={() => copyMessage(msg.text)} title="Copy">
+													<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+												</button>
+											)}
+											{!isError && !isEditing && (
+												<button className="msg-action-btn" onClick={() => startEdit(idx, msg.text)} title="Edit">
+													<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+												</button>
+											)}
+										</div>
+									</div>
+									{isEditing ? (
+										<div className="edit-box">
+											<textarea value={editText} onChange={(e) => setEditText(e.target.value)} />
+											<div className="edit-actions">
+												<button className="btn sm" onClick={submitEdit}>Save & Resend</button>
+												<button className="btn secondary sm" onClick={cancelEdit}>Cancel</button>
+											</div>
+										</div>
+									) : (
+										<>
+											<div className="message-text">
+												<MarkdownBlock markdown={msg.text} />
+											</div>
+											{(msg as any).reasoning ? (
+												<div className="reasoning-block">
+													<div className="reasoning-header" onClick={(e) => { const el = e.currentTarget.nextElementSibling; if (el) el.style.display = el.style.display === "none" ? "block" : "none"; }}>
+														<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+														Reasoning
+													</div>
+													<div className="reasoning-content" style={{ display: "none" }}>{(msg as any).reasoning}</div>
+												</div>
+											) : null}
+										</>
+									)}
+								</div>
+							);
+						})}
 					</div>
 				)}
 

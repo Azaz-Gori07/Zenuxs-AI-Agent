@@ -348,6 +348,11 @@ export function getWebviewHtml(
 		}
 		@keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-6px); } }
 		.welcome-placeholder h2 { font-weight: 700; color: #fff; font-size: 1.4em; }
+		.welcome-recent-sessions { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+		.welcome-recent-label { font-size: 0.78em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; text-align: left; margin-bottom: 2px; }
+		.welcome-session-title { display: block; font-weight: 500; font-size: 0.92em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+		.welcome-session-meta { display: block; font-size: 0.78em; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+		.chat-messages-list { display: flex; flex-direction: column; gap: 4px; width: 100%; }
 		.btn {
 			background: var(--button-bg); color: var(--button-fg); border: 1px solid transparent; border-radius: 6px;
 			padding: 8px 14px; cursor: pointer; font-weight: 600; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
