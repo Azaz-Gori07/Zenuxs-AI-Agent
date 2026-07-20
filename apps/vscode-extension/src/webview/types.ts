@@ -52,6 +52,9 @@ export interface ToolEventData {
 	input?: unknown;
 	output?: unknown;
 	error?: string;
+	filePath?: string;
+	originalContent?: string;
+	newContent?: string;
 }
 
 export interface ApprovalRequest {
@@ -213,6 +216,8 @@ export type ExtensionMessage =
 export type WebviewMessage =
 	| { type: "ready" }
 	| { type: "send"; prompt: string; config?: Record<string, unknown> }
+	| { type: "open_file"; filePath: string; line?: number }
+	| { type: "show_diff"; filePath: string; originalContent?: string; newContent?: string }
 	| { type: "abort" }
 	| { type: "new_session" }
 	| { type: "approval_response"; approvalId: string; approved: boolean; reason?: string; input?: unknown; policy?: string }

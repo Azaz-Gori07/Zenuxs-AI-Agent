@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { ExtensionCoreBridge } from "../runtime/core-bridge.js";
 import { mapCoreEventToWebview } from "../runtime/event-mapper.js";
 import type { WebviewOutboundMessage } from "../runtime/event-mapper.js";
+import { ZenuxsDiffProvider } from "../webview/diff-provider.js";
 import { resolveExtensionConfig, resolveWorkspaceRoot, resolveCwd } from "../runtime/config-resolver.js";
 import { captureEditorContext, formatEditorContextForPrompt } from "../context/editor-context.js";
 import type {
@@ -242,7 +243,9 @@ type WebviewInboundMessage =
 	| {
 		type: "developer_logs";
 		action: "subscribe" | "unsubscribe" | "clear" | "pause" | "resume";
-	};
+	}
+	| { type: "open_file"; filePath: string; line?: number }
+	| { type: "show_diff"; filePath: string; originalContent?: string; newContent?: string };
 
 /**
  * Provides the Zenuxs chat webview in the VS Code sidebar.
@@ -322,6 +325,12 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	 */
 	public newSession(): void {
 		loggerService.log({ level: LogLevel.DEBUG, category: LogCategory.CONVERSATION, message: "New chat triggered via newSession()", source: "session", sessionId: this.activeSessionId });
+		this.handleAbort();
+		this.restoredMessagesCache = undefined;
+		this.pendingPrompt = undefined;
+		this.isRunning = false;
+		this.abortController?.abort();
+		this.abortController = undefined;
 		this.activeSessionId = undefined;
 		// Dispose and reset core bridge and MCP manager to ensure fresh state for new session
 		this.resetCore();
@@ -435,12 +444,18 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 					await this.handleAbort();
 					break;
 
-				case "new_session":
-					loggerService.log({ level: LogLevel.DEBUG, category: LogCategory.CONVERSATION, message: "New chat triggered via new_session webview message", source: "session", sessionId: this.activeSessionId });
-					this.activeSessionId = undefined;
-					await this.resetCore();
-					this.postToWebview({ type: "reset_done" });
-					break;
+			case "new_session":
+				loggerService.log({ level: LogLevel.DEBUG, category: LogCategory.CONVERSATION, message: "New chat triggered via new_session webview message", source: "session", sessionId: this.activeSessionId });
+				await this.handleAbort();
+				this.restoredMessagesCache = undefined;
+				this.pendingPrompt = undefined;
+				this.isRunning = false;
+				this.abortController?.abort();
+				this.abortController = undefined;
+				this.activeSessionId = undefined;
+				await this.resetCore();
+				this.postToWebview({ type: "reset_done" });
+				break;
 
 				case "approval_response":
 					this.handleApprovalResponse(message);
@@ -575,14 +590,22 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 					await this.handleConnectorDisconnect(message.id);
 					break;
 
-				case "developer_logs":
-					this.handleDeveloperLogs(message);
-					break;
-			}
-		} catch (error) {
-			const txt = error instanceof Error ? error.message : String(error);
-			this.postToWebview({ type: "error", text: txt });
+			case "developer_logs":
+				this.handleDeveloperLogs(message);
+				break;
+
+			case "open_file":
+				await this.handleOpenFile(message.filePath, message.line);
+				break;
+
+			case "show_diff":
+				await this.handleShowDiff(message.filePath, message.originalContent, message.newContent);
+				break;
 		}
+	} catch (error) {
+		const txt = error instanceof Error ? error.message : String(error);
+		this.postToWebview({ type: "error", text: txt });
+	}
 	}
 
 	// ---------------------------------------------------------------- Developer Logs
@@ -643,6 +666,32 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 			source: "webview",
 			stack: msg.stack || undefined,
 		});
+	}
+
+	/**
+	 * Opens a file in the VS Code editor at an optional line number.
+	 */
+	private async handleOpenFile(filePath: string, line?: number): Promise<void> {
+		try {
+			await ZenuxsDiffProvider.openFile(filePath, line);
+		} catch (err) {
+			this.postToWebview({ type: "error", text: `Failed to open file: ${err instanceof Error ? err.message : String(err)}` });
+		}
+	}
+
+	/**
+	 * Shows a diff between original and new content in VS Code's diff editor.
+	 */
+	private async handleShowDiff(filePath: string, originalContent?: string, newContent?: string): Promise<void> {
+		try {
+			if (newContent) {
+				await ZenuxsDiffProvider.showDiff(filePath, originalContent || "", newContent);
+			} else {
+				await ZenuxsDiffProvider.openFile(filePath);
+			}
+		} catch (err) {
+			this.postToWebview({ type: "error", text: `Failed to show diff: ${err instanceof Error ? err.message : String(err)}` });
+		}
 	}
 
 	/**
@@ -821,8 +870,13 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				vscode.window.showWarningMessage(`Zenuxs: Session not found or could not be deleted.`);
 			}
 			if (this.activeSessionId === sessionId) {
-				this.activeSessionId = undefined;
+				await this.handleAbort();
+				this.restoredMessagesCache = undefined;
+				this.pendingPrompt = undefined;
 				this.isRunning = false;
+				this.abortController?.abort();
+				this.abortController = undefined;
+				this.activeSessionId = undefined;
 				this.postToWebview({ type: "reset_done" });
 			}
 			await this.sendInitialPayload();
@@ -1526,22 +1580,28 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	}
 
 	/**
-	 * Handles abort request.
+	 * Handles abort request. Immediately stops execution and cleans up.
 	 */
 	private async handleAbort(): Promise<void> {
+		this.postToWebview({ type: "status", text: "Stopping..." });
 		if (this.coreBridge && this.activeSessionId) {
 			try {
 				const core = await this.coreBridge.getCore();
+				this.postToWebview({ type: "status", text: "Cancelling active processes..." });
 				await core.abort(this.activeSessionId);
-				this.postToWebview({
-					type: "status",
-					text: "Session aborted",
-				});
+				try {
+					await core.stopSession(this.activeSessionId);
+				} catch {
+					// stopSession is best-effort cleanup after abort
+				}
+				this.postToWebview({ type: "status", text: "Task Cancelled" });
 			} catch {
-				// Abort is best-effort
+				this.postToWebview({ type: "status", text: "Task Cancelled" });
 			}
 		}
 		this.isRunning = false;
+		this.abortController?.abort();
+		this.abortController = undefined;
 	}
 
 	/**

@@ -8,7 +8,8 @@ import {
 	SessionStore, 
 	TimelineStore, 
 	ExecutionStore, 
-	ToolExecutionStore 
+	ToolExecutionStore,
+	AgentEventBus 
 } from "../context/stores.js";
 
 const SLASH_COMMANDS = [
@@ -91,8 +92,7 @@ export function ChatView() {
 	const [editText, setEditText] = useState("");
 	const [showModeMenu, setShowModeMenu] = useState(false);
 	const [showModelMenu, setShowModelMenu] = useState(false);
-	const [showHealth, setShowHealth] = useState(false);
-	const [devOpen, setDevOpen] = useState(false);
+
 
 	const inputRef = useRef<HTMLTextAreaElement>(null);
 	const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -245,46 +245,234 @@ export function ChatView() {
 	const activeModel = state.currentConfig.modelId || "default";
 	const availableModels = state.models[providerId] || ["default"];
 
+	// ==========================================
+	// EXECUTION TIMELINE ENGINE
+	// ==========================================
+	const [activeTask, setActiveTask] = useState<TaskData | null>(null);
+	const taskIdRef = useRef(0);
+	const reasoningBufRef = useRef("");
+	const responseBufRef = useRef("");
+	const toolStagesRef = useRef<Map<string, number>>(new Map());
+
+	useEffect(() => {
+		const unsubs: (() => void)[] = [];
+
+		unsubs.push(AgentEventBus.subscribe("user_message_sent", () => {
+			taskIdRef.current++;
+			reasoningBufRef.current = "";
+			responseBufRef.current = "";
+			toolStagesRef.current = new Map();
+			const task: TaskData = {
+				id: taskIdRef.current,
+				startedAt: Date.now(),
+				stages: [{
+					id: `stage-thinking-${taskIdRef.current}`,
+					type: "thinking",
+					status: "running",
+					label: "Thinking...",
+					expanded: true,
+				}],
+			};
+			setActiveTask(task);
+		}));
+
+		unsubs.push(AgentEventBus.subscribe("reasoning_delta", (data: { text: string }) => {
+			reasoningBufRef.current += data.text;
+			setActiveTask(prev => {
+				if (!prev) return prev;
+				const stages = [...prev.stages];
+				const ti = stages.findIndex(s => s.type === "thinking");
+				if (ti >= 0) {
+					stages[ti] = { ...stages[ti], content: reasoningBufRef.current, status: "running", label: "Thinking..." };
+				}
+				return { ...prev, stages };
+			});
+		}));
+
+		unsubs.push(AgentEventBus.subscribe("assistant_delta", (data: { text: string }) => {
+			responseBufRef.current += data.text;
+			const text = responseBufRef.current;
+			setActiveTask(prev => {
+				if (!prev) return prev;
+				const stages = [...prev.stages];
+				const ti = stages.findIndex(s => s.type === "thinking");
+				if (ti >= 0) {
+					stages[ti] = { ...stages[ti], status: "completed" };
+				}
+				const ri = stages.findIndex(s => s.type === "response");
+				if (ri >= 0) {
+					stages[ri] = { ...stages[ri], content: text };
+				} else {
+					stages.push({
+						id: `stage-response-${taskIdRef.current}`,
+						type: "response",
+						status: "running",
+						label: "Generating response...",
+						content: text,
+						expanded: true,
+					});
+				}
+				return { ...prev, stages };
+			});
+		}));
+
+		unsubs.push(AgentEventBus.subscribe("tool_event", (data: { text: string; event?: any }) => {
+			const ev = data.event;
+			if (!ev) return;
+			const name = (ev.name || "").toLowerCase();
+			const input = ev.input || {};
+			const filePath = normalizePath(input.filePath || input.path || input.TargetFile || input.AbsolutePath || "");
+			const cmd = input.command || input.commands || "";
+
+			setActiveTask(prev => {
+				if (!prev) return prev;
+				const stages = [...prev.stages];
+				const existingIdx = toolStagesRef.current.get(ev.id || ev.name);
+
+				if (ev.state === "running") {
+					let stageType: StageType = "tool";
+					let label = ev.name || "Executing tool";
+					if (name.includes("read")) { stageType = "reading"; label = filePath ? `Reading ${filePath}` : "Reading file"; }
+					else if (name.includes("write") || name.includes("create")) { stageType = "writing"; label = filePath ? `Writing ${filePath}` : "Writing file"; }
+					else if (name.includes("edit") || name.includes("replace") || name.includes("patch")) { stageType = "editing"; label = filePath ? `Editing ${filePath}` : "Editing file"; }
+					else if (name.includes("bash") || name.includes("shell") || name.includes("exec") || name === "run") { stageType = "command"; label = cmd ? `Running \`${cmd.slice(0, 60)}\`` : "Running command"; }
+					else if (name.includes("search") || name.includes("grep") || name.includes("glob") || name.includes("list_dir")) { stageType = "analyzing"; label = "Searching workspace"; }
+					else if (name.includes("test")) { stageType = "testing"; label = "Running tests"; }
+					else if (name.includes("think") || name.includes("reason")) { stageType = "thinking"; label = "Thinking"; }
+
+					if (existingIdx !== undefined) {
+						stages[existingIdx] = { ...stages[existingIdx], status: "running", label };
+					} else {
+						const idx = stages.length;
+						toolStagesRef.current.set(ev.id || ev.name, idx);
+						stages.push({
+							id: `stage-${ev.id || ev.name}-${idx}`,
+							type: stageType,
+							status: "running",
+							label,
+							filePath,
+							detail: data.text || undefined,
+							expanded: true,
+						});
+					}
+				} else if (ev.state === "completed" || ev.state === "output-available") {
+					if (existingIdx !== undefined && stages[existingIdx]) {
+						const s = stages[existingIdx];
+						const output = ev.output || {};
+						const resultText = typeof output === "string" ? output.slice(0, 120) : output.output || output.result || "";
+						stages[existingIdx] = { ...s, status: "completed", detail: resultText || s.detail, progress: undefined };
+					}
+				} else if (ev.state === "failed" || ev.state === "output-error") {
+					if (existingIdx !== undefined && stages[existingIdx]) {
+						stages[existingIdx] = { ...stages[existingIdx], status: "failed", error: ev.error || "Execution failed" };
+					}
+				}
+				return { ...prev, stages };
+			});
+		}));
+
+		unsubs.push(AgentEventBus.subscribe("turn_done", (data: any) => {
+			setActiveTask(prev => {
+				if (!prev) return prev;
+				const stages = [...prev.stages];
+				const ri = stages.findIndex(s => s.type === "response" && s.status === "running");
+				if (ri >= 0) stages[ri] = { ...stages[ri], status: "completed" };
+				const ti = stages.findIndex(s => s.type === "thinking" && s.status === "running");
+				if (ti >= 0) stages[ti] = { ...stages[ti], status: "completed" };
+
+				const created: string[] = [];
+				const modified: string[] = [];
+				const deleted: string[] = [];
+				const completed: string[] = [];
+				let filesCreated = 0, filesModified = 0, commandsExecuted = 0;
+
+				stages.forEach(s => {
+					if (s.type === "writing" && s.status === "completed" && s.filePath) { filesCreated++; created.push(s.filePath); completed.push(s.filePath); }
+					if (s.type === "editing" && s.status === "completed" && s.filePath) { filesModified++; modified.push(s.filePath); }
+					if (s.type === "command" && s.status === "completed") { commandsExecuted++; }
+				});
+
+				const durationMs = Date.now() - prev.startedAt;
+				stages.push({
+					id: `stage-summary-${taskIdRef.current}`,
+					type: "summary",
+					status: "completed",
+					label: "Task Completed",
+					expanded: true,
+					content: JSON.stringify({
+						filesModified, filesCreated, commandsExecuted, testsPassed: 0,
+						durationMs, totalCost: executionState.totalCost,
+						totalTokens: executionState.inputTokens + executionState.outputTokens,
+						createdFiles: created, modifiedFiles: modified, deletedFiles: deleted,
+						completedWork: completed,
+					}),
+				});
+				return { ...prev, stages, summary: {
+					filesModified, filesCreated, commandsExecuted, testsPassed: 0,
+					durationMs, totalCost: executionState.totalCost,
+					totalTokens: executionState.inputTokens + executionState.outputTokens,
+					createdFiles: created, modifiedFiles: modified, deletedFiles: deleted,
+					completedWork: completed,
+				}};
+			});
+		}));
+
+		unsubs.push(AgentEventBus.subscribe("reset_done", () => {
+			setActiveTask(null);
+			taskIdRef.current = 0;
+			reasoningBufRef.current = "";
+			responseBufRef.current = "";
+			toolStagesRef.current = new Map();
+		}));
+
+		return () => unsubs.forEach(u => u());
+	}, []);
+
+	function normalizePath(p: string): string {
+		if (!p) return "";
+		const parts = p.replace(/\\/g, "/").split("/");
+		const knownRoots = ["workspace", "V3", "zenuxs-code", "project", "src", "app"];
+		for (let i = 0; i < parts.length - 1; i++) {
+			if (knownRoots.includes(parts[i].toLowerCase())) {
+				return parts.slice(i + 1).join("/");
+			}
+		}
+		return parts.slice(-2).join("/") || p;
+	}
+
+	function getStageIcon(type: StageType): string {
+		switch (type) {
+			case "thinking": return "🟣";
+			case "planning": return "🟡";
+			case "reading": return "📄";
+			case "analyzing": return "🔍";
+			case "writing": return "✍️";
+			case "editing": return "📝";
+			case "command": return "💻";
+			case "testing": return "🧪";
+			case "validation": return "✔️";
+			case "tool": return "🔧";
+			case "summary": return "✅";
+			case "response": return "💬";
+		}
+	}
+
 	const contextPercentage = Math.min(100, Math.max(0, (executionState.contextTokens / executionState.contextMaxTokens) * 100));
 
 	return (
 		<div className="chat-view" role="region" aria-label="Chat">
-			
-			{/* STICKY STATUS BAR */}
-			<div className="sticky-status-bar" role="status" aria-live="polite">
-				<div className="status-indicator">
-					<span className={`status-dot-pulse ${executionState.isRunning ? "running" : executionState.status}`} />
-					<span>{STATUS_EMOJIS[executionState.status]} {STATUS_LABELS[executionState.status]}</span>
-				</div>
-				{executionState.isRunning && (
-					<div style={{ fontSize: "0.85em", color: "var(--muted)" }}>
-						{(executionState.durationMs / 1000).toFixed(0)}s
-					</div>
-				)}
-			</div>
 
-			{/* SESSION HEADER & TOOLBAR */}
+			{/* CONTEXT WINDOW BAR */}
 			<div className="session-header-bar">
-				<div className="session-header-title">
-					<span>{sessionState.activeSessionId ? (state.sessionHistories.find(h => h.sessionId === sessionState.activeSessionId)?.metadata?.title || "Active Chat") : "New Chat"}</span>
-					{sessionState.activeSessionId && (
-						<button onClick={() => {
-							const t = prompt("Rename session:") || "";
-							if (t.trim()) renameSession(sessionState.activeSessionId!, t.trim());
-						}} title="Rename Session">✏️</button>
-					)}
-				</div>
-
-				<div className="session-toolbar-actions">
-					{/* Token budget meter */}
-					<div className="context-meter-container" title={`Context window usage: ${executionState.contextTokens.toLocaleString()} / ${executionState.contextMaxTokens.toLocaleString()} tokens`}>
-						<div className="context-bar-track">
-							<div className="context-bar-fill" style={{ width: `${contextPercentage}%` }} />
-						</div>
-						<span>{contextPercentage.toFixed(0)}%</span>
-						{executionState.compacted && <span className="badge-compacted">Compacted</span>}
+				<span className="context-window-label">Context Window</span>
+				<div className="context-window-display">
+					<div className="context-bar-track" title={`${executionState.contextTokens.toLocaleString()} / ${executionState.contextMaxTokens.toLocaleString()} tokens`}>
+						<div className="context-bar-fill" style={{ width: `${contextPercentage}%` }} />
 					</div>
-
+					<span className="context-window-text">{executionState.contextTokens.toLocaleString()} / {executionState.contextMaxTokens.toLocaleString()}</span>
+					{executionState.compacted && <span className="badge-compacted">C</span>}
+				</div>
+				<div className="session-toolbar-actions">
 					<CheckpointDropdownComponent 
 						activeSessionId={sessionState.activeSessionId} 
 						checkpoints={sessionState.checkpoints} 
@@ -292,25 +480,10 @@ export function ChatView() {
 				</div>
 			</div>
 
-			{/* SESSION HEALTH WIDGET */}
-			{sessionState.activeSessionId && (
-				<div style={{ borderBottom: "1px solid var(--border)", background: "rgba(255, 255, 255, 0.005)" }}>
-					<button className="link-btn" style={{ padding: "4px 16px", fontSize: "0.78em", display: "flex", alignItems: "center", gap: 4 }} onClick={() => setShowHealth(!showHealth)}>
-						{showHealth ? "▼ Hide Session Info" : "▶ Show Session Info"}
-					</button>
-					{showHealth && (
-						<div className="session-health-panel">
-							<div className="health-stat">🩺 Provider: <strong>{getProviderLabel(sessionState.providerId)}</strong></div>
-							<div className="health-stat">🔄 Checkpoints: <strong>{sessionState.checkpoints.length}</strong></div>
-							<div className="health-stat">🧠 Memory: <strong>{sessionState.memoryLoaded ? "Loaded" : "None"}</strong></div>
-							<div className="health-stat">⚡ Network: <strong style={{ color: sessionState.connected ? "var(--success)" : "var(--error)" }}>{sessionState.connected ? "Connected" : "Offline"}</strong></div>
-						</div>
-					)}
-				</div>
-			)}
+
 
 			<div className="messages-container" id="chat-messages" ref={messagesContainerRef} role="log" aria-label="Messages" aria-live="polite">
-				{timelineState.messages.length === 0 && !executionState.isRunning && (
+				{!activeTask && timelineState.messages.length === 0 && !executionState.isRunning && (
 					<div className="welcome-placeholder">
 						{(window as any).logoUri ? (
 							<img className="welcome-icon" src={(window as any).logoUri} alt="Logo" />
@@ -318,120 +491,48 @@ export function ChatView() {
 							<div className="welcome-icon">Z</div>
 						)}
 						<h2>Zenuxs AI</h2>
-						{state.sessionHistories && state.sessionHistories.length > 0 && (
-							<div className="recent-chats-container" style={{ marginTop: 24, width: "100%", maxWidth: 300, display: "flex", flexDirection: "column", gap: 8, alignItems: "stretch" }}>
-								<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-									<button className="link-btn" onClick={() => switchTab("history")}>
-										View All
-									</button>
-									<span style={{ fontSize: "0.8em", color: "var(--muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>Recent Chats</span>
-								</div>
-								{state.sessionHistories.slice(0, 2).map((session) => {
-									const title = session.metadata?.title || session.prompt || "Untitled Session";
-									return (
-										<button
-											key={session.sessionId}
-											className="recent-chat-item"
-											onClick={() => restoreSession(session.sessionId)}
-											title={title}
-										>
-											<span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{title}</span>
-											<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-												<polyline points="9 18 15 12 9 6" />
-											</svg>
-										</button>
-									);
-								})}
-							</div>
+					</div>
+				)}
+
+				{/* EXECUTION TIMELINE */}
+				{activeTask && (
+					<div className="timeline-container">
+						{/* Task Header */}
+						<div className="task-header">
+							<span className="task-number">Task #{activeTask.id}</span>
+							<span className="task-status-badge running">In Progress</span>
+						</div>
+
+						{/* Timeline Stages */}
+						<div className="timeline-stages">
+							{activeTask.stages.map(stage => (
+								<StageItem key={stage.id} stage={stage} icon={getStageIcon(stage.type)} />
+							))}
+						</div>
+
+						{/* Summary Card */}
+						{activeTask.summary && (
+							<SummaryCard summary={activeTask.summary} taskId={activeTask.id} />
+						)}
+
+						{/* Start New Task button */}
+						{activeTask.summary && (
+							<button className="start-new-task-btn" onClick={() => {
+								dispatch({ type: "RESET_SESSION" });
+							}}>
+								+ Start New Task
+							</button>
 						)}
 					</div>
 				)}
 
-				{timelineState.messages.map((msg, i) => (
-					<div key={i} className={`message ${msg.role} ${editingIndex === i ? "editing" : ""}`} role="article">
-						<div className="message-header">
-							<span>{msg.role === "user" ? "You" : msg.role === "assistant" ? "Zenuxs" : "Error"}</span>
-							<div className="message-actions">
-								<button className="msg-action-btn" onClick={() => copyMessage(msg.text)} title="Copy message" aria-label="Copy message">
-									<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-								</button>
-								{msg.role === "user" && (
-									<button className="msg-action-btn" onClick={() => startEdit(i, msg.text)} title="Edit and resend" aria-label="Edit message">
-										<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-									</button>
-								)}
-							</div>
-						</div>
-
-						{/* ISOLATED STREAMING THOUGHTS PANEL */}
-						{msg.reasoning && (
-							<div className="streaming-thoughts-block">
-								<div className="streaming-thoughts-header">
-									<span>💭 Thinking Process</span>
-								</div>
-								<div className="streaming-thoughts-content">{msg.reasoning}</div>
-							</div>
-						)}
-
-						{editingIndex === i ? (
-							<div className="edit-box">
-								<textarea value={editText} onChange={(e) => setEditText(e.target.value)} rows={3} aria-label="Edit message" />
-								<div className="edit-actions">
-									<button className="btn sm" onClick={submitEdit}>Save & Resend</button>
-									<button className="btn sm secondary" onClick={cancelEdit}>Cancel</button>
-								</div>
-							</div>
-						) : (
-							msg.text && (
-								<div className="message-text">
-									<MarkdownBlock markdown={msg.text} />
-								</div>
-							)
-						)}
-
-						{/* LIVE TOOL TIMELINE */}
-						{msg.toolEvents && msg.toolEvents.length > 0 && (
-							<div className="tool-timeline" role="list">
-								{msg.toolEvents.map((te, j) => (
-									<TimelineStep key={te.id || j} te={te} sessionId={sessionState.activeSessionId} />
-								))}
-							</div>
-						)}
-					</div>
-				))}
-
-				{executionState.isRunning && timelineState.messages.filter(m => m.role === "assistant").length === 0 && (
-					<div className="message assistant">
-						<div className="message-header">Zenuxs</div>
-						<div className="thinking-indicator"><span className="dot-pulse" /></div>
-					</div>
-				)}
-
-				{/* TOOL PROGRESS BAR */}
-				{toolExecutionState.toolProgress && (
-					<div className="tool-progress-bar-container">
-						<div className="tool-progress-header">
-							<span>Running tool: <strong>{toolExecutionState.toolProgress.toolName}</strong></span>
-							<span>{toolExecutionState.toolProgress.progressPercent}%</span>
-						</div>
-						<div className="tool-progress-track">
-							<div className="tool-progress-fill" style={{ width: `${toolExecutionState.toolProgress.progressPercent}%` }} />
-						</div>
-						{toolExecutionState.toolProgress.details && (
-							<div className="text-muted" style={{ fontSize: "0.8em" }}>{toolExecutionState.toolProgress.details}</div>
-						)}
-					</div>
-				)}
-
-				{/* ENHANCED APPROVAL CARD */}
+				{/* Approval & Error panels — always visible */}
 				{toolExecutionState.pendingApproval && (
 					<EnhancedApprovalCard 
 						request={toolExecutionState.pendingApproval} 
 						approveTool={approveTool} 
 					/>
 				)}
-
-				{/* ERROR RECOVERY PANEL */}
 				{toolExecutionState.lastToolError && (
 					<ErrorRecoveryPanel 
 						error={toolExecutionState.lastToolError} 
@@ -477,10 +578,10 @@ export function ChatView() {
 							<button
 								className="model-switcher-btn"
 								onClick={() => setShowModelMenu(!showModelMenu)}
-								title={`Active Model: ${activeModel}`}
+								title={`${getProviderLabel(providerId)} / ${activeModel.split("/").pop() || "Model"}`}
 								aria-label="Select model"
 							>
-								{activeModel.split("/").pop() || "Model"} ▾
+								{getProviderLabel(providerId)} / {activeModel.split("/").pop() || "Model"} ▾
 							</button>
 							{showModelMenu && (
 								<div className="model-dropdown">
@@ -528,16 +629,27 @@ export function ChatView() {
 							)}
 						</div>
 					</div>
-					{input.trim() && (
-						<button className="send-icon-btn" disabled={executionState.isRunning} onClick={handleSend} title="Send (Enter)" aria-label="Send message">
-							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-								<line x1="22" y1="2" x2="11" y2="13" />
-								<polygon points="22 2 15 22 11 13 2 9 22 2" />
-							</svg>
+					{(input.trim() || executionState.isRunning) && (
+						<button
+							className={`send-icon-btn ${executionState.isRunning ? "stop" : ""}`}
+							disabled={!executionState.isRunning && !input.trim()}
+							onClick={executionState.isRunning ? abort : handleSend}
+							title={executionState.isRunning ? "Stop (Esc)" : "Send (Enter)"}
+							aria-label={executionState.isRunning ? "Stop execution" : "Send message"}
+						>
+							{executionState.isRunning ? (
+								<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+									<rect x="6" y="6" width="12" height="12" rx="2" />
+								</svg>
+							) : (
+								<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+									<line x1="22" y1="2" x2="11" y2="13" />
+									<polygon points="22 2 15 22 11 13 2 9 22 2" />
+								</svg>
+							)}
 						</button>
 					)}
 				</div>
-				<button className="stop-btn" style={{ display: executionState.isRunning ? "block" : "none" }} onClick={abort} aria-label="Stop execution">Stop Execution</button>
 				<div className="chat-bottom-bar">
 					<button className="attachment-btn" onClick={attachFile} title="Attach Active File Context" aria-label="Attach file context">
 						<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -546,26 +658,53 @@ export function ChatView() {
 						Attach File Context
 					</button>
 					<div id="usage-status" aria-label="Token usage">
-						{executionState.totalCost > 0 || executionState.inputTokens > 0
-							? `${executionState.inputTokens} in / ${executionState.outputTokens} out | $${executionState.totalCost.toFixed(4)}`
-							: "0 tokens | $0.0000"}
+						{(executionState.inputTokens + executionState.outputTokens).toLocaleString()} / {executionState.contextMaxTokens.toLocaleString()} | ${executionState.totalCost.toFixed(4)}
 					</div>
 				</div>
 			</div>
 
-			{/* FLOAT BUTTON FOR DEV MODE */}
-			<button 
-				className={`dev-badge-btn ${devOpen ? "active" : ""}`}
-				onClick={() => setDevOpen(!devOpen)}
-				title="Toggle Developer Overlay"
-			>
-				🛠️
-			</button>
-
-			{/* DEVELOPER DRAWER OVERLAY */}
-			<DeveloperDrawer isOpen={devOpen} onClose={() => setDevOpen(false)} />
 		</div>
 	);
+}
+
+// ==========================================
+// TYPES (shared between ChatView and sub-components)
+// ==========================================
+type StageType = "thinking" | "planning" | "reading" | "analyzing" | "writing" | "editing" | "command" | "tool" | "testing" | "validation" | "summary" | "response";
+
+interface Stage {
+	id: string;
+	type: StageType;
+	status: "pending" | "running" | "completed" | "failed";
+	label: string;
+	detail?: string;
+	content?: string;
+	filePath?: string;
+	exitCode?: number;
+	stderr?: string;
+	children?: Stage[];
+	error?: string;
+	expanded?: boolean;
+	progress?: string;
+}
+
+interface TaskData {
+	id: number;
+	startedAt: number;
+	stages: Stage[];
+	summary?: {
+		filesModified: number;
+		filesCreated: number;
+		commandsExecuted: number;
+		testsPassed: number;
+		durationMs: number;
+		totalCost: number;
+		totalTokens: number;
+		createdFiles: string[];
+		modifiedFiles: string[];
+		deletedFiles: string[];
+		completedWork: string[];
+	};
 }
 
 // ==========================================
@@ -620,80 +759,88 @@ function CheckpointDropdownComponent({ activeSessionId, checkpoints }: { activeS
 	);
 }
 
-function TimelineStep({ te, sessionId }: { te: any; sessionId: string | null }) {
-	const [isOpen, setIsOpen] = useState(false);
-	const [showDiff, setShowDiff] = useState(false);
+function formatToolInput(name: string, input: any): string {
+	if (!input) return "";
+	const n = (name || "").toLowerCase();
+	const filePath = input.filePath || input.path || input.TargetFile || input.AbsolutePath || "";
+	if (filePath) {
+		const parts = filePath.split(/[\\/]/);
+		return parts.pop() || filePath;
+	}
+	if (n.includes("bash") || n.includes("shell") || n.includes("exec")) {
+		const cmd = input.command || input.commands || "";
+		return typeof cmd === "string" ? cmd.slice(0, 100) : "";
+	}
+	return "";
+}
 
+function formatToolOutput(name: string, output: any): string {
+	if (!output) return "";
+	if (typeof output === "string") {
+		const lines = output.split("\n").filter(l => l.trim());
+		return lines.slice(0, 5).join("; ");
+	}
+	if (typeof output === "object") {
+		const text = output.output || output.result || output.message || output.text || "";
+		if (typeof text === "string") {
+			const lines = text.split("\n").filter(l => l.trim());
+			return lines.slice(0, 5).join("; ");
+		}
+	}
+	return "";
+}
+
+function getToolCallHeader(name: string, input: any): string {
+	const n = (name || "").toLowerCase();
+	const filePath = input?.filePath || input?.path || input?.TargetFile || input?.AbsolutePath || "";
+	const target = filePath ? filePath.split(/[\\/]/).pop() || filePath : "";
+
+	if (n.includes("write") || n === "write_file") return target ? `Writing file \`${target}\`` : "Writing file";
+	if (n.includes("edit") || n === "editor") return target ? `Editing file \`${target}\`` : "Editing file";
+	if (n.includes("create") || n.includes("create_file")) return target ? `Creating file \`${target}\`` : "Creating file";
+	if (n.includes("read") || n.includes("read_file")) return target ? `Reading file \`${target}\`` : "Reading file";
+	if (n.includes("search") || n === "grep") return "Searching workspace";
+	if (n === "glob") return "Searching files";
+	if (n.includes("replace")) return target ? `Replacing in \`${target}\`` : "Replacing content";
+	if (n.includes("patch") || n.includes("apply_patch")) return target ? `Applying patch to \`${target}\`` : "Applying patch";
+	if (n.includes("bash") || n.includes("shell") || n.includes("exec") || n === "run") {
+		const cmd = input?.command || input?.commands || "";
+		return `Running command \`${typeof cmd === "string" ? cmd.slice(0, 80) : ""}\``;
+	}
+	if (n.includes("delete") || n.includes("remove")) return target ? `Deleting \`${target}\`` : "Deleting file";
+	if (n.includes("move") || n.includes("rename")) return "Moving file";
+	if (n.includes("copy")) return "Copying file";
+	if (n.includes("test")) return "Running tests";
+	if (n.includes("think") || n.includes("reason")) return "Thinking";
+	if (n.includes("todowrite") || n.includes("todo")) return "Updating task list";
+	if (n.includes("plan_exit")) return "Completing plan";
+	if (n.includes("web") || n.includes("fetch") || n.includes("http")) return "Fetching web content";
+	return name || "Executing tool";
+}
+
+function TimelineStep({ te }: { te: any; sessionId: string | null }) {
 	const isCompleted = te.state === "completed" || te.state === "output-available";
 	const isFailed = te.state === "failed" || te.state === "output-error";
 	const isRunning = te.state === "running";
-
-	const name = te.name || "Tool";
-	
-	const getDiffDetails = () => {
-		if (!te.input) return null;
-		const input = te.input as any;
-		
-		const isWrite = name.includes("write") || name.includes("replace") || name.includes("edit") || name.includes("patch");
-		if (!isWrite) return null;
-		
-		const targetFile = input.TargetFile || input.AbsolutePath || input.path || "";
-		const content = input.CodeContent || input.ReplacementContent || input.content || "";
-		const targetContent = input.TargetContent || "";
-		
-		if (!targetFile) return null;
-		return { targetFile, content, targetContent };
-	};
-
-	const diffInfo = getDiffDetails();
+	const header = getToolCallHeader(te.name || "", te.input);
+	const detail = formatToolOutput(te.name || "", te.output);
 
 	return (
-		<div className={`timeline-step ${te.state} ${isOpen ? "open" : ""}`} role="listitem">
-			<div className="timeline-step-indicator">
-				{isCompleted ? "✓" : isFailed ? "✗" : isRunning ? "⟳" : "•"}
+		<div className={`tool-log-entry ${te.state}`}>
+			<div className="tool-log-line1">
+				<span className="tool-log-icon">
+					{isRunning ? "●" : isCompleted ? "✔" : "✖"}
+				</span>
+				<span className={`tool-log-action ${isRunning ? "pulsing" : ""}`}>
+					{header}
+				</span>
 			</div>
-			<div className="timeline-step-body">
-				<div className="timeline-step-title" onClick={() => setIsOpen(!isOpen)}>
-					<span>{name}</span>
-					<span className="timeline-step-expand-icon">▶</span>
-				</div>
-				{isOpen && (
-					<div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 4 }}>
-						{te.input && (
-							<div className="tool-details">
-								<strong>Arguments:</strong>
-								<pre style={{ margin: 0 }}>{JSON.stringify(te.input, null, 2)}</pre>
-							</div>
-						)}
-						{diffInfo && (
-							<div style={{ marginTop: 4 }}>
-								<button className="btn secondary sm" onClick={() => setShowDiff(!showDiff)}>
-									{showDiff ? "Hide File Preview" : "Show File Preview (Diff)"}
-								</button>
-								{showDiff && (
-									<FileDiffViewer 
-										filename={diffInfo.targetFile} 
-										targetContent={diffInfo.targetContent} 
-										replacementContent={diffInfo.content} 
-									/>
-								)}
-							</div>
-						)}
-						{te.output && (
-							<div className="tool-details">
-								<strong>Result:</strong>
-								<pre style={{ margin: 0 }}>{typeof te.output === "object" ? JSON.stringify(te.output, null, 2) : String(te.output)}</pre>
-							</div>
-						)}
-						{te.error && (
-							<div className="tool-details" style={{ color: "var(--error)" }}>
-								<strong>Error:</strong>
-								<div>{te.error}</div>
-							</div>
-						)}
-					</div>
-				)}
-			</div>
+			{isCompleted && detail && (
+				<div className="tool-log-result">{detail}</div>
+			)}
+			{isFailed && te.error && (
+				<div className="tool-log-result error">{te.error}</div>
+			)}
 		</div>
 	);
 }
@@ -935,58 +1082,131 @@ function ErrorRecoveryPanel({ error, onResolve }: { error: { toolName: string; m
 	);
 }
 
-function DeveloperDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-	const execution = useStore(ExecutionStore);
-	const session = useStore(SessionStore);
-	const timeline = useStore(TimelineStore);
+// ==========================================
+// EXECUTION TIMELINE COMPONENTS
+// ==========================================
 
-	const lastMessage = timeline.messages.filter(m => m.role === "user").pop();
-	const lastAssistant = timeline.messages.filter(m => m.role === "assistant").pop();
+function StageItem({ stage, icon }: { stage: Stage; icon: string }) {
+	const [expanded, setExpanded] = useState(stage.expanded || false);
+	const isRunning = stage.status === "running";
+	const isCompleted = stage.status === "completed";
+	const isFailed = stage.status === "failed";
+	const isPending = stage.status === "pending";
+	const isSummary = stage.type === "summary";
+
+	const toggle = () => setExpanded(!expanded);
 
 	return (
-		<div className={`dev-drawer-overlay ${isOpen ? "open" : ""}`}>
-			<div className="dev-drawer-header">
-				<h3>Developer Overlay</h3>
-				<button className="checkpoint-item-btn" onClick={onClose}>✕</button>
+		<div className={`stage-item ${stage.status} ${expanded ? "expanded" : ""} ${isSummary ? "stage-summary" : ""}`}>
+			<div className="stage-header" onClick={toggle}>
+				<span className="stage-icon">{isRunning ? "●" : isCompleted ? icon : isFailed ? "❌" : "○"}</span>
+				<span className={`stage-label ${isRunning ? "running" : ""}`}>
+					{stage.label}
+					{isRunning && <span className="stage-pulse-dot" />}
+				</span>
+				<span className="stage-expand">{expanded ? "▾" : "▸"}</span>
 			</div>
-			<div className="dev-drawer-content">
-				<div className="dev-inspect-section">
-					<span className="dev-inspect-title">System Metrics</span>
-					<div className="dev-inspect-box" style={{ fontSize: "0.75em" }}>
-						CWD: VS Code Workspace<br />
-						Session: {session.activeSessionId || "None"}<br />
-						Duration: {(execution.durationMs / 1000).toFixed(0)}s<br />
-						Input Tokens: {execution.inputTokens}<br />
-						Output Tokens: {execution.outputTokens}<br />
-						Total Cost: ${execution.totalCost.toFixed(4)}
-					</div>
+
+			{expanded && (
+				<div className="stage-body">
+					{/* Thinking content */}
+					{stage.type === "thinking" && stage.content && (
+						<div className="stage-content stage-thinking">{stage.content}</div>
+					)}
+
+					{/* Response content */}
+					{stage.type === "response" && stage.content && (
+						<div className="stage-content"><MarkdownBlock markdown={stage.content} /></div>
+					)}
+
+					{/* File path */}
+					{stage.filePath && !isSummary && (
+						<div className="stage-file-path">{stage.filePath}</div>
+					)}
+
+					{/* Command output */}
+					{stage.type === "command" && stage.detail && (
+						<div className="stage-command-output">{stage.detail}</div>
+					)}
+
+					{/* Error detail */}
+					{isFailed && stage.error && (
+						<div className="stage-error">{stage.error}</div>
+					)}
 				</div>
+			)}
+		</div>
+	);
+}
 
-				{lastMessage && (
-					<div className="dev-inspect-section">
-						<span className="dev-inspect-title">Last User Prompt</span>
-						<div className="dev-inspect-box">{lastMessage.text}</div>
-					</div>
-				)}
+function SummaryCard({ summary, taskId }: { summary: NonNullable<TaskData["summary"]>; taskId: number }) {
+	const [showChanges, setShowChanges] = useState(false);
 
-				{lastAssistant && lastAssistant.toolEvents && lastAssistant.toolEvents.length > 0 && (
-					<div className="dev-inspect-section">
-						<span className="dev-inspect-title">Tool JSON</span>
-						<div className="dev-inspect-box">
-							{JSON.stringify(lastAssistant.toolEvents.map(e => ({ name: e.name, input: e.input })), null, 2)}
-						</div>
-					</div>
-				)}
+	const durationStr = summary.durationMs >= 60000
+		? `${Math.floor(summary.durationMs / 60000)}m ${Math.floor((summary.durationMs % 60000) / 1000)}s`
+		: `${Math.floor(summary.durationMs / 1000)}s`;
 
-				<div className="dev-inspect-section">
-					<span className="dev-inspect-title">Architecture Suggestions</span>
-					<div className="dev-inspect-box" style={{ fontSize: "0.78em", color: "#34d399" }}>
-						• Evolve Zenuxs Crew nodes using Event Streams.<br />
-						• Auto-compact tokens under 60k for faster prompt processing.<br />
-						• Keep file versions as Git-stashes for zero data loss.
-					</div>
-				</div>
+	return (
+		<div className="summary-card">
+			<div className="summary-header">
+				<span className="summary-check">✅</span>
+				<span className="summary-title">Task #{taskId} Completed</span>
 			</div>
+
+			<div className="summary-stats">
+				<div className="summary-stat"><span>Files Created</span><span>{summary.filesCreated}</span></div>
+				<div className="summary-stat"><span>Files Modified</span><span>{summary.filesModified}</span></div>
+				<div className="summary-stat"><span>Commands Executed</span><span>{summary.commandsExecuted}</span></div>
+				<div className="summary-stat"><span>Duration</span><span>{durationStr}</span></div>
+				<div className="summary-stat"><span>Estimated Tokens</span><span>{(summary.totalTokens / 1000).toFixed(1)}k</span></div>
+				<div className="summary-stat"><span>Estimated Cost</span><span>${summary.totalCost.toFixed(4)}</span></div>
+			</div>
+
+			{(summary.createdFiles.length > 0 || summary.modifiedFiles.length > 0) && (
+				<>
+					<button className="summary-changes-btn" onClick={() => setShowChanges(!showChanges)}>
+						{showChanges ? "▾" : "▸"} View Changes
+					</button>
+					{showChanges && (
+						<ViewChangesPanel created={summary.createdFiles} modified={summary.modifiedFiles} deleted={summary.deletedFiles} />
+					)}
+				</>
+			)}
+		</div>
+	);
+}
+
+function ViewChangesPanel({ created, modified, deleted }: { created: string[]; modified: string[]; deleted: string[] }) {
+	const [expandedFile, setExpandedFile] = useState<string | null>(null);
+
+	const renderGroup = (label: string, files: string[], className: string) => {
+		if (files.length === 0) return null;
+		return (
+			<div className="changes-group">
+				<div className="changes-group-label">{label}</div>
+				{files.map(f => (
+					<div key={f} className="changes-file-row" onClick={() => setExpandedFile(expandedFile === f ? null : f)}>
+						<span className={`changes-file-icon ${className}`}>
+							{className === "created" ? "+" : className === "modified" ? "~" : "-"}
+						</span>
+						<span className="changes-file-path">{f}</span>
+						<span className="changes-expand">{expandedFile === f ? "▾" : "▸"}</span>
+						{expandedFile === f && (
+							<div className="changes-file-diff">
+								<div className="diff-line diff-line-added">+ (file created/modified)</div>
+							</div>
+						)}
+					</div>
+				))}
+			</div>
+		);
+	};
+
+	return (
+		<div className="view-changes-panel">
+			{renderGroup("Created", created, "created")}
+			{renderGroup("Modified", modified, "modified")}
+			{renderGroup("Deleted", deleted, "deleted")}
 		</div>
 	);
 }
@@ -994,9 +1214,12 @@ function DeveloperDrawer({ isOpen, onClose }: { isOpen: boolean; onClose: () => 
 function getProviderLabel(id: string): string {
 	const labels: Record<string, string> = {
 		cline: "Zenuxs", anthropic: "Anthropic", openrouter: "OpenRouter",
-		"openai-compatible": "OpenAI Compatible", gemini: "Gemini",
-		vertex: "Google Vertex AI", bedrock: "AWS Bedrock",
-		azure: "Azure OpenAI", sap: "SAP AI Core", oca: "OCA",
+		"openai-compatible": "OpenAI", gemini: "Gemini",
+		vertex: "Vertex AI", bedrock: "Bedrock",
+		azure: "Azure", sap: "SAP", oca: "OCA",
+		openai: "OpenAI", google: "Google", nvidia: "NVIDIA",
+		deepseek: "DeepSeek", mistral: "Mistral", together: "Together",
+		anthropic_claude: "Anthropic",
 	};
 	return labels[id] || id;
 }

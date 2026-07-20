@@ -12,19 +12,35 @@ function parseMarkdown(text: string): string {
 	let html = escapeHtml(text);
 
 	html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
-		const escaped = code.replace(/"/g, "&quot;");
-		return `<div class="code-block-wrapper"><div class="code-block-header"><span>${lang || "code"}</span><button class="btn sm secondary" onclick="navigator.clipboard.writeText(this.parentElement.nextElementSibling.textContent);this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1500)">Copy</button></div><pre class="code-block-content"><code>${code}</code></pre></div>`;
+		const label = lang || "code";
+		return `<div class="code-block-wrapper"><div class="code-block-header"><span class="code-lang-label">${label}</span><button class="code-copy-btn" onclick="navigator.clipboard.writeText(this.parentElement.nextElementSibling.textContent);this.textContent='Copied';setTimeout(()=>this.textContent='Copy',1200)">Copy</button></div><pre class="code-block-content"><code>${code}</code></pre></div>`;
 	});
 
+	html = html.replace(/^###### (.+)$/gm, "<h6>$1</h6>");
+	html = html.replace(/^##### (.+)$/gm, "<h5>$1</h5>");
+	html = html.replace(/^#### (.+)$/gm, "<h4>$1</h4>");
 	html = html.replace(/^### (.+)$/gm, "<h3>$1</h3>");
 	html = html.replace(/^## (.+)$/gm, "<h2>$1</h2>");
 	html = html.replace(/^# (.+)$/gm, "<h1>$1</h1>");
 
 	html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+	html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:4px;margin:6px 0;" />');
 
-	html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:4px;margin:8px 0;" />');
+	html = html.replace(/^- \[x\] (.+)$/gim, '<li><input type="checkbox" checked disabled> $1</li>');
+	html = html.replace(/^- \[ \] (.+)$/gim, '<li><input type="checkbox" disabled> $1</li>');
 
-	html = html.replace(/^> (.+)$/gm, "<blockquote>$1</blockquote>");
+	html = html.replace(/(?:^|\n)\|(.+)\|\n\|([-| :]+)\|\n((?:\|.+\|\n?)*)/g, (match) => {
+		const lines = match.trim().split("\n");
+		if (lines.length < 3) return match;
+		const headers = lines[0].split("|").filter(c => c.trim()).map(c => `<th>${c.trim()}</th>`).join("");
+		const rows = lines.slice(2).map(line => {
+			const cells = line.split("|").filter(c => c.trim()).map(c => `<td>${c.trim()}</td>`).join("");
+			return `<tr>${cells}</tr>`;
+		}).join("");
+		return `<table><thead><tr>${headers}</tr></thead><tbody>${rows}</tbody></table>`;
+	});
+
+	html = html.replace(/^> (.+)$/gm, "<blockquote><p>$1</p></blockquote>");
 
 	html = html.replace(/^\s*[-*]\s(.+)$/gm, "<li>$1</li>");
 	html = html.replace(/(<li>.*<\/li>\n?)+/g, "<ul>$&</ul>");
@@ -51,8 +67,8 @@ function parseMarkdown(text: string): string {
 	html = html.replace(/<li><p>/g, "<li>");
 	html = html.replace(/<\/p><\/li>/g, "</li>");
 
-	html = html.replace(/<br \/>\s*<(ul|ol|li|h[1-6]|blockquote|pre|div)/g, "<$1");
-	html = html.replace(/(<\/(ul|ol|h[1-6]|blockquote|pre|div)>)\s*<br \/>/g, "$1");
+	html = html.replace(/<br \/>\s*<(ul|ol|li|h[1-6]|blockquote|pre|div|table|thead|tbody|tr|th|td)/g, "<$1");
+	html = html.replace(/(<\/(ul|ol|li|h[1-6]|blockquote|pre|div|table|thead|tbody|tr|th|td)>)\s*<br \/>/g, "$1");
 
 	return html;
 }
