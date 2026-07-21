@@ -103,10 +103,11 @@ type WebviewInboundMessage =
 		sessionId: string;
 		title: string;
 	}
-	| {
+		| {
 		type: "restore_session";
 		sessionId: string;
 	}
+	| { type: "save_execution_data"; sessionId: string; tasks: any[] }
 	| {
 		type: "export_session";
 		sessionId: string;
@@ -269,8 +270,24 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	private developerPaused = false;
 	private developerUnsubscribe: (() => void) | undefined;
 	private restoredMessagesCache: any[] | undefined;
+	private executionDataStore: Record<string, any[]> = {};
 
-	constructor(private readonly extensionContext: vscode.ExtensionContext) {}
+	constructor(private readonly extensionContext: vscode.ExtensionContext) {
+		this.loadExecutionDataStore();
+	}
+
+	private loadExecutionDataStore(): void {
+		try {
+			const raw = this.extensionContext.globalState.get<string>("zenuxs-execution-data");
+			if (raw) this.executionDataStore = JSON.parse(raw);
+		} catch { this.executionDataStore = {}; }
+	}
+
+	private saveExecutionDataStore(): void {
+		try {
+			this.extensionContext.globalState.update("zenuxs-execution-data", JSON.stringify(this.executionDataStore));
+		} catch { /* best-effort */ }
+	}
 
 	resolveWebviewView(
 		webviewView: vscode.WebviewView,
@@ -480,6 +497,15 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				case "restore_session":
 					await this.handleRestoreSession(message.sessionId);
 					break;
+
+				case "save_execution_data": {
+					const msg = message as any;
+					if (msg.sessionId && Array.isArray(msg.tasks)) {
+						this.executionDataStore[msg.sessionId] = msg.tasks;
+						this.saveExecutionDataStore();
+					}
+					break;
+				}
 
 				case "export_session":
 					await this.handleExportSession(message.sessionId);
@@ -869,6 +895,8 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 			if (!deleted) {
 				vscode.window.showWarningMessage(`Zenuxs: Session not found or could not be deleted.`);
 			}
+			delete this.executionDataStore[sessionId];
+			this.saveExecutionDataStore();
 			if (this.activeSessionId === sessionId) {
 				await this.handleAbort();
 				this.restoredMessagesCache = undefined;
@@ -979,10 +1007,13 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 			};
 		});
 
+		const executionTasks = this.executionDataStore[sessionId] || undefined;
+
 		this.postToWebview({
 			type: "session_hydrated",
 			sessionId,
 			messages: uiMessages,
+			executionTasks,
 		});
 	}
 
@@ -1092,6 +1123,8 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 			for (const session of sessions) {
 				await core.delete(session.sessionId);
 			}
+			this.executionDataStore = {};
+			this.saveExecutionDataStore();
 			this.activeSessionId = undefined;
 			this.isRunning = false;
 			this.postToWebview({ type: "reset_done" });
@@ -1602,6 +1635,11 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 		this.isRunning = false;
 		this.abortController?.abort();
 		this.abortController = undefined;
+		this.postToWebview({
+			type: "turn_done",
+			finishReason: "aborted",
+			iterations: 0,
+		});
 	}
 
 	/**

@@ -192,7 +192,7 @@ export type ExtensionMessage =
 	| { type: "approval_resolved"; approvalId: string; approved: boolean; reason?: string }
 	| { type: "turn_done"; finishReason: string; iterations: number; usage?: UsageData }
 	| { type: "session_started"; sessionId: string }
-	| { type: "session_hydrated"; sessionId: string; messages: ChatMessage[] }
+	| { type: "session_hydrated"; sessionId: string; messages: ChatMessage[]; executionTasks?: PersistedTaskExecution[] }
 	| { type: "error"; text: string }
 	| { type: "status"; text: string }
 	| { type: "logs_stream"; text: string }
@@ -226,6 +226,7 @@ export type WebviewMessage =
 	| { type: "delete_session"; sessionId: string }
 	| { type: "rename_session"; sessionId: string; title: string }
 	| { type: "restore_session"; sessionId: string }
+	| { type: "save_execution_data"; sessionId: string; tasks: PersistedTaskExecution[] }
 	| { type: "export_session"; sessionId: string }
 	| { type: "import_session" }
 	| { type: "run_command"; command: string }
@@ -285,4 +286,123 @@ export interface AppState {
 	teamTasks: TeamTaskEntry[];
 	connectors: ConnectorStatus[];
 	autoApprovals: Record<ApprovalKey, boolean>;
+}
+
+export const SCHEMA_VERSION = "2.0";
+
+export type TaskFsmState = "idle" | "planning" | "building" | "testing" | "completed" | "cancelled" | "interrupted" | "failed";
+
+export type EventOrigin = "user" | "llm" | "filesystem" | "terminal" | "tool" | "provider";
+
+export interface EventSourceInfo {
+	store?: string;
+	provider?: string;
+	model?: string;
+	agent?: string;
+}
+
+export interface PlanningDetails {
+	requirements?: string[];
+	goal?: string;
+	approach?: string;
+	executionStrategy?: string[];
+	expectedChanges?: string[];
+	potentialRisks?: string[];
+	estimatedWork?: string;
+}
+
+export interface TestDetails {
+	name?: string;
+	status?: "running" | "passed" | "failed";
+	detail?: string;
+	durationMs?: number;
+}
+
+export interface TimelineEventMetadata {
+	cwd?: string;
+	command?: string;
+	arguments?: string[];
+	exitCode?: number;
+	stdout?: string;
+	stderr?: string;
+	retryCount?: number;
+	filePath?: string;
+	diff?: { targetContent?: string; replacementContent?: string };
+	planningDetails?: PlanningDetails;
+	testDetails?: TestDetails;
+}
+
+export interface TimelineEvent {
+	id: string;
+	sequence: number;
+	version: string;
+	timestamp: number;
+	startedAt: number;
+	finishedAt?: number;
+	duration?: number;
+	parentEventId?: string;
+	phase: "planning" | "building" | "testing";
+	eventType: "planning" | "reading" | "writing" | "editing" | "command" | "tool" | "testing" | "warning" | "error" | "completion" | "cancellation" | "interruption";
+	status: "pending" | "running" | "completed" | "failed" | "cancelled";
+	title: string;
+	description?: string;
+	origin: EventOrigin;
+	source?: EventSourceInfo;
+	metadata?: TimelineEventMetadata;
+}
+
+export interface TaskSummaryV2 {
+	overview: string;
+	purpose: string;
+	completedFeatures: string[];
+	warnings: string[];
+	errors: string[];
+	filesChanged: number;
+	commandsExecuted: number;
+	testsPassed: number;
+	durationMs: number;
+	tokensUsed: number;
+	cost: number;
+	provider?: string;
+	model?: string;
+	finalStatus: string;
+}
+
+export interface FileChangesV2 {
+	created: string[];
+	modified: string[];
+	deleted: string[];
+	renamed: Array<{ from: string; to: string }>;
+}
+
+export interface TaskDataV2 {
+	schemaVersion: string;
+	taskId: number;
+	title: string;
+	startedAt: number;
+	finishedAt?: number;
+	state: TaskFsmState;
+	liveStatus: string;
+	collapsed: boolean;
+	phaseExpanded: {
+		planning: boolean;
+		building: boolean;
+		testing: boolean;
+	};
+	events: TimelineEvent[];
+	summary?: TaskSummaryV2;
+	fileChanges?: FileChangesV2;
+	interrupted?: boolean;
+	interruptedReason?: string;
+}
+
+// Backward compatibility types
+export type TaskExecution = TaskDataV2;
+export type BuildStep = any;
+export type TestResult = any;
+export type TaskSummary = TaskSummaryV2;
+
+export interface PersistedTaskExecution extends TaskExecution {
+	interrupted?: boolean;
+	interruptedReason?: string;
 }

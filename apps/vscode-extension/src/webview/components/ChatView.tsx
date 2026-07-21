@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useExtensionState } from "../context/ExtensionStateContext.js";
 import { MarkdownBlock } from "./common/MarkdownBlock.js";
-import type { AgentMode } from "../types.js";
+import type { AgentMode, TaskDataV2, TaskFsmState, TimelineEvent, TaskSummaryV2, FileChangesV2, PersistedTaskExecution } from "../types.js";
+import { SCHEMA_VERSION } from "../types.js";
 import { postMessage } from "../vscode-api.js";
 import { 
 	useStore, 
@@ -110,9 +111,50 @@ export function ChatView() {
 		setShowModelMenu(false);
 	}, [state.currentConfig, saveSettings, dispatch]);
 
+	const [activeTask, setActiveTask] = useState<TaskDataV2 | null>(null);
+	const userScrolledUpRef = useRef(false);
+	const [showScrollBottomBtn, setShowScrollBottomBtn] = useState(false);
+	const activeSessionIdRef = useRef<string | null>(null);
+	const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+	// Debounced save of execution state to extension
+	const queueSaveExecutionData = useCallback(() => {
+		if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+		saveTimerRef.current = setTimeout(() => {
+			setActiveTask((currentTask: TaskDataV2 | null) => {
+				if (!currentTask || !activeSessionIdRef.current) return currentTask;
+				postMessage({
+					type: "save_execution_data",
+					sessionId: activeSessionIdRef.current,
+					tasks: [currentTask],
+				});
+				return currentTask;
+			});
+		}, 500);
+	}, []);
+
+	const handleScroll = useCallback(() => {
+		const container = messagesContainerRef.current;
+		if (!container) return;
+		const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+		const scrolledUp = distanceFromBottom > 120;
+		userScrolledUpRef.current = scrolledUp;
+		setShowScrollBottomBtn(scrolledUp);
+	}, []);
+
+	const scrollToBottom = useCallback(() => {
+		const container = messagesContainerRef.current;
+		if (!container) return;
+		container.scrollTop = container.scrollHeight;
+		userScrolledUpRef.current = false;
+		setShowScrollBottomBtn(false);
+	}, []);
+
 	useEffect(() => {
-		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-	}, [timelineState.messages]);
+		if (!userScrolledUpRef.current) {
+			scrollToBottom();
+		}
+	}, [timelineState.messages, activeTask, executionState.isRunning, scrollToBottom]);
 
 	useEffect(() => {
 		const textarea = inputRef.current;
@@ -197,6 +239,7 @@ export function ChatView() {
 
 		setInput("");
 		setAutocompleteVisible(false);
+		scrollToBottom();
 		sendMessage(trimmed, {
 			providerId: state.currentConfig.providerId,
 			modelId: state.currentConfig.modelId || undefined,
@@ -204,7 +247,7 @@ export function ChatView() {
 			reasoningEffort: state.currentConfig.reasoningEffort,
 			mode: state.currentConfig.mode,
 		});
-	}, [input, executionState.isRunning, state.currentConfig, sendMessage, dispatch]);
+	}, [input, executionState.isRunning, state.currentConfig, sendMessage, dispatch, scrollToBottom]);
 
 	const copyMessage = useCallback((text: string) => {
 		navigator.clipboard.writeText(text);
@@ -246,74 +289,102 @@ export function ChatView() {
 	const availableModels = state.models[providerId] || ["default"];
 
 	// ==========================================
-	// EXECUTION TIMELINE ENGINE
+	// TASK EXECUTION PANEL (3-Phase Model)
 	// ==========================================
-	const [activeTask, setActiveTask] = useState<TaskData | null>(null);
 	const taskIdRef = useRef(0);
-	const reasoningBufRef = useRef("");
-	const responseBufRef = useRef("");
-	const toolStagesRef = useRef<Map<string, number>>(new Map());
+	const planReasoningBuf = useRef("");
+	const buildStepMap = useRef<Map<string, number>>(new Map());
+	const hasSeenToolRef = useRef(false);
+	const hasSeenTestRef = useRef(false);
+
+	function newTaskExecution(id: number, promptText: string = ""): TaskDataV2 {
+		const now = Date.now();
+		return {
+			schemaVersion: SCHEMA_VERSION,
+			taskId: id,
+			title: promptText.trim().slice(0, 45) || `Task #${id}`,
+			startedAt: now,
+			state: "planning",
+			liveStatus: "Planning...",
+			collapsed: false,
+			phaseExpanded: { planning: true, building: true, testing: true },
+			events: [
+				{
+					id: `evt-${now}-1`,
+					sequence: 1,
+					version: SCHEMA_VERSION,
+					timestamp: now,
+					startedAt: now,
+					phase: "planning",
+					eventType: "planning",
+					status: "running",
+					title: "Analyzing prompt & requirements",
+					origin: "user",
+					metadata: {
+						planningDetails: {
+							goal: promptText,
+							approach: "Deconstruct goal, plan strategy, and execute building tasks",
+						}
+					}
+				}
+			]
+		};
+	}
 
 	useEffect(() => {
 		const unsubs: (() => void)[] = [];
 
-		unsubs.push(AgentEventBus.subscribe("user_message_sent", () => {
+		unsubs.push(AgentEventBus.subscribe("session_started", (data: any) => {
+			activeSessionIdRef.current = data.sessionId;
+			queueSaveExecutionData();
+		}));
+
+		unsubs.push(AgentEventBus.subscribe("session_hydrated", (data: any) => {
+			activeSessionIdRef.current = data.sessionId;
+			if (data.executionTasks && data.executionTasks.length > 0) {
+				const restored = data.executionTasks.map((t: TaskDataV2) => {
+					const task = { ...t };
+					if (task.state === "planning" || task.state === "building" || task.state === "testing") {
+						task.state = "interrupted";
+						task.liveStatus = "Interrupted";
+						task.interrupted = true;
+						task.interruptedReason = "VSCode Reloaded";
+					}
+					return task;
+				});
+				setActiveTask(restored[0]);
+				taskIdRef.current = restored[0]?.taskId || 0;
+			}
+			// Restore scroll position
+			requestAnimationFrame(() => {
+				const savedScroll = sessionStorage.getItem(`zenuxs-scroll-${data.sessionId}`);
+				if (savedScroll && messagesContainerRef.current) {
+					messagesContainerRef.current.scrollTop = parseInt(savedScroll, 10);
+				}
+			});
+		}));
+
+		unsubs.push(AgentEventBus.subscribe("user_message_sent", (data: any) => {
 			taskIdRef.current++;
-			reasoningBufRef.current = "";
-			responseBufRef.current = "";
-			toolStagesRef.current = new Map();
-			const task: TaskData = {
-				id: taskIdRef.current,
-				startedAt: Date.now(),
-				stages: [{
-					id: `stage-thinking-${taskIdRef.current}`,
-					type: "thinking",
-					status: "running",
-					label: "Thinking...",
-					expanded: true,
-				}],
-			};
-			setActiveTask(task);
+			planReasoningBuf.current = "";
+			buildStepMap.current = new Map();
+			hasSeenToolRef.current = false;
+			hasSeenTestRef.current = false;
+			setActiveTask(newTaskExecution(taskIdRef.current, data.text || ""));
 		}));
 
 		unsubs.push(AgentEventBus.subscribe("reasoning_delta", (data: { text: string }) => {
-			reasoningBufRef.current += data.text;
-			setActiveTask(prev => {
-				if (!prev) return prev;
-				const stages = [...prev.stages];
-				const ti = stages.findIndex(s => s.type === "thinking");
-				if (ti >= 0) {
-					stages[ti] = { ...stages[ti], content: reasoningBufRef.current, status: "running", label: "Thinking..." };
-				}
-				return { ...prev, stages };
+			planReasoningBuf.current += data.text;
+			setActiveTask((prev: TaskDataV2 | null) => {
+				if (!prev || prev.state !== "planning") return prev;
+				const events = prev.events.map((e: TimelineEvent) => e.phase === "planning" ? { ...e, title: planReasoningBuf.current.slice(0, 100) } : e);
+				return {
+					...prev,
+					liveStatus: "Planning...",
+					events,
+				};
 			});
-		}));
-
-		unsubs.push(AgentEventBus.subscribe("assistant_delta", (data: { text: string }) => {
-			responseBufRef.current += data.text;
-			const text = responseBufRef.current;
-			setActiveTask(prev => {
-				if (!prev) return prev;
-				const stages = [...prev.stages];
-				const ti = stages.findIndex(s => s.type === "thinking");
-				if (ti >= 0) {
-					stages[ti] = { ...stages[ti], status: "completed" };
-				}
-				const ri = stages.findIndex(s => s.type === "response");
-				if (ri >= 0) {
-					stages[ri] = { ...stages[ri], content: text };
-				} else {
-					stages.push({
-						id: `stage-response-${taskIdRef.current}`,
-						type: "response",
-						status: "running",
-						label: "Generating response...",
-						content: text,
-						expanded: true,
-					});
-				}
-				return { ...prev, stages };
-			});
+			queueSaveExecutionData();
 		}));
 
 		unsubs.push(AgentEventBus.subscribe("tool_event", (data: { text: string; event?: any }) => {
@@ -323,106 +394,155 @@ export function ChatView() {
 			const input = ev.input || {};
 			const filePath = normalizePath(input.filePath || input.path || input.TargetFile || input.AbsolutePath || "");
 			const cmd = input.command || input.commands || "";
+			const cwd = input.cwd || input.Cwd || "workspace";
 
-			setActiveTask(prev => {
+			let eventType: TimelineEvent["eventType"] = "tool";
+			let phase: TimelineEvent["phase"] = "building";
+			let title = "";
+
+			if (name.includes("read")) { eventType = "reading"; title = `Reading ${filePath || "file"}`; }
+			else if (name.includes("write") || name.includes("create")) { eventType = "writing"; title = `Writing ${filePath || "file"}`; }
+			else if (name.includes("edit") || name.includes("replace") || name.includes("patch")) { eventType = "editing"; title = `Editing ${filePath || "file"}`; }
+			else if (name.includes("bash") || name.includes("shell") || name.includes("exec") || name === "run") { eventType = "command"; title = `Executing Command`; }
+			else if (name.includes("test")) { eventType = "testing"; phase = "testing"; title = `Running test`; }
+			else { eventType = "tool"; title = ev.name || "Executing tool"; }
+
+			setActiveTask((prev: TaskDataV2 | null) => {
 				if (!prev) return prev;
-				const stages = [...prev.stages];
-				const existingIdx = toolStagesRef.current.get(ev.id || ev.name);
+				const events = [...prev.events];
+				const eventId = ev.id || `${name}-${events.length}`;
+				const existingIdx = events.findIndex((e: TimelineEvent) => e.id === eventId);
+				const now = Date.now();
 
 				if (ev.state === "running") {
-					let stageType: StageType = "tool";
-					let label = ev.name || "Executing tool";
-					if (name.includes("read")) { stageType = "reading"; label = filePath ? `Reading ${filePath}` : "Reading file"; }
-					else if (name.includes("write") || name.includes("create")) { stageType = "writing"; label = filePath ? `Writing ${filePath}` : "Writing file"; }
-					else if (name.includes("edit") || name.includes("replace") || name.includes("patch")) { stageType = "editing"; label = filePath ? `Editing ${filePath}` : "Editing file"; }
-					else if (name.includes("bash") || name.includes("shell") || name.includes("exec") || name === "run") { stageType = "command"; label = cmd ? `Running \`${cmd.slice(0, 60)}\`` : "Running command"; }
-					else if (name.includes("search") || name.includes("grep") || name.includes("glob") || name.includes("list_dir")) { stageType = "analyzing"; label = "Searching workspace"; }
-					else if (name.includes("test")) { stageType = "testing"; label = "Running tests"; }
-					else if (name.includes("think") || name.includes("reason")) { stageType = "thinking"; label = "Thinking"; }
-
-					if (existingIdx !== undefined) {
-						stages[existingIdx] = { ...stages[existingIdx], status: "running", label };
+					if (existingIdx !== -1) {
+						events[existingIdx] = { ...events[existingIdx], status: "running" };
 					} else {
-						const idx = stages.length;
-						toolStagesRef.current.set(ev.id || ev.name, idx);
-						stages.push({
-							id: `stage-${ev.id || ev.name}-${idx}`,
-							type: stageType,
+						events.push({
+							id: eventId,
+							sequence: events.length + 1,
+							version: SCHEMA_VERSION,
+							timestamp: now,
+							startedAt: now,
+							phase,
+							eventType,
 							status: "running",
-							label,
-							filePath,
-							detail: data.text || undefined,
-							expanded: true,
+							title,
+							origin: "tool",
+							metadata: {
+								cwd,
+								command: cmd || undefined,
+								filePath: filePath || undefined,
+								stdout: data.text,
+							}
 						});
 					}
 				} else if (ev.state === "completed" || ev.state === "output-available") {
-					if (existingIdx !== undefined && stages[existingIdx]) {
-						const s = stages[existingIdx];
+					if (existingIdx !== -1) {
 						const output = ev.output || {};
-						const resultText = typeof output === "string" ? output.slice(0, 120) : output.output || output.result || "";
-						stages[existingIdx] = { ...s, status: "completed", detail: resultText || s.detail, progress: undefined };
+						const outputText = typeof output === "string" ? output : output.output || output.result || "";
+						events[existingIdx] = {
+							...events[existingIdx],
+							status: "completed",
+							finishedAt: now,
+							duration: now - events[existingIdx].startedAt,
+							metadata: {
+								...events[existingIdx].metadata,
+								stdout: outputText || events[existingIdx].metadata?.stdout,
+							}
+						};
 					}
 				} else if (ev.state === "failed" || ev.state === "output-error") {
-					if (existingIdx !== undefined && stages[existingIdx]) {
-						stages[existingIdx] = { ...stages[existingIdx], status: "failed", error: ev.error || "Execution failed" };
+					if (existingIdx !== -1) {
+						events[existingIdx] = {
+							...events[existingIdx],
+							status: "failed",
+							finishedAt: now,
+							metadata: {
+								...events[existingIdx].metadata,
+								stderr: ev.error || "Failed",
+							}
+						};
 					}
 				}
-				return { ...prev, stages };
+
+				const nextState = phase === "testing" ? "testing" : "building";
+				return {
+					...prev,
+					state: nextState,
+					liveStatus: `${nextState.charAt(0).toUpperCase() + nextState.slice(1)}...`,
+					events,
+				};
 			});
+			queueSaveExecutionData();
 		}));
 
 		unsubs.push(AgentEventBus.subscribe("turn_done", (data: any) => {
-			setActiveTask(prev => {
+			setActiveTask((prev: TaskDataV2 | null) => {
 				if (!prev) return prev;
-				const stages = [...prev.stages];
-				const ri = stages.findIndex(s => s.type === "response" && s.status === "running");
-				if (ri >= 0) stages[ri] = { ...stages[ri], status: "completed" };
-				const ti = stages.findIndex(s => s.type === "thinking" && s.status === "running");
-				if (ti >= 0) stages[ti] = { ...stages[ti], status: "completed" };
-
 				const created: string[] = [];
 				const modified: string[] = [];
-				const deleted: string[] = [];
-				const completed: string[] = [];
-				let filesCreated = 0, filesModified = 0, commandsExecuted = 0;
+				let commandsExecuted = 0;
 
-				stages.forEach(s => {
-					if (s.type === "writing" && s.status === "completed" && s.filePath) { filesCreated++; created.push(s.filePath); completed.push(s.filePath); }
-					if (s.type === "editing" && s.status === "completed" && s.filePath) { filesModified++; modified.push(s.filePath); }
-					if (s.type === "command" && s.status === "completed") { commandsExecuted++; }
-				});
+				for (const evt of prev.events) {
+					if (evt.status !== "completed") continue;
+					if (evt.metadata?.filePath && (evt.eventType === "writing")) created.push(evt.metadata.filePath);
+					if (evt.metadata?.filePath && (evt.eventType === "editing")) modified.push(evt.metadata.filePath);
+					if (evt.eventType === "command") commandsExecuted++;
+				}
 
+				const isCancelled = data.finishReason === "aborted" || data.finishReason === "cancelled";
 				const durationMs = Date.now() - prev.startedAt;
-				stages.push({
-					id: `stage-summary-${taskIdRef.current}`,
-					type: "summary",
-					status: "completed",
-					label: "Task Completed",
-					expanded: true,
-					content: JSON.stringify({
-						filesModified, filesCreated, commandsExecuted, testsPassed: 0,
-						durationMs, totalCost: executionState.totalCost,
-						totalTokens: executionState.inputTokens + executionState.outputTokens,
-						createdFiles: created, modifiedFiles: modified, deletedFiles: deleted,
-						completedWork: completed,
-					}),
-				});
-				return { ...prev, stages, summary: {
-					filesModified, filesCreated, commandsExecuted, testsPassed: 0,
-					durationMs, totalCost: executionState.totalCost,
-					totalTokens: executionState.inputTokens + executionState.outputTokens,
-					createdFiles: created, modifiedFiles: modified, deletedFiles: deleted,
-					completedWork: completed,
-				}};
+				const finalState: TaskFsmState = isCancelled ? "cancelled" : "completed";
+
+				const updatedEvents = prev.events.map((e: TimelineEvent) => e.status === "running" ? { ...e, status: isCancelled ? ("cancelled" as const) : ("completed" as const), finishedAt: Date.now() } : e);
+
+				return {
+					...prev,
+					state: finalState,
+					liveStatus: isCancelled ? "Cancelled" : "Completed",
+					finishedAt: Date.now(),
+					events: updatedEvents,
+					summary: {
+						overview: isCancelled ? "Task cancelled by user" : "Task completed successfully",
+						purpose: prev.title,
+						completedFeatures: [prev.title],
+						warnings: [],
+						errors: [],
+						filesChanged: created.length + modified.length,
+						commandsExecuted,
+						testsPassed: updatedEvents.filter(e => e.phase === "testing" && e.status === "completed").length,
+						durationMs,
+						tokensUsed: executionState.inputTokens + executionState.outputTokens,
+						cost: executionState.totalCost,
+						finalStatus: isCancelled ? "Cancelled" : "Completed",
+					},
+					fileChanges: {
+						created,
+						modified,
+						deleted: [],
+						renamed: [],
+					}
+				};
 			});
+			setTimeout(() => queueSaveExecutionData(), 0);
+			if (activeSessionIdRef.current && messagesContainerRef.current) {
+				sessionStorage.setItem(
+					`zenuxs-scroll-${activeSessionIdRef.current}`,
+					String(messagesContainerRef.current.scrollTop)
+				);
+			}
 		}));
 
 		unsubs.push(AgentEventBus.subscribe("reset_done", () => {
+			// Save final state before clearing
+			setTimeout(() => queueSaveExecutionData(), 0);
 			setActiveTask(null);
 			taskIdRef.current = 0;
-			reasoningBufRef.current = "";
-			responseBufRef.current = "";
-			toolStagesRef.current = new Map();
+			planReasoningBuf.current = "";
+			buildStepMap.current = new Map();
+			hasSeenToolRef.current = false;
+			hasSeenTestRef.current = false;
 		}));
 
 		return () => unsubs.forEach(u => u());
@@ -440,21 +560,8 @@ export function ChatView() {
 		return parts.slice(-2).join("/") || p;
 	}
 
-	function getStageIcon(type: StageType): string {
-		switch (type) {
-			case "thinking": return "🟣";
-			case "planning": return "🟡";
-			case "reading": return "📄";
-			case "analyzing": return "🔍";
-			case "writing": return "✍️";
-			case "editing": return "📝";
-			case "command": return "💻";
-			case "testing": return "🧪";
-			case "validation": return "✔️";
-			case "tool": return "🔧";
-			case "summary": return "✅";
-			case "response": return "💬";
-		}
+	function getCollapsedStatusText(task: TaskDataV2): string {
+		return task.liveStatus;
 	}
 
 	const contextPercentage = Math.min(100, Math.max(0, (executionState.contextTokens / executionState.contextMaxTokens) * 100));
@@ -482,7 +589,8 @@ export function ChatView() {
 
 
 
-			<div className="messages-container" id="chat-messages" ref={messagesContainerRef} role="log" aria-label="Messages" aria-live="polite">
+			<div className="messages-container" id="chat-messages" ref={messagesContainerRef} onScroll={handleScroll} role="log" aria-label="Messages" aria-live="polite">
+				{activeTask && <StickyActivityBar task={activeTask} />}
 				{!activeTask && timelineState.messages.length === 0 && !executionState.isRunning && (
 					<div className="welcome-placeholder">
 						{(window as any).logoUri ? (
@@ -515,13 +623,16 @@ export function ChatView() {
 				)}
 
 				{/* Chat Messages */}
-				{timelineState.messages.length > 0 && !activeTask && (
+				{timelineState.messages.length > 0 && (
 					<div className="chat-messages-list">
 						{timelineState.messages.map((msg, idx) => {
 							const isUser = msg.role === "user";
 							const isAssistant = msg.role === "assistant";
 							const isError = msg.role === "error";
 							const isEditing = editingIndex === idx;
+							const isLastMessage = idx === timelineState.messages.length - 1;
+							const isStreamingThis = isAssistant && isLastMessage && executionState.isRunning;
+
 							return (
 								<div key={idx} className={`message ${isUser ? "user" : isAssistant ? "assistant" : isError ? "error" : ""}`}>
 									<div className="message-header">
@@ -551,10 +662,11 @@ export function ChatView() {
 										<>
 											<div className="message-text">
 												<MarkdownBlock markdown={msg.text} />
+												{isStreamingThis && <span className="streaming-cursor" aria-hidden="true" />}
 											</div>
 											{(msg as any).reasoning ? (
 												<div className="reasoning-block">
-													<div className="reasoning-header" onClick={(e) => { const el = e.currentTarget.nextElementSibling; if (el) el.style.display = el.style.display === "none" ? "block" : "none"; }}>
+													<div className="reasoning-header" onClick={(e) => { const el = e.currentTarget.nextElementSibling as HTMLElement | null; if (el) el.style.display = el.style.display === "none" ? "block" : "none"; }}>
 														<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
 														Reasoning
 													</div>
@@ -569,36 +681,14 @@ export function ChatView() {
 					</div>
 				)}
 
-				{/* EXECUTION TIMELINE */}
+				{/* TASK EXECUTION PANEL */}
 				{activeTask && (
-					<div className="timeline-container">
-						{/* Task Header */}
-						<div className="task-header">
-							<span className="task-number">Task #{activeTask.id}</span>
-							<span className="task-status-badge running">In Progress</span>
-						</div>
-
-						{/* Timeline Stages */}
-						<div className="timeline-stages">
-							{activeTask.stages.map(stage => (
-								<StageItem key={stage.id} stage={stage} icon={getStageIcon(stage.type)} />
-							))}
-						</div>
-
-						{/* Summary Card */}
-						{activeTask.summary && (
-							<SummaryCard summary={activeTask.summary} taskId={activeTask.id} />
-						)}
-
-						{/* Start New Task button */}
-						{activeTask.summary && (
-							<button className="start-new-task-btn" onClick={() => {
-								dispatch({ type: "RESET_SESSION" });
-							}}>
-								+ Start New Task
-							</button>
-						)}
-					</div>
+					<TaskExecutionPanel
+						task={activeTask}
+						onToggleCollapse={() => setActiveTask(prev => prev ? { ...prev, collapsed: !prev.collapsed } : prev)}
+						onStop={abort}
+						onNewTask={() => dispatch({ type: "RESET_SESSION" })}
+					/>
 				)}
 
 				{/* Approval & Error panels — always visible */}
@@ -613,6 +703,12 @@ export function ChatView() {
 						error={toolExecutionState.lastToolError} 
 						onResolve={() => ToolExecutionStore.clearToolError()} 
 					/>
+				)}
+
+				{showScrollBottomBtn && (
+					<button className="scroll-to-bottom-btn" onClick={() => scrollToBottom()} title="Scroll to bottom" aria-label="Scroll to bottom">
+						↓ Scroll to bottom
+					</button>
 				)}
 
 				<div ref={messagesEndRef} />
@@ -1158,55 +1254,99 @@ function ErrorRecoveryPanel({ error, onResolve }: { error: { toolName: string; m
 }
 
 // ==========================================
-// EXECUTION TIMELINE COMPONENTS
+// TASK EXECUTION PANEL (FSM + Component Architecture)
 // ==========================================
 
-function StageItem({ stage, icon }: { stage: Stage; icon: string }) {
-	const [expanded, setExpanded] = useState(stage.expanded || false);
-	const isRunning = stage.status === "running";
-	const isCompleted = stage.status === "completed";
-	const isFailed = stage.status === "failed";
-	const isPending = stage.status === "pending";
-	const isSummary = stage.type === "summary";
+function StickyActivityBar({ task }: { task: TaskDataV2 }) {
+	if (task.state === "completed" || task.state === "cancelled" || task.state === "interrupted") return null;
+	const runningEvt = [...task.events].reverse().find(e => e.status === "running");
+	return (
+		<div className="sticky-activity-bar">
+			<div className="sticky-activity-title">
+				<span className="dot-pulse" />
+				<span>{runningEvt ? runningEvt.title : `${task.state}...`}</span>
+			</div>
+			<span style={{ fontSize: "0.78em", color: "var(--muted)" }}>Task #{task.taskId}</span>
+		</div>
+	);
+}
 
-	const toggle = () => setExpanded(!expanded);
+function TaskExecutionPanel({ task, onToggleCollapse, onStop, onNewTask }: {
+	task: TaskDataV2;
+	onToggleCollapse: () => void;
+	onStop: () => void;
+	onNewTask: () => void;
+}) {
+	const isCompleted = task.state === "completed";
+	const isCancelled = task.state === "cancelled";
+	const isInterrupted = task.state === "interrupted";
+	const isRunning = task.state === "planning" || task.state === "building" || task.state === "testing";
+
+	const [expandedPhases, setExpandedPhases] = useState({
+		planning: task.phaseExpanded?.planning ?? true,
+		building: task.phaseExpanded?.building ?? true,
+		testing: task.phaseExpanded?.testing ?? true,
+	});
+
+	const togglePhase = (phase: "planning" | "building" | "testing") => {
+		setExpandedPhases(prev => ({ ...prev, [phase]: !prev[phase] }));
+	};
 
 	return (
-		<div className={`stage-item ${stage.status} ${expanded ? "expanded" : ""} ${isSummary ? "stage-summary" : ""}`}>
-			<div className="stage-header" onClick={toggle}>
-				<span className="stage-icon">{isRunning ? "●" : isCompleted ? icon : isFailed ? "❌" : "○"}</span>
-				<span className={`stage-label ${isRunning ? "running" : ""}`}>
-					{stage.label}
-					{isRunning && <span className="stage-pulse-dot" />}
-				</span>
-				<span className="stage-expand">{expanded ? "▾" : "▸"}</span>
-			</div>
+		<div className={`exec-panel ${task.collapsed ? "collapsed" : ""} ${task.state}`}>
+			<TaskHeader task={task} onToggleCollapse={onToggleCollapse} onStop={onStop} />
 
-			{expanded && (
-				<div className="stage-body">
-					{/* Thinking content */}
-					{stage.type === "thinking" && stage.content && (
-						<div className="stage-content stage-thinking">{stage.content}</div>
+			{!task.collapsed && (
+				<div className="exec-body">
+					{/* 1. PLANNING PANEL */}
+					<PlanningPanel
+						events={task.events}
+						expanded={expandedPhases.planning}
+						onToggle={() => togglePhase("planning")}
+					/>
+
+					{/* 2. BUILDING PANEL */}
+					<BuildingPanel
+						events={task.events}
+						expanded={expandedPhases.building}
+						onToggle={() => togglePhase("building")}
+					/>
+
+					{/* 3. TESTING PANEL */}
+					<TestingPanel
+						events={task.events}
+						expanded={expandedPhases.testing}
+						onToggle={() => togglePhase("testing")}
+					/>
+
+					{/* SUMMARY CARD */}
+					{task.summary && (
+						<SummaryCard summary={task.summary} taskId={task.taskId} />
 					)}
 
-					{/* Response content */}
-					{stage.type === "response" && stage.content && (
-						<div className="stage-content"><MarkdownBlock markdown={stage.content} /></div>
+					{/* VIEW CHANGES */}
+					{task.fileChanges && (
+						<ViewChangesPanel fileChanges={task.fileChanges} />
 					)}
 
-					{/* File path */}
-					{stage.filePath && !isSummary && (
-						<div className="stage-file-path">{stage.filePath}</div>
+					{/* CANCELLED / INTERRUPTED BLOCK */}
+					{(isCancelled || isInterrupted) && (
+						<div className="exec-cancelled-block">
+							{isInterrupted ? (
+								<>
+									<div className="cancelled-title">⚠ Task Interrupted</div>
+									<div className="cancelled-before">{task.interruptedReason || "VSCode Reloaded"}</div>
+								</>
+							) : (
+								<div className="cancelled-title">Task Cancelled</div>
+							)}
+							<button className="exec-new-task-btn" onClick={onNewTask}>Start New Task</button>
+						</div>
 					)}
 
-					{/* Command output */}
-					{stage.type === "command" && stage.detail && (
-						<div className="stage-command-output">{stage.detail}</div>
-					)}
-
-					{/* Error detail */}
-					{isFailed && stage.error && (
-						<div className="stage-error">{stage.error}</div>
+					{/* COMPLETED BLOCK */}
+					{isCompleted && (
+						<button className="exec-new-task-btn" onClick={onNewTask}>Start New Task</button>
 					)}
 				</div>
 			)}
@@ -1214,76 +1354,243 @@ function StageItem({ stage, icon }: { stage: Stage; icon: string }) {
 	);
 }
 
-function SummaryCard({ summary, taskId }: { summary: NonNullable<TaskData["summary"]>; taskId: number }) {
-	const [showChanges, setShowChanges] = useState(false);
-
-	const durationStr = summary.durationMs >= 60000
-		? `${Math.floor(summary.durationMs / 60000)}m ${Math.floor((summary.durationMs % 60000) / 1000)}s`
-		: `${Math.floor(summary.durationMs / 1000)}s`;
+function TaskHeader({ task, onToggleCollapse, onStop }: { task: TaskDataV2; onToggleCollapse: () => void; onStop: () => void }) {
+	const isRunning = task.state === "planning" || task.state === "building" || task.state === "testing";
+	const completedEventsCount = task.events.filter(e => e.status === "completed").length;
+	const totalEventsCount = task.events.length;
+	const startTimeStr = new Date(task.startedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
 	return (
-		<div className="summary-card">
-			<div className="summary-header">
-				<span className="summary-check">✅</span>
-				<span className="summary-title">Task #{taskId} Completed</span>
-			</div>
-
-			<div className="summary-stats">
-				<div className="summary-stat"><span>Files Created</span><span>{summary.filesCreated}</span></div>
-				<div className="summary-stat"><span>Files Modified</span><span>{summary.filesModified}</span></div>
-				<div className="summary-stat"><span>Commands Executed</span><span>{summary.commandsExecuted}</span></div>
-				<div className="summary-stat"><span>Duration</span><span>{durationStr}</span></div>
-				<div className="summary-stat"><span>Estimated Tokens</span><span>{(summary.totalTokens / 1000).toFixed(1)}k</span></div>
-				<div className="summary-stat"><span>Estimated Cost</span><span>${summary.totalCost.toFixed(4)}</span></div>
-			</div>
-
-			{(summary.createdFiles.length > 0 || summary.modifiedFiles.length > 0) && (
-				<>
-					<button className="summary-changes-btn" onClick={() => setShowChanges(!showChanges)}>
-						{showChanges ? "▾" : "▸"} View Changes
-					</button>
-					{showChanges && (
-						<ViewChangesPanel created={summary.createdFiles} modified={summary.modifiedFiles} deleted={summary.deletedFiles} />
-					)}
-				</>
+		<div className="exec-header" onClick={onToggleCollapse}>
+			<span className="exec-toggle">{task.collapsed ? "▶" : "▼"}</span>
+			<span className="exec-task-id">Task #{task.taskId} • {task.title}</span>
+			{task.collapsed && (
+				<span className="exec-live-status">
+					{task.state === "planning" && <AnimatedDots text="Planning" />}
+					{task.state === "building" && <span style={{ color: "#fff" }}>Building • {completedEventsCount} / {totalEventsCount}</span>}
+					{task.state === "testing" && <AnimatedDots text="Testing" />}
+					{task.state === "completed" && <span className="exec-status-done">Completed ✓</span>}
+					{task.state === "cancelled" && <span className="exec-status-cancelled">Cancelled</span>}
+					{task.state === "interrupted" && <span className="exec-status-interrupted">⚠ Interrupted</span>}
+				</span>
+			)}
+			{isRunning && (
+				<button className="exec-stop-btn" onClick={(e) => { e.stopPropagation(); onStop(); }} title="Stop execution" type="button">
+					🛑 Stop
+				</button>
 			)}
 		</div>
 	);
 }
 
-function ViewChangesPanel({ created, modified, deleted }: { created: string[]; modified: string[]; deleted: string[] }) {
+function PlanningPanel({ events, expanded, onToggle }: { events: TimelineEvent[]; expanded: boolean; onToggle: () => void }) {
+	const planningEvents = events.filter(e => e.phase === "planning");
+	const isDone = planningEvents.some(e => e.status === "completed") || events.some(e => e.phase === "building" || e.phase === "testing");
+	const isRunning = !isDone && planningEvents.some(e => e.status === "running");
+
+	return (
+		<div className={`phase-section ${isRunning ? "running" : isDone ? "completed" : "pending"}`}>
+			<div className="phase-header" onClick={onToggle}>
+				<span className="phase-icon">{isRunning ? <span className="dot-pulse" /> : isDone ? "✓" : "○"}</span>
+				<span className={`phase-label ${isRunning ? "running thinking-text-shimmer" : isDone ? "done" : "pending"}`}>
+					{isRunning ? "Planning..." : isDone ? "Planning ✓" : "Planning"}
+				</span>
+				<span className="phase-expand">{expanded ? "▾" : "▸"}</span>
+			</div>
+			{expanded && (
+				<div className="phase-body">
+					{planningEvents.map(evt => (
+						<div key={evt.id} style={{ display: "flex", flexDirection: "column", gap: 4, margin: "2px 0" }}>
+							{evt.metadata?.planningDetails?.goal && (
+								<div style={{ fontSize: "0.82em", color: "#fff" }}><strong>Goal:</strong> {evt.metadata.planningDetails.goal}</div>
+							)}
+							{evt.metadata?.planningDetails?.approach && (
+								<div style={{ fontSize: "0.82em", color: "var(--muted)" }}><strong>Approach:</strong> {evt.metadata.planningDetails.approach}</div>
+							)}
+							<div className="phase-reasoning">{evt.title}</div>
+						</div>
+					))}
+				</div>
+			)}
+		</div>
+	);
+}
+
+function BuildingPanel({ events, expanded, onToggle }: { events: TimelineEvent[]; expanded: boolean; onToggle: () => void }) {
+	const buildingEvents = events.filter(e => e.phase === "building");
+	const completedCount = buildingEvents.filter(e => e.status === "completed").length;
+	const totalCount = buildingEvents.length;
+	const isDone = buildingEvents.length > 0 && buildingEvents.every(e => e.status === "completed" || e.status === "failed");
+	const isRunning = buildingEvents.some(e => e.status === "running");
+
+	return (
+		<div className={`phase-section ${isRunning ? "running" : isDone ? "completed" : "pending"}`}>
+			<div className="phase-header" onClick={onToggle}>
+				<span className="phase-icon">{isRunning ? <span className="dot-pulse" /> : isDone ? "✓" : "○"}</span>
+				<span className={`phase-label ${isRunning ? "running thinking-text-shimmer" : isDone ? "done" : "pending"}`}>
+					Building {totalCount > 0 ? `• ${completedCount} / ${totalCount}` : ""}
+				</span>
+				<span className="phase-expand">{expanded ? "▾" : "▸"}</span>
+			</div>
+			{expanded && (
+				<div className="phase-body">
+					<div className="vertical-timeline">
+						{buildingEvents.map(evt => (
+							<TimelineEventRow key={evt.id} event={evt} />
+						))}
+					</div>
+				</div>
+			)}
+		</div>
+	);
+}
+
+function TimelineEventRow({ event }: { event: TimelineEvent }) {
+	const isCommand = event.eventType === "command";
+	return (
+		<div className={`vertical-timeline-item ${event.status}`}>
+			<div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
+				<span style={{ fontSize: "0.82em", color: event.status === "failed" ? "var(--error)" : "#fff", fontWeight: 500 }}>
+					{event.title}
+				</span>
+				{event.metadata?.filePath && (
+					<span className="step-path">{event.metadata.filePath}</span>
+				)}
+			</div>
+			{isCommand && (
+				<CommandCard metadata={event.metadata} status={event.status} durationMs={event.duration} />
+			)}
+		</div>
+	);
+}
+
+function CommandCard({ metadata, status, durationMs }: { metadata?: TimelineEvent["metadata"]; status: string; durationMs?: number }) {
+	if (!metadata) return null;
+	const durationStr = durationMs ? `${(durationMs / 1000).toFixed(1)}s` : undefined;
+	return (
+		<div className="command-card">
+			<div className="command-card-header">
+				<span className="command-card-cwd">📂 {metadata.cwd || "."}</span>
+				{durationStr && <span>⏱ {durationStr}</span>}
+				{metadata.exitCode !== undefined && <span>Exit: {metadata.exitCode}</span>}
+			</div>
+			{metadata.command && (
+				<div className="command-card-cmd">$ {metadata.command}</div>
+			)}
+			{metadata.stdout && (
+				<div className="command-card-stream">{metadata.stdout}</div>
+			)}
+			{metadata.stderr && (
+				<div className="command-card-stderr">ERR: {metadata.stderr}</div>
+			)}
+		</div>
+	);
+}
+
+function TestingPanel({ events, expanded, onToggle }: { events: TimelineEvent[]; expanded: boolean; onToggle: () => void }) {
+	const testEvents = events.filter(e => e.phase === "testing" || e.eventType === "testing");
+	const isDone = testEvents.length > 0 && testEvents.every(e => e.status === "completed" || e.status === "failed");
+	const isRunning = testEvents.some(e => e.status === "running");
+
+	return (
+		<div className={`phase-section ${isRunning ? "running" : isDone ? "completed" : "pending"}`}>
+			<div className="phase-header" onClick={onToggle}>
+				<span className="phase-icon">{isRunning ? <span className="dot-pulse" /> : isDone ? "✓" : "○"}</span>
+				<span className={`phase-label ${isRunning ? "running thinking-text-shimmer" : isDone ? "done" : "pending"}`}>
+					Testing {testEvents.length > 0 ? `(${testEvents.filter(e=>e.status==="completed").length}/${testEvents.length})` : ""}
+				</span>
+				<span className="phase-expand">{expanded ? "▾" : "▸"}</span>
+			</div>
+			{expanded && (
+				<div className="phase-body">
+					{testEvents.length > 0 ? (
+						<div className="test-results">
+							{testEvents.map(t => (
+								<div key={t.id} className={`test-row ${t.status}`}>
+									<span className="test-icon">{t.status === "running" ? <span className="dot-pulse" /> : t.status === "completed" ? "✓" : "✗"}</span>
+									<span className="test-name">{t.title}</span>
+									{t.description && <span className="test-detail">{t.description}</span>}
+								</div>
+							))}
+						</div>
+					) : (
+						<div className="phase-pending-row"><span className="phase-pending-dot">○</span> No active tests</div>
+					)}
+				</div>
+			)}
+		</div>
+	);
+}
+
+function SummaryCard({ summary, taskId }: { summary: TaskSummaryV2; taskId: number }) {
+	const durationStr = summary.durationMs >= 60000
+		? `${Math.floor(summary.durationMs / 60000)}m ${Math.floor((summary.durationMs % 60000) / 1000)}s`
+		: `${Math.floor(summary.durationMs / 1000)}s`;
+
+	return (
+		<div className="exec-summary">
+			<div className="summary-title-row">
+				<span className="summary-check">✓</span>
+				<span className="summary-title-text">Task #{taskId} Completed</span>
+			</div>
+			<div className="summary-stats">
+				<div className="summary-stat"><span>Files Changed</span><span>{summary.filesChanged}</span></div>
+				<div className="summary-stat"><span>Commands Executed</span><span>{summary.commandsExecuted}</span></div>
+				<div className="summary-stat"><span>Tests Passed</span><span>{summary.testsPassed}</span></div>
+				<div className="summary-stat"><span>Duration</span><span>{durationStr}</span></div>
+				<div className="summary-stat"><span>Tokens</span><span>{(summary.tokensUsed / 1000).toFixed(1)}k</span></div>
+				<div className="summary-stat"><span>Cost</span><span>${summary.cost.toFixed(4)}</span></div>
+			</div>
+		</div>
+	);
+}
+
+function ViewChangesPanel({ fileChanges }: { fileChanges: FileChangesV2 }) {
+	const [showChanges, setShowChanges] = useState(false);
 	const [expandedFile, setExpandedFile] = useState<string | null>(null);
 
-	const renderGroup = (label: string, files: string[], className: string) => {
+	const renderGroup = (label: string, files: string[], icon: string, cls: string) => {
 		if (files.length === 0) return null;
 		return (
 			<div className="changes-group">
 				<div className="changes-group-label">{label}</div>
 				{files.map(f => (
 					<div key={f} className="changes-file-row" onClick={() => setExpandedFile(expandedFile === f ? null : f)}>
-						<span className={`changes-file-icon ${className}`}>
-							{className === "created" ? "+" : className === "modified" ? "~" : "-"}
-						</span>
+						<span className={`changes-file-icon ${cls}`}>{icon}</span>
 						<span className="changes-file-path">{f}</span>
 						<span className="changes-expand">{expandedFile === f ? "▾" : "▸"}</span>
-						{expandedFile === f && (
-							<div className="changes-file-diff">
-								<div className="diff-line diff-line-added">+ (file created/modified)</div>
-							</div>
-						)}
 					</div>
 				))}
 			</div>
 		);
 	};
 
+	const hasFiles = fileChanges.created.length > 0 || fileChanges.modified.length > 0 || fileChanges.deleted.length > 0;
+	if (!hasFiles) return null;
+
 	return (
-		<div className="view-changes-panel">
-			{renderGroup("Created", created, "created")}
-			{renderGroup("Modified", modified, "modified")}
-			{renderGroup("Deleted", deleted, "deleted")}
+		<div className="exec-summary" style={{ marginTop: 4 }}>
+			<button className="summary-changes-btn" onClick={() => setShowChanges(!showChanges)}>
+				{showChanges ? "▾" : "▸"} View Changes
+			</button>
+			{showChanges && (
+				<div className="view-changes-panel">
+					{renderGroup("Created", fileChanges.created, "+", "created")}
+					{renderGroup("Modified", fileChanges.modified, "~", "modified")}
+					{renderGroup("Deleted", fileChanges.deleted, "-", "deleted")}
+				</div>
+			)}
 		</div>
 	);
+}
+
+function AnimatedDots({ text }: { text: string }) {
+	const [dots, setDots] = useState(0);
+	useEffect(() => {
+		const interval = setInterval(() => setDots(d => (d + 1) % 4), 450);
+		return () => clearInterval(interval);
+	}, []);
+	return <>{text}{".".repeat(dots)}</>;
 }
 
 function getProviderLabel(id: string): string {

@@ -1,7 +1,18 @@
 export function MarkdownBlock({ markdown }: { markdown?: string }) {
 	if (!markdown) return null;
-	const html = parseMarkdown(markdown);
+	const safeText = prepareStreamingMarkdown(markdown);
+	const html = parseMarkdown(safeText);
 	return <div className="markdown-body" dangerouslySetInnerHTML={{ __html: html }} />;
+}
+
+function prepareStreamingMarkdown(rawText: string): string {
+	let text = rawText;
+	// Auto-close unclosed code block fences during token streaming to prevent layout shifts
+	const fenceMatches = text.match(/```/g);
+	if (fenceMatches && fenceMatches.length % 2 !== 0) {
+		text += "\n```";
+	}
+	return text;
 }
 
 function escapeHtml(text: string): string {
@@ -39,6 +50,11 @@ function parseMarkdown(text: string): string {
 		}).join("");
 		return `<table><thead><tr>${headers}</tr></thead><tbody>${rows}</tbody></table>`;
 	});
+
+	// GitHub-style callouts
+	html = html.replace(/^> \[\!NOTE\]\s*(.+)$/gim, '<blockquote class="alert-note"><p><strong>NOTE:</strong> $1</p></blockquote>');
+	html = html.replace(/^> \[\!WARNING\]\s*(.+)$/gim, '<blockquote class="alert-warning"><p><strong>WARNING:</strong> $1</p></blockquote>');
+	html = html.replace(/^> \[\!TIP\]\s*(.+)$/gim, '<blockquote class="alert-tip"><p><strong>TIP:</strong> $1</p></blockquote>');
 
 	html = html.replace(/^> (.+)$/gm, "<blockquote><p>$1</p></blockquote>");
 

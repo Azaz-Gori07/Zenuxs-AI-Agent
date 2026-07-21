@@ -266,7 +266,7 @@ export function ExtensionStateProvider({ children }: { children: ReactNode }) {
 
 	const actions = {
 		sendMessage: (prompt: string, config?: Record<string, unknown>) => { dispatch({ type: "ADD_USER_MESSAGE", text: prompt }); AgentEventBus.publish("user_message_sent", { text: prompt }); postMessage({ type: "send", prompt, config }); },
-		abort: () => { dispatch({ type: "SET_RUNNING", isRunning: false }); postMessage({ type: "abort" }); },
+		abort: () => { dispatch({ type: "SET_RUNNING", isRunning: false }); AgentEventBus.publish("turn_done", { finishReason: "aborted" }); postMessage({ type: "abort" }); },
 		newSession: () => { dispatch({ type: "RESET_SESSION" }); postMessage({ type: "new_session" }); },
 		saveSettings: (settings: Parameters<ExtensionStateContextValue["saveSettings"]>[0]) => { dispatch({ type: "UPDATE_CONFIG", config: settings as any }); postMessage({ type: "save_settings", ...settings }); },
 		toggleItem: (itemType: string, id: string | undefined, name: string | undefined, path: string | undefined, enabled: boolean) => postMessage({ type: "toggle_setting_item", itemType, id, name, path, enabled }),
