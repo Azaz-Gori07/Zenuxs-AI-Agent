@@ -113,8 +113,9 @@ const TOOL_ALIASES: Record<string, string[]> = {
 	cmd: ["run_commands", "bash", "shell"],
 	webfetch: ["fetch_web_content"],
 	fetch_web_content: ["webfetch"],
-	todowrite: ["todo_write"],
-	todo_write: ["todowrite"],
+	todowrite: ["todo_write", "todoedit"],
+	todo_write: ["todowrite", "todoedit"],
+	todoedit: ["todowrite", "todo_write"],
 	websearch: ["web_search"],
 	web_search: ["websearch"],
 };
@@ -1397,6 +1398,7 @@ export class AgentRuntime {
 
 		const results: AgentMessage[] = [];
 		for (const execution of prepared) {
+			this.throwIfAborted();
 			results.push(await this.executePreparedTool(execution));
 		}
 		profiler.end(_profId);
@@ -2000,6 +2002,7 @@ export class AgentRuntime {
 		let lastErrorText: string | undefined;
 
 		for (let attempt = 0; attempt < 2; attempt += 1) {
+			this.throwIfAborted();
 			try {
 				if (current.skipReason) {
 					throw new Error(current.skipReason);

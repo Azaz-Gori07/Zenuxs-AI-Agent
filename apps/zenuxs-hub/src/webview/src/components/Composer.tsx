@@ -307,7 +307,8 @@ export function Composer({
 	mode,
 	modelSelectorOpen,
 	models,
-	onAbort,
+	onStop,
+	onNewTask,
 	onAutoApproveToolsChange,
 	onEnableSpawnChange,
 	onEnableTeamsChange,
@@ -323,6 +324,7 @@ export function Composer({
 	provider,
 	providers,
 	sending,
+	aborting,
 	status,
 	systemPrompt,
 	reasonLevel,
@@ -338,7 +340,8 @@ export function Composer({
 	mode: "act" | "plan";
 	modelSelectorOpen: boolean;
 	models: WebviewProviderModel[];
-	onAbort: () => void;
+	onStop: () => void;
+	onNewTask: () => void;
 	onAutoApproveToolsChange: (value: boolean) => void;
 	onEnableSpawnChange: (value: boolean) => void;
 	onEnableTeamsChange: (value: boolean) => void;
@@ -358,6 +361,7 @@ export function Composer({
 	provider: string;
 	providers: ProviderOption[];
 	sending: boolean;
+	aborting?: boolean;
 	status: string;
 	systemPrompt: string;
 	reasonLevel: WebviewReasonLevel;
@@ -517,8 +521,18 @@ export function Composer({
 						</PromptInputTools>
 						<div className="flex items-center gap-2">
 							{sending ? (
-								<Button onClick={onAbort} type="button" variant="destructive">
-									Abort
+								<Button
+									disabled={aborting}
+									onClick={onStop}
+									type="button"
+									variant="destructive"
+								>
+									{aborting ? "Stopping..." : "Stop"}
+								</Button>
+							) : null}
+							{!sending && status === "Task Cancelled" ? (
+								<Button onClick={onNewTask} type="button" variant="default">
+									Start New Task
 								</Button>
 							) : null}
 							<PromptInputSubmit

@@ -247,12 +247,14 @@ function mapAgentEvent(event: AgentEvent): WebviewOutboundMessage[] {
 
 		case "done": {
 			const errorReasons = new Set(["error", "api_error", "invalid_tool_call", "tool_execution_failed", "mistake_limit"]);
+			const cancelReasons = new Set(["aborted", "cancelled", "stopped"]);
 			const isError = errorReasons.has(event.reason);
+			const isCancelled = cancelReasons.has(event.reason);
 			const finishReason = isError ? "error" : event.reason !== "auto_compaction" ? event.reason ?? "completed" : "completed";
 			const msgs: WebviewOutboundMessage[] = [
 				{
 					type: "turn_done",
-					finishReason,
+					finishReason: isCancelled ? "cancelled" : finishReason,
 					iterations: event.iterations ?? 0,
 					usage: event.usage
 						? {
@@ -268,6 +270,9 @@ function mapAgentEvent(event: AgentEvent): WebviewOutboundMessage[] {
 			if (isError) {
 				const errorText = event.text?.trim() ? event.text : `The API returned an error (${event.reason}). Check the developer logs for details.`;
 				msgs.push({ type: "error", text: errorText });
+			}
+			if (isCancelled) {
+				msgs.push({ type: "status", text: "Task Cancelled" });
 			}
 			return msgs;
 		}

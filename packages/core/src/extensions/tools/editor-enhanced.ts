@@ -521,6 +521,10 @@ Key rules:
 - BOM-aware`,
     inputSchema: EditFileInputSchema,
     execute: async (input: EditFileInput, _context) => {
+      if (!input.filePath) {
+        return { output: "Error: filePath is required.", isError: true };
+      }
+
       const filePath = resolveToolPath(cwd, input.filePath);
 
       if (!input.oldString && !input.newString) {

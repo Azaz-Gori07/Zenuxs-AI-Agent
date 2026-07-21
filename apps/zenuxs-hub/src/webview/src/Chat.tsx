@@ -739,6 +739,7 @@ export default function Chat({
 	const [titleEditing, setTitleEditing] = useState(false);
 	const [forking, setForking] = useState(false);
 	const [forkError, setForkError] = useState<string | null>(null);
+	const [aborting, setAborting] = useState(false);
 	const activeAssistantIdRef = useRef<string | undefined>(undefined);
 	const initialSessionIdRef = useRef<string | undefined>(undefined);
 	const hydratingSessionIdRef = useRef<string | undefined>(undefined);
@@ -997,18 +998,31 @@ export default function Chat({
 					);
 					return;
 				case "turn_done":
-					setStatus(`Done (${message.finishReason})`);
+					setAborting(false);
 					setSending(false);
 					setPendingApprovals([]);
 					activeAssistantIdRef.current = undefined;
-					setMessages((current) =>
-						finalizeAssistantTurn(
-							current,
-							message.finishReason,
-							message.iterations,
-							message.usage,
-						),
-					);
+					if (message.finishReason === "aborted" || message.finishReason === "cancelled") {
+						setStatus("Task Cancelled");
+						setMessages((current) =>
+							finalizeAssistantTurn(
+								current,
+								"cancelled",
+								message.iterations,
+								message.usage,
+							),
+						);
+					} else {
+						setStatus(`Done (${message.finishReason})`);
+						setMessages((current) =>
+							finalizeAssistantTurn(
+								current,
+								message.finishReason,
+								message.iterations,
+								message.usage,
+							),
+						);
+					}
 					return;
 				case "reset_done":
 					sessionIdRef.current = undefined;
@@ -1379,9 +1393,16 @@ export default function Chat({
 					mode={mode}
 					modelSelectorOpen={modelSelectorOpen}
 					models={models}
-					onAbort={() => {
+					aborting={aborting}
+					onStop={() => {
+						setAborting(true);
+						setStatus("Stopping...");
 						postToHost({ type: "abort" });
-						setStatus("Abort requested...");
+					}}
+					onNewTask={() => {
+						postToHost({ type: "reset" });
+						setStatus("Starting new task...");
+						setPendingApprovals([]);
 					}}
 					onAutoApproveToolsChange={setAutoApproveTools}
 					onEnableSpawnChange={setEnableSpawn}
