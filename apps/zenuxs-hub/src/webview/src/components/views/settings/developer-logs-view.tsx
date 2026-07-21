@@ -6,7 +6,7 @@ import {
 	Copy,
 	Download,
 	Filter,
-	LucideIcon,
+	type LucideIcon,
 	Pause,
 	PauseCircle,
 	Play,
@@ -24,6 +24,7 @@ import {
 	DropdownMenuCheckboxItem,
 	DropdownMenuContent,
 	DropdownMenuGroup,
+	DropdownMenuItem,
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
@@ -52,11 +53,14 @@ import {
 	useDeveloperLogStoreControl,
 	useDeveloperLogs,
 	useMultiSelectState,
-	type DeveloperLog,
-	type DeveloperLogCategory,
-	type DeveloperLogLevel,
 	type DeveloperLogFilters,
 } from "@/lib/developer-logs/hooks";
+import type {
+	DeveloperLog,
+	DeveloperLogCategory,
+	DeveloperLogLevel,
+} from "@/lib/developer-logs/store";
+export { maskClientSecret };
 
 // ---------------------------------------------------------------- row
 
@@ -193,7 +197,7 @@ function DetailPanel({
 			if (log.parentId) set.add(log.parentId);
 		}
 		if (log.parentId) set.add(log.parentId);
-		(log.childIds ?? []).forEach((id) => set.add(id));
+		(log.childIds ?? []).forEach((id: string) => set.add(id));
 		if (log.requestId) set.add(log.requestId);
 		return allEntries.filter(
 			(e) =>
@@ -286,7 +290,7 @@ function DetailPanel({
 									Metadata
 								</h4>
 								<Button
-									onClick={() => setJsonExpanded((v) => !v)}
+									onClick={() => setJsonExpanded(!jsonExpanded)}
 									size="xs"
 									variant="ghost"
 								>
@@ -393,12 +397,12 @@ export function DeveloperLogsView({ chrome = "content" }: { chrome?: "full" | "c
 	const [autoScroll, setAutoScroll] = useState(true);
 	const [atTop, setAtTop] = useState(true);
 
-	const [categories, setCategories] = useMultiSelectState<DeveloperLogCategory>();
-	const [levels, setLevels] = useMultiSelectState<DeveloperLogLevel>();
-	const [providers, setProviders] = useMultiSelectState<string>();
-	const [models, setModels] = useMultiSelectState<string>();
-	const [sessions, setSessions] = useMultiSelectState<string>();
-	const [conversations, setConversations] = useMultiSelectState<string>();
+	const categories = useMultiSelectState<DeveloperLogCategory>();
+	const levels = useMultiSelectState<DeveloperLogLevel>();
+	const providers = useMultiSelectState<string>();
+	const models = useMultiSelectState<string>();
+	const sessions = useMultiSelectState<string>();
+	const conversations = useMultiSelectState<string>();
 
 	const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -442,14 +446,14 @@ export function DeveloperLogsView({ chrome = "content" }: { chrome?: "full" | "c
 		() => ({
 			search,
 			regex,
-			categories,
-			levels,
-			providers,
-			models,
-			sessions,
-			conversations,
+			categories: categories.selected,
+			levels: levels.selected,
+			providers: providers.selected,
+			models: models.selected,
+			sessions: sessions.selected,
+			conversations: conversations.selected,
 		}),
-		[search, regex, categories, levels, providers, models, sessions, conversations],
+		[search, regex, categories.selected, levels.selected, providers.selected, models.selected, sessions.selected, conversations.selected],
 	);
 
 	const filtered = useMemo(() => filterLogs(entries, filters), [entries, filters]);
@@ -499,6 +503,7 @@ export function DeveloperLogsView({ chrome = "content" }: { chrome?: "full" | "c
 		copyText(toJson([selectedLog]));
 		toast.success("Copied selected log");
 	}, [selectedLog]);
+	void copySelected;
 
 	const copyAll = useCallback(() => {
 		copyText(toJson(filtered));
@@ -571,41 +576,41 @@ export function DeveloperLogsView({ chrome = "content" }: { chrome?: "full" | "c
 					icon={Filter}
 					label="Level"
 					options={levelOptions}
-					selected={levels as Set<string>}
-					onToggle={(v, c) => setLevels(v as DeveloperLogLevel, c)}
-					onClear={() => setLevels(new Set())}
+					selected={levels.selected as Set<string>}
+					onToggle={(v, c) => levels.toggle(v as DeveloperLogLevel, c)}
+					onClear={levels.clear}
 				/>
 				<FilterMenuButton
 					icon={ScrollText}
 					label="Category"
 					options={categoryOptions}
-					selected={categories as Set<string>}
-					onToggle={(v, c) => setCategories(v as DeveloperLogCategory, c)}
-					onClear={() => setCategories(new Set())}
+					selected={categories.selected as Set<string>}
+					onToggle={(v, c) => categories.toggle(v as DeveloperLogCategory, c)}
+					onClear={categories.clear}
 				/>
 				<FilterMenuButton
 					icon={Filter}
 					label="Provider"
 					options={dynamicProviders.map((p) => ({ value: p, label: p }))}
-					selected={providers as Set<string>}
-					onToggle={(v, c) => setProviders(v, c)}
-					onClear={() => setProviders(new Set())}
+					selected={providers.selected}
+					onToggle={providers.toggle}
+					onClear={providers.clear}
 				/>
 				<FilterMenuButton
 					icon={Filter}
 					label="Model"
 					options={dynamicModels.map((m) => ({ value: m, label: m }))}
-					selected={models as Set<string>}
-					onToggle={(v, c) => setModels(v, c)}
-					onClear={() => setModels(new Set())}
+					selected={models.selected}
+					onToggle={models.toggle}
+					onClear={models.clear}
 				/>
 				<FilterMenuButton
 					icon={Filter}
 					label="Session"
 					options={dynamicSessions.map((s) => ({ value: s, label: s.slice(0, 12) }))}
-					selected={sessions as Set<string>}
-					onToggle={(v, c) => setSessions(v, c)}
-					onClear={() => setSessions(new Set())}
+					selected={sessions.selected}
+					onToggle={sessions.toggle}
+					onClear={sessions.clear}
 				/>
 				<FilterMenuButton
 					icon={Filter}
@@ -614,9 +619,9 @@ export function DeveloperLogsView({ chrome = "content" }: { chrome?: "full" | "c
 						value: c,
 						label: c.slice(0, 12),
 					}))}
-					selected={conversations as Set<string>}
-					onToggle={(v, c) => setConversations(v, c)}
-					onClear={() => setConversations(new Set())}
+					selected={conversations.selected}
+					onToggle={conversations.toggle}
+					onClear={conversations.clear}
 				/>
 
 				<div className="ml-auto flex items-center gap-1.5">

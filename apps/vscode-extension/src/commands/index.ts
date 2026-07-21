@@ -260,4 +260,20 @@ export function registerCommands(
 			chatProvider.sendPrompt(prompt);
 		}),
 	);
+
+	// Register live editor tool command: zenuxs.editFile
+	context.subscriptions.push(
+		vscode.commands.registerCommand("zenuxs.editFile", async (options: import("../tools/index.js").EditFileOptions) => {
+			const { vsCodeEditorTool } = await import("../tools/index.js");
+			return vsCodeEditorTool.editFile(options);
+		}),
+	);
+
+	// Register streaming terminal tool command: zenuxs.runTerminalCommand
+	context.subscriptions.push(
+		vscode.commands.registerCommand("zenuxs.runTerminalCommand", async (options: import("../tools/index.js").TerminalCommandOptions) => {
+			const { vsCodeTerminalTool } = await import("../tools/index.js");
+			return vsCodeTerminalTool.runCommand(options);
+		}),
+	);
 }

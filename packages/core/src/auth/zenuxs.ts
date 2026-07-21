@@ -5,6 +5,13 @@ import {
 import type { OAuthCredentials, OAuthLoginCallbacks } from "./types";
 import { getProofKey } from "./utils";
 import { startLocalOAuthServer, type LocalOAuthServer } from "./server";
+import {
+	completeClineDeviceAuth,
+	getValidClineCredentials,
+	loginClineOAuth,
+	startClineDeviceAuth,
+	type ClineOAuthCredentials,
+} from "./cline";
 
 function getZenuxsAuthServerUrl(): string {
 	if (typeof process !== "undefined" && process.env?.ZENUXS_AUTH_URL?.trim()) {
@@ -20,13 +27,13 @@ function getZenuxsClientId(): string {
 	return "6f8764d705aa9541";
 }
 
-function getClineAuthServerUrl(inputBaseUrl?: string): string {
+export function getClineAuthServerUrl(inputBaseUrl?: string): string {
 	const url = inputBaseUrl?.trim();
 	if (url) return url.replace(/\/+$/, "");
 	return getZenuxsEnvironmentConfig().apiBaseUrl.replace(/\/+$/, "");
 }
 
-function getClineWorkOsClientId(): string {
+export function getClineWorkOsClientId(): string {
 	if (typeof process !== "undefined" && process.env?.CLINE_WORKOS_CLIENT_ID?.trim()) {
 		return process.env.CLINE_WORKOS_CLIENT_ID.trim();
 	}
@@ -287,7 +294,7 @@ export async function refreshZenuxsAuth(
 	return null;
 }
 
-function sleep(ms: number): Promise<void> {
+export function sleep(ms: number): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
@@ -307,40 +314,9 @@ export interface DeviceAuthResult {
 export async function startZenuxsDeviceAuth(options?: {
 	apiBaseUrl?: string;
 	clientId?: string;
+	requestTimeoutMs?: number;
 }): Promise<DeviceAuthResult> {
-	const authUrl = getClineAuthServerUrl(options?.apiBaseUrl);
-	const clientId = options?.clientId?.trim() || getClineWorkOsClientId();
-	const response = await fetch(`${authUrl}/oauth/device/authorize`, {
-		method: "POST",
-		headers: { "Content-Type": "application/x-www-form-urlencoded" },
-		body: new URLSearchParams({
-			client_id: clientId,
-			scope: "openid profile email",
-		}).toString(),
-	});
-
-	if (!response.ok) {
-		const text = await response.text();
-		throw new Error(`Device auth initiation failed: ${text}`);
-	}
-
-	const data = (await response.json()) as {
-		device_code: string;
-		user_code: string;
-		verification_uri: string;
-		verification_uri_complete?: string;
-		expires_in: number;
-		interval: number;
-	};
-
-	return {
-		deviceCode: data.device_code,
-		userCode: data.user_code,
-		verificationUri: data.verification_uri,
-		verificationUriComplete: data.verification_uri_complete,
-		expiresInSeconds: data.expires_in,
-		pollIntervalSeconds: data.interval,
-	};
+	return startClineDeviceAuth(options);
 }
 
 export async function completeZenuxsDeviceAuth(options: {
@@ -353,99 +329,7 @@ export async function completeZenuxsDeviceAuth(options: {
 	provider: string;
 	telemetry?: ITelemetryService;
 }): Promise<OAuthCredentials> {
-	const authUrl = getClineAuthServerUrl(options.authBaseUrl ?? options.apiBaseUrl);
-	const clientId = options.clientId?.trim() || getClineWorkOsClientId();
-	const startTime = Date.now();
-	const expiresMs = options.expiresInSeconds * 1000;
-
-	let workosAccessToken: string | undefined;
-	let workosRefreshToken: string | undefined;
-
-	while (Date.now() - startTime < expiresMs) {
-		await sleep(options.pollIntervalSeconds * 1000);
-
-		const tokenResponse = await fetch(`${authUrl}/oauth/device/token`, {
-			method: "POST",
-			headers: { "Content-Type": "application/x-www-form-urlencoded" },
-			body: new URLSearchParams({
-				grant_type: "device_token",
-				device_code: options.deviceCode,
-				client_id: clientId,
-			}).toString(),
-		});
-
-		if (!tokenResponse.ok) {
-			const text = await tokenResponse.text();
-			try {
-				const err = JSON.parse(text) as { error?: string };
-				if (err.error === "authorization_pending") continue;
-				if (err.error === "expired_token" || err.error === "access_denied") {
-					throw new Error(`Device auth failed: ${err.error}`);
-				}
-			} catch {
-				throw new Error(`Device auth token poll failed: ${text}`);
-			}
-			continue;
-		}
-
-		const tokenData = (await tokenResponse.json()) as Record<string, unknown>;
-		if (tokenData.access_token) {
-			workosAccessToken = tokenData.access_token as string;
-			workosRefreshToken = tokenData.refresh_token as string | undefined;
-			break;
-		}
-	}
-
-	if (!workosAccessToken) {
-		throw new Error("Device auth timed out");
-	}
-
-	const apiBaseUrl = getApiBaseUrl(options.apiBaseUrl);
-	const registerResponse = await fetch(`${apiBaseUrl}/api/auth/oauth/register`, {
-		method: "POST",
-		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({
-			accessToken: workosAccessToken,
-			refreshToken: workosRefreshToken,
-		}),
-	});
-
-	if (!registerResponse.ok) {
-		const text = await registerResponse.text();
-		throw new Error(`Token registration failed: ${text}`);
-	}
-
-	const registerData = (await registerResponse.json()) as {
-		success: boolean;
-		data?: {
-			accessToken: string;
-			refreshToken: string;
-			expiresAt: string;
-			userInfo: {
-				subject: string;
-				email: string;
-				name: string;
-				clineUserId: string;
-				accounts: string[];
-			};
-		};
-	};
-
-	if (!registerData.success || !registerData.data) {
-		throw new Error("Token registration was not successful");
-	}
-
-	const { accessToken, refreshToken, expiresAt, userInfo } = registerData.data;
-	const expires = new Date(expiresAt).getTime();
-
-	return {
-		access: accessToken,
-		refresh: refreshToken,
-		expires,
-		accountId: userInfo.clineUserId,
-		email: userInfo.email,
-		metadata: { name: userInfo.name },
-	};
+	return completeClineDeviceAuth(options);
 }
 
 export async function loginZenuxsOAuth(options: {
@@ -454,28 +338,9 @@ export async function loginZenuxsOAuth(options: {
 	callbacks: OAuthLoginCallbacks;
 	telemetry?: ITelemetryService;
 }): Promise<OAuthCredentials> {
-	if (options.useWorkOSDeviceAuth) {
-		const apiBaseUrl = options.apiBaseUrl || getZenuxsEnvironmentConfig().apiBaseUrl;
-		const deviceAuth = await startZenuxsDeviceAuth({ apiBaseUrl });
-		const verifyUrl = deviceAuth.verificationUriComplete || deviceAuth.verificationUri;
-		options.callbacks.onAuth({
-			url: verifyUrl,
-			instructions:
-				"Complete authentication in your browser, then return to this terminal.",
-		});
-		return completeZenuxsDeviceAuth({
-			deviceCode: deviceAuth.deviceCode,
-			expiresInSeconds: deviceAuth.expiresInSeconds,
-			pollIntervalSeconds: deviceAuth.pollIntervalSeconds,
-			apiBaseUrl,
-			authBaseUrl: apiBaseUrl,
-			provider: "zenuxs",
-			telemetry: options.telemetry,
-		});
-	}
-
-	return loginZenuxsAuth({
-		apiBaseUrl: options.apiBaseUrl,
+	return loginClineOAuth({
+		apiBaseUrl: options.apiBaseUrl || getZenuxsEnvironmentConfig().apiBaseUrl,
+		useWorkOSDeviceAuth: options.useWorkOSDeviceAuth ?? true,
 		callbacks: options.callbacks,
 		telemetry: options.telemetry,
 	});
@@ -493,15 +358,16 @@ export async function getValidZenuxsCredentials(
 	options?: { apiBaseUrl?: string; telemetry?: ITelemetryService },
 	refreshOptions?: { forceRefresh?: boolean },
 ): Promise<OAuthCredentials> {
-	if (!refreshOptions?.forceRefresh && credentials.expires > Date.now() + REFRESH_BUFFER_MS) {
-		return credentials;
-	}
+	const result = await getValidClineCredentials(
+		credentials as ClineOAuthCredentials,
+		{
+			apiBaseUrl: options?.apiBaseUrl || getZenuxsEnvironmentConfig().apiBaseUrl,
+			telemetry: options?.telemetry,
+		},
+		{ forceRefresh: refreshOptions?.forceRefresh },
+	);
 
-	const refreshed = await refreshZenuxsAuth(credentials, {
-		forceRefresh: refreshOptions?.forceRefresh,
-		telemetry: options?.telemetry,
-	});
-	if (refreshed) return refreshed;
+	if (result) return result;
 
 	throw new Error(
 		"Zenuxs AI session expired. Please re-authenticate by running: zenuxs auth -p zenuxs",

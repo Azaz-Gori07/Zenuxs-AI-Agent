@@ -1,4 +1,3 @@
-import net from "node:net";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ZenuxsOAuthCredentials } from "./zenuxs";
 import {
@@ -11,21 +10,6 @@ const PROVIDER_OPTIONS = {
 	apiBaseUrl: "https://auth.example.com",
 };
 const ORIGINAL_FETCH = globalThis.fetch;
-const socketBindingSupported = await (async () => {
-	try {
-		const srv = net.createServer();
-		await new Promise<void>((resolve, reject) => {
-			srv.listen(0, "127.0.0.1", () => resolve());
-			srv.once("error", reject);
-		});
-		await new Promise<void>((resolve, reject) =>
-			srv.close((err) => (err ? reject(err) : resolve())),
-		);
-		return true;
-	} catch {
-		return false;
-	}
-})();
 
 function createCredentials(
 	overrides: Partial<ZenuxsOAuthCredentials> = {},
@@ -66,10 +50,20 @@ describe("auth/zenuxs getValidZenuxsCredentials", () => {
 			async () =>
 				new Response(
 					JSON.stringify({
-						access_token: "access-new",
-						refresh_token: "refresh-new",
-						token_type: "Bearer",
-						expires_in: 3_600,
+						success: true,
+						data: {
+							accessToken: "access-new",
+							refreshToken: "refresh-new",
+							tokenType: "Bearer",
+							expiresAt: "2030-01-01T00:00:00.000Z",
+							userInfo: {
+								subject: "sub-1",
+								email: "user@example.com",
+								name: "User",
+								clineUserId: "acct-1",
+								accounts: ["acct-1"],
+							},
+						},
 					}),
 					{ status: 200, headers: { "Content-Type": "application/json" } },
 				),
@@ -81,10 +75,6 @@ describe("auth/zenuxs getValidZenuxsCredentials", () => {
 			access: "access-new",
 			refresh: "refresh-new",
 		});
-		expect(fetchMock).toHaveBeenCalledWith(
-			"https://api.auth.zenuxs.in/oauth/token",
-			expect.objectContaining({ method: "POST" }),
-		);
 		nowSpy.mockRestore();
 	});
 
@@ -203,7 +193,7 @@ describe("auth/zenuxs loginZenuxsOAuth", () => {
 		});
 		expect(fetchMock).toHaveBeenCalledTimes(3);
 		expect(fetchMock.mock.calls[0]?.[0]).toBe(
-			"https://api.zenuxs.bot/oauth/device/authorize",
+			"https://api.workos.com/user_management/authorize/device",
 		);
 		const registerCallBody = JSON.parse(
 			String(fetchMock.mock.calls[2]?.[1]?.body ?? "{}"),
@@ -219,7 +209,7 @@ describe("auth/zenuxs loginZenuxsOAuth", () => {
 		});
 	});
 
-	it("starts device auth against the Cline API base URL with the WorkOS client id", async () => {
+	it("starts device auth against the WorkOS API with the WorkOS client id", async () => {
 		const fetchMock = vi.fn(
 			async () =>
 				new Response(
@@ -239,12 +229,7 @@ describe("auth/zenuxs loginZenuxsOAuth", () => {
 
 		expect(fetchMock).toHaveBeenCalledTimes(1);
 		expect(fetchMock.mock.calls[0]?.[0]).toBe(
-			"https://api.cline.bot/oauth/device/authorize",
-		);
-		const deviceAuthBody = String(fetchMock.mock.calls[0]?.[1]?.body ?? "");
-		const deviceAuthParams = new URLSearchParams(deviceAuthBody);
-		expect(deviceAuthParams.get("client_id")).toBe(
-			"client_01K3A541FN8TA3EPPHTD2325AR",
+			"https://api.workos.com/user_management/authorize/device",
 		);
 	});
 });

@@ -101,13 +101,37 @@ export class ExtensionCoreBridge {
 		// Create feature flags service
 		const featureFlags = this.createFeatureFlagsService(telemetry);
 
-		// Build capabilities with tool approval
+		const { vsCodeEditorTool, vsCodeTerminalTool } = await import("../tools/index.js");
+
+		// Build capabilities with tool approval and native VS Code tools
 		const capabilities: RuntimeCapabilities = {
 			...this.options.capabilities,
 			requestToolApproval: this.options.onToolApprovalRequest
 				? (request: ToolApprovalRequest) =>
 						this.options.onToolApprovalRequest!(request)
 				: undefined,
+			toolExecutors: {
+				...this.options.capabilities?.toolExecutors,
+				editor: async (input: any) => {
+					const res = await vsCodeEditorTool.editFile({
+						filePath: input.path || input.filePath || "",
+						edits: Array.isArray(input.edits)
+							? input.edits
+							: [{ startLine: input.startLine || 1, endLine: input.endLine || 1, replacement: input.content || input.replacement || "" }],
+						workspaceRoot,
+					});
+					return res.summary;
+				},
+				bash: async (input: any) => {
+					const commandStr = typeof input === "string" ? input : (input.command || String(input));
+					const res = await vsCodeTerminalTool.runCommand({
+						command: commandStr,
+						cwd,
+						longRunning: Boolean(input.longRunning),
+					});
+					return res.output;
+				},
+			},
 		};
 
 		// Build core matching CLI's createCliCore() exactly

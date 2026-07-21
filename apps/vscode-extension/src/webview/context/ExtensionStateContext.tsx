@@ -74,12 +74,15 @@ type Action =
 	| { type: "ADD_TEAM_MEMBER"; agentId: string }
 	| { type: "REMOVE_TEAM_MEMBER"; agentId: string }
 	| { type: "SET_CONNECTORS"; connectors: import("../types.js").ConnectorStatus[] }
-	| { type: "SET_AUTO_APPROVALS"; autoApprovals: Record<ApprovalKey, boolean> };
+	| { type: "SET_AUTO_APPROVALS"; autoApprovals: Record<ApprovalKey, boolean> }
+	| { type: "COMPLETE_ONBOARDING" };
 
 function reducer(state: AppState, action: Action): AppState {
 	switch (action.type) {
 		case "SET_INITIAL_DATA":
-			return { ...state, ...action.payload, mcpServers: (action.payload as any).mcpServers || state.mcpServers, checkpoints: (action.payload as any).checkpoints || state.checkpoints };
+			return { ...state, ...action.payload, mcpServers: (action.payload as any).mcpServers || state.mcpServers, checkpoints: (action.payload as any).checkpoints || state.checkpoints, showOnboarding: action.payload.showOnboarding ?? state.showOnboarding };
+		case "COMPLETE_ONBOARDING":
+			return { ...state, showOnboarding: false };
 		case "APPEND_ASSISTANT_TEXT": {
 			const msgs = [...state.messages];
 			const last = msgs[msgs.length - 1];
@@ -220,7 +223,7 @@ export function ExtensionStateProvider({ children }: { children: ReactNode }) {
 				if (typeof window !== "undefined") {
 					(window as any).logStartup?.("WEBVIEW", stateRef.current.activeSessionId || "None", "React", "handleMessage_initial_data", "EVENT", "N/A", "RECEIVED");
 				}
-				dispatch({ type: "SET_INITIAL_DATA", payload: { providers: msg.providers, models: msg.models, currentConfig: msg.currentConfig, toggles: msg.toggles, sessionHistories: msg.sessionHistories, dashboardData: msg.dashboard || calculateFallback(msg.sessionHistories), mcpServers: (msg as any).mcpServers || [], checkpoints: (msg as any).checkpoints || [] } });
+				dispatch({ type: "SET_INITIAL_DATA", payload: { providers: msg.providers, models: msg.models, currentConfig: msg.currentConfig, toggles: msg.toggles, sessionHistories: msg.sessionHistories, dashboardData: msg.dashboard || calculateFallback(msg.sessionHistories), mcpServers: (msg as any).mcpServers || [], checkpoints: (msg as any).checkpoints || [], showOnboarding: msg.showOnboarding } });
 				if ((msg as any).autoApprovals) {
 					dispatch({ type: "SET_AUTO_APPROVALS", autoApprovals: (msg as any).autoApprovals });
 				}
@@ -245,7 +248,7 @@ export function ExtensionStateProvider({ children }: { children: ReactNode }) {
 			case "mcp_servers": dispatch({ type: "SET_MCP_SERVERS", servers: msg.servers }); break;
 			case "checkpoint_list": dispatch({ type: "SET_CHECKPOINTS", sessionId: msg.sessionId, checkpoints: msg.checkpoints }); break;
 			case "checkpoint_restored": dispatch({ type: "ADD_LOG", text: `Checkpoint restored: ${msg.sessionId}` }); break;
-			case "toast": dispatch({ type: "SHOW_TOAST", message: msg.message, severity: msg.severity || "info" }); setTimeout(() => dispatch({ type: "DISMISS_TOAST" }), 3000); break;
+			case "toast": dispatch({ type: "SHOW_TOAST", message: msg.message, severity: msg.severity || "info" }); break;
 			case "team_status": dispatch({ type: "SET_TEAM_STATUS", data: msg.data }); break;
 			case "team_runs": dispatch({ type: "SET_TEAM_RUNS", runs: msg.runs }); break;
 			case "team_tasks": dispatch({ type: "SET_TEAM_TASKS", tasks: msg.tasks }); break;

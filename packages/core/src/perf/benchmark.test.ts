@@ -157,4 +157,45 @@ describe("Performance Benchmarks", () => {
 		console.log(`[BENCH] glob tool (**/*.ts, 5 runs): ${elapsed.toFixed(0)}ms`);
 		expect(elapsed).toBeGreaterThan(0);
 	});
+
+	it("editor: countOccurrences (indexOf vs split)", async () => {
+		const { countOccurrences, createLineDiff } = await import("../extensions/tools/executors/editor");
+
+		// Generate large content
+		const lines: string[] = [];
+		for (let i = 0; i < 1000; i++) {
+			lines.push(`export function fn${i}() { return ${Math.random().toString(36).slice(2)}; }`);
+		}
+		const content = lines.join("\n");
+		const needle = "return ";
+
+		const { elapsed } = await bench(() => {
+			const c = countOccurrences(content, needle);
+		}, 50);
+		console.log(`[BENCH] countOccurrences (1000 lines, 50 runs): ${elapsed.toFixed(0)}ms`);
+		expect(elapsed).toBeGreaterThan(0);
+	});
+
+	it("editor: createLineDiff with same-content early exit", async () => {
+		const { createLineDiff } = await import("../extensions/tools/executors/editor");
+
+		const large = "line\n".repeat(1000);
+		const { elapsed } = await bench(() => {
+			createLineDiff(large, large, 200);
+		}, 50);
+		console.log(`[BENCH] createLineDiff same-content early exit (1000 lines, 50 runs): ${elapsed.toFixed(0)}ms`);
+		expect(elapsed).toBeGreaterThan(0);
+	});
+
+	it("editor: createLineDiff with changes", async () => {
+		const { createLineDiff } = await import("../extensions/tools/executors/editor");
+
+		const oldContent = Array.from({ length: 500 }, (_, i) => `line ${i}`).join("\n");
+		const newContent = Array.from({ length: 500 }, (_, i) => `line ${i}${i % 10 === 0 ? " MODIFIED" : ""}`).join("\n");
+		const { elapsed } = await bench(() => {
+			createLineDiff(oldContent, newContent, 200);
+		}, 20);
+		console.log(`[BENCH] createLineDiff with modifications (500 lines, 20 runs): ${elapsed.toFixed(0)}ms`);
+		expect(elapsed).toBeGreaterThan(0);
+	});
 });

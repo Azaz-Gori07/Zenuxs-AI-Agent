@@ -81,7 +81,7 @@ import type {
 	WebviewHubEvent,
 	WebviewHubState,
 	WebviewSessionSummary,
-} from "../../../webview-protocol";
+} from "../../../../webview-protocol";
 
 type AdminDashboardProps = {
 	hubState: WebviewHubState;
@@ -335,7 +335,7 @@ function buildUsers(
 		const totalTokens = Math.max(sessionTokens(session), 18_000 + index * 9_500);
 		const chats = Math.max(3, Math.round((index + 3) * multiplier + 8));
 		const plan = PLANS[index % PLANS.length];
-		const provider = session.providerId || PROVIDERS[index % PROVIDERS.length];
+		const provider = (session as any).providerId || PROVIDERS[index % PROVIDERS.length];
 		const model = session.model || MODELS[index % MODELS.length];
 		const username = title.replace(/\s+/g, " ").trim() || `User ${index + 1}`;
 		return {
@@ -1361,7 +1361,7 @@ function HubOperations({
 							<div className="min-w-0">
 								<p className="truncate text-sm font-medium text-white">{sessionTitle(session)}</p>
 								<p className="truncate text-xs text-slate-400">
-									{session.providerId ?? "provider"} / {session.model ?? "model"}
+									{(session as any).providerId ?? "provider"} / {session.model ?? "model"}
 								</p>
 							</div>
 							<span className="shrink-0 text-xs text-slate-500">{relativeTime(session.updatedAt ?? session.createdAt)}</span>
@@ -1468,7 +1468,7 @@ export function AdminDashboard({
 			inputTokens,
 			liveApiCalls: Math.round(totalChats * 0.22 + hubState.clients.length * 4),
 			liveChats: Math.max(1, Math.round(totalChats * 0.014)),
-			liveErrors: Math.max(0, Math.round((hubState.events ?? []).filter((event) => event.severity === "error").length + users.length * 0.08)),
+			liveErrors: Math.max(0, Math.round((hubState.events ?? []).filter((event: WebviewHubEvent) => event.severity === "error").length + users.length * 0.08)),
 			liveUsers: Math.max(hubState.clients.length, users.filter((user) => user.currentStatus === "Online").length),
 			messages30d: Math.round(totalMessages * Math.min(1.6, multiplier)),
 			monthlyActive: Math.round(totalUsers * 0.74),
@@ -1566,7 +1566,7 @@ export function AdminDashboard({
 		{ accent: "from-cyan-300 to-emerald-300", change: "+19.8%", icon: ImageIcon, label: "Images Today", value: totals.imagesToday },
 		{ accent: "from-violet-300 to-cyan-300", change: "+9.1%", icon: Volume2Icon, label: "Voice Minutes", value: totals.voiceMinutes },
 		{ accent: "from-orange-300 to-cyan-300", change: "+7.5%", icon: ServerIcon, label: "Sandbox Hours", value: totals.sandboxHours },
-		{ accent: "from-blue-300 to-emerald-300", change: "+10.2%", icon: GaugeIcon, label: "Avg Messages/User/Day", value: totals.avgMessagesPerUser, valueFormatter: (value) => value.toFixed(1) },
+		{ accent: "from-blue-300 to-emerald-300", change: "+10.2%", icon: GaugeIcon, label: "Avg Messages/User/Day", value: totals.avgMessagesPerUser, valueFormatter: (value: number) => value.toFixed(1) },
 	];
 
 	return (
@@ -1995,60 +1995,69 @@ export function AdminDashboard({
 							<article className={cn(glassCard, "p-4")}>
 								<h3 className="mb-4 text-sm font-semibold text-white">Notifications</h3>
 								{[
-									["Recent errors", `${totals.liveErrors} recoverable errors`, AlertTriangleIcon],
-									["Failed API calls", `${Math.max(1, totals.liveErrors + 2)} failed calls`, ShieldAlertIcon],
-									["System notices", "Queue workers healthy", BellIcon],
-									["Billing alerts", `${formatCurrency(totals.totalCost)} projected API cost`, CircleDollarSignIcon],
-								].map(([label, value, Icon]) => (
-									<div className="mb-3 flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.04] p-3 last:mb-0" key={String(label)}>
-										{Icon ? <Icon className="size-4 text-cyan-200" /> : null}
-										<div>
-											<p className="text-sm font-medium text-white">{label}</p>
-											<p className="text-xs text-slate-400">{value}</p>
+									["Recent errors", `${totals.liveErrors} recoverable errors`, AlertTriangleIcon] as const,
+									["Failed API calls", `${Math.max(1, totals.liveErrors + 2)} failed calls`, ShieldAlertIcon] as const,
+									["System notices", "Queue workers healthy", BellIcon] as const,
+									["Billing alerts", `${formatCurrency(totals.totalCost)} projected API cost`, CircleDollarSignIcon] as const,
+								].map(([label, value, Icon]) => {
+									const IconComp = Icon as any;
+									return (
+										<div className="mb-3 flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.04] p-3 last:mb-0" key={String(label)}>
+											{IconComp ? <IconComp className="size-4 text-cyan-200" /> : null}
+											<div>
+												<p className="text-sm font-medium text-white">{String(label)}</p>
+												<p className="text-xs text-slate-400">{String(value)}</p>
+											</div>
 										</div>
-									</div>
-								))}
+									);
+								})}
 							</article>
 							<article className={cn(glassCard, "p-4")}>
 								<h3 className="mb-4 text-sm font-semibold text-white">System Health</h3>
 								{[
-									["CPU", 41, CpuIcon],
-									["RAM", 63, GaugeIcon],
-									["Database", 72, DatabaseIcon],
-									["Redis", 54, ServerIcon],
-									["Queue", 37, ActivityIcon],
-									["API Status", 98, GlobeIcon],
-									["Storage", 46, ServerIcon],
-								].map(([label, value, Icon]) => (
-									<div className="mb-4 last:mb-0" key={String(label)}>
-										<div className="mb-2 flex items-center justify-between text-xs">
-											<span className="flex items-center gap-2 text-slate-300">
-												{Icon ? <Icon className="size-3.5 text-cyan-200" /> : null}
-												{label}
-											</span>
-											<span className="text-slate-400">{value}%</span>
+									["CPU", 41, CpuIcon] as const,
+									["RAM", 63, GaugeIcon] as const,
+									["Database", 72, DatabaseIcon] as const,
+									["Redis", 54, ServerIcon] as const,
+									["Queue", 37, ActivityIcon] as const,
+									["API Status", 98, GlobeIcon] as const,
+									["Storage", 46, ServerIcon] as const,
+								].map(([label, value, Icon]) => {
+									const IconComp = Icon as any;
+									return (
+										<div className="mb-4 last:mb-0" key={String(label)}>
+											<div className="mb-2 flex items-center justify-between text-xs">
+												<span className="flex items-center gap-2 text-slate-300">
+													{IconComp ? <IconComp className="size-3.5 text-cyan-200" /> : null}
+													{String(label)}
+												</span>
+												<span className="text-slate-400">{Number(value)}%</span>
+											</div>
+											<Progress className="[&_[data-slot=progress-indicator]]:bg-cyan-300 [&_[data-slot=progress-track]]:bg-white/10" value={Number(value)} />
 										</div>
-										<Progress className="[&_[data-slot=progress-indicator]]:bg-cyan-300 [&_[data-slot=progress-track]]:bg-white/10" value={Number(value)} />
-									</div>
-								))}
+									);
+								})}
 							</article>
 							<article className={cn(glassCard, "p-4")}>
 								<h3 className="mb-4 text-sm font-semibold text-white">Security</h3>
 								{[
-									["Failed Logins", 7, LockKeyholeIcon],
-									["Suspicious Users", 3, ShieldAlertIcon],
-									["Blocked Users", 2, XIcon],
-									["IP Analytics", 118, GlobeIcon],
-									["Country Analytics", 24, GlobeIcon],
-								].map(([label, value, Icon]) => (
-									<div className="mb-3 flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.04] p-3 last:mb-0" key={String(label)}>
-										<span className="flex items-center gap-2 text-sm text-slate-300">
-											{Icon ? <Icon className="size-4 text-cyan-200" /> : null}
-											{label}
-										</span>
-										<span className="font-semibold text-white">{value}</span>
-									</div>
-								))}
+									["Failed Logins", 7, LockKeyholeIcon] as const,
+									["Suspicious Users", 3, ShieldAlertIcon] as const,
+									["Blocked Users", 2, XIcon] as const,
+									["IP Analytics", 118, GlobeIcon] as const,
+									["Country Analytics", 24, GlobeIcon] as const,
+								].map(([label, value, Icon]) => {
+									const IconComp = Icon as any;
+									return (
+										<div className="mb-3 flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.04] p-3 last:mb-0" key={String(label)}>
+											<span className="flex items-center gap-2 text-sm text-slate-300">
+												{IconComp ? <IconComp className="size-4 text-cyan-200" /> : null}
+												{String(label)}
+											</span>
+											<span className="font-semibold text-white">{Number(value)}</span>
+										</div>
+									);
+								})}
 							</article>
 						</div>
 					</Section>

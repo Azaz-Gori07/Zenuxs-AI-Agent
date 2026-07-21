@@ -106,6 +106,13 @@ export function SkillsContent() {
 								</div>
 								<div className="flex items-center gap-2">
 									<Button
+										variant={skill.enabled ? "outline" : "secondary"}
+										size="sm"
+										onClick={() => toggleSkill(skill.id)}
+									>
+										{skill.enabled ? "Disable" : "Enable"}
+									</Button>
+									<Button
 										variant="ghost"
 										size="sm"
 										onClick={() => removeSkill(skill.id)}

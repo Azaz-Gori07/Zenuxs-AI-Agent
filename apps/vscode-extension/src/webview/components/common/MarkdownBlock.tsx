@@ -8,7 +8,8 @@ export function MarkdownBlock({ markdown }: { markdown?: string }) {
 function prepareStreamingMarkdown(rawText: string): string {
 	let text = rawText;
 	// Auto-close unclosed code block fences during token streaming to prevent layout shifts
-	const fenceMatches = text.match(/```/g);
+	// Only match ``` at start of line to avoid false positives with inline triple-backticks
+	const fenceMatches = text.match(/^```/gm);
 	if (fenceMatches && fenceMatches.length % 2 !== 0) {
 		text += "\n```";
 	}

@@ -4,7 +4,7 @@ import type {
 	WebviewDeveloperLogLevel,
 	WebviewOutboundMessage,
 } from "../../../../webview-protocol";
-import { postToHost } from "../vscode";
+import { postToHost } from "../../vscode";
 
 export type DeveloperLog = WebviewDeveloperLog;
 export type DeveloperLogLevel = WebviewDeveloperLogLevel;
@@ -56,6 +56,7 @@ class DeveloperLogStore {
 
 	private enqueue(entries: DeveloperLog[]) {
 		if (entries.length === 0) return;
+		this.seq += entries.length;
 		this.pending.push(...entries);
 		if (this.flushTimer) return;
 		this.flushTimer = setTimeout(() => {

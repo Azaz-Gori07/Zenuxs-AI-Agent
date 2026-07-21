@@ -115,7 +115,7 @@ export function SettingsView() {
 	const cfg = state.currentConfig;
 	const [section, setSection] = useState<SettingsSectionKey>("provider");
 	const [localCfg, setLocalCfg] = useState({ ...cfg });
-	const [showApiKey, setShowApiKey] = useState(false);
+	const [showApiKeyInput, setShowApiKeyInput] = useState(false);
 	const [autos, setAutos] = useState<Record<ApprovalKey, boolean>>(() => buildAutoDefaults());
 	const [providerModels, setProviderModels] = useState<Record<string, string[]>>({});
 	const [loadingProviders, setLoadingProviders] = useState(false);
@@ -124,6 +124,9 @@ export function SettingsView() {
 
 	useEffect(() => {
 		setLocalCfg({ ...cfg });
+		if (cfg.apiKey === "") {
+			setShowApiKeyInput(false);
+		}
 	}, [cfg.providerId, cfg.modelId, cfg.apiKey, cfg.baseUrl, cfg.mode, cfg.compaction, cfg.retries, cfg.timeout, cfg.checkpointEnabled, cfg.thinking, cfg.reasoningEffort, cfg.maxIterations, cfg.autoApproveTools]);
 
 	useEffect(() => {
@@ -134,7 +137,7 @@ export function SettingsView() {
 
 	const handleSaveProvider = useCallback(() => {
 		saveSettings(localCfg);
-		setShowApiKey(false);
+		setShowApiKeyInput(false);
 	}, [localCfg, saveSettings]);
 
 	const handleSaveAutos = useCallback(() => {
@@ -142,7 +145,8 @@ export function SettingsView() {
 	}, [autos, localCfg, saveSettings]);
 
 	const handleProviderChange = useCallback((value: string) => {
-		setLocalCfg((prev) => ({ ...prev, providerId: value, modelId: "" }));
+		setLocalCfg((prev) => ({ ...prev, providerId: value, modelId: "", apiKey: "" }));
+		setShowApiKeyInput(false);
 		fetchModelsFor(value);
 	}, []);
 
@@ -172,7 +176,9 @@ export function SettingsView() {
 
 	const selectedProvider = state.providers?.find((p: any) => p && (p.id === localCfg.providerId || p === localCfg.providerId));
 	const isOAuth = selectedProvider && typeof selectedProvider === "object" ? !!selectedProvider.isOAuth : ["cline", "cline-pass", "oca", "openai-codex", "zenuxs"].includes(localCfg.providerId);
-	const isBuiltinProvider = ["cline", "anthropic", "gemini", "vertex", "bedrock", "azure", "openrouter", "openai-compatible", "sap", "oca"].includes(localCfg.providerId);
+	const hasSavedApiKey = selectedProvider && typeof selectedProvider === "object" ? !!selectedProvider.hasApiKey : false;
+	const isCustomProvider = localCfg.providerId === "custom";
+	const isBuiltinProvider = !isCustomProvider;
 	const needsApiKey = !isOAuth;
 	const handleOAuth = useCallback(() => {
 		setOauthStatus((prev) => ({ ...prev, [localCfg.providerId]: "idle" }));
@@ -190,54 +196,86 @@ export function SettingsView() {
 								{state.providers.map((p: any) => (
 									<option key={p.id || p} value={p.id || p}>{p.name || p.id || p}</option>
 								))}
+								{!state.providers.some((p: any) => (p.id || p) === "custom") && (
+									<option value="custom">Custom Provider</option>
+								)}
 							</select>
 							<div className="text-muted" style={{ fontSize: "0.82em", marginTop: 6 }}>
-								{isBuiltinProvider ? "Built-in provider" : "External provider"}
+								{isCustomProvider ? "Custom OpenAI-compatible provider" : "Built-in provider"}
 								{state.connectors && state.connectors.length > 0 && (
 									<span style={{ marginLeft: 8 }}>{state.connectors.filter(c => c.provider === localCfg.providerId).length} connector(s)</span>
 								)}
 							</div>
 						</div>
 
-						<div className="form-group">
-							<label>Model</label>
-							<select
-								value={localCfg.modelId}
-								onChange={(e) => setLocalCfg({ ...localCfg, modelId: e.target.value })}
-								disabled={loadingProviders}
-							>
-								<option value="">Select a model</option>
-								{(providerModels[localCfg.providerId] || state.models[localCfg.providerId] || []).map((m) => (
-									<option key={m} value={m}>{m}</option>
-								))}
-							</select>
-							{loadingProviders && <div className="text-muted" style={{ fontSize: "0.8em" }}>Loading models...</div>}
-							{providerError && <div className="text-muted" style={{ fontSize: "0.8em", color: "var(--error)" }}>{providerError}</div>}
-						</div>
+						{isCustomProvider ? (
+							<div className="form-group">
+								<label>Model Name</label>
+								<input
+									type="text"
+									value={localCfg.modelId}
+									onChange={(e) => setLocalCfg({ ...localCfg, modelId: e.target.value })}
+									placeholder="e.g. gpt-4, llama-3-70b"
+								/>
+							</div>
+						) : (
+							<div className="form-group">
+								<label>Model</label>
+								<select
+									value={localCfg.modelId}
+									onChange={(e) => setLocalCfg({ ...localCfg, modelId: e.target.value })}
+									disabled={loadingProviders}
+								>
+									<option value="">Select a model</option>
+									{(providerModels[localCfg.providerId] || state.models[localCfg.providerId] || []).map((m) => (
+										<option key={m} value={m}>{m}</option>
+									))}
+								</select>
+								{loadingProviders && <div className="text-muted" style={{ fontSize: "0.8em" }}>Loading models...</div>}
+								{providerError && <div className="text-muted" style={{ fontSize: "0.8em", color: "var(--error)" }}>{providerError}</div>}
+							</div>
+						)}
 
 						{needsApiKey && (
 							<div className="form-group">
 								<label>API Key</label>
-								<div className="row">
-									<input
-										type={showApiKey ? "text" : "password"}
-										value={localCfg.apiKey}
-										onChange={(e) => setLocalCfg({ ...localCfg, apiKey: e.target.value })}
-										placeholder="Enter API Key"
-									/>
-									<button className="btn secondary sm" onClick={() => setShowApiKey(!showApiKey)}>
-										{showApiKey ? "Hide" : "Show"}
+								{showApiKeyInput ? (
+									<div className="row">
+										<input
+											type="password"
+											value={localCfg.apiKey}
+											onChange={(e) => setLocalCfg({ ...localCfg, apiKey: e.target.value })}
+											placeholder="Enter API Key"
+										/>
+										<button className="btn secondary sm" onClick={() => { setShowApiKeyInput(false); setLocalCfg((prev) => ({ ...prev, apiKey: "" })); }}>
+											Cancel
+										</button>
+									</div>
+								) : hasSavedApiKey ? (
+									<button className="btn secondary" style={{ width: "100%" }} onClick={() => { setShowApiKeyInput(true); setLocalCfg((prev) => ({ ...prev, apiKey: "" })); }}>
+										Update API Key
 									</button>
-								</div>
+								) : (
+									<div className="row">
+										<input
+											type="password"
+											value={localCfg.apiKey}
+											onChange={(e) => setLocalCfg({ ...localCfg, apiKey: e.target.value })}
+											placeholder="Enter API Key"
+										/>
+									</div>
+								)}
 							</div>
 						)}
 
-						<div className="form-group">
-							<label>Custom Base URL</label>
-							<input type="text" value={localCfg.baseUrl} onChange={(e) => setLocalCfg({ ...localCfg, baseUrl: e.target.value })} placeholder="e.g. https://api.openai.com/v1" />
-						</div>
+						{isCustomProvider && (
+							<div className="form-group">
+								<label>Base URL</label>
+								<input type="text" value={localCfg.baseUrl} onChange={(e) => setLocalCfg({ ...localCfg, baseUrl: e.target.value })} placeholder="e.g. https://api.openai.com/v1" />
+							</div>
+						)}
 
-						<button className="btn" onClick={handleSaveProvider}>Save Connection</button>
+						<button className="btn" onClick={handleSaveProvider}>Save Configuration</button>
 
 						{isOAuth && (
 							<div className="oauth-section">

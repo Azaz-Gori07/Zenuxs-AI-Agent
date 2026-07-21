@@ -183,7 +183,7 @@ export interface ProviderListItem {
 	color: string;
 	letter: string;
 	enabled: boolean;
-	apiKey?: string;
+	hasApiKey?: boolean;
 	isOAuth?: boolean;
 	oauthAccessTokenPresent?: boolean;
 	baseUrl?: string;
@@ -273,7 +273,6 @@ export interface SaveProviderSettingsActionRequest {
 	// Authentication
 	apiKey?: string;
 	auth?: {
-		apiKey?: string;
 		accessToken?: string;
 		refreshToken?: string;
 		expiresAt?: number;

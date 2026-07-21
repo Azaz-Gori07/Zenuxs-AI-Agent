@@ -9,8 +9,14 @@ import {
 	resolveProviderApiKeyFromSettings,
 } from "./provider-auth-registry";
 
-const { loginZenuxsOAuth } = vi.hoisted(() => ({
+const { loginClineOAuth, loginZenuxsOAuth } = vi.hoisted(() => ({
+	loginClineOAuth: vi.fn(),
 	loginZenuxsOAuth: vi.fn(),
+}));
+
+vi.mock("./cline", () => ({
+	getValidClineCredentials: vi.fn(),
+	loginClineOAuth,
 }));
 
 vi.mock("./zenuxs", () => ({
@@ -92,7 +98,7 @@ describe("provider auth registry", () => {
 	});
 
 	it("login/save for ZenuxsPass stores credentials under Zenuxs storage", async () => {
-		loginZenuxsOAuth.mockResolvedValueOnce({
+		loginClineOAuth.mockResolvedValueOnce({
 			access: "new-access",
 			refresh: "new-refresh",
 			expires: 4_000_000_000_000,
@@ -150,7 +156,7 @@ describe("provider auth registry", () => {
 	});
 
 	it("login/save stores credentials under handler storageProviderId", async () => {
-		loginZenuxsOAuth.mockResolvedValueOnce({
+		loginClineOAuth.mockResolvedValueOnce({
 			access: "new-access",
 			refresh: "new-refresh",
 			expires: 4_000_000_000_000,
