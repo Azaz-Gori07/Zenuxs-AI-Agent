@@ -1448,6 +1448,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				const providerId = normalizeProviderId(rawProviderId);
 				const selectedProviderSettings = psm.getProviderSettings(providerId);
 				const resolvedApiKey = resolveProviderApiKeyFromSettings(psm, providerId) || getPersistedProviderApiKey(providerId, selectedProviderSettings) || extConfig.apiKey || "";
+				loggerService.log({ level: LogLevel.DEBUG, category: LogCategory.AUTH, message: "Session API key resolved", source: "session", data: { providerId, hasKey: !!resolvedApiKey, keyPrefix: resolvedApiKey ? resolvedApiKey.substring(0, 10) + "..." : "none" } });
 				const resolvedBaseUrl = selectedProviderSettings?.baseUrl || extConfig.baseUrl || undefined;
 
 				// Resolve model ID: check UI config, VS Code settings, or provider settings, or use fallback
@@ -1473,7 +1474,8 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				const thinking = uiConfig?.thinking !== undefined ? uiConfig.thinking : extConfig.thinking;
 				const reasoningEffort = uiConfig?.reasoningEffort || extConfig.reasoningEffort;
 				const modeStr = uiConfig?.mode || extConfig.mode || "act";
-				const isYoloMode = modeStr === "yolo";
+				const mode = modeStr as any;
+				const isYoloMode = mode === "yolo";
 
 				const toolPolicies: Record<string, { autoApprove: boolean }> = {
 					"*": { autoApprove: extConfig.autoApproveTools },
@@ -1529,12 +1531,19 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 						sessionId: plannedSessionId,
 					});
 
-					const started = await core.start({
+					const sessionLogger: BasicLogger = {
+						debug: (msg: string, meta?: Record<string, unknown>) => loggerService.log({ level: LogLevel.DEBUG, category: LogCategory.AGENT, message: msg, ...(meta ?? {}) as any }),
+						log: (msg: string, meta?: Record<string, unknown>) => loggerService.log({ level: LogLevel.INFO, category: LogCategory.AGENT, message: msg, ...(meta ?? {}) as any }),
+						error: (msg: string, meta?: Record<string, unknown>) => loggerService.log({ level: LogLevel.ERROR, category: LogCategory.AGENT, message: msg, ...(meta ?? {}) as any }),
+					};
+
+				const started = await core.start({
 						source: SessionSource.VSCODE,
 						config: {
 							providerId,
 							modelId,
 							apiKey: resolvedApiKey,
+							mode,
 							baseUrl: resolvedBaseUrl,
 							systemPrompt: compiledSystemPrompt,
 							enableTools: true,
@@ -1554,6 +1563,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 							compaction: compactionConfig,
 							checkpoint: checkpointConfig,
 							timeoutSeconds: extConfig.timeout > 0 ? extConfig.timeout : undefined,
+							logger: sessionLogger,
 							cwd,
 							workspaceRoot,
 							extensionContext: {
@@ -1566,6 +1576,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 									ide: "VS Code",
 									platform: process.platform,
 								},
+								logger: sessionLogger,
 							},
 						},
 						prompt: fullPrompt,
