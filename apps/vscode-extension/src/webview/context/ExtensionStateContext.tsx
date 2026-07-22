@@ -40,6 +40,7 @@ const initialState: AppState = {
 	teamTasks: [],
 	connectors: [],
 	autoApprovals: buildAutoDefaults(),
+	oauthStatus: {},
 };
 
 type Action =
@@ -75,12 +76,23 @@ type Action =
 	| { type: "REMOVE_TEAM_MEMBER"; agentId: string }
 	| { type: "SET_CONNECTORS"; connectors: import("../types.js").ConnectorStatus[] }
 	| { type: "SET_AUTO_APPROVALS"; autoApprovals: Record<ApprovalKey, boolean> }
-	| { type: "COMPLETE_ONBOARDING" };
+	| { type: "COMPLETE_ONBOARDING" }
+	| { type: "SET_OAUTH_STATUS"; providerId: string; status: "authenticating" | "success" | "error" | "logged_out" };
 
 function reducer(state: AppState, action: Action): AppState {
 	switch (action.type) {
-		case "SET_INITIAL_DATA":
-			return { ...state, ...action.payload, mcpServers: (action.payload as any).mcpServers || state.mcpServers, checkpoints: (action.payload as any).checkpoints || state.checkpoints, showOnboarding: action.payload.showOnboarding ?? state.showOnboarding };
+		case "SET_INITIAL_DATA": {
+			const oauthFromProviders: Record<string, "idle" | "authenticating" | "success" | "error"> = {};
+			const providers = (action.payload as any).providers;
+			if (Array.isArray(providers)) {
+				for (const p of providers) {
+					if (p && p.id && p.oauthAccessTokenPresent) {
+						oauthFromProviders[p.id] = "success";
+					}
+				}
+			}
+			return { ...state, ...action.payload, oauthStatus: { ...state.oauthStatus, ...oauthFromProviders }, mcpServers: (action.payload as any).mcpServers || state.mcpServers, checkpoints: (action.payload as any).checkpoints || state.checkpoints, showOnboarding: action.payload.showOnboarding ?? state.showOnboarding };
+		}
 		case "COMPLETE_ONBOARDING":
 			return { ...state, showOnboarding: false };
 		case "APPEND_ASSISTANT_TEXT": {
@@ -114,9 +126,47 @@ function reducer(state: AppState, action: Action): AppState {
 		case "SET_APPROVAL_REQUEST": return { ...state, pendingApproval: action.payload };
 		case "CLEAR_APPROVAL": return { ...state, pendingApproval: null };
 		case "SET_APPROVAL_RESOLVED": return state.pendingApproval?.approvalId === action.approvalId ? { ...state, pendingApproval: null } : state;
-		case "SET_TURN_DONE": return { ...state, isRunning: false, usage: action.usage ?? state.usage };
-		case "SET_SESSION_STARTED": return { ...state, activeSessionId: action.sessionId, isRunning: true };
-		case "HYDRATE_SESSION": return { ...state, activeSessionId: action.sessionId, messages: action.messages, isRunning: false };
+		case "SET_TURN_DONE": {
+			const errorReasons = new Set(["error", "api_error", "invalid_tool_call", "tool_execution_failed", "mistake_limit", "failed"]);
+			const cancelReasons = new Set(["aborted", "cancelled", "stopped"]);
+			const isError = errorReasons.has(action.finishReason);
+			const isCancelled = cancelReasons.has(action.finishReason);
+			const msgs = [...state.messages];
+			const hasToolExecutions = msgs.some((m) => m.role === "assistant" && m.toolEvents && m.toolEvents.length > 0);
+
+			if (hasToolExecutions && !isError && !isCancelled) {
+				const now = new Date();
+				const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+				const lastAssistant = msgs.slice().reverse().find((m) => m.role === "assistant");
+				const toolsUsed = lastAssistant?.toolEvents ? lastAssistant.toolEvents.length : undefined;
+				const lastMsg = msgs[msgs.length - 1];
+				if (!lastMsg || lastMsg.role !== "completion") {
+					msgs.push({
+						role: "completion",
+						text: "Task Completed Successfully",
+						completionMetadata: {
+							timestamp: now.getTime(),
+							completedAtFormatted: timeStr,
+							toolsUsed: toolsUsed && toolsUsed > 0 ? toolsUsed : undefined,
+							inputTokens: action.usage?.inputTokens,
+							outputTokens: action.usage?.outputTokens,
+							totalCost: action.usage?.totalCost,
+							statusText: "The requested task has finished successfully.",
+						},
+					});
+				}
+			}
+			return { ...state, messages: msgs, isRunning: false, usage: action.usage ?? state.usage };
+		}
+		case "HYDRATE_SESSION": {
+			const prevMsgs = state.messages;
+			const prevCompletion = prevMsgs.length > 0 && prevMsgs[prevMsgs.length - 1].role === "completion" ? prevMsgs[prevMsgs.length - 1] : undefined;
+			let nextMsgs = action.messages || [];
+			if (prevCompletion && !nextMsgs.some((m: any) => m.role === "completion")) {
+				nextMsgs = [...nextMsgs, prevCompletion];
+			}
+			return { ...state, activeSessionId: action.sessionId, messages: nextMsgs, isRunning: false };
+		}
 		case "RESET_SESSION": return { ...state, messages: [], activeSessionId: null, isRunning: false, usage: null, pendingApproval: null, activeTab: "chat" };
 		case "ADD_USER_MESSAGE": return { ...state, messages: [...state.messages, { role: "user", text: action.text }], isRunning: true };
 		case "ADD_ERROR": return { ...state, messages: [...state.messages, { role: "error", text: action.text }], isRunning: false };
@@ -143,6 +193,15 @@ function reducer(state: AppState, action: Action): AppState {
 		case "REMOVE_TEAM_MEMBER": return state.teamStatus ? { ...state, teamStatus: { ...state.teamStatus, members: state.teamStatus.members.filter(m => m.agentId !== action.agentId) } } : state;
 		case "SET_CONNECTORS": return { ...state, connectors: action.connectors };
 		case "SET_AUTO_APPROVALS": return { ...state, autoApprovals: action.autoApprovals };
+		case "SET_OAUTH_STATUS": {
+			const newOAuthStatus = { ...state.oauthStatus };
+			if (action.status === "logged_out") {
+				delete newOAuthStatus[action.providerId];
+			} else {
+				newOAuthStatus[action.providerId] = action.status;
+			}
+			return { ...state, oauthStatus: newOAuthStatus };
+		}
 		default: return state;
 	}
 }
@@ -245,7 +304,7 @@ export function ExtensionStateProvider({ children }: { children: ReactNode }) {
 			case "status": dispatch({ type: "ADD_LOG", text: msg.text }); break;
 			case "logs_stream": dispatch({ type: "ADD_LOG", text: msg.text }); break;
 			case "switch_tab": dispatch({ type: "SET_TAB", tab: msg.tab.replace("-tab", "") as TabId }); break;
-			case "models": dispatch({ type: "SET_INITIAL_DATA", payload: { models: { ...stateRef.current.models, [msg.providerId]: msg.models.map((m: any) => typeof m === "string" ? m : m.id || m.name || String(m)) } } }); break;
+			case "models": dispatch({ type: "SET_INITIAL_DATA", payload: { models: { ...stateRef.current.models, [msg.providerId]: msg.models } } }); break;
 			case "mcp_servers": dispatch({ type: "SET_MCP_SERVERS", servers: msg.servers }); break;
 			case "checkpoint_list": dispatch({ type: "SET_CHECKPOINTS", sessionId: msg.sessionId, checkpoints: msg.checkpoints }); break;
 			case "checkpoint_restored": dispatch({ type: "ADD_LOG", text: `Checkpoint restored: ${msg.sessionId}` }); break;
@@ -256,6 +315,7 @@ export function ExtensionStateProvider({ children }: { children: ReactNode }) {
 			case "team_teammate_spawned": dispatch({ type: "ADD_TEAM_MEMBER", agentId: msg.agentId }); break;
 			case "team_teammate_shutdown": dispatch({ type: "REMOVE_TEAM_MEMBER", agentId: msg.agentId }); break;
 			case "connector_status": dispatch({ type: "SET_CONNECTORS", connectors: msg.connectors }); break;
+			case "oauth_status": dispatch({ type: "SET_OAUTH_STATUS", providerId: msg.providerId, status: msg.status }); break;
 		}
 	}, []);
 

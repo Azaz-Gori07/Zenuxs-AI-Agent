@@ -289,7 +289,14 @@ export function handleAgentEvent(
 		);
 	}
 
-	if (event.type === "iteration_end" && isPrimaryAgentEvent) {
+	const shouldPersist =
+		isPrimaryAgentEvent &&
+		(event.type === "iteration_end" ||
+			event.type === "content_end" ||
+			event.type === "error" ||
+			event.type === "notice");
+
+	if (shouldPersist) {
 		ctx.persistMessages(
 			sessionId,
 			liveSession?.agent.getMessages() ?? [],

@@ -64,7 +64,7 @@ export type WebviewToolEvent = {
 };
 
 export type WebviewChatMessage = {
-	role: "user" | "assistant" | "error" | "meta";
+	role: "user" | "assistant" | "error" | "meta" | "completion";
 	text: string;
 	reasoning?: string;
 	toolEvents?: Array<{
@@ -76,6 +76,20 @@ export type WebviewChatMessage = {
 		output?: unknown;
 		error?: string;
 	}>;
+	completionMetadata?: {
+		timestamp?: number;
+		completedAtFormatted?: string;
+		durationMs?: number;
+		toolsUsed?: number;
+		filesModified?: number;
+		inputTokens?: number;
+		outputTokens?: number;
+		totalCost?: number;
+		model?: string;
+		provider?: string;
+		checkpointRef?: string;
+		statusText?: string;
+	};
 };
 
 /**

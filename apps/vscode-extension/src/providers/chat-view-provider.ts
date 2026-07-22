@@ -24,6 +24,7 @@ import {
 	createCoreSettingsService,
 	createDefaultMcpServerClientFactory,
 	fetchZenuxsMemory,
+	fetchZenuxsRecommendedModels,
 	getLocalProviderModels,
 	getPersistedProviderApiKey,
 	InMemoryMcpManager,
@@ -44,6 +45,7 @@ import {
 	resolveSystemPrompt,
 	resolveLocalClineAuthToken,
 } from "@cline/core";
+import type { ProviderModel } from "../webview/types.js";
 import { loggerService, devLogs, LogLevel, LogCategory, type LogEntry } from "@cline/core";
 import { buildZenuxsSystemPrompt } from "@cline/shared";
 import { createSessionId } from "@cline/shared";
@@ -270,6 +272,8 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	private webviewView: vscode.WebviewView | undefined;
 	private coreBridge: ExtensionCoreBridge | undefined;
 	private activeSessionId: string | undefined;
+	private activeRuntimeProviderId: string | undefined;
+	private activeRuntimeModelId: string | undefined;
 	private pendingPrompt: string | undefined;
 	private pendingApprovalResolve:
 		| ((result: ToolApprovalResult) => void)
@@ -316,6 +320,116 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 		try {
 			this.extensionContext.globalState.update("zenuxs-execution-data", JSON.stringify(this.executionDataStore));
 		} catch { /* best-effort */ }
+	}
+
+	private getPersistedActiveSessionId(): string | undefined {
+		return this.extensionContext.workspaceState.get<string>("zenuxs-active-session-id");
+	}
+
+	private setPersistedActiveSessionId(sessionId: string | undefined): void {
+		try {
+			this.extensionContext.workspaceState.update("zenuxs-active-session-id", sessionId || undefined);
+		} catch { /* best-effort */ }
+	}
+
+	private formatStoredMessagesForUi(messages: any[]): any[] {
+		if (!messages || !Array.isArray(messages)) return [];
+
+		// Map tool_use_id -> output result
+		const toolResultsMap = new Map<string, { output: string; isError: boolean }>();
+		for (const m of messages) {
+			if (Array.isArray(m?.content)) {
+				for (const block of m.content) {
+					if (block?.type === "tool_result") {
+						const id = block.tool_use_id || block.id;
+						if (id) {
+							let out = "";
+							if (typeof block.content === "string") {
+								out = block.content;
+							} else if (Array.isArray(block.content)) {
+								out = block.content.map((b: any) => (typeof b === "string" ? b : b.text || JSON.stringify(b))).join("\n");
+							}
+							toolResultsMap.set(id, { output: out, isError: Boolean(block.is_error) });
+						}
+					}
+				}
+			}
+		}
+
+		const uiMessages: any[] = [];
+		for (const m of messages) {
+			if (m.role === "completion") {
+				uiMessages.push({
+					role: "completion",
+					text: typeof m.content === "string" ? m.content : m.text || "Task Completed Successfully",
+					completionMetadata: m.completionMetadata || m.meta?.completionMetadata,
+				});
+				continue;
+			}
+			let role: "user" | "assistant" | "error" | "meta" | "completion" = "user";
+			if (m.role === "assistant") role = "assistant";
+			else if (m.role === "user") role = "user";
+			else role = "meta";
+
+			// Skip standalone tool_result user messages from top-level UI cards if their results were merged into the assistant toolEvent
+			const isPureToolResultUserMsg =
+				m.role === "user" &&
+				Array.isArray(m.content) &&
+				m.content.every((b: any) => b?.type === "tool_result");
+
+			if (isPureToolResultUserMsg) {
+				continue;
+			}
+
+			const toolEvents: any[] = [];
+			let text = "";
+			let reasoning = "";
+
+			if (typeof m.content === "string") {
+				text = m.content;
+			} else if (Array.isArray(m.content)) {
+				const textParts: string[] = [];
+				for (const block of m.content) {
+					if (block.type === "text") {
+						textParts.push(block.text || "");
+					} else if (block.type === "reasoning") {
+						reasoning += (block.reasoning || block.text || "") + "\n";
+					} else if (block.type === "image") {
+						const imgUrl = block.image_url?.url || block.url || "";
+						if (imgUrl) textParts.push(`![Image](${imgUrl})`);
+					} else if (block.type === "tool_call" || block.type === "tool_use") {
+						const toolId = block.id;
+						const result = toolResultsMap.get(toolId);
+						toolEvents.push({
+							id: toolId,
+							name: block.name,
+							input: block.input,
+							output: result ? result.output : undefined,
+							state: result ? (result.isError ? "failed" : "completed") : "output-available",
+						});
+					}
+				}
+				text = textParts.join("\n");
+			}
+
+			// Parse thinking tags in text if present
+			if (text.includes("<thinking>") && text.includes("</thinking>")) {
+				const thinkMatch = text.match(/<thinking>([\s\S]*?)<\/thinking>/);
+				if (thinkMatch && thinkMatch[1]) {
+					reasoning += (reasoning ? "\n" : "") + thinkMatch[1].trim();
+					text = text.replace(/<thinking>[\s\S]*?<\/thinking>/, "").trim();
+				}
+			}
+
+			uiMessages.push({
+				role,
+				text,
+				reasoning: reasoning.trim() || undefined,
+				toolEvents: toolEvents.length > 0 ? toolEvents : undefined,
+			});
+		}
+
+		return uiMessages;
 	}
 
 	resolveWebviewView(
@@ -378,6 +492,9 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 		this.abortController?.abort();
 		this.abortController = undefined;
 		this.activeSessionId = undefined;
+		this.activeRuntimeProviderId = undefined;
+		this.activeRuntimeModelId = undefined;
+		this.setPersistedActiveSessionId(undefined);
 		// Dispose and reset core bridge and MCP manager to ensure fresh state for new session
 		this.resetCore();
 		this.postToWebview({ type: "reset_done" });
@@ -499,6 +616,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				this.abortController?.abort();
 				this.abortController = undefined;
 				this.activeSessionId = undefined;
+				this.setPersistedActiveSessionId(undefined);
 				await this.resetCore();
 				this.postToWebview({ type: "reset_done" });
 				break;
@@ -779,6 +897,52 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	}
 
 	/**
+	 * Enriches raw ProviderModel[] with UI metadata: category, context window,
+	 * pricing, favorites, and recently-used markers.
+	 */
+	private async enrichModels(
+		providerId: string,
+		models: { id: string; name: string; supportsAttachments?: boolean; supportsVision?: boolean; supportsReasoning?: boolean }[],
+	): Promise<ProviderModel[]> {
+		const psm = new ProviderSettingsManager();
+		const settings = psm.getProviderSettings(providerId);
+		const favorites = new Set(settings?.favorites ?? []);
+		const recentlyUsed = settings?.recentlyUsed ?? [];
+
+		let recommendedIds = new Set<string>();
+		let freeIds = new Set<string>();
+
+		if (providerId === "cline") {
+			try {
+				const clineRecommended = await fetchZenuxsRecommendedModels();
+				for (const m of clineRecommended.recommended) recommendedIds.add(m.id);
+				for (const m of clineRecommended.free) freeIds.add(m.id);
+			} catch {}
+		}
+
+		const enrichedModels: ProviderModel[] = [];
+		for (const m of models) {
+			let category: ProviderModel["category"];
+			if (recommendedIds.has(m.id)) category = "recommended";
+			else if (freeIds.has(m.id)) category = "free";
+			else category = "paid";
+
+			enrichedModels.push({
+				id: m.id,
+				name: m.name,
+				category,
+				supportsAttachments: m.supportsAttachments,
+				supportsVision: m.supportsVision,
+				supportsReasoning: m.supportsReasoning,
+				isFavorite: favorites.has(m.id),
+				recentlyUsed: recentlyUsed.includes(m.id),
+			});
+		}
+
+		return enrichedModels;
+	}
+
+	/**
 	 * Sends initial settings, models, toggles, history, etc. to webview.
 	 * Uses the same @cline/core runtime as the CLI.
 	 */
@@ -805,7 +969,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 			// For OAuth providers (e.g. zenuxs), resolve the access token from
 			// auth settings into the apiKey field so the model discovery fetch
 			// includes the required Authorization header.
-			let models: Record<string, string[]> = {};
+			let models: Record<string, ProviderModel[]> = {};
 			try {
 				if (extConfig.providerId) {
 					const settings = psm.getProviderSettings(extConfig.providerId) ?? {};
@@ -813,7 +977,10 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 					const effectiveSettings = { ...settings, apiKey: settings.apiKey || resolvedKey };
 					const result = await getLocalProviderModels(extConfig.providerId, effectiveSettings as any);
 					if (result.models && result.models.length > 0) {
-						models[extConfig.providerId] = result.models.map((m: any) => m.id || m);
+						models[extConfig.providerId] = await this.enrichModels(
+							extConfig.providerId,
+							result.models as any,
+						);
 					}
 				}
 			} catch {
@@ -872,6 +1039,11 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				autoApprovals,
 				showOnboarding,
 			});
+
+			const activeSessionToRestore = this.activeSessionId || this.getPersistedActiveSessionId();
+			if (activeSessionToRestore) {
+				await this.handleRestoreSession(activeSessionToRestore).catch(() => {});
+			}
 		} catch (err: any) {
 			// If core isn't ready yet, send empty payload
 			const fallbackConfig = { ...resolveExtensionConfig(), apiKey: "" };
@@ -904,10 +1076,11 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				apiKey: settings.apiKey || resolvedKey,
 			};
 			const result = await getLocalProviderModels(providerId, effectiveSettings as any);
-			const models = result.models.map((m: any) => m.id || m);
-			this.postToWebview({ type: "models", providerId, models: models.length > 0 ? models : ["default"] });
+			const models = await this.enrichModels(providerId, result.models as any);
+			const fallback: ProviderModel[] = [{ id: "default", name: "Default" }];
+			this.postToWebview({ type: "models", providerId, models: models.length > 0 ? models : fallback });
 		} catch {
-			this.postToWebview({ type: "models", providerId, models: ["default"] });
+			this.postToWebview({ type: "models", providerId, models: [{ id: "default", name: "Default" }] });
 		}
 	}
 
@@ -966,6 +1139,10 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 			baseUrl: msg.baseUrl || undefined,
 		});
 
+		// Invalidate active runtime provider and model bindings so next prompt in current conversation dynamically uses updated provider
+		this.activeRuntimeProviderId = undefined;
+		this.activeRuntimeModelId = undefined;
+
 		vscode.window.showInformationMessage("Zenuxs settings synchronized successfully.");
 		await this.sendInitialPayload();
 	}
@@ -1022,6 +1199,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				this.abortController?.abort();
 				this.abortController = undefined;
 				this.activeSessionId = undefined;
+				this.setPersistedActiveSessionId(undefined);
 				this.postToWebview({ type: "reset_done" });
 			}
 			await this.sendInitialPayload();
@@ -1067,64 +1245,41 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 		const row = await core.get(sessionId);
 
 		loggerService.log({ level: LogLevel.INFO, category: LogCategory.CONVERSATION, message: "Session restored", source: "session", sessionId, data: { messageCount: (messages || []).length } });
-		// Cache restored messages so executeSession seeds a new runtime session with them.
-		// The old sessionId is NOT registered in the runtime's in-memory session registry;
-		// setting activeSessionId to it would cause "session not found" on core.send().
-		// By caching messages and keeping activeSessionId undefined, the next send goes
-		// through core.start() with initialMessages, creating a properly registered session.
 		this.restoredMessagesCache = messages;
-		this.activeSessionId = undefined;
+		this.activeSessionId = sessionId;
+		this.activeRuntimeProviderId = row?.provider || undefined;
+		this.activeRuntimeModelId = row?.model || undefined;
+		this.setPersistedActiveSessionId(sessionId);
 
-		// Map to UI chat message format
-		const uiMessages = (messages || []).map((m: any) => {
-			let role: "user" | "assistant" | "error" | "meta" = "user";
-			if (m.role === "assistant") role = "assistant";
-			else if (m.role === "user") role = "user";
-			else role = "meta";
-
-			// Extract tool events or sub-timeline nodes
-			const toolEvents: any[] = [];
-			if (m.content && Array.isArray(m.content)) {
-				m.content.forEach((block: any) => {
-					if (block.type === "tool_call" || block.type === "tool_use") {
-						toolEvents.push({
-							id: block.id,
-							name: block.name,
-							input: block.input,
-							state: "output-available",
-						});
-					}
-				});
-			}
-
-			// Format text content
-			let text = "";
-			let reasoning = "";
-			if (m.content) {
-				if (typeof m.content === "string") {
-					text = m.content;
-				} else if (Array.isArray(m.content)) {
-					const textParts: string[] = [];
-					m.content.forEach((block: any) => {
-						if (block.type === "text") {
-							textParts.push(block.text);
-						} else if (block.type === "reasoning") {
-							reasoning += block.reasoning;
-						}
-					});
-					text = textParts.join("\n");
-				}
-			}
-
-			return {
-				role,
-				text,
-				reasoning: reasoning || undefined,
-				toolEvents: toolEvents.length > 0 ? toolEvents : undefined,
-			};
-		});
-
+		// Map to UI chat message format using high-fidelity converter
+		const uiMessages = this.formatStoredMessagesForUi(messages || []);
 		const executionTasks = this.executionDataStore[sessionId] || undefined;
+		const lastTask = executionTasks && executionTasks.length > 0 ? executionTasks[executionTasks.length - 1] : undefined;
+
+		const hasCompletion = uiMessages.some((m: any) => m.role === "completion");
+		const hasToolExecutions = uiMessages.some((m: any) => m.role === "assistant" && m.toolEvents && m.toolEvents.length > 0);
+		if (hasToolExecutions && !hasCompletion && lastTask && (lastTask.state === "completed" || lastTask.summary?.finalStatus === "Completed")) {
+			const timeStr = lastTask.finishedAt ? new Date(lastTask.finishedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : undefined;
+			const lastAssistant = uiMessages.slice().reverse().find((m: any) => m.role === "assistant");
+			const toolsUsed = lastAssistant?.toolEvents ? lastAssistant.toolEvents.length : undefined;
+
+			uiMessages.push({
+				role: "completion",
+				text: "Task Completed Successfully",
+				completionMetadata: {
+					timestamp: lastTask.finishedAt,
+					completedAtFormatted: timeStr,
+					durationMs: lastTask.summary?.durationMs,
+					toolsUsed: toolsUsed && toolsUsed > 0 ? toolsUsed : undefined,
+					filesModified: lastTask.summary?.filesChanged,
+					inputTokens: lastTask.summary?.tokensUsed,
+					totalCost: lastTask.summary?.cost,
+					provider: lastTask.summary?.provider,
+					model: lastTask.summary?.model,
+					statusText: "The requested task has finished successfully.",
+				},
+			});
+		}
 
 		this.postToWebview({
 			type: "session_hydrated",
@@ -1243,6 +1398,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 			this.executionDataStore = {};
 			this.saveExecutionDataStore();
 			this.activeSessionId = undefined;
+			this.setPersistedActiveSessionId(undefined);
 			this.isRunning = false;
 			this.postToWebview({ type: "reset_done" });
 			await this.sendInitialPayload();
@@ -1512,23 +1668,42 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 					zenuxsAuthToken,
 				});
 
-				// Start or send to session
-				if (!this.activeSessionId) {
-					// New session - matching CLI's runAgent() start flow
-					// If restoredMessagesCache is set, seed the new session with the restored conversation
-					const initialMessages = this.restoredMessagesCache;
-					this.restoredMessagesCache = undefined;
-					if (initialMessages) {
-						loggerService.log({ level: LogLevel.DEBUG, category: LogCategory.CONVERSATION, message: "Session started with restored messages", source: "session", data: { restoredMessageCount: initialMessages.length } });
+				// Check if the runtime session is currently active in memory
+				const liveSession = this.activeSessionId
+					? await core.get(this.activeSessionId).catch(() => null)
+					: null;
+				const isLiveRuntimeSession = Boolean(liveSession);
+
+				const providerOrModelChanged =
+					this.activeRuntimeProviderId !== undefined &&
+					(this.activeRuntimeProviderId !== providerId || this.activeRuntimeModelId !== modelId);
+
+				const mustStartNewRuntimeSession =
+					!this.activeSessionId || !isLiveRuntimeSession || providerOrModelChanged;
+
+				if (mustStartNewRuntimeSession) {
+					if (providerOrModelChanged && this.activeSessionId && isLiveRuntimeSession) {
+						loggerService.log({
+							level: LogLevel.INFO,
+							category: LogCategory.CONVERSATION,
+							message: `Provider/Model changed (${this.activeRuntimeProviderId} -> ${providerId}). Recreating runtime session for conversation`,
+							source: "session",
+							sessionId: this.activeSessionId,
+						});
+						await core.abort(this.activeSessionId).catch(() => {});
 					}
 
-					// Tell the webview BEFORE core.start() so SET_SESSION_STARTED
-					// sets isRunning=true before any events arrive. Without this,
-					// events (including turn_done) arrive first, then session_started
-					// overwrites isRunning back to true, making the chat appear stuck.
+					const targetSessionId = this.activeSessionId || plannedSessionId;
+
+					let initialMessages = this.restoredMessagesCache;
+					if (!initialMessages && targetSessionId) {
+						initialMessages = await core.readMessages(targetSessionId).catch(() => undefined);
+					}
+					this.restoredMessagesCache = undefined;
+
 					this.postToWebview({
 						type: "session_started",
-						sessionId: plannedSessionId,
+						sessionId: targetSessionId,
 					});
 
 					const sessionLogger: BasicLogger = {
@@ -1537,7 +1712,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 						error: (msg: string, meta?: Record<string, unknown>) => loggerService.log({ level: LogLevel.ERROR, category: LogCategory.AGENT, message: msg, ...(meta ?? {}) as any }),
 					};
 
-				const started = await core.start({
+					const started = await core.start({
 						source: SessionSource.VSCODE,
 						config: {
 							providerId,
@@ -1553,13 +1728,8 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 							defaultToolAutoApprove: extConfig.autoApproveTools,
 							toolPolicies,
 							thinking,
-							reasoningEffort:
-								reasoningEffort !== "none"
-									? reasoningEffort
-									: undefined,
-							execution: {
-								maxConsecutiveMistakes: extConfig.retries,
-							},
+							reasoningEffort: reasoningEffort !== "none" ? reasoningEffort : undefined,
+							execution: { maxConsecutiveMistakes: extConfig.retries },
 							compaction: compactionConfig,
 							checkpoint: checkpointConfig,
 							timeoutSeconds: extConfig.timeout > 0 ? extConfig.timeout : undefined,
@@ -1568,37 +1738,36 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 							workspaceRoot,
 							extensionContext: {
 								client: { name: "vscode-extension" },
-								workspace: {
-									rootPath: workspaceRoot,
-									cwd,
-									workspaceName:
-										workspaceRoot.split(/[\\/]/).pop() ?? "",
-									ide: "VS Code",
-									platform: process.platform,
-								},
+								workspace: { rootPath: workspaceRoot, cwd, workspaceName: workspaceRoot.split(/[\\/]/).pop() ?? "", ide: "VS Code", platform: process.platform },
 								logger: sessionLogger,
 							},
 						},
 						prompt: fullPrompt,
 						interactive: true,
-						sessionId: plannedSessionId,
+						sessionId: targetSessionId,
 						initialMessages,
 					});
 
 					this.activeSessionId = started.sessionId;
-					loggerService.log({ level: LogLevel.INFO, category: LogCategory.CONVERSATION, message: "Session created / active session set", source: "session", sessionId: started.sessionId, data: { providerId, modelId } });
+					this.activeRuntimeProviderId = providerId;
+					this.activeRuntimeModelId = modelId;
+					this.setPersistedActiveSessionId(started.sessionId);
+					loggerService.log({ level: LogLevel.INFO, category: LogCategory.CONVERSATION, message: "Runtime session created/bound", source: "session", sessionId: started.sessionId, data: { providerId, modelId } });
 
-					// If start() already returned a result (non-interactive), use it
 					if (started.result) {
 						this.handleAgentResult(started.result);
 					} else {
-						// Wait for the session to complete via events
 						await this.waitForSessionEnd(core, started.sessionId, timeoutMs);
 					}
 				} else {
 					// Continue existing session
+					if (this.activeSessionId) {
+						this.postToWebview({
+							type: "session_started",
+							sessionId: this.activeSessionId,
+						});
+					}
 					loggerService.log({ level: LogLevel.DEBUG, category: LogCategory.CONVERSATION, message: "Session send", source: "session", sessionId: this.activeSessionId });
-					loggerService.log({ level: LogLevel.DEBUG, category: LogCategory.CONVERSATION, message: "Session lookup", source: "session", sessionId: this.activeSessionId });
 					const result = await core.send({
 						sessionId: this.activeSessionId,
 						prompt: fullPrompt,
@@ -1609,7 +1778,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 					} else {
 						await this.waitForSessionEnd(
 							core,
-							this.activeSessionId,
+							this.activeSessionId!,
 							timeoutMs,
 						);
 					}
@@ -1620,6 +1789,76 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 		} catch (error) {
 			const message =
 				error instanceof Error ? error.message : String(error);
+
+			// Transparent recovery from "session not found" without user-facing error toasts
+			if (
+				message.toLowerCase().includes("session not found") ||
+				message.toLowerCase().includes("session_not_found")
+			) {
+				const lostSessionId = this.activeSessionId || createSessionId();
+				loggerService.log({ level: LogLevel.INFO, category: LogCategory.CONVERSATION, message: "Session not found caught - transparently re-creating runtime session", source: "session", sessionId: lostSessionId });
+				try {
+					const bridge = await this.getCore();
+					const core = await bridge.getCore();
+					const recoveredMessages = await core.readMessages(lostSessionId).catch(() => []);
+					const extConfig = resolveExtensionConfig();
+					const psm = new ProviderSettingsManager();
+					const lastUsedProviderSettings = psm.getLastUsedProviderSettings({ isClinePassEnabled: false });
+					const rawProviderId = uiConfig?.providerId || extConfig.providerId || lastUsedProviderSettings?.provider || "cline";
+					const providerId = normalizeProviderId(rawProviderId);
+					const selectedProviderSettings = psm.getProviderSettings(providerId);
+					const resolvedApiKey = resolveProviderApiKeyFromSettings(psm, providerId) || getPersistedProviderApiKey(providerId, selectedProviderSettings) || extConfig.apiKey || "";
+					const resolvedBaseUrl = selectedProviderSettings?.baseUrl || extConfig.baseUrl || undefined;
+					const modelId = uiConfig?.modelId || extConfig.modelId || selectedProviderSettings?.model || "anthropic/claude-sonnet-4.6";
+					const modeStr = uiConfig?.mode || extConfig.mode || "act";
+					const isYoloMode = modeStr === "yolo";
+
+					const sessionLogger: BasicLogger = {
+						debug: (msg: string, meta?: Record<string, unknown>) => loggerService.log({ level: LogLevel.DEBUG, category: LogCategory.AGENT, message: msg, ...(meta ?? {}) as any }),
+						log: (msg: string, meta?: Record<string, unknown>) => loggerService.log({ level: LogLevel.INFO, category: LogCategory.AGENT, message: msg, ...(meta ?? {}) as any }),
+						error: (msg: string, meta?: Record<string, unknown>) => loggerService.log({ level: LogLevel.ERROR, category: LogCategory.AGENT, message: msg, ...(meta ?? {}) as any }),
+					};
+
+					this.postToWebview({ type: "session_started", sessionId: lostSessionId });
+					const started = await core.start({
+						source: SessionSource.VSCODE,
+						config: {
+							providerId,
+							modelId,
+							apiKey: resolvedApiKey,
+							mode: modeStr as any,
+							baseUrl: resolvedBaseUrl,
+							enableTools: true,
+							enableSpawnAgent: !isYoloMode,
+							enableAgentTeams: !isYoloMode,
+							yolo: isYoloMode,
+							defaultToolAutoApprove: extConfig.autoApproveTools,
+							logger: sessionLogger,
+							cwd: resolveCwd(),
+							workspaceRoot: resolveWorkspaceRoot(),
+						},
+						prompt: prompt,
+						interactive: true,
+						sessionId: lostSessionId,
+						initialMessages: recoveredMessages,
+					});
+
+					this.activeSessionId = started.sessionId;
+					this.activeRuntimeProviderId = providerId;
+					this.activeRuntimeModelId = modelId;
+					this.setPersistedActiveSessionId(started.sessionId);
+
+					if (started.result) {
+						this.handleAgentResult(started.result);
+					} else {
+						await this.waitForSessionEnd(core, started.sessionId);
+					}
+					return;
+				} catch (recoveryError) {
+					loggerService.log({ level: LogLevel.ERROR, category: LogCategory.CONVERSATION, message: `Session recovery failed: ${recoveryError instanceof Error ? recoveryError.message : String(recoveryError)}`, source: "session", sessionId: lostSessionId });
+				}
+			}
+
 			this.postToWebview({ type: "error", text: message });
 			loggerService.log({ level: LogLevel.ERROR, category: LogCategory.CONVERSATION, message: `Session error: ${message}`, source: "session", sessionId: this.activeSessionId });
 			if (
@@ -1630,71 +1869,6 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				this.activeSessionId = undefined;
 				this.isRunning = false;
 				await this.resetCore();
-			}
-			// Recover from "session not found": restore session instead of destroying it
-			if (
-				message.toLowerCase().includes("session not found") ||
-				message.toLowerCase().includes("session_not_found")
-			) {
-				const lostSessionId = this.activeSessionId;
-				loggerService.log({ level: LogLevel.INFO, category: LogCategory.CONVERSATION, message: "Session recovery triggered - attempting to restore from persistent storage", source: "session", sessionId: lostSessionId });
-				try {
-					// Read the missing session's messages from persistent storage
-					const bridge = await this.getCore();
-					const core = await bridge.getCore();
-					const recoveredMessages = await core.readMessages(lostSessionId);
-					if (recoveredMessages && recoveredMessages.length > 0) {
-						// Cache messages so the next send seeds a new runtime session
-						this.restoredMessagesCache = recoveredMessages;
-						this.activeSessionId = undefined;
-						this.isRunning = false;
-
-						// Re-hydrate the webview so the chat stays intact
-						const uiMessages = (recoveredMessages || []).map((m: any) => {
-							let role: "user" | "assistant" | "error" | "meta" = "user";
-							if (m.role === "assistant") role = "assistant";
-							else if (m.role === "user") role = "user";
-							else role = "meta";
-							const toolEvents: any[] = [];
-							if (m.content && Array.isArray(m.content)) {
-								m.content.forEach((block: any) => {
-									if (block.type === "tool_call" || block.type === "tool_use") {
-										toolEvents.push({ id: block.id, name: block.name, input: block.input, state: "output-available" });
-									}
-								});
-							}
-							let text = "";
-							let reasoning = "";
-							if (m.content) {
-								if (typeof m.content === "string") text = m.content;
-								else if (Array.isArray(m.content)) {
-									const textParts: string[] = [];
-									m.content.forEach((block: any) => {
-										if (block.type === "text") textParts.push(block.text);
-										else if (block.type === "reasoning") reasoning += block.reasoning;
-									});
-									text = textParts.join("\n");
-								}
-							}
-							return { role, text, reasoning: reasoning || undefined, toolEvents: toolEvents.length > 0 ? toolEvents : undefined };
-						});
-						this.postToWebview({ type: "session_hydrated", sessionId: lostSessionId, messages: uiMessages });
-						this.postToWebview({ type: "status", text: "Session recovered. You may re-send your message." });
-						loggerService.log({ level: LogLevel.INFO, category: LogCategory.CONVERSATION, message: "Session recovery completed - session restored from persistent storage", source: "session", sessionId: lostSessionId, data: { messageCount: recoveredMessages.length } });
-					} else {
-						// No messages to recover - fall back to clean reset
-						loggerService.log({ level: LogLevel.INFO, category: LogCategory.CONVERSATION, message: "Session recovery - no messages to restore, resetting", source: "session", sessionId: lostSessionId });
-						this.activeSessionId = undefined;
-						this.isRunning = false;
-						this.postToWebview({ type: "reset_done" });
-					}
-				} catch (recoveryError) {
-					// Recovery itself failed - fall back to clean reset
-					loggerService.log({ level: LogLevel.ERROR, category: LogCategory.CONVERSATION, message: `Session recovery failed: ${recoveryError instanceof Error ? recoveryError.message : String(recoveryError)}`, source: "session", sessionId: lostSessionId });
-					this.activeSessionId = undefined;
-					this.isRunning = false;
-					this.postToWebview({ type: "reset_done" });
-				}
 			}
 		} finally {
 			this.isRunning = false;

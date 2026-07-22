@@ -37,7 +37,24 @@ export const ChatMessageRoleSchema = z.enum([
 	"system",
 	"status",
 	"error",
+	"completion",
 ]);
+
+export const TaskCompletionMetadataSchema = z.object({
+	timestamp: z.number().int().nonnegative().optional(),
+	completedAtFormatted: z.string().optional(),
+	durationMs: z.number().nonnegative().optional(),
+	toolsUsed: z.number().int().nonnegative().optional(),
+	filesModified: z.number().int().nonnegative().optional(),
+	inputTokens: z.number().int().nonnegative().optional(),
+	outputTokens: z.number().int().nonnegative().optional(),
+	totalCost: z.number().nonnegative().optional(),
+	model: z.string().optional(),
+	provider: z.string().optional(),
+	checkpointRef: z.string().optional(),
+	statusText: z.string().optional(),
+});
+
 
 export const ChatMessageSchema = z.object({
 	id: z.string().min(1),
@@ -65,6 +82,7 @@ export const ChatMessageSchema = z.object({
 				.optional(),
 		})
 		.optional(),
+	completionMetadata: TaskCompletionMetadataSchema.optional(),
 });
 
 export const ChatSummarySchema = z.object({
@@ -85,6 +103,8 @@ export const ChatViewStateSchema = z.object({
 
 export type ChatSessionConfig = z.infer<typeof ChatSessionConfigSchema>;
 export type ChatSessionStatus = z.infer<typeof ChatSessionStatusSchema>;
+export type TaskCompletionMetadata = z.infer<typeof TaskCompletionMetadataSchema>;
 export type ChatMessage = z.infer<typeof ChatMessageSchema>;
 export type ChatSummary = z.infer<typeof ChatSummarySchema>;
 export type ChatViewState = z.infer<typeof ChatViewStateSchema>;
+
