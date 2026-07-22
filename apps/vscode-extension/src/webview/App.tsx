@@ -7,6 +7,7 @@ import { DashboardView } from "./components/DashboardView.js";
 import { LogsView } from "./components/LogsView.js";
 import { DeveloperLogsView } from "./components/DeveloperLogsView.js";
 import { TeamsView } from "./components/TeamsView.js";
+import { OnboardingView } from "./components/OnboardingView.js";
 import type { TabId } from "./types.js";
 
 const TABS: { id: TabId; label: string }[] = [
@@ -31,6 +32,10 @@ export function App() {
 			return () => clearTimeout(t);
 		}
 	}, [state.toast, dispatch]);
+
+	if (state.showOnboarding) {
+		return <OnboardingView onComplete={() => dispatch({ type: "COMPLETE_ONBOARDING" })} />;
+	}
 
 	return (
 		<div className="app-root">

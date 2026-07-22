@@ -11,20 +11,16 @@ import { normalizeSystemInput, buildSystemPrompt as composeSystemParts } from ".
 const WORKSPACE_CONFIGURATION_MARKER = "# Workspace Configuration";
 
 export function processWorkspaceInfo(info: WorkspaceInfo): string {
-	return JSON.stringify(
-		{
-			workspaces: {
-				[info.rootPath]: {
-					hint: info.hint,
-					associatedRemoteUrls: info.associatedRemoteUrls,
-					latestGitCommitHash: info.latestGitCommitHash,
-					latestGitBranchName: info.latestGitBranchName,
-				},
+	return JSON.stringify({
+		workspaces: {
+			[info.rootPath]: {
+				hint: info.hint,
+				associatedRemoteUrls: info.associatedRemoteUrls,
+				latestGitCommitHash: info.latestGitCommitHash,
+				latestGitBranchName: info.latestGitBranchName,
 			},
 		},
-		null,
-		2,
-	);
+	});
 }
 
 function buildWorkspaceMetadata(
@@ -37,17 +33,13 @@ function buildWorkspaceMetadata(
 	}
 	const body =
 		metadata ||
-		JSON.stringify(
-			{
-				workspaces: {
-					[rootPath]: {
-						hint: workspaceName || rootPath.split("/").at(-1) || rootPath,
-					},
+		JSON.stringify({
+			workspaces: {
+				[rootPath]: {
+					hint: workspaceName || rootPath.split("/").at(-1) || rootPath,
 				},
 			},
-			null,
-			2,
-		);
+		});
 	return `\n${WORKSPACE_CONFIGURATION_MARKER}\n${body}`;
 }
 
@@ -111,19 +103,19 @@ export function buildZenuxsSystemPrompt(
 	} else {
 		const basePrompt =
 			mode === "yolo" ? YOLO_ZENUXS_SYSTEM_PROMPT : DEFAULT_ZENUXS_SYSTEM_PROMPT;
+		const dateStr = new Date().toLocaleDateString();
+		const zenuxsMeta = isZenuxs
+			? buildWorkspaceMetadata(workspaceRoot, workspaceName, metadata)
+			: "";
+		const zenuxsRules = rules || "";
 
 		base = basePrompt
 			.replace("{{PLATFORM_NAME}}", platform)
 			.replace("{{CWD}}", workspaceRoot)
-			.replace("{{CURRENT_DATE}}", new Date().toLocaleDateString())
+			.replace("{{CURRENT_DATE}}", dateStr)
 			.replace("{{IDE_NAME}}", ide)
-			.replace(
-				"{{ZENUXS_METADATA}}",
-				isZenuxs
-					? buildWorkspaceMetadata(workspaceRoot, workspaceName, metadata)
-					: "",
-			)
-			.replace("{{ZENUXS_RULES}}", rules || "")
+			.replace("{{ZENUXS_METADATA}}", zenuxsMeta)
+			.replace("{{ZENUXS_RULES}}", zenuxsRules)
 			.trim();
 	}
 

@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
 import { desktopClient } from "@/lib/desktop-client";
@@ -154,45 +153,47 @@ export function AutoApprovalsContent() {
 					<p className="text-sm text-muted-foreground">Loading approvals...</p>
 				</div>
 			) : (
-				<div className="max-w-[46rem] space-y-6">
-					{groupedPermissions.map((group) => (
-						<div key={group.title} className="rounded-lg border border-border">
-							<div className="border-b px-5 py-3">
-								<h3 className="text-sm font-semibold text-foreground">
-									{group.title}
-								</h3>
-							</div>
-							<div className="divide-y">
-								{group.permissions.map((permission) => {
-									const config = PERMISSION_LABELS[permission];
-									const enabled = approvals[permission];
-									return (
-										<div
-											key={permission}
-											className="flex items-center justify-between gap-4 px-5 py-4"
-										>
-											<div className="min-w-0 flex-1">
-												<p className="text-[15px] font-medium text-foreground">
-													{config.label}
-												</p>
-												<p className="mt-0.5 text-xs text-muted-foreground">
-													{config.description}
-												</p>
+				<ScrollArea className="max-w-[46rem]">
+					<div className="space-y-6 pr-4">
+						{groupedPermissions.map((group) => (
+							<div key={group.title} className="rounded-lg border border-border">
+								<div className="border-b px-5 py-3">
+									<h3 className="text-sm font-semibold text-foreground">
+										{group.title}
+									</h3>
+								</div>
+								<div className="divide-y divide-border">
+									{group.permissions.map((permission) => {
+										const config = PERMISSION_LABELS[permission];
+										const enabled = Boolean(approvals[permission]);
+										return (
+											<div
+												key={permission}
+												className="flex items-center justify-between gap-4 px-5 py-3.5"
+											>
+												<div className="space-y-0.5">
+													<div className="text-sm font-medium text-foreground">
+														{config.label}
+													</div>
+													<p className="text-xs text-muted-foreground">
+														{config.description}
+													</p>
+												</div>
+												<Switch
+													checked={enabled}
+													disabled={saving}
+													onCheckedChange={(checked) =>
+														void toggleApproval(permission, checked)
+													}
+												/>
 											</div>
-											<Switch
-												checked={enabled}
-												disabled={saving}
-												onCheckedChange={(checked) =>
-													void toggleApproval(permission, checked)
-												}
-											/>
-										</div>
-									);
-								})}
+										);
+									})}
+								</div>
 							</div>
-						</div>
-					))}
-				</div>
+						))}
+					</div>
+				</ScrollArea>
 			)}
 		</PageFrame>
 	);

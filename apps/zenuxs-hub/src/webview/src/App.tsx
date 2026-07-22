@@ -107,10 +107,13 @@ const SETTINGS_SECTION_PATHS: Record<SettingsSection, string> = {
 	General: "/settings",
 	Providers: "/settings/providers",
 	"Developer Logs": "/settings/developer-logs",
-	MCP: "/settings/mcp",
+	"MCP & Plugins": "/settings/mcp",
 	Channels: "/settings/channels",
 	Schedules: "/settings/schedules",
 	Account: "/settings/account",
+	Skills: "/settings/skills",
+	"Auto Approvals": "/settings/auto-approvals",
+	About: "/settings/about",
 };
 
 const CUSTOMIZATION_VIEW_SECTIONS = {

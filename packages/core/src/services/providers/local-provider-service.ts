@@ -15,8 +15,10 @@ import {
 	isOAuthProvider,
 	loginAndSaveProviderOAuthCredentials,
 	type ProviderOAuthCredentials,
+	resolveProviderApiKeyFromSettings,
 	saveProviderOAuthCredentials,
 } from "../../auth/provider-auth-registry";
+import { validateCustomProviderConfig } from "./custom-provider-validator";
 import { resolveProviderConfig } from "../../services/llms/provider-defaults";
 import { normalizeProviderBaseUrl } from "../../services/llms/provider-settings";
 import type {
@@ -41,6 +43,7 @@ import {
 import { devLogs } from "../logging/developer-logs";
 
 export { ensureCustomProvidersLoaded, syncStoredProviderRegistration } from "./local-provider-registry";
+export { validateCustomProviderConfig } from "./custom-provider-validator";
 
 const CLINE_PASS_PROVIDER_ID = "cline-pass";
 
@@ -415,11 +418,22 @@ export async function addLocalProvider(
 		: undefined;
 	const normalizedHeaders = normalizeHeaders(request.headers);
 
+	let effectiveBaseUrl = baseUrl;
+	if (providerId === "custom") {
+		const validation = await validateCustomProviderConfig({
+			baseUrl,
+			apiKey: apiKey || undefined,
+			modelId: defaultModelId,
+			headers: normalizedHeaders,
+		});
+		effectiveBaseUrl = validation.normalizedBaseUrl;
+	}
+
 	manager.saveProviderSettings(
 		{
 			provider: providerId,
 			apiKey: apiKey || undefined,
-			baseUrl,
+			baseUrl: effectiveBaseUrl,
 			headers: normalizedHeaders,
 			timeout: request.timeoutMs,
 			model: defaultModelId,
@@ -675,6 +689,11 @@ export async function listLocalProviders(
 				const configFields =
 					readProviderConfigFields(info?.metadata) ??
 					fallbackProviderConfigFields(info);
+				const resolvedApiKey = resolveProviderApiKeyFromSettings(manager, id);
+				const hasApiKey =
+					Boolean(resolvedApiKey && resolvedApiKey.trim().length > 0) ||
+					(persistedSettings ? Boolean(resolveVisibleApiKey(persistedSettings)) : false);
+
 				return {
 					provider: {
 						id,
@@ -683,9 +702,7 @@ export async function listLocalProviders(
 						color: stableColor(id),
 						letter: createLetter(name),
 						enabled: Boolean(persistedSettings),
-						apiKey: persistedSettings
-							? resolveVisibleApiKey(persistedSettings)
-							: undefined,
+						hasApiKey,
 						isOAuth: isOAuthProvider(id),
 						oauthAccessTokenPresent: persistedSettings
 							? hasOAuthAccessToken(persistedSettings)

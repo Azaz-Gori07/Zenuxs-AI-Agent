@@ -411,6 +411,7 @@ export {
 	ZENUXS_ENVIRONMENTS,
 	DEFAULT_ZENUXS_ENVIRONMENT,
 	getZenuxsEnvironmentConfig,
+	getClineEnvironmentConfig,
 	resolveZenuxsEnvironment,
 } from "./runtime/zenuxs-environment";
 export {
@@ -480,3 +481,6 @@ export { AUTH_ERROR_PATTERNS, isLikelyAuthError, CONTEXT_LENGTH_ERROR_PATTERNS, 
 export { initVcr } from "./vcr";
 export { profiler } from "./profiler/profiler";
 export type { ProfileSpan, SpanCategory, TimelineEvent, FunctionStats, MemorySnapshot, FlamegraphNode, ProfileData } from "./profiler/profiler";
+export { pMap, pFilter, deferredPromise, withTimeout, rateLimit } from "./perf/concurrency";
+export type { DeferredPromise } from "./perf/concurrency";
+export { measure, Measured, getMeasurements, resetMeasurements } from "./perf/measure";

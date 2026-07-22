@@ -98,6 +98,8 @@ export function ChatView() {
 	const inputRef = useRef<HTMLTextAreaElement>(null);
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 	const messagesContainerRef = useRef<HTMLDivElement>(null);
+	const executionStateRef = useRef(executionState);
+	executionStateRef.current = executionState;
 
 	const selectMode = useCallback((m: AgentMode) => {
 		dispatch({ type: "UPDATE_CONFIG", config: { mode: m } });
@@ -177,6 +179,49 @@ export function ChatView() {
 		return () => document.removeEventListener("click", handleDocumentClick);
 	}, [showModeMenu, showModelMenu]);
 
+	// Model context window lookup — updates ExecutionStore with real model capacity
+	const getModelContextWindow = useCallback((providerId: string, modelId: string): number => {
+		const cleanId = modelId.split("/").pop() || modelId;
+		const known: Record<string, number> = {
+			"gpt-5.5": 1_050_000, "gpt-5.4": 1_050_000, "gpt-5.4-mini": 400_000,
+			"gpt-5.3": 1_050_000, "gpt-5.3-codex": 200_000, "gpt-5.2": 1_050_000,
+			"gpt-5.1": 1_050_000, "gpt-5": 1_050_000,
+			"gpt-4.5": 128_000, "gpt-4o": 128_000, "gpt-4o-mini": 128_000,
+			"o5": 200_000, "o5-mini": 200_000, "o4": 200_000, "o4-mini": 200_000,
+			"o3": 200_000, "o3-mini": 200_000,
+			"claude-sonnet-4-6": 1_000_000, "claude-sonnet-4.6": 1_000_000,
+			"claude-sonnet-4.5": 200_000, "claude-sonnet-4": 200_000,
+			"claude-opus-4.8": 1_000_000, "claude-opus-4.5": 200_000, "claude-opus-4": 200_000,
+			"claude-3.5-sonnet": 200_000, "claude-3-opus": 200_000,
+			"gemini-3.1-flash": 1_048_576, "gemini-3.1-flash-lite": 1_048_576,
+			"gemini-3.1-pro": 1_048_576, "gemini-2.5-pro": 1_048_576,
+			"gemini-2.5-flash": 1_048_576, "gemini-2.0-flash": 1_048_576,
+			"deepseek-v4-flash": 1_000_000, "deepseek-v4-pro": 1_000_000,
+			"deepseek-v4-flash-free": 128_000, "deepseek-v3": 64_000,
+			"llama-3.1-70b": 128_000, "llama-3.1-8b": 128_000,
+			"llama-3.3-70b": 128_000, "llama-4": 1_000_000,
+			"mistral-large": 128_000, "mistral-medium": 32_000,
+			"nemotron-70b": 128_000,
+		};
+		for (const [key, val] of Object.entries(known)) {
+			if (cleanId.toLowerCase().includes(key.toLowerCase())) return val;
+		}
+		if (providerId.includes("openai")) return 128_000;
+		if (providerId.includes("anthropic") || providerId === "cline") return 200_000;
+		if (providerId.includes("gemini") || providerId === "google") return 1_048_576;
+		if (providerId.includes("deepseek")) return 1_000_000;
+		return 128_000;
+	}, []);
+
+	useEffect(() => {
+		const pid = state.currentConfig.providerId;
+		const mid = state.currentConfig.modelId;
+		const ctx = getModelContextWindow(pid, mid);
+		if (executionState.contextMaxTokens !== ctx) {
+			ExecutionStore.updateContextWindow(ctx);
+		}
+	}, [state.currentConfig.providerId, state.currentConfig.modelId, getModelContextWindow]);
+
 	const handleInputChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
 		const val = e.target.value;
 		setInput(val);
@@ -189,26 +234,6 @@ export function ChatView() {
 			setAutocompleteIdx(-1);
 		}
 	}, []);
-
-	const handleKeyDown = useCallback(
-		(e: React.KeyboardEvent) => {
-			if (autocompleteVisible) {
-				const matches = SLASH_COMMANDS.filter((c) => c.cmd.startsWith(input.toLowerCase()));
-				if (e.key === "ArrowDown") { e.preventDefault(); setAutocompleteIdx((i) => (i + 1) % matches.length); return; }
-				if (e.key === "ArrowUp") { e.preventDefault(); setAutocompleteIdx((i) => (i - 1 + matches.length) % matches.length); return; }
-				if (e.key === "Enter" && autocompleteIdx >= 0) {
-					e.preventDefault();
-					const cmd = matches[autocompleteIdx]?.cmd;
-					setInput(cmd === "/mode" ? "/mode " : cmd + " ");
-					setAutocompleteVisible(false);
-					return;
-				}
-				if (e.key === "Escape") { setAutocompleteVisible(false); return; }
-			}
-			if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
-		},
-		[input, autocompleteVisible, autocompleteIdx],
-	);
 
 	const handleSend = useCallback(() => {
 		const trimmed = input.trim();
@@ -248,6 +273,26 @@ export function ChatView() {
 			mode: state.currentConfig.mode,
 		});
 	}, [input, executionState.isRunning, state.currentConfig, sendMessage, dispatch, scrollToBottom]);
+
+	const handleKeyDown = useCallback(
+		(e: React.KeyboardEvent) => {
+			if (autocompleteVisible) {
+				const matches = SLASH_COMMANDS.filter((c) => c.cmd.startsWith(input.toLowerCase()));
+				if (e.key === "ArrowDown") { e.preventDefault(); setAutocompleteIdx((i) => (i + 1) % matches.length); return; }
+				if (e.key === "ArrowUp") { e.preventDefault(); setAutocompleteIdx((i) => (i - 1 + matches.length) % matches.length); return; }
+				if (e.key === "Enter" && autocompleteIdx >= 0) {
+					e.preventDefault();
+					const cmd = matches[autocompleteIdx]?.cmd;
+					setInput(cmd === "/mode" ? "/mode " : cmd + " ");
+					setAutocompleteVisible(false);
+					return;
+				}
+				if (e.key === "Escape") { setAutocompleteVisible(false); return; }
+			}
+			if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
+		},
+		[input, autocompleteVisible, autocompleteIdx, handleSend],
+	);
 
 	const copyMessage = useCallback((text: string) => {
 		navigator.clipboard.writeText(text);
@@ -289,45 +334,21 @@ export function ChatView() {
 	const availableModels = state.models[providerId] || ["default"];
 
 	// ==========================================
-	// TASK EXECUTION PANEL (3-Phase Model)
+	// TASK MANAGEMENT: auto-create on tool use, no fixed phases
 	// ==========================================
 	const taskIdRef = useRef(0);
-	const planReasoningBuf = useRef("");
-	const buildStepMap = useRef<Map<string, number>>(new Map());
-	const hasSeenToolRef = useRef(false);
-	const hasSeenTestRef = useRef(false);
 
-	function newTaskExecution(id: number, promptText: string = ""): TaskDataV2 {
+	function newTaskExecution(id: number): TaskDataV2 {
 		const now = Date.now();
 		return {
 			schemaVersion: SCHEMA_VERSION,
 			taskId: id,
-			title: promptText.trim().slice(0, 45) || `Task #${id}`,
+			title: `Task #${id}`,
 			startedAt: now,
-			state: "planning",
-			liveStatus: "Planning...",
+			state: "running",
+			liveStatus: "Running...",
 			collapsed: false,
-			phaseExpanded: { planning: true, building: true, testing: true },
-			events: [
-				{
-					id: `evt-${now}-1`,
-					sequence: 1,
-					version: SCHEMA_VERSION,
-					timestamp: now,
-					startedAt: now,
-					phase: "planning",
-					eventType: "planning",
-					status: "running",
-					title: "Analyzing prompt & requirements",
-					origin: "user",
-					metadata: {
-						planningDetails: {
-							goal: promptText,
-							approach: "Deconstruct goal, plan strategy, and execute building tasks",
-						}
-					}
-				}
-			]
+			events: [],
 		};
 	}
 
@@ -344,7 +365,7 @@ export function ChatView() {
 			if (data.executionTasks && data.executionTasks.length > 0) {
 				const restored = data.executionTasks.map((t: TaskDataV2) => {
 					const task = { ...t };
-					if (task.state === "planning" || task.state === "building" || task.state === "testing") {
+					if (task.state === "running" || task.state === "idle") {
 						task.state = "interrupted";
 						task.liveStatus = "Interrupted";
 						task.interrupted = true;
@@ -355,7 +376,6 @@ export function ChatView() {
 				setActiveTask(restored[0]);
 				taskIdRef.current = restored[0]?.taskId || 0;
 			}
-			// Restore scroll position
 			requestAnimationFrame(() => {
 				const savedScroll = sessionStorage.getItem(`zenuxs-scroll-${data.sessionId}`);
 				if (savedScroll && messagesContainerRef.current) {
@@ -364,32 +384,11 @@ export function ChatView() {
 			});
 		}));
 
-		unsubs.push(AgentEventBus.subscribe("user_message_sent", (data: any) => {
-			taskIdRef.current++;
-			planReasoningBuf.current = "";
-			buildStepMap.current = new Map();
-			hasSeenToolRef.current = false;
-			hasSeenTestRef.current = false;
-			setActiveTask(newTaskExecution(taskIdRef.current, data.text || ""));
-		}));
-
-		unsubs.push(AgentEventBus.subscribe("reasoning_delta", (data: { text: string }) => {
-			planReasoningBuf.current += data.text;
-			setActiveTask((prev: TaskDataV2 | null) => {
-				if (!prev || prev.state !== "planning") return prev;
-				const events = prev.events.map((e: TimelineEvent) => e.phase === "planning" ? { ...e, title: planReasoningBuf.current.slice(0, 100) } : e);
-				return {
-					...prev,
-					liveStatus: "Planning...",
-					events,
-				};
-			});
-			queueSaveExecutionData();
-		}));
-
+		// Create task on first tool event of a user turn
 		unsubs.push(AgentEventBus.subscribe("tool_event", (data: { text: string; event?: any }) => {
 			const ev = data.event;
 			if (!ev) return;
+
 			const name = (ev.name || "").toLowerCase();
 			const input = ev.input || {};
 			const filePath = normalizePath(input.filePath || input.path || input.TargetFile || input.AbsolutePath || "");
@@ -397,22 +396,55 @@ export function ChatView() {
 			const cwd = input.cwd || input.Cwd || "workspace";
 
 			let eventType: TimelineEvent["eventType"] = "tool";
-			let phase: TimelineEvent["phase"] = "building";
 			let title = "";
 
 			if (name.includes("read")) { eventType = "reading"; title = `Reading ${filePath || "file"}`; }
 			else if (name.includes("write") || name.includes("create")) { eventType = "writing"; title = `Writing ${filePath || "file"}`; }
 			else if (name.includes("edit") || name.includes("replace") || name.includes("patch")) { eventType = "editing"; title = `Editing ${filePath || "file"}`; }
 			else if (name.includes("bash") || name.includes("shell") || name.includes("exec") || name === "run") { eventType = "command"; title = `Executing Command`; }
-			else if (name.includes("test")) { eventType = "testing"; phase = "testing"; title = `Running test`; }
+			else if (name.includes("test")) { eventType = "testing"; title = `Running test`; }
 			else { eventType = "tool"; title = ev.name || "Executing tool"; }
 
 			setActiveTask((prev: TaskDataV2 | null) => {
-				if (!prev) return prev;
+				const now = Date.now();
+
+				// Auto-create task if no active task exists
+				if (!prev) {
+					taskIdRef.current++;
+					const newTask: TaskDataV2 = {
+						schemaVersion: SCHEMA_VERSION,
+						taskId: taskIdRef.current,
+						title: `Task #${taskIdRef.current}`,
+						startedAt: now,
+						state: "running",
+						liveStatus: "Running...",
+						collapsed: false,
+						events: [{
+							id: ev.id || `evt-${now}-0`,
+							sequence: 1,
+							version: SCHEMA_VERSION,
+							timestamp: now,
+							startedAt: now,
+							phase: "execution",
+							eventType,
+							status: ev.state === "running" ? "running" : "completed",
+							title,
+							origin: "tool",
+							metadata: {
+								cwd,
+								command: cmd || undefined,
+								filePath: filePath || undefined,
+								stdout: data.text,
+							}
+						}]
+					};
+					return newTask;
+				}
+
+				// Update existing task
 				const events = [...prev.events];
 				const eventId = ev.id || `${name}-${events.length}`;
 				const existingIdx = events.findIndex((e: TimelineEvent) => e.id === eventId);
-				const now = Date.now();
 
 				if (ev.state === "running") {
 					if (existingIdx !== -1) {
@@ -424,7 +456,7 @@ export function ChatView() {
 							version: SCHEMA_VERSION,
 							timestamp: now,
 							startedAt: now,
-							phase,
+							phase: "execution",
 							eventType,
 							status: "running",
 							title,
@@ -466,11 +498,10 @@ export function ChatView() {
 					}
 				}
 
-				const nextState = phase === "testing" ? "testing" : "building";
 				return {
 					...prev,
-					state: nextState,
-					liveStatus: `${nextState.charAt(0).toUpperCase() + nextState.slice(1)}...`,
+					state: "running",
+					liveStatus: "Running...",
 					events,
 				};
 			});
@@ -511,10 +542,10 @@ export function ChatView() {
 						errors: [],
 						filesChanged: created.length + modified.length,
 						commandsExecuted,
-						testsPassed: updatedEvents.filter(e => e.phase === "testing" && e.status === "completed").length,
+						testsPassed: updatedEvents.filter(e => e.eventType === "testing" && e.status === "completed").length,
 						durationMs,
-						tokensUsed: executionState.inputTokens + executionState.outputTokens,
-						cost: executionState.totalCost,
+						tokensUsed: executionStateRef.current.inputTokens + executionStateRef.current.outputTokens,
+						cost: executionStateRef.current.totalCost,
 						finalStatus: isCancelled ? "Cancelled" : "Completed",
 					},
 					fileChanges: {
@@ -535,14 +566,9 @@ export function ChatView() {
 		}));
 
 		unsubs.push(AgentEventBus.subscribe("reset_done", () => {
-			// Save final state before clearing
 			setTimeout(() => queueSaveExecutionData(), 0);
 			setActiveTask(null);
 			taskIdRef.current = 0;
-			planReasoningBuf.current = "";
-			buildStepMap.current = new Map();
-			hasSeenToolRef.current = false;
-			hasSeenTestRef.current = false;
 		}));
 
 		return () => unsubs.forEach(u => u());
@@ -558,10 +584,6 @@ export function ChatView() {
 			}
 		}
 		return parts.slice(-2).join("/") || p;
-	}
-
-	function getCollapsedStatusText(task: TaskDataV2): string {
-		return task.liveStatus;
 	}
 
 	const contextPercentage = Math.min(100, Math.max(0, (executionState.contextTokens / executionState.contextMaxTokens) * 100));
@@ -590,7 +612,6 @@ export function ChatView() {
 
 
 			<div className="messages-container" id="chat-messages" ref={messagesContainerRef} onScroll={handleScroll} role="log" aria-label="Messages" aria-live="polite">
-				{activeTask && <StickyActivityBar task={activeTask} />}
 				{!activeTask && timelineState.messages.length === 0 && !executionState.isRunning && (
 					<div className="welcome-placeholder">
 						{(window as any).logoUri ? (
@@ -665,12 +686,12 @@ export function ChatView() {
 												{isStreamingThis && <span className="streaming-cursor" aria-hidden="true" />}
 											</div>
 											{(msg as any).reasoning ? (
-												<div className="reasoning-block">
-													<div className="reasoning-header" onClick={(e) => { const el = e.currentTarget.nextElementSibling as HTMLElement | null; if (el) el.style.display = el.style.display === "none" ? "block" : "none"; }}>
+												<div className={`reasoning-block ${isStreamingThis ? "reasoning-live" : ""}`}>
+													<div className="reasoning-header" onClick={(e) => { const el = e.currentTarget.nextElementSibling as HTMLElement | null; if (el) { el.style.display = el.style.display === "none" ? "block" : "none"; } }}>
 														<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
 														Reasoning
 													</div>
-													<div className="reasoning-content" style={{ display: "none" }}>{(msg as any).reasoning}</div>
+													<div className="reasoning-content" style={{ display: isStreamingThis ? "block" : "none" }}><MarkdownBlock markdown={(msg as any).reasoning} /></div>
 												</div>
 											) : null}
 										</>
@@ -678,16 +699,23 @@ export function ChatView() {
 								</div>
 							);
 						})}
+
+						{/* Thinking Animation — shown when model is thinking before any response text */}
+						{executionState.isRunning && executionState.status === "thinking" && 
+						 timelineState.messages.length > 0 && 
+						 timelineState.messages[timelineState.messages.length - 1].role === "user" && (
+							<div key="thinking-block" className="message assistant" style={{ padding: "8px 12px 4px" }}>
+								<ThinkingAnimation />
+							</div>
+						)}
 					</div>
 				)}
 
-				{/* TASK EXECUTION PANEL */}
 				{activeTask && (
 					<TaskExecutionPanel
 						task={activeTask}
 						onToggleCollapse={() => setActiveTask(prev => prev ? { ...prev, collapsed: !prev.collapsed } : prev)}
 						onStop={abort}
-						onNewTask={() => dispatch({ type: "RESET_SESSION" })}
 					/>
 				)}
 
@@ -839,46 +867,6 @@ export function ChatView() {
 }
 
 // ==========================================
-// TYPES (shared between ChatView and sub-components)
-// ==========================================
-type StageType = "thinking" | "planning" | "reading" | "analyzing" | "writing" | "editing" | "command" | "tool" | "testing" | "validation" | "summary" | "response";
-
-interface Stage {
-	id: string;
-	type: StageType;
-	status: "pending" | "running" | "completed" | "failed";
-	label: string;
-	detail?: string;
-	content?: string;
-	filePath?: string;
-	exitCode?: number;
-	stderr?: string;
-	children?: Stage[];
-	error?: string;
-	expanded?: boolean;
-	progress?: string;
-}
-
-interface TaskData {
-	id: number;
-	startedAt: number;
-	stages: Stage[];
-	summary?: {
-		filesModified: number;
-		filesCreated: number;
-		commandsExecuted: number;
-		testsPassed: number;
-		durationMs: number;
-		totalCost: number;
-		totalTokens: number;
-		createdFiles: string[];
-		modifiedFiles: string[];
-		deletedFiles: string[];
-		completedWork: string[];
-	};
-}
-
-// ==========================================
 // SUB-COMPONENTS
 // ==========================================
 
@@ -925,92 +913,6 @@ function CheckpointDropdownComponent({ activeSessionId, checkpoints }: { activeS
 						))
 					)}
 				</div>
-			)}
-		</div>
-	);
-}
-
-function formatToolInput(name: string, input: any): string {
-	if (!input) return "";
-	const n = (name || "").toLowerCase();
-	const filePath = input.filePath || input.path || input.TargetFile || input.AbsolutePath || "";
-	if (filePath) {
-		const parts = filePath.split(/[\\/]/);
-		return parts.pop() || filePath;
-	}
-	if (n.includes("bash") || n.includes("shell") || n.includes("exec")) {
-		const cmd = input.command || input.commands || "";
-		return typeof cmd === "string" ? cmd.slice(0, 100) : "";
-	}
-	return "";
-}
-
-function formatToolOutput(name: string, output: any): string {
-	if (!output) return "";
-	if (typeof output === "string") {
-		const lines = output.split("\n").filter(l => l.trim());
-		return lines.slice(0, 5).join("; ");
-	}
-	if (typeof output === "object") {
-		const text = output.output || output.result || output.message || output.text || "";
-		if (typeof text === "string") {
-			const lines = text.split("\n").filter(l => l.trim());
-			return lines.slice(0, 5).join("; ");
-		}
-	}
-	return "";
-}
-
-function getToolCallHeader(name: string, input: any): string {
-	const n = (name || "").toLowerCase();
-	const filePath = input?.filePath || input?.path || input?.TargetFile || input?.AbsolutePath || "";
-	const target = filePath ? filePath.split(/[\\/]/).pop() || filePath : "";
-
-	if (n.includes("write") || n === "write_file") return target ? `Writing file \`${target}\`` : "Writing file";
-	if (n.includes("edit") || n === "editor") return target ? `Editing file \`${target}\`` : "Editing file";
-	if (n.includes("create") || n.includes("create_file")) return target ? `Creating file \`${target}\`` : "Creating file";
-	if (n.includes("read") || n.includes("read_file")) return target ? `Reading file \`${target}\`` : "Reading file";
-	if (n.includes("search") || n === "grep") return "Searching workspace";
-	if (n === "glob") return "Searching files";
-	if (n.includes("replace")) return target ? `Replacing in \`${target}\`` : "Replacing content";
-	if (n.includes("patch") || n.includes("apply_patch")) return target ? `Applying patch to \`${target}\`` : "Applying patch";
-	if (n.includes("bash") || n.includes("shell") || n.includes("exec") || n === "run") {
-		const cmd = input?.command || input?.commands || "";
-		return `Running command \`${typeof cmd === "string" ? cmd.slice(0, 80) : ""}\``;
-	}
-	if (n.includes("delete") || n.includes("remove")) return target ? `Deleting \`${target}\`` : "Deleting file";
-	if (n.includes("move") || n.includes("rename")) return "Moving file";
-	if (n.includes("copy")) return "Copying file";
-	if (n.includes("test")) return "Running tests";
-	if (n.includes("think") || n.includes("reason")) return "Thinking";
-	if (n.includes("todowrite") || n.includes("todo")) return "Updating task list";
-	if (n.includes("plan_exit")) return "Completing plan";
-	if (n.includes("web") || n.includes("fetch") || n.includes("http")) return "Fetching web content";
-	return name || "Executing tool";
-}
-
-function TimelineStep({ te }: { te: any; sessionId: string | null }) {
-	const isCompleted = te.state === "completed" || te.state === "output-available";
-	const isFailed = te.state === "failed" || te.state === "output-error";
-	const isRunning = te.state === "running";
-	const header = getToolCallHeader(te.name || "", te.input);
-	const detail = formatToolOutput(te.name || "", te.output);
-
-	return (
-		<div className={`tool-log-entry ${te.state}`}>
-			<div className="tool-log-line1">
-				<span className="tool-log-icon">
-					{isRunning ? "●" : isCompleted ? "✔" : "✖"}
-				</span>
-				<span className={`tool-log-action ${isRunning ? "pulsing" : ""}`}>
-					{header}
-				</span>
-			</div>
-			{isCompleted && detail && (
-				<div className="tool-log-result">{detail}</div>
-			)}
-			{isFailed && te.error && (
-				<div className="tool-log-result error">{te.error}</div>
 			)}
 		</div>
 	);
@@ -1254,43 +1156,19 @@ function ErrorRecoveryPanel({ error, onResolve }: { error: { toolName: string; m
 }
 
 // ==========================================
-// TASK EXECUTION PANEL (FSM + Component Architecture)
+// TASK EXECUTION PANEL (flat event timeline, no fixed phases)
 // ==========================================
 
-function StickyActivityBar({ task }: { task: TaskDataV2 }) {
-	if (task.state === "completed" || task.state === "cancelled" || task.state === "interrupted") return null;
-	const runningEvt = [...task.events].reverse().find(e => e.status === "running");
-	return (
-		<div className="sticky-activity-bar">
-			<div className="sticky-activity-title">
-				<span className="dot-pulse" />
-				<span>{runningEvt ? runningEvt.title : `${task.state}...`}</span>
-			</div>
-			<span style={{ fontSize: "0.78em", color: "var(--muted)" }}>Task #{task.taskId}</span>
-		</div>
-	);
-}
-
-function TaskExecutionPanel({ task, onToggleCollapse, onStop, onNewTask }: {
+function TaskExecutionPanel({ task, onToggleCollapse, onStop }: {
 	task: TaskDataV2;
 	onToggleCollapse: () => void;
 	onStop: () => void;
-	onNewTask: () => void;
 }) {
 	const isCompleted = task.state === "completed";
 	const isCancelled = task.state === "cancelled";
 	const isInterrupted = task.state === "interrupted";
-	const isRunning = task.state === "planning" || task.state === "building" || task.state === "testing";
-
-	const [expandedPhases, setExpandedPhases] = useState({
-		planning: task.phaseExpanded?.planning ?? true,
-		building: task.phaseExpanded?.building ?? true,
-		testing: task.phaseExpanded?.testing ?? true,
-	});
-
-	const togglePhase = (phase: "planning" | "building" | "testing") => {
-		setExpandedPhases(prev => ({ ...prev, [phase]: !prev[phase] }));
-	};
+	const isRunning = task.state === "running";
+	const completedEvents = task.events.filter(e => e.status === "completed" || e.status === "failed");
 
 	return (
 		<div className={`exec-panel ${task.collapsed ? "collapsed" : ""} ${task.state}`}>
@@ -1298,26 +1176,17 @@ function TaskExecutionPanel({ task, onToggleCollapse, onStop, onNewTask }: {
 
 			{!task.collapsed && (
 				<div className="exec-body">
-					{/* 1. PLANNING PANEL */}
-					<PlanningPanel
-						events={task.events}
-						expanded={expandedPhases.planning}
-						onToggle={() => togglePhase("planning")}
-					/>
-
-					{/* 2. BUILDING PANEL */}
-					<BuildingPanel
-						events={task.events}
-						expanded={expandedPhases.building}
-						onToggle={() => togglePhase("building")}
-					/>
-
-					{/* 3. TESTING PANEL */}
-					<TestingPanel
-						events={task.events}
-						expanded={expandedPhases.testing}
-						onToggle={() => togglePhase("testing")}
-					/>
+					{/* Event Timeline */}
+					{task.events.length > 0 && (
+						<div className="vertical-timeline">
+							{task.events.map(evt => (
+								<ExecEventRow key={evt.id} event={evt} />
+							))}
+						</div>
+					)}
+					{isRunning && task.events.length === 0 && (
+						<div className="phase-pending-row"><span className="dot-pulse" /> Working...</div>
+					)}
 
 					{/* SUMMARY CARD */}
 					{task.summary && (
@@ -1329,7 +1198,7 @@ function TaskExecutionPanel({ task, onToggleCollapse, onStop, onNewTask }: {
 						<ViewChangesPanel fileChanges={task.fileChanges} />
 					)}
 
-					{/* CANCELLED / INTERRUPTED BLOCK */}
+					{/* CANCELLED / INTERRUPTED */}
 					{(isCancelled || isInterrupted) && (
 						<div className="exec-cancelled-block">
 							{isInterrupted ? (
@@ -1340,13 +1209,12 @@ function TaskExecutionPanel({ task, onToggleCollapse, onStop, onNewTask }: {
 							) : (
 								<div className="cancelled-title">Task Cancelled</div>
 							)}
-							<button className="exec-new-task-btn" onClick={onNewTask}>Start New Task</button>
 						</div>
 					)}
 
-					{/* COMPLETED BLOCK */}
+					{/* COMPLETED — simple indicator, no button */}
 					{isCompleted && (
-						<button className="exec-new-task-btn" onClick={onNewTask}>Start New Task</button>
+						<div className="exec-completed-indicator">✓ Task Completed</div>
 					)}
 				</div>
 			)}
@@ -1355,7 +1223,7 @@ function TaskExecutionPanel({ task, onToggleCollapse, onStop, onNewTask }: {
 }
 
 function TaskHeader({ task, onToggleCollapse, onStop }: { task: TaskDataV2; onToggleCollapse: () => void; onStop: () => void }) {
-	const isRunning = task.state === "planning" || task.state === "building" || task.state === "testing";
+	const isRunning = task.state === "running";
 	const completedEventsCount = task.events.filter(e => e.status === "completed").length;
 	const totalEventsCount = task.events.length;
 	const startTimeStr = new Date(task.startedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -1366,9 +1234,7 @@ function TaskHeader({ task, onToggleCollapse, onStop }: { task: TaskDataV2; onTo
 			<span className="exec-task-id">Task #{task.taskId} • {task.title}</span>
 			{task.collapsed && (
 				<span className="exec-live-status">
-					{task.state === "planning" && <AnimatedDots text="Planning" />}
-					{task.state === "building" && <span style={{ color: "#fff" }}>Building • {completedEventsCount} / {totalEventsCount}</span>}
-					{task.state === "testing" && <AnimatedDots text="Testing" />}
+					{isRunning && <span>Running • {completedEventsCount} / {totalEventsCount}</span>}
 					{task.state === "completed" && <span className="exec-status-done">Completed ✓</span>}
 					{task.state === "cancelled" && <span className="exec-status-cancelled">Cancelled</span>}
 					{task.state === "interrupted" && <span className="exec-status-interrupted">⚠ Interrupted</span>}
@@ -1383,74 +1249,19 @@ function TaskHeader({ task, onToggleCollapse, onStop }: { task: TaskDataV2; onTo
 	);
 }
 
-function PlanningPanel({ events, expanded, onToggle }: { events: TimelineEvent[]; expanded: boolean; onToggle: () => void }) {
-	const planningEvents = events.filter(e => e.phase === "planning");
-	const isDone = planningEvents.some(e => e.status === "completed") || events.some(e => e.phase === "building" || e.phase === "testing");
-	const isRunning = !isDone && planningEvents.some(e => e.status === "running");
-
-	return (
-		<div className={`phase-section ${isRunning ? "running" : isDone ? "completed" : "pending"}`}>
-			<div className="phase-header" onClick={onToggle}>
-				<span className="phase-icon">{isRunning ? <span className="dot-pulse" /> : isDone ? "✓" : "○"}</span>
-				<span className={`phase-label ${isRunning ? "running thinking-text-shimmer" : isDone ? "done" : "pending"}`}>
-					{isRunning ? "Planning..." : isDone ? "Planning ✓" : "Planning"}
-				</span>
-				<span className="phase-expand">{expanded ? "▾" : "▸"}</span>
-			</div>
-			{expanded && (
-				<div className="phase-body">
-					{planningEvents.map(evt => (
-						<div key={evt.id} style={{ display: "flex", flexDirection: "column", gap: 4, margin: "2px 0" }}>
-							{evt.metadata?.planningDetails?.goal && (
-								<div style={{ fontSize: "0.82em", color: "#fff" }}><strong>Goal:</strong> {evt.metadata.planningDetails.goal}</div>
-							)}
-							{evt.metadata?.planningDetails?.approach && (
-								<div style={{ fontSize: "0.82em", color: "var(--muted)" }}><strong>Approach:</strong> {evt.metadata.planningDetails.approach}</div>
-							)}
-							<div className="phase-reasoning">{evt.title}</div>
-						</div>
-					))}
-				</div>
-			)}
-		</div>
-	);
-}
-
-function BuildingPanel({ events, expanded, onToggle }: { events: TimelineEvent[]; expanded: boolean; onToggle: () => void }) {
-	const buildingEvents = events.filter(e => e.phase === "building");
-	const completedCount = buildingEvents.filter(e => e.status === "completed").length;
-	const totalCount = buildingEvents.length;
-	const isDone = buildingEvents.length > 0 && buildingEvents.every(e => e.status === "completed" || e.status === "failed");
-	const isRunning = buildingEvents.some(e => e.status === "running");
-
-	return (
-		<div className={`phase-section ${isRunning ? "running" : isDone ? "completed" : "pending"}`}>
-			<div className="phase-header" onClick={onToggle}>
-				<span className="phase-icon">{isRunning ? <span className="dot-pulse" /> : isDone ? "✓" : "○"}</span>
-				<span className={`phase-label ${isRunning ? "running thinking-text-shimmer" : isDone ? "done" : "pending"}`}>
-					Building {totalCount > 0 ? `• ${completedCount} / ${totalCount}` : ""}
-				</span>
-				<span className="phase-expand">{expanded ? "▾" : "▸"}</span>
-			</div>
-			{expanded && (
-				<div className="phase-body">
-					<div className="vertical-timeline">
-						{buildingEvents.map(evt => (
-							<TimelineEventRow key={evt.id} event={evt} />
-						))}
-					</div>
-				</div>
-			)}
-		</div>
-	);
-}
-
-function TimelineEventRow({ event }: { event: TimelineEvent }) {
+function ExecEventRow({ event }: { event: TimelineEvent }) {
 	const isCommand = event.eventType === "command";
+	const isRunning = event.status === "running";
+	const isCompleted = event.status === "completed";
+	const isFailed = event.status === "failed";
+
 	return (
 		<div className={`vertical-timeline-item ${event.status}`}>
-			<div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
-				<span style={{ fontSize: "0.82em", color: event.status === "failed" ? "var(--error)" : "#fff", fontWeight: 500 }}>
+			<div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+				<span className="step-icon">
+					{isRunning ? <span className="dot-pulse" /> : isCompleted ? "✓" : isFailed ? "✗" : "○"}
+				</span>
+				<span style={{ fontSize: "0.82em", color: isFailed ? "var(--error)" : "#fff", fontWeight: 500 }}>
 					{event.title}
 				</span>
 				{event.metadata?.filePath && (
@@ -1487,41 +1298,6 @@ function CommandCard({ metadata, status, durationMs }: { metadata?: TimelineEven
 	);
 }
 
-function TestingPanel({ events, expanded, onToggle }: { events: TimelineEvent[]; expanded: boolean; onToggle: () => void }) {
-	const testEvents = events.filter(e => e.phase === "testing" || e.eventType === "testing");
-	const isDone = testEvents.length > 0 && testEvents.every(e => e.status === "completed" || e.status === "failed");
-	const isRunning = testEvents.some(e => e.status === "running");
-
-	return (
-		<div className={`phase-section ${isRunning ? "running" : isDone ? "completed" : "pending"}`}>
-			<div className="phase-header" onClick={onToggle}>
-				<span className="phase-icon">{isRunning ? <span className="dot-pulse" /> : isDone ? "✓" : "○"}</span>
-				<span className={`phase-label ${isRunning ? "running thinking-text-shimmer" : isDone ? "done" : "pending"}`}>
-					Testing {testEvents.length > 0 ? `(${testEvents.filter(e=>e.status==="completed").length}/${testEvents.length})` : ""}
-				</span>
-				<span className="phase-expand">{expanded ? "▾" : "▸"}</span>
-			</div>
-			{expanded && (
-				<div className="phase-body">
-					{testEvents.length > 0 ? (
-						<div className="test-results">
-							{testEvents.map(t => (
-								<div key={t.id} className={`test-row ${t.status}`}>
-									<span className="test-icon">{t.status === "running" ? <span className="dot-pulse" /> : t.status === "completed" ? "✓" : "✗"}</span>
-									<span className="test-name">{t.title}</span>
-									{t.description && <span className="test-detail">{t.description}</span>}
-								</div>
-							))}
-						</div>
-					) : (
-						<div className="phase-pending-row"><span className="phase-pending-dot">○</span> No active tests</div>
-					)}
-				</div>
-			)}
-		</div>
-	);
-}
-
 function SummaryCard({ summary, taskId }: { summary: TaskSummaryV2; taskId: number }) {
 	const durationStr = summary.durationMs >= 60000
 		? `${Math.floor(summary.durationMs / 60000)}m ${Math.floor((summary.durationMs % 60000) / 1000)}s`
@@ -1547,7 +1323,6 @@ function SummaryCard({ summary, taskId }: { summary: TaskSummaryV2; taskId: numb
 
 function ViewChangesPanel({ fileChanges }: { fileChanges: FileChangesV2 }) {
 	const [showChanges, setShowChanges] = useState(false);
-	const [expandedFile, setExpandedFile] = useState<string | null>(null);
 
 	const renderGroup = (label: string, files: string[], icon: string, cls: string) => {
 		if (files.length === 0) return null;
@@ -1555,10 +1330,9 @@ function ViewChangesPanel({ fileChanges }: { fileChanges: FileChangesV2 }) {
 			<div className="changes-group">
 				<div className="changes-group-label">{label}</div>
 				{files.map(f => (
-					<div key={f} className="changes-file-row" onClick={() => setExpandedFile(expandedFile === f ? null : f)}>
+					<div key={f} className="changes-file-row">
 						<span className={`changes-file-icon ${cls}`}>{icon}</span>
 						<span className="changes-file-path">{f}</span>
-						<span className="changes-expand">{expandedFile === f ? "▾" : "▸"}</span>
 					</div>
 				))}
 			</div>
@@ -1584,13 +1358,21 @@ function ViewChangesPanel({ fileChanges }: { fileChanges: FileChangesV2 }) {
 	);
 }
 
-function AnimatedDots({ text }: { text: string }) {
-	const [dots, setDots] = useState(0);
-	useEffect(() => {
-		const interval = setInterval(() => setDots(d => (d + 1) % 4), 450);
-		return () => clearInterval(interval);
-	}, []);
-	return <>{text}{".".repeat(dots)}</>;
+// ==========================================
+// THINKING ANIMATION (ChatGPT-o3 / Codex style)
+// ==========================================
+
+function ThinkingAnimation({ label = "Thinking" }: { label?: string }) {
+	return (
+		<div className="thinking-container">
+			<div className="thinking-dots">
+				<div className="thinking-dot" />
+				<div className="thinking-dot" />
+				<div className="thinking-dot" />
+			</div>
+			<span className="thinking-label">{label}...</span>
+		</div>
+	);
 }
 
 function getProviderLabel(id: string): string {

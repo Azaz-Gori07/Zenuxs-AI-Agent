@@ -10,16 +10,17 @@
  *
  * Automatically invalidates when files change.
  *
- * Benefits:
- * - Faster execution (skip redundant analysis)
- * - Lower memory usage (cache shared across requests)
- * - Reduced filesystem operations
- * - Improved tool routing
- * - Better context loading
+ * Optimizations vs original:
+ * 1. O(1) LRU eviction via Map insertion order (bump on get/upsert)
+ * 2. Incremental memory tracking (no O(n) JSON.stringify per getStats)
+ * 3. Async disk persistence via fs.promises
+ * 4. Batch key-based invalidation via Set intersection (O(m) not O(n))
+ * 5. Periodic TTL sweep via configurable interval timer
+ * 6. Type-safe convenience functions with inference
  */
 
-import * as fs from "fs";
-import * as path from "path";
+import * as fs from "node:fs/promises";
+import * as path from "node:path";
 
 export enum CacheType {
   WORKSPACE_ANALYSIS = "workspace:analysis",
@@ -33,57 +34,40 @@ export enum CacheType {
 }
 
 export interface CacheEntry<T = unknown> {
-  /** Cached value */
   value: T;
-  /** Cache timestamp */
-  cachedAt: Date;
-  /** Time-to-live in milliseconds */
+  cachedAt: number;
   ttlMs: number;
-  /** Cache key */
   key: string;
-  /** Cache type */
   type: CacheType;
-  /** Whether cache is still valid */
   isValid: boolean;
 }
 
 export interface CacheStats {
-  /** Total cache entries */
   totalEntries: number;
-  /** Cache hits */
   hits: number;
-  /** Cache misses */
   misses: number;
-  /** Hit rate percentage */
   hitRate: number;
-  /** Total memory used (approximate) */
   memoryUsed: number;
 }
 
 export interface CacheOptions {
-  /** Default TTL in milliseconds (default: 5 minutes) */
   defaultTtlMs?: number;
-  /** Maximum cache size (default: 1000 entries) */
   maxSize?: number;
-  /** Whether to persist cache to disk */
   persistToDisk?: boolean;
-  /** Cache directory (if persisting) */
   cacheDir?: string;
+  ttlSweepIntervalMs?: number;
 }
 
-const DEFAULT_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const DEFAULT_TTL_MS = 5 * 60 * 1000;
 const DEFAULT_MAX_SIZE = 1000;
+const DEFAULT_TTL_SWEEP_MS = 60_000;
 
-/**
- * Execution Cache Manager
- */
 export class ExecutionCacheManager {
   private cache = new Map<string, CacheEntry>();
   private options: Required<CacheOptions>;
-  private stats = {
-    hits: 0,
-    misses: 0,
-  };
+  private stats = { hits: 0, misses: 0 };
+  private estimatedMemoryBytes = 0;
+  private ttlSweepTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor(options: CacheOptions = {}) {
     this.options = {
@@ -91,331 +75,183 @@ export class ExecutionCacheManager {
       maxSize: options.maxSize ?? DEFAULT_MAX_SIZE,
       persistToDisk: options.persistToDisk ?? false,
       cacheDir: options.cacheDir ?? path.join(process.cwd(), ".zenuxs-cache"),
+      ttlSweepIntervalMs: options.ttlSweepIntervalMs ?? DEFAULT_TTL_SWEEP_MS,
     };
+    this.startTtlSweep();
   }
 
-  /**
-   * Get value from cache
-   */
   get<T>(key: string): T | null {
     const entry = this.cache.get(key);
-
     if (!entry) {
       this.stats.misses++;
       return null;
     }
-
-    // Check if expired
     if (!this.isEntryValid(entry)) {
       this.cache.delete(key);
       this.stats.misses++;
       return null;
     }
-
     this.stats.hits++;
+    this.cache.delete(key);
+    this.cache.set(key, entry);
     return entry.value as T;
   }
 
-  /**
-   * Set value in cache
-   */
-  set<T>(
-    key: string,
-    value: T,
-    type: CacheType,
-    ttlMs?: number,
-  ): void {
-    // Enforce max size
-    if (this.cache.size >= this.options.maxSize) {
-      this.evictOldest();
+  set<T>(key: string, value: T, type: CacheType, ttlMs?: number): void {
+    if (this.cache.has(key)) {
+      this.estimatedMemoryBytes -= this.entrySize(this.cache.get(key)!);
     }
-
+    while (this.cache.size >= this.options.maxSize) {
+      const first = this.cache.keys().next().value;
+      if (first === undefined) break;
+      this.estimatedMemoryBytes -= this.entrySize(this.cache.get(first)!);
+      this.cache.delete(first);
+    }
     const entry: CacheEntry<T> = {
       value,
-      cachedAt: new Date(),
+      cachedAt: Date.now(),
       ttlMs: ttlMs ?? this.options.defaultTtlMs,
       key,
       type,
       isValid: true,
     };
-
     this.cache.set(key, entry);
+    this.estimatedMemoryBytes += this.entrySize(entry);
 
-    // Persist to disk if enabled
     if (this.options.persistToDisk) {
-      this.persistEntry(entry);
+      this.persistEntry(entry).catch(() => {});
     }
   }
 
-  /**
-   * Check if cache has valid entry
-   */
   has(key: string): boolean {
     return this.get(key) !== null;
   }
 
-  /**
-   * Delete entry from cache
-   */
   delete(key: string): void {
-    this.cache.delete(key);
+    const entry = this.cache.get(key);
+    if (entry) {
+      this.estimatedMemoryBytes -= this.entrySize(entry);
+      this.cache.delete(key);
+    }
   }
 
-  /**
-   * Invalidate all entries of a type
-   */
   invalidateType(type: CacheType): void {
-    for (const [key, entry] of this.cache.entries()) {
+    for (const [key, entry] of this.cache) {
       if (entry.type === type) {
-        entry.isValid = false;
+        this.estimatedMemoryBytes -= this.entrySize(entry);
         this.cache.delete(key);
       }
     }
   }
 
-  /**
-   * Invalidate entries matching key pattern
-   */
   invalidatePattern(pattern: string): void {
-    for (const [key, entry] of this.cache.entries()) {
+    for (const key of this.cache.keys()) {
       if (key.includes(pattern)) {
-        entry.isValid = false;
+        this.estimatedMemoryBytes -= this.entrySize(this.cache.get(key)!);
         this.cache.delete(key);
       }
     }
   }
 
-  /**
-   * Clear entire cache
-   */
+  invalidateKeys(keys: Set<string>): number {
+    let count = 0;
+    for (const key of keys) {
+      if (this.cache.has(key)) {
+        this.delete(key);
+        count++;
+      }
+    }
+    return count;
+  }
+
   clear(): void {
     this.cache.clear();
     this.stats = { hits: 0, misses: 0 };
+    this.estimatedMemoryBytes = 0;
   }
 
-  /**
-   * Get cache statistics
-   */
   getStats(): CacheStats {
     const totalRequests = this.stats.hits + this.stats.misses;
     const hitRate = totalRequests > 0 ? (this.stats.hits / totalRequests) * 100 : 0;
-
-    // Approximate memory usage
-    let memoryUsed = 0;
-    for (const entry of this.cache.values()) {
-      memoryUsed += JSON.stringify(entry.value).length;
-    }
-
     return {
       totalEntries: this.cache.size,
       hits: this.stats.hits,
       misses: this.stats.misses,
       hitRate,
-      memoryUsed,
+      memoryUsed: this.estimatedMemoryBytes,
     };
   }
 
-  /**
-   * Clean expired entries
-   */
   cleanExpired(): number {
+    const now = Date.now();
     let cleaned = 0;
-
-    for (const [key, entry] of this.cache.entries()) {
-      if (!this.isEntryValid(entry)) {
+    for (const [key, entry] of this.cache) {
+      if (!entry.isValid || now - entry.cachedAt >= entry.ttlMs) {
+        this.estimatedMemoryBytes -= this.entrySize(entry);
         this.cache.delete(key);
         cleaned++;
       }
     }
-
     return cleaned;
   }
 
-  /**
-   * Check if entry is valid
-   */
+  async loadFromDisk(): Promise<void> {
+    if (!this.options.persistToDisk) return;
+    try {
+      const stat = await fs.stat(this.options.cacheDir).catch(() => null);
+      if (!stat?.isDirectory()) return;
+      const files = await fs.readdir(this.options.cacheDir);
+      let loaded = 0;
+      for (const file of files) {
+        if (!file.endsWith(".json")) continue;
+        try {
+          const content = await fs.readFile(path.join(this.options.cacheDir, file), "utf-8");
+          const entry = JSON.parse(content) as CacheEntry;
+          entry.cachedAt = Number(entry.cachedAt);
+          if (this.isEntryValid(entry)) {
+            this.cache.set(entry.key, entry);
+            this.estimatedMemoryBytes += this.entrySize(entry);
+            loaded++;
+          }
+        } catch {}
+      }
+    } catch {}
+  }
+
+  private startTtlSweep(): void {
+    if (this.ttlSweepTimer) clearInterval(this.ttlSweepTimer);
+    this.ttlSweepTimer = setInterval(() => {
+      this.cleanExpired();
+    }, this.options.ttlSweepIntervalMs);
+    if (this.ttlSweepTimer && typeof this.ttlSweepTimer === "object" && "unref" in this.ttlSweepTimer) {
+      (this.ttlSweepTimer as NodeJS.Timeout).unref();
+    }
+  }
+
   private isEntryValid(entry: CacheEntry): boolean {
     if (!entry.isValid) return false;
-
-    const age = Date.now() - entry.cachedAt.getTime();
-    return age < entry.ttlMs;
+    return Date.now() - entry.cachedAt < entry.ttlMs;
   }
 
-  /**
-   * Evict oldest entry
-   */
-  private evictOldest(): void {
-    let oldestKey: string | null = null;
-    let oldestTime = Date.now();
-
-    for (const [key, entry] of this.cache.entries()) {
-      if (entry.cachedAt.getTime() < oldestTime) {
-        oldestTime = entry.cachedAt.getTime();
-        oldestKey = key;
-      }
-    }
-
-    if (oldestKey) {
-      this.cache.delete(oldestKey);
-    }
-  }
-
-  /**
-   * Persist entry to disk
-   */
-  private persistEntry<T>(entry: CacheEntry<T>): void {
+  private entrySize(entry: CacheEntry): number {
+    if (typeof entry.value === "string") return entry.value.length * 2;
     try {
-      const cachePath = path.join(this.options.cacheDir, `${entry.type}_${entry.key}.json`);
-      const dir = path.dirname(cachePath);
-
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
-
-      fs.writeFileSync(cachePath, JSON.stringify(entry), "utf-8");
-    } catch (error) {
-      console.error("[ExecutionCache] Failed to persist entry:", error);
+      return JSON.stringify(entry.value).length * 2;
+    } catch {
+      return 256;
     }
   }
 
-  /**
-   * Load cache from disk
-   */
-  loadFromDisk(): void {
-    if (!this.options.persistToDisk) return;
-
+  private async persistEntry<T>(entry: CacheEntry<T>): Promise<void> {
     try {
-      const cacheDir = this.options.cacheDir;
-      if (!fs.existsSync(cacheDir)) return;
-
-      const files = fs.readdirSync(cacheDir);
-      let loaded = 0;
-
-      for (const file of files) {
-        if (file.endsWith(".json")) {
-          const filePath = path.join(cacheDir, file);
-          try {
-            const content = fs.readFileSync(filePath, "utf-8");
-            const entry = JSON.parse(content) as CacheEntry;
-
-            // Restore dates
-            entry.cachedAt = new Date(entry.cachedAt);
-
-            if (this.isEntryValid(entry)) {
-              this.cache.set(entry.key, entry);
-              loaded++;
-            }
-          } catch {
-            // Skip unreadable/corrupt files
-          }
-        }
-      }
-
-      console.log(`[ExecutionCache] Loaded ${loaded} entries from disk`);
-    } catch (error) {
-      console.error("[ExecutionCache] Failed to load from disk:", error);
-    }
+      const safeKey = entry.key.replace(/[<>:"/\\|?*]/g, "_");
+      const cachePath = path.join(this.options.cacheDir, `${entry.type}_${safeKey}.json`);
+      await fs.mkdir(this.options.cacheDir, { recursive: true });
+      await fs.writeFile(cachePath, JSON.stringify(entry), "utf-8");
+    } catch {}
   }
 }
 
-/**
- * Convenience functions for common caching patterns
- */
-
-/**
- * Cache workspace analysis result
- */
-export function cacheWorkspaceAnalysis<T>(
-  workspaceRoot: string,
-  value: T,
-  ttlMs?: number,
-): void {
-  const cache = getExecutionCache();
-  cache.set(
-    `${CacheType.WORKSPACE_ANALYSIS}:${workspaceRoot}`,
-    value,
-    CacheType.WORKSPACE_ANALYSIS,
-    ttlMs,
-  );
-}
-
-/**
- * Get cached workspace analysis
- */
-export function getCachedWorkspaceAnalysis<T>(
-  workspaceRoot: string,
-): T | null {
-  const cache = getExecutionCache();
-  return cache.get<T>(`${CacheType.WORKSPACE_ANALYSIS}:${workspaceRoot}`);
-}
-
-/**
- * Cache dependency analysis result
- */
-export function cacheDependencyAnalysis<T>(
-  workspaceRoot: string,
-  value: T,
-  ttlMs?: number,
-): void {
-  const cache = getExecutionCache();
-  cache.set(
-    `${CacheType.DEPENDENCY_ANALYSIS}:${workspaceRoot}`,
-    value,
-    CacheType.DEPENDENCY_ANALYSIS,
-    ttlMs,
-  );
-}
-
-/**
- * Get cached dependency analysis
- */
-export function getCachedDependencyAnalysis<T>(
-  workspaceRoot: string,
-): T | null {
-  const cache = getExecutionCache();
-  return cache.get<T>(`${CacheType.DEPENDENCY_ANALYSIS}:${workspaceRoot}`);
-}
-
-/**
- * Cache file content (short TTL)
- */
-export function cacheFileContent<T>(
-  filePath: string,
-  value: T,
-  ttlMs: number = 60000, // 1 minute
-): void {
-  const cache = getExecutionCache();
-  cache.set(
-    `${CacheType.FILE_CONTENT}:${filePath}`,
-    value,
-    CacheType.FILE_CONTENT,
-    ttlMs,
-  );
-}
-
-/**
- * Get cached file content
- */
-export function getCachedFileContent<T>(
-  filePath: string,
-): T | null {
-  const cache = getExecutionCache();
-  return cache.get<T>(`${CacheType.FILE_CONTENT}:${filePath}`);
-}
-
-/**
- * Invalidate file-related caches after modification
- */
-export function invalidateFileCaches(filePath: string): void {
-  const cache = getExecutionCache();
-  cache.invalidatePattern(filePath);
-  cache.invalidateType(CacheType.WORKSPACE_ANALYSIS);
-  cache.invalidateType(CacheType.SYMBOL_INDEX);
-}
-
-/**
- * Singleton instance
- */
 let globalCacheManager: ExecutionCacheManager | null = null;
 
 export function getExecutionCache(): ExecutionCacheManager {
@@ -426,5 +262,39 @@ export function getExecutionCache(): ExecutionCacheManager {
 }
 
 export function resetExecutionCache(): void {
+  if (globalCacheManager) {
+    globalCacheManager.clear();
+  }
   globalCacheManager = null;
+}
+
+export function cacheWorkspaceAnalysis<T>(workspaceRoot: string, value: T, ttlMs?: number): void {
+  getExecutionCache().set(`${CacheType.WORKSPACE_ANALYSIS}:${workspaceRoot}`, value, CacheType.WORKSPACE_ANALYSIS, ttlMs);
+}
+
+export function getCachedWorkspaceAnalysis<T>(workspaceRoot: string): T | null {
+  return getExecutionCache().get<T>(`${CacheType.WORKSPACE_ANALYSIS}:${workspaceRoot}`);
+}
+
+export function cacheDependencyAnalysis<T>(workspaceRoot: string, value: T, ttlMs?: number): void {
+  getExecutionCache().set(`${CacheType.DEPENDENCY_ANALYSIS}:${workspaceRoot}`, value, CacheType.DEPENDENCY_ANALYSIS, ttlMs);
+}
+
+export function getCachedDependencyAnalysis<T>(workspaceRoot: string): T | null {
+  return getExecutionCache().get<T>(`${CacheType.DEPENDENCY_ANALYSIS}:${workspaceRoot}`);
+}
+
+export function cacheFileContent<T>(filePath: string, value: T, ttlMs: number = 60000): void {
+  getExecutionCache().set(`${CacheType.FILE_CONTENT}:${filePath}`, value, CacheType.FILE_CONTENT, ttlMs);
+}
+
+export function getCachedFileContent<T>(filePath: string): T | null {
+  return getExecutionCache().get<T>(`${CacheType.FILE_CONTENT}:${filePath}`);
+}
+
+export function invalidateFileCaches(filePath: string): void {
+  const cache = getExecutionCache();
+  cache.invalidatePattern(filePath);
+  cache.invalidateType(CacheType.WORKSPACE_ANALYSIS);
+  cache.invalidateType(CacheType.SYMBOL_INDEX);
 }

@@ -1,9 +1,16 @@
 import {
+	getClineEnvironmentConfig,
 	getZenuxsEnvironmentConfig,
 	type ITelemetryService,
 } from "@cline/shared";
+export { getClineEnvironmentConfig };
 import type { ProviderSettingsManager } from "../services/storage/provider-settings-manager";
 import type { ProviderSettings } from "../types/provider-settings";
+import {
+	type ClineOAuthCredentials,
+	getValidClineCredentials,
+	loginClineOAuth,
+} from "./cline";
 import {
 	type ZenuxsOAuthCredentials,
 	getValidZenuxsCredentials,
@@ -198,7 +205,37 @@ function createOAuthHandler(input: {
 	};
 }
 
-function createZenuxsAuthHandler(input: {
+function createClineAuthHandler(input: {
+	providerId: string;
+	storageProviderId?: string;
+}): ProviderAuthHandler {
+	return createOAuthHandler({
+		providerId: input.providerId,
+		storageProviderId: input.storageProviderId,
+		formatAccessToken: formatZenuxsApiKey,
+		normalizeStoredAccessToken: stripZenuxsApiKeyPrefix,
+		login: ({ settings, callbacks, telemetry }) =>
+			loginClineOAuth({
+				apiBaseUrl:
+					settings?.baseUrl?.trim() || getZenuxsEnvironmentConfig().apiBaseUrl,
+				useWorkOSDeviceAuth: true,
+				callbacks,
+				telemetry,
+			}),
+		refresh: ({ settings, credentials, forceRefresh, telemetry }) =>
+			getValidClineCredentials(
+				credentials as ClineOAuthCredentials,
+				{
+					apiBaseUrl:
+						settings.baseUrl?.trim() || getZenuxsEnvironmentConfig().apiBaseUrl,
+					telemetry,
+				},
+				{ forceRefresh },
+			),
+	});
+}
+
+export function createZenuxsAuthHandler(input: {
 	providerId: string;
 	storageProviderId?: string;
 }): ProviderAuthHandler {
@@ -211,7 +248,7 @@ function createZenuxsAuthHandler(input: {
 			loginZenuxsOAuth({
 				apiBaseUrl:
 					settings?.baseUrl?.trim() || getZenuxsEnvironmentConfig().apiBaseUrl,
-				useWorkOSDeviceAuth: true,
+				useWorkOSDeviceAuth: false,
 				callbacks,
 				telemetry,
 			}),
@@ -229,8 +266,8 @@ function createZenuxsAuthHandler(input: {
 }
 
 const providerAuthHandlers = [
-	createZenuxsAuthHandler({ providerId: "cline" }),
-	createZenuxsAuthHandler({
+	createClineAuthHandler({ providerId: "cline" }),
+	createClineAuthHandler({
 		providerId: "cline-pass",
 		storageProviderId: "cline",
 	}),

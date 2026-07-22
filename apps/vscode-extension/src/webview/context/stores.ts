@@ -351,6 +351,12 @@ export class ExecutionStoreClass extends BaseStore<ExecutionState> {
 		});
 	}
 
+	updateContextWindow(maxTokens: number) {
+		if (this.state.contextMaxTokens !== maxTokens) {
+			this.setState({ contextMaxTokens: maxTokens });
+		}
+	}
+
 	private startTimer() {
 		if (this.intervalId) clearInterval(this.intervalId);
 		this.intervalId = setInterval(() => {

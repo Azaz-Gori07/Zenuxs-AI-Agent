@@ -2,7 +2,10 @@ import * as vscode from "vscode";
 import { ExtensionCoreBridge } from "../runtime/core-bridge.js";
 import { mapCoreEventToWebview } from "../runtime/event-mapper.js";
 import type { WebviewOutboundMessage } from "../runtime/event-mapper.js";
+import { AuthService } from "../services/auth-service.js";
 import { ZenuxsDiffProvider } from "../webview/diff-provider.js";
+import { ZenuxsLiveEditProvider } from "./live-edit-provider.js";
+import { AgentTerminalManager } from "./agent-terminal-manager.js";
 import { resolveExtensionConfig, resolveWorkspaceRoot, resolveCwd } from "../runtime/config-resolver.js";
 import { captureEditorContext, formatEditorContextForPrompt } from "../context/editor-context.js";
 import type {
@@ -271,9 +274,26 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	private developerUnsubscribe: (() => void) | undefined;
 	private restoredMessagesCache: any[] | undefined;
 	private executionDataStore: Record<string, any[]> = {};
+	private liveEditProvider = new ZenuxsLiveEditProvider();
+	private agentTerminalManager = new AgentTerminalManager();
 
 	constructor(private readonly extensionContext: vscode.ExtensionContext) {
 		this.loadExecutionDataStore();
+
+		const eventBus = {
+			publish: (type: string, data: any) => {
+				if (type === "terminal_line") {
+					this.postToWebview({ type: "terminal_line", taskId: data.taskId, line: data.line, state: data.state });
+				} else if (type === "terminal_state_changed") {
+					this.postToWebview({ type: "terminal_state_changed", taskId: data.taskId, state: data.state });
+				} else if (type.startsWith("file:") || type.startsWith("session:")) {
+					this.postToWebview({ type: "live_edit_event", eventType: type, ...data });
+				}
+			},
+		};
+
+		this.liveEditProvider.setEventBus(eventBus);
+		this.agentTerminalManager.setEventBus(eventBus);
 	}
 
 	private loadExecutionDataStore(): void {
@@ -478,6 +498,28 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 					this.handleApprovalResponse(message);
 					break;
 
+				case "skip_onboarding":
+					await this.extensionContext.globalState.update("zenuxs.onboardingSkipped", true);
+					await this.sendInitialPayload();
+					break;
+
+				case "login_oauth":
+					try {
+						const { loginAndSaveLocalProviderOAuthCredentials } = await import("@cline/core");
+						const psm = new ProviderSettingsManager();
+						await loginAndSaveLocalProviderOAuthCredentials(
+							psm,
+							(message as any).providerId,
+							(url) => vscode.env.openExternal(vscode.Uri.parse(url)),
+						);
+						await AuthService.getInstance().onLoginComplete((message as any).providerId);
+						await this.extensionContext.globalState.update("zenuxs.onboardingSkipped", true);
+						await this.sendInitialPayload();
+					} catch (err: any) {
+						vscode.window.showErrorMessage(`Login failed: ${err?.message || String(err)}`);
+					}
+					break;
+
 				case "save_settings":
 					await this.handleSaveSettings(message);
 					break;
@@ -624,6 +666,26 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				await this.handleOpenFile(message.filePath, message.line);
 				break;
 
+			case "reveal_edit_location":
+				await this.liveEditProvider.revealEditLocation(
+					(message as any).filePath,
+					(message as any).startLine ?? 0,
+					(message as any).endLine,
+				);
+				break;
+
+			case "get_terminal_history":
+				this.postToWebview({
+					type: "terminal_history",
+					taskId: (message as any).taskId,
+					lines: this.agentTerminalManager.getTerminalHistory((message as any).taskId),
+				});
+				break;
+
+			case "cancel_terminal_task":
+				this.agentTerminalManager.cancelTask((message as any).taskId);
+				break;
+
 			case "show_diff":
 				await this.handleShowDiff(message.filePath, message.originalContent, message.newContent);
 				break;
@@ -699,9 +761,9 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	 */
 	private async handleOpenFile(filePath: string, line?: number): Promise<void> {
 		try {
-			await ZenuxsDiffProvider.openFile(filePath, line);
+			await this.liveEditProvider.revealEditLocation(filePath, line ?? 0);
 		} catch (err) {
-			this.postToWebview({ type: "error", text: `Failed to open file: ${err instanceof Error ? err.message : String(err)}` });
+			await ZenuxsDiffProvider.openFile(filePath, line);
 		}
 	}
 
@@ -741,6 +803,21 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 
 			const extConfig = resolveExtensionConfig();
 
+			// Fetch models for the currently configured provider so they are
+			// available immediately when the model dropdown renders (fixes
+			// the empty-dropdown-on-first-load bug).
+			let models: Record<string, string[]> = {};
+			try {
+				if (extConfig.providerId) {
+					const result = await getLocalProviderModels(extConfig.providerId, psm.getProviderSettings(extConfig.providerId));
+					if (result.models && result.models.length > 0) {
+						models[extConfig.providerId] = result.models.map((m: any) => m.id || m);
+					}
+				}
+			} catch {
+				// models remain empty — will be fetched lazily on provider change
+			}
+
 			// Use core bridge's listSessions() matching CLI's listSessions()
 			const sessionHistories = await bridge.listSessions(100, { hydrate: false });
 			loggerService.log({ level: LogLevel.DEBUG, category: LogCategory.CONVERSATION, message: `Session history loaded: ${sessionHistories.length} sessions`, source: "session" });
@@ -768,11 +845,18 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				if (raw) autoApprovals = JSON.parse(raw);
 			} catch { /* ignore */ }
 
+			// Never send the stored API key to the webview — the frontend
+			// only needs to know whether a key exists (via hasApiKey on each
+			// provider in the providers array).
+			const isAuthenticated = AuthService.getInstance().authenticated;
+			const onboardingSkipped = this.extensionContext.globalState.get<boolean>("zenuxs.onboardingSkipped") ?? false;
+			const showOnboarding = !isAuthenticated && !onboardingSkipped;
+
 			this.postToWebview({
 				type: "initial_data",
 				providers,
-				models: {},
-				currentConfig: extConfig,
+				models,
+				currentConfig: { ...extConfig, apiKey: "" },
 				toggles,
 				sessionHistories,
 				mcpServers: mcpServers.map((s: McpServerSnapshot) => ({
@@ -784,17 +868,22 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 					transport: (s as any).transport ?? "stdio",
 				})),
 				autoApprovals,
+				showOnboarding,
 			});
 		} catch (err: any) {
 			// If core isn't ready yet, send empty payload
+			const fallbackConfig = { ...resolveExtensionConfig(), apiKey: "" };
+			const isAuthenticated = AuthService.getInstance().authenticated;
+			const onboardingSkipped = this.extensionContext.globalState.get<boolean>("zenuxs.onboardingSkipped") ?? false;
 			this.postToWebview({
 				type: "initial_data",
 				providers: [],
 				models: {},
-				currentConfig: resolveExtensionConfig(),
+				currentConfig: fallbackConfig,
 				toggles: { workflows: [], rules: [], skills: [], tools: [], mcp: [] },
 				sessionHistories: [],
 				mcpServers: [],
+				showOnboarding: !isAuthenticated && !onboardingSkipped,
 			});
 		}
 	}
@@ -842,10 +931,30 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 
 		// Save in ProviderSettingsManager to keep sync with CLI
 		const psm = new ProviderSettingsManager();
+		const existingSettings = psm.getProviderSettings(msg.providerId);
+		const nextApiKey = msg.apiKey && msg.apiKey.trim().length > 0 ? msg.apiKey.trim() : existingSettings?.apiKey;
+
+		if (msg.providerId === "custom") {
+			try {
+				const { validateCustomProviderConfig } = await import("@cline/core");
+				await validateCustomProviderConfig({
+					baseUrl: msg.baseUrl || "",
+					apiKey: nextApiKey,
+					modelId: msg.modelId || "",
+				});
+			} catch (err: any) {
+				const errorMsg = err instanceof Error ? err.message : String(err);
+				vscode.window.showErrorMessage(`Custom Provider Validation Failed: ${errorMsg}`);
+				this.postToWebview({ type: "error", text: errorMsg });
+				return;
+			}
+		}
+
 		psm.saveProviderSettings({
+			...(existingSettings ?? {}),
 			provider: msg.providerId,
 			model: msg.modelId,
-			apiKey: msg.apiKey || undefined,
+			apiKey: nextApiKey,
 			baseUrl: msg.baseUrl || undefined,
 		});
 
@@ -1139,6 +1248,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	/**
 	 * Log in using OAuth for the given provider.
 	 * Uses the same loginAndSaveLocalProviderOAuthCredentials as the CLI.
+	 * AuthService tracks the in-memory auth state and manages the token lifecycle.
 	 */
 	private async handleLoginOAuth(providerId: string): Promise<void> {
 		const psm = new ProviderSettingsManager();
@@ -1159,6 +1269,8 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 					);
 				}
 			);
+			// Update AuthService in-memory state after successful login
+			await AuthService.getInstance().onLoginComplete(providerId);
 			vscode.window.showInformationMessage(`Zenuxs: Successfully authenticated provider ${providerId}.`);
 			await this.sendInitialPayload();
 		} catch (error) {
@@ -1220,6 +1332,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 		progress: vscode.Progress<{ message?: string; increment?: number }>,
 		uiConfig?: any,
 	): Promise<void> {
+		let taskIdCounter = 0;
 		try {
 			const bridge = await this.getCore();
 			const core = await bridge.getCore();
@@ -1260,8 +1373,33 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 					const agentEvent = event.payload.event;
 					if (agentEvent.type === "content_start" && agentEvent.contentType === "tool") {
 						progress.report({ message: `Running ${agentEvent.toolName ?? "tool"}...` });
+						// Live editing: open file for editing when file tool starts
+						if (agentEvent.toolName && ZenuxsLiveEditProvider.isFileEditTool(agentEvent.toolName)) {
+							const filePath = ZenuxsLiveEditProvider.extractFilePath(agentEvent.input);
+							if (filePath) {
+								this.liveEditProvider.openForEdit(filePath);
+							}
+						}
+						// Terminal: route bash/command tools
+						if (agentEvent.toolName === "bash" || agentEvent.toolName === "execute_command") {
+							const input = agentEvent.input as Record<string, unknown> | undefined;
+							const command = ((input?.command ?? input?.text) as string) || "";
+							if (command) {
+								taskIdCounter++;
+								this.agentTerminalManager.executeCommand(taskIdCounter, command);
+							}
+						}
 					} else if (agentEvent.type === "notice") {
 						progress.report({ message: agentEvent.message });
+					}
+					// Clean up live editing on tool completion
+					if (agentEvent.type === "content_end" && agentEvent.contentType === "tool") {
+						if (agentEvent.toolName && ZenuxsLiveEditProvider.isFileEditTool(agentEvent.toolName)) {
+							const filePath = ZenuxsLiveEditProvider.extractFilePath(agentEvent.input);
+							if (filePath) {
+								this.liveEditProvider.closeEdit();
+							}
+						}
 					}
 				} else if (event.type === "status") {
 					progress.report({ message: event.payload.status });
@@ -1514,6 +1652,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 		} finally {
 			this.isRunning = false;
 			this.abortController = undefined;
+			this.liveEditProvider.closeEdit();
 			// Refresh session history so new sessions appear in the history list
 			// without requiring an extension reload. Fire-and-forget to avoid
 			// blocking the session clean-up path.
@@ -1616,6 +1755,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	 * Handles abort request. Immediately stops execution and cleans up.
 	 */
 	private async handleAbort(): Promise<void> {
+		this.liveEditProvider.closeEdit();
 		this.postToWebview({ type: "status", text: "Stopping..." });
 		if (this.coreBridge && this.activeSessionId) {
 			try {

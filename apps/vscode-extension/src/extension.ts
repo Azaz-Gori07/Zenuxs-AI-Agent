@@ -5,19 +5,12 @@ import { ZenuxsStatusBar } from "./status/status-bar.js";
 import { registerCodeActions } from "./providers/code-action-provider.js";
 import { ZenuxsInlineCompletionProvider } from "./providers/inline-completion-provider.js";
 import { devLogs } from "@cline/core";
+import { AuthService } from "./services/auth-service.js";
 
-/**
- * Extension activation entry point.
- *
- * Called by VS Code when the extension is activated (via activationEvents
- * defined in package.json).
- *
- * Uses the same ZenuxsCore runtime as the CLI - no separate backend bridge.
- * All provider, model, session, and tool operations go through @cline/core
- * directly, ensuring feature parity with the CLI.
- */
+// Global auth service instance (initialized on activation)
+let authService: AuthService;
+
 export function activate(context: vscode.ExtensionContext): void {
-	// Log extension lifecycle event
 	devLogs.extension.activated({ version: "0.1.0", mode: "vscode-extension" });
 
 	// Intercept console functions to mirror to developer logs
@@ -47,6 +40,42 @@ export function activate(context: vscode.ExtensionContext): void {
 		originalDebug.apply(console, args);
 		devLogs.console.debug(args.map((a) => (typeof a === "string" ? a : JSON.stringify(a))).join(" "), args);
 	};
+
+	// Initialize auth service singleton and restore on startup
+	authService = AuthService.getInstance();
+	authService.setSecretStorage(context.secrets);
+	authService.setGlobalState(context.globalState);
+	authService.onAuthStateChange((state) => {
+		vscode.commands.executeCommand("setContext", "zenuxs:authenticated", state.authenticated);
+		if (state.authenticated) {
+			context.globalState.update("zenuxs.onboardingSkipped", true);
+		}
+	});
+	authService.restoreOnStartup();
+
+	// Register OAuth URI handler for callbacks (e.g., vscode://zenuxs.zenuxs-code/auth?code=...)
+	const uriHandler = vscode.window.registerUriHandler({
+		handleUri(uri: vscode.Uri) {
+			if (uri.path === "/auth" || uri.path === "/oauth/callback") {
+				const params = new URLSearchParams(uri.query);
+				const code = params.get("code");
+				const provider = params.get("provider") ?? "cline";
+				if (code) {
+					authService.handleAuthCallback(code, provider).catch((err) => {
+						console.error("[extension] Auth callback error:", err);
+					});
+				}
+			}
+		},
+	});
+	context.subscriptions.push(uriHandler);
+
+	// Listen for secrets changes for cross-window auth sync
+	context.subscriptions.push(
+		context.secrets.onDidChange(() => {
+			authService.restoreOnStartup();
+		})
+	);
 
 	// Create the chat view provider (manages its own ExtensionCoreBridge)
 	const chatProvider = new ZenuxsChatViewProvider(context);
@@ -110,12 +139,6 @@ export function activate(context: vscode.ExtensionContext): void {
 	});
 }
 
-/**
- * Extension deactivation.
- *
- * Called by VS Code when the extension is deactivated.
- */
 export function deactivate(): void {
 	devLogs.extension.deactivated({ version: "0.1.0" });
-	// Cleanup is handled by context.subscriptions disposal
 }

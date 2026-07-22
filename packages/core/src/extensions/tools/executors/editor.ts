@@ -60,7 +60,13 @@ async function resolveFilePath(
 
 function countOccurrences(content: string, needle: string): number {
 	if (needle.length === 0) return 0;
-	return content.split(needle).length - 1;
+	let count = 0;
+	let pos = 0;
+	while ((pos = content.indexOf(needle, pos)) !== -1) {
+		count++;
+		pos += needle.length;
+	}
+	return count;
 }
 
 function createLineDiff(
@@ -68,37 +74,38 @@ function createLineDiff(
 	newContent: string,
 	maxLines: number,
 ): string {
+	if (oldContent === newContent) return "";
+
 	const oldLines = oldContent.split("\n");
 	const newLines = newContent.split("\n");
-	const max = Math.max(oldLines.length, newLines.length);
-	const out: string[] = ["```diff"];
+	const maxLen = Math.max(oldLines.length, newLines.length);
+	const out: string[] = new Array(Math.min(maxLen * 2 + 2, maxLines * 2 + 2));
+	out[0] = "```diff";
 	let emitted = 0;
+	let oi = 1;
 
-	for (let i = 0; i < max; i++) {
-		if (emitted >= maxLines) {
-			out.push("... diff truncated ...");
-			break;
-		}
-
+	for (let i = 0; i < maxLen && emitted < maxLines; i++) {
 		const oldLine = oldLines[i];
 		const newLine = newLines[i];
 
-		if (oldLine === newLine) {
-			continue;
-		}
+		if (oldLine === newLine) continue;
 
 		const lineNo = i + 1;
 		if (oldLine !== undefined) {
-			out.push(`-${lineNo}: ${oldLine}`);
+			out[oi++] = `-${lineNo}: ${oldLine}`;
 			emitted++;
 		}
 		if (newLine !== undefined && emitted < maxLines) {
-			out.push(`+${lineNo}: ${newLine}`);
+			out[oi++] = `+${lineNo}: ${newLine}`;
 			emitted++;
 		}
 	}
 
-	out.push("```");
+	if (emitted >= maxLines && oi < out.length - 1) {
+		out[oi++] = "... diff truncated ...";
+	}
+	out[oi++] = "```";
+	out.length = oi;
 	return out.join("\n");
 }
 

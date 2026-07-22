@@ -38,6 +38,7 @@ export const CORE_TELEMETRY_EVENTS = {
 		AUTH_SUCCEEDED: "user.auth_succeeded",
 		AUTH_FAILED: "user.auth_failed",
 		AUTH_LOGGED_OUT: "user.auth_logged_out",
+		AUTH_REFRESH_SOFT_FAILURE: "user.auth_refresh_soft_failure",
 		PROVIDER_CONFIGURED: "user.provider_configured",
 		TELEMETRY_OPT_OUT: "user.opt_out",
 	},
@@ -236,10 +237,32 @@ export function captureAuthLoggedOut(
 	telemetry: ITelemetryService | undefined,
 	provider?: string,
 	reason?: string,
+	details?: { status?: number; errorCode?: string },
 ): void {
 	emit(telemetry, CORE_TELEMETRY_EVENTS.USER.AUTH_LOGGED_OUT, {
 		provider,
 		reason,
+		status: details?.status,
+		errorCode: details?.errorCode,
+	});
+}
+
+export function captureAuthRefreshSoftFailure(
+	telemetry: ITelemetryService | undefined,
+	provider?: string,
+	details?: {
+		status?: number;
+		errorCode?: string;
+		errorName?: string;
+		tokenExpired?: boolean;
+	},
+): void {
+	emit(telemetry, CORE_TELEMETRY_EVENTS.USER.AUTH_REFRESH_SOFT_FAILURE, {
+		provider,
+		status: details?.status,
+		errorCode: details?.errorCode,
+		errorName: details?.errorName,
+		tokenExpired: details?.tokenExpired,
 	});
 }
 

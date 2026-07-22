@@ -158,6 +158,15 @@ export {
 	type ZenuxsAuthOptions,
 } from "./auth/zenuxs";
 export {
+	completeClineDeviceAuth,
+	getValidClineCredentials,
+	loginClineOAuth,
+	refreshClineToken,
+	startClineDeviceAuth,
+	type ClineOAuthCredentials,
+	type ClineOAuthProviderOptions,
+} from "./auth/cline";
+export {
 	formatProviderOAuthApiKey,
 	getPersistedProviderApiKey,
 	getProviderAuthHandler,

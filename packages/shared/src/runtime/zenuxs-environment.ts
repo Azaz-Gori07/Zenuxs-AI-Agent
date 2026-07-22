@@ -105,3 +105,9 @@ export function getZenuxsEnvironmentConfig(
 
 	return applyConfigOverrides(config, readProcessEnv());
 }
+
+export function getClineEnvironmentConfig(
+	env?: ZenuxsEnvironment,
+): ZenuxsEnvironmentConfig {
+	return getZenuxsEnvironmentConfig(env);
+}

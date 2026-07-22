@@ -330,6 +330,7 @@ export {
 	ZENUXS_ENVIRONMENTS,
 	DEFAULT_ZENUXS_ENVIRONMENT,
 	getZenuxsEnvironmentConfig,
+	getClineEnvironmentConfig,
 	resolveZenuxsEnvironment,
 } from "./runtime/zenuxs-environment";
 export type {
@@ -393,3 +394,6 @@ export { createTool } from "./tools/create";
 export { AUTH_ERROR_PATTERNS, isLikelyAuthError, CONTEXT_LENGTH_ERROR_PATTERNS, isContextLengthError, EMPTY_MODEL_OUTPUT_PATTERNS, isEmptyModelOutputError } from "./types/auth";
 // VCR is Node-only (uses node:fs, node:path), excluded from browser build
 export type { VcrRecording } from "./types/vcr";
+export { pMap, pFilter, deferredPromise, withTimeout, rateLimit } from "./perf/concurrency";
+export type { DeferredPromise } from "./perf/concurrency";
+export { measure, Measured, getMeasurements, resetMeasurements } from "./perf/measure";

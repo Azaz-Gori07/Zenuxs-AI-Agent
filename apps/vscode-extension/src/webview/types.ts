@@ -184,7 +184,7 @@ export type ApprovalKey =
 	| "questions";
 
 export type ExtensionMessage =
-	| { type: "initial_data"; providers: import("@cline/shared").ProviderListItem[]; models: Record<string, string[]>; currentConfig: ExtensionConfig; toggles: Toggles; sessionHistories: SessionHistory[]; dashboard?: DashboardData; mcpServers?: McpServerEntry[]; checkpoints?: CheckpointEntry[]; autoApprovals?: Record<string, boolean> }
+	| { type: "initial_data"; providers: import("@cline/shared").ProviderListItem[]; models: Record<string, string[]>; currentConfig: ExtensionConfig; toggles: Toggles; sessionHistories: SessionHistory[]; dashboard?: DashboardData; mcpServers?: McpServerEntry[]; checkpoints?: CheckpointEntry[]; autoApprovals?: Record<string, boolean>; showOnboarding?: boolean }
 	| { type: "assistant_delta"; text: string }
 	| { type: "reasoning_delta"; text: string; redacted?: boolean }
 	| { type: "tool_event"; text: string; event?: ToolEventData }
@@ -233,6 +233,7 @@ export type WebviewMessage =
 	| { type: "askAboutFile" }
 	| { type: "clear_history" }
 	| { type: "login_oauth"; providerId: string }
+	| { type: "skip_onboarding" }
 	| { type: "models_request"; providerId: string }
 	| { type: "status"; text: string }
 	| { type: "mcp_register"; name: string; transport: string; command?: string; args?: string[]; url?: string }
@@ -286,11 +287,12 @@ export interface AppState {
 	teamTasks: TeamTaskEntry[];
 	connectors: ConnectorStatus[];
 	autoApprovals: Record<ApprovalKey, boolean>;
+	showOnboarding?: boolean;
 }
 
 export const SCHEMA_VERSION = "2.0";
 
-export type TaskFsmState = "idle" | "planning" | "building" | "testing" | "completed" | "cancelled" | "interrupted" | "failed";
+export type TaskFsmState = "idle" | "running" | "completed" | "cancelled" | "interrupted" | "failed";
 
 export type EventOrigin = "user" | "llm" | "filesystem" | "terminal" | "tool" | "provider";
 
@@ -341,7 +343,7 @@ export interface TimelineEvent {
 	finishedAt?: number;
 	duration?: number;
 	parentEventId?: string;
-	phase: "planning" | "building" | "testing";
+	phase: "execution";
 	eventType: "planning" | "reading" | "writing" | "editing" | "command" | "tool" | "testing" | "warning" | "error" | "completion" | "cancellation" | "interruption";
 	status: "pending" | "running" | "completed" | "failed" | "cancelled";
 	title: string;
@@ -384,11 +386,6 @@ export interface TaskDataV2 {
 	state: TaskFsmState;
 	liveStatus: string;
 	collapsed: boolean;
-	phaseExpanded: {
-		planning: boolean;
-		building: boolean;
-		testing: boolean;
-	};
 	events: TimelineEvent[];
 	summary?: TaskSummaryV2;
 	fileChanges?: FileChangesV2;
