@@ -1,64 +1,67 @@
 "use client";
 
-import { Plus } from "lucide-react";
-import { useState } from "react";
+import { Plus, RefreshCw } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { desktopClient } from "@/lib/desktop-client";
+import { cn } from "@/lib/utils";
 import { PageFrame, PageHeader } from "../page-layout";
 
-interface InstalledSkill {
+interface BackendSkill {
 	id: string;
 	name: string;
 	description: string;
-	version: string;
-	installedAt: string;
+	filePath: string;
 	enabled: boolean;
+	source: string;
+	instructions: string;
 }
 
 export function SkillsContent() {
-	const [skills, setSkills] = useState<InstalledSkill[]>([
-		{
-			id: "skill-1",
-			name: "Code Review Assistant",
-			description: "Automated code review and best practices checking",
-			version: "1.2.0",
-			installedAt: "2024-01-15",
-			enabled: true,
-		},
-		{
-			id: "skill-2",
-			name: "Test Generator",
-			description: "Generate unit tests for your code",
-			version: "2.0.1",
-			installedAt: "2024-02-20",
-			enabled: true,
-		},
-	]);
+	const [skills, setSkills] = useState<BackendSkill[]>([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
 
-	const [futureFeatures] = useState([
-		{
-			id: "create-skill",
-			title: "Create Your Own Skill",
-			description: "Build custom skills with our visual editor",
-			status: "coming-soon",
-		},
-		{
-			id: "worktree",
-			title: "Worktree Integration",
-			description: "Manage multiple worktrees with skill-aware context",
-			status: "coming-soon",
-		},
-	]);
+	const loadSkills = useCallback(async () => {
+		setLoading(true);
+		setError(null);
+		try {
+			const data = await desktopClient.invoke<BackendSkill[]>("list_skills");
+			setSkills(data ?? []);
+		} catch (err) {
+			const message = err instanceof Error ? err.message : String(err);
+			setError(message);
+			setSkills([]);
+		} finally {
+			setLoading(false);
+		}
+	}, []);
 
-	const toggleSkill = (id: string) => {
+	useEffect(() => {
+		const timeoutId = window.setTimeout(() => {
+			void loadSkills();
+		}, 0);
+		return () => window.clearTimeout(timeoutId);
+	}, [loadSkills]);
+
+	const toggleSkill = async (id: string, enabled: boolean) => {
 		setSkills((prev) =>
 			prev.map((skill) =>
-				skill.id === id ? { ...skill, enabled: !skill.enabled } : skill,
+				skill.id === id ? { ...skill, enabled } : skill,
 			),
 		);
-	};
-
-	const removeSkill = (id: string) => {
-		setSkills((prev) => prev.filter((skill) => skill.id !== id));
+		try {
+			await desktopClient.invoke("toggle_skill", { id, enabled });
+		} catch {
+			// Revert on failure
+			setSkills((prev) =>
+				prev.map((skill) =>
+					skill.id === id ? { ...skill, enabled: !enabled } : skill,
+				),
+			);
+		}
 	};
 
 	return (
@@ -67,92 +70,78 @@ export function SkillsContent() {
 				description="Manage your installed skills and extend Zenuxs capabilities."
 				title="Skills"
 				actions={
-					<Button size="sm" disabled>
-						<Plus className="h-4 w-4" />
-						Install Skill
-					</Button>
+					<>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => void loadSkills()}
+							disabled={loading}
+						>
+							<RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
+						</Button>
+						<Button size="sm" disabled>
+							<Plus className="h-4 w-4" />
+							Install Skill
+						</Button>
+					</>
 				}
 			/>
 
-			{skills.length === 0 ? (
-				<div className="rounded-lg border border-border px-5 py-8 text-center">
-					<p className="text-sm text-muted-foreground">
-						No skills installed yet. Browse the marketplace to find skills.
-					</p>
-				</div>
-			) : (
-				<div className="flex flex-col gap-3">
-					{skills.map((skill) => (
-						<div
-							key={skill.id}
-							className="rounded-lg border border-border px-5 py-4 transition-colors hover:bg-accent/20"
-						>
-							<div className="flex items-start justify-between gap-4">
-								<div className="flex-1">
-									<div className="flex items-center gap-2">
-										<h3 className="text-sm font-semibold text-foreground">
-											{skill.name}
-										</h3>
-										<span className="rounded-md border border-border px-2 py-0.5 text-xs text-muted-foreground">
-											v{skill.version}
-										</span>
-									</div>
-									<p className="mt-1 text-sm text-muted-foreground">
-										{skill.description}
-									</p>
-									<p className="mt-1 text-xs text-muted-foreground/70">
-										Installed on {skill.installedAt}
-									</p>
-								</div>
-								<div className="flex items-center gap-2">
-									<Button
-										variant={skill.enabled ? "outline" : "secondary"}
-										size="sm"
-										onClick={() => toggleSkill(skill.id)}
-									>
-										{skill.enabled ? "Disable" : "Enable"}
-									</Button>
-									<Button
-										variant="ghost"
-										size="sm"
-										onClick={() => removeSkill(skill.id)}
-									>
-										Remove
-									</Button>
-								</div>
-							</div>
-						</div>
-					))}
+			{error && (
+				<div className="mb-4 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+					{error}
 				</div>
 			)}
 
-			<div className="mt-8">
-				<h3 className="mb-4 text-lg font-semibold text-foreground">
-					Coming Soon
-				</h3>
-				<div className="flex flex-col gap-3">
-					{futureFeatures.map((feature) => (
-						<div
-							key={feature.id}
-							className="rounded-lg border border-dashed border-border px-5 py-4 opacity-60"
-						>
-							<div className="flex items-start justify-between gap-4">
-								<div className="flex-1">
-									<h3 className="text-sm font-semibold text-foreground">
-										{feature.title}
-									</h3>
-									<p className="mt-1 text-sm text-muted-foreground">
-										{feature.description}
-									</p>
-								</div>
-								<span className="rounded-md border border-border px-2 py-0.5 text-xs text-muted-foreground">
-									Coming Soon
-								</span>
-							</div>
-						</div>
-					))}
+			{loading ? (
+				<div className="rounded-lg border border-border px-5 py-8 text-center">
+					<p className="text-sm text-muted-foreground">Loading skills...</p>
 				</div>
-			</div>
+			) : skills.length === 0 ? (
+				<div className="rounded-lg border border-border px-5 py-8 text-center">
+					<p className="text-sm text-muted-foreground">
+						No skills found. Add skill markdown files to your skills/ directory or browse the marketplace.
+					</p>
+				</div>
+			) : (
+				<ScrollArea className="max-w-[46rem]">
+					<div className="space-y-3 pr-4">
+						{skills.map((skill) => (
+							<div
+								key={skill.id}
+								className="rounded-lg border border-border px-5 py-4 transition-colors hover:bg-accent/20"
+							>
+								<div className="flex items-start justify-between gap-4">
+									<div className="flex-1 min-w-0">
+										<div className="flex items-center gap-2">
+											<h3 className="text-sm font-semibold text-foreground truncate">
+												{skill.name}
+											</h3>
+											<span className="shrink-0 rounded-md border border-border px-2 py-0.5 text-xs text-muted-foreground capitalize">
+												{skill.source}
+											</span>
+										</div>
+										{skill.description && (
+											<p className="mt-1 text-sm text-muted-foreground line-clamp-2">
+												{skill.description}
+											</p>
+										)}
+										<p className="mt-1 text-xs text-muted-foreground/70 truncate font-mono">
+											{skill.filePath}
+										</p>
+									</div>
+									<Switch
+										checked={skill.enabled}
+										onCheckedChange={(checked) =>
+											void toggleSkill(skill.id, checked)
+										}
+									/>
+								</div>
+							</div>
+						))}
+					</div>
+				</ScrollArea>
+			)}
 		</PageFrame>
 	);
 }

@@ -476,6 +476,7 @@ export type { RuntimeEnv } from "./session/runtime-env";
 export * from "./session/workspace";
 export * from "./team";
 export { createTool } from "./tools/create";
+export * from "./rpc/runtime";
 export * from "./types";
 export { AUTH_ERROR_PATTERNS, isLikelyAuthError, CONTEXT_LENGTH_ERROR_PATTERNS, isContextLengthError, EMPTY_MODEL_OUTPUT_PATTERNS, isEmptyModelOutputError } from "./types/auth";
 export { initVcr } from "./vcr";

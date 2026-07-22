@@ -241,10 +241,8 @@ function toChatTurnResult(result: AgentResult): ChatTurnResult {
 
 function resolveMode(
 	request: ChatStartSessionRequest | ChatRunTurnRequest["config"],
-): "act" | "plan" | "yolo" {
-	return request.mode === "plan"
-		? "plan"
-		: request.mode === "yolo"
-			? "yolo"
-			: "act";
+): "act" | "plan" | "ask" | "debug" | "god" | "zen" | "yolo" {
+	const valid = ["act", "plan", "ask", "debug", "god", "zen", "yolo"];
+	const mode = request.mode || "act";
+	return valid.includes(mode) ? (mode as "act" | "plan" | "ask" | "debug" | "god" | "zen" | "yolo") : "act";
 }

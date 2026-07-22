@@ -29,21 +29,30 @@ const GlobalSettingsStringListSchema = z
 		return normalized.length > 0 ? normalized : undefined;
 	});
 
+export const AutoApprovalSettingsSchema = z.record(
+	z.string(),
+	z.boolean().default(false),
+).default({});
+
+export type AutoApprovalSettings = z.infer<typeof AutoApprovalSettingsSchema>;
+
 export const GlobalSettingsSchema = z
 	.object({
 		telemetryOptOut: z.boolean().default(false).catch(false),
 		autoUpdateEnabled: z.boolean().default(true).catch(true),
 		disabledTools: GlobalSettingsStringListSchema.optional(),
 		disabledPlugins: GlobalSettingsStringListSchema.optional(),
+		autoApprovals: AutoApprovalSettingsSchema,
 	})
 	.strip()
 	.transform((settings) => {
-		const normalized: {
-			telemetryOptOut: boolean;
-			autoUpdateEnabled: boolean;
-			disabledTools?: string[];
-			disabledPlugins?: string[];
-		} = {
+	const normalized: {
+		telemetryOptOut: boolean;
+		autoUpdateEnabled: boolean;
+		disabledTools?: string[];
+		disabledPlugins?: string[];
+		autoApprovals?: Record<string, boolean>;
+	} = {
 			autoUpdateEnabled: settings.autoUpdateEnabled,
 			telemetryOptOut: settings.telemetryOptOut,
 		};
@@ -52,6 +61,9 @@ export const GlobalSettingsSchema = z
 		}
 		if (settings.disabledPlugins?.length) {
 			normalized.disabledPlugins = settings.disabledPlugins;
+		}
+		if (settings.autoApprovals && Object.keys(settings.autoApprovals).length > 0) {
+			normalized.autoApprovals = { ...settings.autoApprovals };
 		}
 		return normalized;
 	});
@@ -85,6 +97,9 @@ function freezeSettings(value: GlobalSettings): GlobalSettings {
 	}
 	if (value.disabledPlugins) {
 		Object.freeze(value.disabledPlugins);
+	}
+	if (value.autoApprovals) {
+		Object.freeze(value.autoApprovals);
 	}
 	return Object.freeze(value);
 }
@@ -178,6 +193,26 @@ export function setAutoUpdateEnabledGlobally(
 		},
 		options,
 	);
+}
+
+export function getAutoApprovals(): Record<string, boolean> {
+	return { ...(readGlobalSettings().autoApprovals ?? {}) };
+}
+
+export function setAutoApproval(
+	permission: string,
+	enabled: boolean,
+): Record<string, boolean> {
+	const settings = readGlobalSettings();
+	const approvals = { ...(settings.autoApprovals ?? {}) };
+	approvals[permission] = enabled;
+	writeGlobalSettings({ ...settings, autoApprovals: approvals });
+	return { ...approvals };
+}
+
+export function isAutoApproved(permission: string): boolean {
+	const approvals = readGlobalSettings().autoApprovals;
+	return approvals?.[permission] === true;
 }
 
 export function resolveDisabledToolNames(

@@ -1,8 +1,12 @@
 import { createTool } from "@cline/shared";
+import { getModeBehavior } from "@cline/core";
+import type { AgentMode } from "@cline/shared";
 import type { Config } from "../../utils/types";
 import { resolveSystemPrompt } from "../prompt";
 
-type InteractiveUiMode = "plan" | "act";
+export type InteractiveUiMode = AgentMode;
+
+const MODES_NEEDING_SWITCH_TOOL: InteractiveUiMode[] = ["plan", "ask", "debug"];
 
 export function createInteractiveModeSwitchTool(input: {
 	config: Config;
@@ -12,7 +16,7 @@ export function createInteractiveModeSwitchTool(input: {
 	return createTool({
 		name: "switch_to_act_mode",
 		description:
-			"Switch from plan mode to act mode. Call this after the user has confirmed they want to proceed with the plan. Do not call this proactively or before the user has agreed.",
+			"Switch from a restricted mode to act mode. Call this after the user has confirmed they want to proceed with execution. Do not call this proactively or before the user has agreed.",
 		inputSchema: {
 			type: "object",
 			properties: {},
@@ -26,15 +30,14 @@ export function createInteractiveModeSwitchTool(input: {
 			}
 			input.pendingModeChange.current = "act";
 			input.tuiModeChanged.current?.("act");
-			return "You successfully switched to act mode, proceed with the plan. You now have access to editing files and running commands. (The switch_to_act_mode tool is only available in plan mode.)";
+			const fromMode = input.config.mode || "unknown";
+			return `You successfully switched from ${fromMode} mode to act mode. You now have access to editing files and running commands. (The switch_to_act_mode tool is only available in restricted modes.)`;
 		},
 	});
 }
 
 function resolveZenuxsToken(): string | undefined {
 	try {
-		// Dynamic require to avoid circular dependency at module level
-		// eslint-disable-next-line @typescript-eslint/no-require-imports
 		const { ProviderSettingsManager } = require("@cline/core") as typeof import("@cline/core");
 		const psm = new ProviderSettingsManager();
 		const zenuxsSettings = psm.getProviderSettings("zenuxs");
@@ -50,12 +53,15 @@ export async function applyInteractiveModeConfig(input: {
 	switchToActModeTool: NonNullable<Config["extraTools"]>[number];
 }): Promise<void> {
 	input.config.mode = input.mode;
+	const behavior = getModeBehavior(input.mode);
 	input.config.extraTools =
-		input.mode === "plan" ? [input.switchToActModeTool] : [];
+		MODES_NEEDING_SWITCH_TOOL.includes(input.mode) ? [input.switchToActModeTool] : [];
 	input.config.systemPrompt = await resolveSystemPrompt({
 		cwd: input.config.cwd,
 		providerId: input.config.providerId,
 		mode: input.mode,
 		zenuxsAuthToken: resolveZenuxsToken(),
 	});
+	// Apply mode-specific behavior to config
+	input.config.toolExecution = behavior.executionStrategy as Config["toolExecution"];
 }

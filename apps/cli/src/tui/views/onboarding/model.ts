@@ -152,8 +152,8 @@ export function toModelEntriesFromKnownModels(
 
 export function getOAuthProviderLabel(providerId: string): string {
 	switch (providerId) {
-		case "cline": return "Cline";
-		case "cline-pass": return "ClinePass";
+		case "cline": return "Zenuxs";
+		case "cline-pass": return "ZenuxsPass";
 		case "zenuxs": return "Zenuxs";
 		case "openai-codex": return "ChatGPT";
 		default: return providerId;

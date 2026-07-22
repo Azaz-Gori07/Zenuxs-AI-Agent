@@ -150,7 +150,10 @@ const TOOL_NAME_TO_FLAG: Partial<
 function resolveContextMode(
 	mode?: BuiltinToolAvailabilityContext["mode"],
 ): CoreAgentMode {
-	return mode === "plan" || mode === "yolo" ? mode : "act";
+	if (mode === "plan" || mode === "yolo" || mode === "ask" || mode === "debug" || mode === "god" || mode === "zen") {
+		return mode;
+	}
+	return "act";
 }
 
 type ResolvedToolFlags = Pick<

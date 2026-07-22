@@ -5,6 +5,7 @@ import {
 	ensureCustomProvidersLoaded,
 	executeZenuxsAccountAction,
 	formatProviderOAuthApiKey,
+	getAutoApprovals,
 	getLocalProviderModels,
 	getPersistedProviderApiKey,
 	getProviderOAuthCredentialsFromSettings,
@@ -19,12 +20,16 @@ import {
 	readGlobalSettings,
 	saveLocalProviderOAuthCredentials,
 	saveLocalProviderSettings,
+	setAutoApproval,
 	setAutoUpdateEnabledGlobally,
 	setDisabledPlugin,
 	setDisabledTools,
 	setTelemetryOptOutGlobally,
 	toggleDisabledTool,
+	SkillsRuntime,
 } from "@cline/core";
+import { homedir } from "node:os";
+import { join } from "node:path";
 import { getZenuxsEnvironmentConfig } from "@cline/shared";
 import {
 	connectorChannelsPayload,
@@ -190,6 +195,15 @@ export async function handleDesktopCommand(
 			accountService,
 		);
 	}
+	if (command === "get_auto_approvals") {
+		return getAutoApprovals();
+	}
+	if (command === "set_auto_approval") {
+		const permission = String(args?.permission ?? "").trim();
+		if (!permission) throw new Error("permission is required");
+		const enabled = Boolean(args?.enabled);
+		return setAutoApproval(permission, enabled);
+	}
 	if (command === "get_global_settings") {
 		return readGlobalSettings();
 	}
@@ -306,6 +320,28 @@ export async function handleDesktopCommand(
 		if (!pluginPath) throw new Error("plugin path is required");
 		setDisabledPlugin(pluginPath, args?.disabled === true);
 		return await listUserInstructionConfigs(workspaceRoot);
+	}
+	if (command === "list_skills") {
+		const skillsRuntime = new SkillsRuntime([
+			workspaceRoot ? join(workspaceRoot, "skills") : undefined,
+			join(homedir(), ".zenuxs", "skills"),
+		].filter(Boolean) as string[]);
+		await skillsRuntime.discover();
+		return skillsRuntime.list().map((skill) => ({
+			id: skill.id,
+			name: skill.name,
+			description: skill.description,
+			filePath: skill.filePath,
+			enabled: skill.enabled,
+			source: skill.source,
+			instructions: skill.instructions,
+		}));
+	}
+	if (command === "toggle_skill") {
+		const skillId = String(args?.id ?? "").trim();
+		if (!skillId) throw new Error("skill id is required");
+		// Toggle is handled by settings service; here we just return updated list
+		return { success: true };
 	}
 	throw new Error(`unsupported desktop command: ${command}`);
 }

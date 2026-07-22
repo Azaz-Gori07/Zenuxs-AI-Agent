@@ -5,6 +5,7 @@ import {
 	prewarmFileIndex,
 	SessionSource,
 	type UserInstructionConfigService,
+	AutoApprovalService,
 } from "@cline/core";
 import type { ConsecutiveMistakeLimitContext } from "@cline/shared";
 import { createSessionId } from "@cline/shared";
@@ -166,6 +167,12 @@ export async function runAgent(
 		askQuestion: askQuestionInTerminal,
 		submit: submitAndExitInTerminal,
 	};
+	// Apply auto approval settings from global config to tool policies
+	const autoApprovalService = new AutoApprovalService();
+	const mergedToolPolicies = autoApprovalService.applyToToolPolicies(
+		config.toolPolicies ?? {},
+	);
+
 	const sessionManager = await createCliCore({
 		capabilities: {
 			toolExecutors,
@@ -175,7 +182,7 @@ export async function runAgent(
 		logger: config.logger,
 		cwd: config.cwd,
 		workspaceRoot: config.workspaceRoot,
-		toolPolicies: config.toolPolicies,
+		toolPolicies: mergedToolPolicies,
 	});
 	const runtimeHooks = createRuntimeHooks({
 		verbose: config.verbose,

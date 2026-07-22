@@ -211,7 +211,8 @@ export type ExtensionMessage =
 	| { type: "team_teammate_shutdown"; agentId: string }
 	| { type: "connector_status"; connectors: ConnectorStatus[] }
 	| { type: "developer_logs_batch"; entries: any[] }
-	| { type: "developer_logs_state"; enabled: boolean };
+	| { type: "developer_logs_state"; enabled: boolean }
+	| { type: "oauth_status"; providerId: string; status: "authenticating" | "success" | "error" | "logged_out"; message?: string };
 
 export type WebviewMessage =
 	| { type: "ready" }
@@ -233,6 +234,7 @@ export type WebviewMessage =
 	| { type: "askAboutFile" }
 	| { type: "clear_history" }
 	| { type: "login_oauth"; providerId: string }
+	| { type: "logout_oauth"; providerId: string }
 	| { type: "skip_onboarding" }
 	| { type: "models_request"; providerId: string }
 	| { type: "status"; text: string }

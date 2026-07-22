@@ -60,7 +60,7 @@ export async function buildConnectorStartRequest(input: {
 		provider?: string;
 		apiKey?: string;
 		systemPrompt?: string;
-		mode: "act" | "plan";
+		mode: "act" | "plan" | "ask" | "debug" | "god" | "zen" | "yolo";
 		enableTools: boolean;
 	};
 	io: ConnectIo;

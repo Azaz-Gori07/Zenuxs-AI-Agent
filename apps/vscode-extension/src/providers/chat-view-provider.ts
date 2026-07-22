@@ -37,6 +37,7 @@ import {
 	resolveDefaultMcpSettingsPath,
 	resolveMcpServerRegistrations,
 	resolveProviderConfig,
+	resolveProviderApiKeyFromSettings,
 	hasMcpSettingsFile,
 	loadMcpSettingsFile,
 	SessionSource,
@@ -130,6 +131,10 @@ type WebviewInboundMessage =
 	}
 	| {
 		type: "login_oauth";
+		providerId: string;
+	}
+	| {
+		type: "logout_oauth";
 		providerId: string;
 	}
 	| {
@@ -249,7 +254,11 @@ type WebviewInboundMessage =
 		action: "subscribe" | "unsubscribe" | "clear" | "pause" | "resume";
 	}
 	| { type: "open_file"; filePath: string; line?: number }
-	| { type: "show_diff"; filePath: string; originalContent?: string; newContent?: string };
+	| { type: "show_diff"; filePath: string; originalContent?: string; newContent?: string }
+	| { type: "skip_onboarding" }
+	| { type: "reveal_edit_location"; filePath: string; startLine?: number; endLine?: number }
+	| { type: "get_terminal_history"; taskId: string }
+	| { type: "cancel_terminal_task"; taskId: string };
 
 /**
  * Provides the Zenuxs chat webview in the VS Code sidebar.
@@ -504,20 +513,11 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 					break;
 
 				case "login_oauth":
-					try {
-						const { loginAndSaveLocalProviderOAuthCredentials } = await import("@cline/core");
-						const psm = new ProviderSettingsManager();
-						await loginAndSaveLocalProviderOAuthCredentials(
-							psm,
-							(message as any).providerId,
-							(url) => vscode.env.openExternal(vscode.Uri.parse(url)),
-						);
-						await AuthService.getInstance().onLoginComplete((message as any).providerId);
-						await this.extensionContext.globalState.update("zenuxs.onboardingSkipped", true);
-						await this.sendInitialPayload();
-					} catch (err: any) {
-						vscode.window.showErrorMessage(`Login failed: ${err?.message || String(err)}`);
-					}
+					await this.handleLoginOAuth(message.providerId);
+					break;
+
+				case "logout_oauth":
+					await this.handleLogoutOAuth(message.providerId);
 					break;
 
 				case "save_settings":
@@ -571,10 +571,6 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 
 				case "models_request":
 					await this.handleModelsRequest(message.providerId);
-					break;
-
-				case "login_oauth":
-					await this.handleLoginOAuth(message.providerId);
 					break;
 
 				case "mcp_register":
@@ -806,10 +802,16 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 			// Fetch models for the currently configured provider so they are
 			// available immediately when the model dropdown renders (fixes
 			// the empty-dropdown-on-first-load bug).
+			// For OAuth providers (e.g. zenuxs), resolve the access token from
+			// auth settings into the apiKey field so the model discovery fetch
+			// includes the required Authorization header.
 			let models: Record<string, string[]> = {};
 			try {
 				if (extConfig.providerId) {
-					const result = await getLocalProviderModels(extConfig.providerId, psm.getProviderSettings(extConfig.providerId));
+					const settings = psm.getProviderSettings(extConfig.providerId) ?? {};
+					const resolvedKey = resolveProviderApiKeyFromSettings(psm, extConfig.providerId);
+					const effectiveSettings = { ...settings, apiKey: settings.apiKey || resolvedKey };
+					const result = await getLocalProviderModels(extConfig.providerId, effectiveSettings as any);
 					if (result.models && result.models.length > 0) {
 						models[extConfig.providerId] = result.models.map((m: any) => m.id || m);
 					}
@@ -894,8 +896,14 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	private async handleModelsRequest(providerId: string): Promise<void> {
 		try {
 			const psm = new ProviderSettingsManager();
-			const { getLocalProviderModels } = await import("@cline/core");
-			const result = await getLocalProviderModels(providerId, psm.getProviderSettings(providerId));
+			const { getLocalProviderModels, resolveProviderApiKeyFromSettings } = await import("@cline/core");
+			const settings = psm.getProviderSettings(providerId) ?? {};
+			const resolvedKey = resolveProviderApiKeyFromSettings(psm, providerId);
+			const effectiveSettings = {
+				...settings,
+				apiKey: settings.apiKey || resolvedKey,
+			};
+			const result = await getLocalProviderModels(providerId, effectiveSettings as any);
 			const models = result.models.map((m: any) => m.id || m);
 			this.postToWebview({ type: "models", providerId, models: models.length > 0 ? models : ["default"] });
 		} catch {
@@ -1252,6 +1260,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 	 */
 	private async handleLoginOAuth(providerId: string): Promise<void> {
 		const psm = new ProviderSettingsManager();
+		this.postToWebview({ type: "oauth_status", providerId, status: "authenticating" });
 		try {
 			await vscode.window.withProgress(
 				{
@@ -1271,12 +1280,30 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 			);
 			// Update AuthService in-memory state after successful login
 			await AuthService.getInstance().onLoginComplete(providerId);
+			await this.extensionContext.globalState.update("zenuxs.onboardingSkipped", true);
+			this.postToWebview({ type: "oauth_status", providerId, status: "success" });
 			vscode.window.showInformationMessage(`Zenuxs: Successfully authenticated provider ${providerId}.`);
 			await this.sendInitialPayload();
 		} catch (error) {
 			const msg = error instanceof Error ? error.message : String(error);
+			this.postToWebview({ type: "oauth_status", providerId, status: "error", message: msg });
 			vscode.window.showErrorMessage(`Zenuxs Authentication Failed: ${msg}`);
 			this.postToWebview({ type: "error", text: `Authentication failed: ${msg}` });
+		}
+	}
+
+	/**
+	 * Log out from OAuth for the given provider.
+	 */
+	private async handleLogoutOAuth(providerId: string): Promise<void> {
+		try {
+			await AuthService.getInstance().logout(providerId);
+			this.postToWebview({ type: "oauth_status", providerId, status: "logged_out" });
+			vscode.window.showInformationMessage(`Zenuxs: Logged out from provider ${providerId}.`);
+			await this.sendInitialPayload();
+		} catch (error) {
+			const msg = error instanceof Error ? error.message : String(error);
+			vscode.window.showErrorMessage(`Zenuxs Logout Failed: ${msg}`);
 		}
 	}
 
@@ -1420,7 +1447,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				const rawProviderId = uiConfig?.providerId || extConfig.providerId || lastUsedProviderSettings?.provider || "cline";
 				const providerId = normalizeProviderId(rawProviderId);
 				const selectedProviderSettings = psm.getProviderSettings(providerId);
-				const resolvedApiKey = getPersistedProviderApiKey(providerId, selectedProviderSettings) || extConfig.apiKey || "";
+				const resolvedApiKey = resolveProviderApiKeyFromSettings(psm, providerId) || getPersistedProviderApiKey(providerId, selectedProviderSettings) || extConfig.apiKey || "";
 				const resolvedBaseUrl = selectedProviderSettings?.baseUrl || extConfig.baseUrl || undefined;
 
 				// Resolve model ID: check UI config, VS Code settings, or provider settings, or use fallback
@@ -1584,6 +1611,15 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				error instanceof Error ? error.message : String(error);
 			this.postToWebview({ type: "error", text: message });
 			loggerService.log({ level: LogLevel.ERROR, category: LogCategory.CONVERSATION, message: `Session error: ${message}`, source: "session", sessionId: this.activeSessionId });
+			if (
+				message.includes("ResourceExhausted") ||
+				message.includes("request limit reached")
+			) {
+				loggerService.log({ level: LogLevel.INFO, category: LogCategory.CONVERSATION, message: "Rate limit / worker quota error caught - resetting active session state for recovery", source: "session", sessionId: this.activeSessionId });
+				this.activeSessionId = undefined;
+				this.isRunning = false;
+				await this.resetCore();
+			}
 			// Recover from "session not found": restore session instead of destroying it
 			if (
 				message.toLowerCase().includes("session not found") ||

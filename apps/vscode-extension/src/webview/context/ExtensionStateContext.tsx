@@ -171,6 +171,7 @@ interface ExtensionStateContextValue {
 	attachFile: () => void;
 	clearHistory: () => void;
 	loginOAuth: (providerId: string) => void;
+	logoutOAuth: (providerId: string) => void;
 	switchTab: (tab: TabId) => void;
 	registerMcpServer: (name: string, transport: string, command?: string, args?: string[], url?: string) => void;
 	unregisterMcpServer: (name: string) => void;
@@ -283,6 +284,7 @@ export function ExtensionStateProvider({ children }: { children: ReactNode }) {
 		attachFile: () => postMessage({ type: "askAboutFile" }),
 		clearHistory: () => postMessage({ type: "clear_history" }),
 		loginOAuth: (providerId: string) => postMessage({ type: "login_oauth", providerId }),
+		logoutOAuth: (providerId: string) => postMessage({ type: "logout_oauth", providerId }),
 		switchTab: (tab: TabId) => dispatch({ type: "SET_TAB", tab }),
 		registerMcpServer: (name: string, transport: string, command?: string, args?: string[], url?: string) => postMessage({ type: "mcp_register", name, transport, command, args, url }),
 		unregisterMcpServer: (name: string) => postMessage({ type: "mcp_unregister", name }),

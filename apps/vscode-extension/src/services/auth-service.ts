@@ -132,25 +132,26 @@ export class AuthService {
 		}
 	}
 
-	async logout(reason: LogoutReason = LogoutReason.USER_INITIATED): Promise<void> {
+	async logout(targetProviderId?: string, reason: LogoutReason = LogoutReason.USER_INITIATED): Promise<void> {
 		try {
-			if (this._authInfo?.provider) {
-				const handler = getProviderAuthHandler(this._authInfo.provider);
-				if (handler) {
-					const storageId = handler.storageProviderId ?? this._authInfo.provider;
-					const psm = new ProviderSettingsManager();
-					const existing = psm.getProviderSettings(storageId);
-					if (existing) {
-						psm.saveProviderSettings(
-							{ ...existing, auth: undefined },
-							{ tokenSource: "manual" },
-						);
-					}
+			const providerToClear = targetProviderId || this._authInfo?.provider;
+			if (providerToClear) {
+				const handler = getProviderAuthHandler(providerToClear);
+				const storageId = handler?.storageProviderId ?? providerToClear;
+				const psm = new ProviderSettingsManager();
+				const existing = psm.getProviderSettings(storageId);
+				if (existing) {
+					psm.saveProviderSettings(
+						{ ...existing, auth: undefined },
+						{ tokenSource: "manual" },
+					);
 				}
 			}
-			this._authInfo = null;
-			this._authenticated = false;
-			this._refreshPromise = null;
+			if (!targetProviderId || targetProviderId === this._authInfo?.provider) {
+				this._authInfo = null;
+				this._authenticated = false;
+				this._refreshPromise = null;
+			}
 			if (this._globalState) {
 				await this._globalState.update("zenuxs.onboardingSkipped", false);
 			}

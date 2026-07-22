@@ -10,6 +10,12 @@ export const AUTH_ERROR_PATTERNS = [
 	"forbidden",
 	"invalid token",
 	"expired token",
+	"no token provided",
+	"token provided",
+	"no token",
+	"missing token",
+	"no api key",
+	"unauthenticated",
 	"authentication",
 ] as const;
 

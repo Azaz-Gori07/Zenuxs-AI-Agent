@@ -176,6 +176,8 @@ export interface ProviderConfigField {
 	defaultValue?: ProviderConfigFieldPrimitive;
 }
 
+export type ProviderAuthType = "API_KEY" | "OAUTH" | "NONE";
+
 export interface ProviderListItem {
 	id: string;
 	name: string;
@@ -183,9 +185,11 @@ export interface ProviderListItem {
 	color: string;
 	letter: string;
 	enabled: boolean;
+	authType?: ProviderAuthType;
 	hasApiKey?: boolean;
 	isOAuth?: boolean;
 	oauthAccessTokenPresent?: boolean;
+	accountId?: string;
 	baseUrl?: string;
 	defaultModelId?: string;
 	protocol?: ProviderProtocol;

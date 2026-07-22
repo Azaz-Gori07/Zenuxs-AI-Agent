@@ -40,7 +40,10 @@ import {
 	type InteractiveExitSummary,
 } from "./exit-summary";
 import { buildForkSessionMetadata } from "./fork/metadata";
-import { applyInteractiveModeConfig } from "./mode";
+import {
+	applyInteractiveModeConfig,
+	type InteractiveUiMode,
+} from "./mode";
 import { buildInteractiveSessionConfig } from "./session-config";
 
 type CliCore = Awaited<ReturnType<typeof createCliCore>>;
@@ -392,7 +395,7 @@ export function createInteractiveSessionRuntime(input: {
 		}
 	};
 
-	const applyMode = async (mode: "plan" | "act"): Promise<void> => {
+	const applyMode = async (mode: InteractiveUiMode): Promise<void> => {
 		await applyInteractiveModeConfig({
 			config: configRef.current,
 			mode,
