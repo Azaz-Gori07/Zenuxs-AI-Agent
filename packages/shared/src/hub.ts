@@ -287,7 +287,7 @@ export interface ScheduleRecord {
 	cwd?: string;
 	modelSelection?: GatewayModelSelection;
 	enabled: boolean;
-	mode?: "act" | "plan" | "yolo";
+	mode?: "act" | "plan" | "ask" | "debug" | "god" | "zen" | "yolo";
 	systemPrompt?: string;
 	maxIterations?: number;
 	timeoutSeconds?: number;
@@ -334,7 +334,7 @@ export interface HubScheduleCreateInput {
 	cwd?: string;
 	modelSelection?: GatewayModelSelection;
 	enabled?: boolean;
-	mode?: "act" | "plan" | "yolo";
+	mode?: "act" | "plan" | "ask" | "debug" | "god" | "zen" | "yolo";
 	systemPrompt?: string;
 	maxIterations?: number;
 	timeoutSeconds?: number;
@@ -354,7 +354,7 @@ export interface HubScheduleUpdateInput {
 	cwd?: string;
 	modelSelection?: GatewayModelSelection;
 	enabled?: boolean;
-	mode?: "act" | "plan" | "yolo";
+	mode?: "act" | "plan" | "ask" | "debug" | "god" | "zen" | "yolo";
 	systemPrompt?: string | null;
 	maxIterations?: number | null;
 	timeoutSeconds?: number | null;
@@ -654,7 +654,7 @@ export type HubClientContribution =
 	| HubClientUserInstructionServiceContribution;
 
 export interface HubSessionRuntimeOptions {
-	mode?: "act" | "plan" | "yolo";
+	mode?: "act" | "plan" | "ask" | "debug" | "god" | "zen" | "yolo";
 	systemPrompt?: string;
 	maxIterations?: number;
 	timeoutSeconds?: number;

@@ -12,6 +12,7 @@ import type {
 import { createOAuthClientCallbacks } from "../../auth/client";
 import {
 	getProviderAuthHandler,
+	getProviderAuthType,
 	isOAuthProvider,
 	loginAndSaveProviderOAuthCredentials,
 	type ProviderOAuthCredentials,
@@ -702,11 +703,13 @@ export async function listLocalProviders(
 						color: stableColor(id),
 						letter: createLetter(name),
 						enabled: Boolean(persistedSettings),
+						authType: getProviderAuthType(id),
 						hasApiKey,
 						isOAuth: isOAuthProvider(id),
 						oauthAccessTokenPresent: persistedSettings
 							? hasOAuthAccessToken(persistedSettings)
 							: undefined,
+						accountId: persistedSettings?.auth?.accountId,
 						baseUrl: persistedSettings?.baseUrl ?? info?.baseUrl,
 						defaultModelId: info?.defaultModelId,
 						protocol: persistedSettings?.protocol ?? info?.protocol,

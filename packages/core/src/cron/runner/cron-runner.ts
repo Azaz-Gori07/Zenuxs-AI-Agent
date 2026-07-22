@@ -60,7 +60,7 @@ function cronExtensionEnabled(
 
 function buildToolPolicies(
 	spec: CronSpecRecord,
-	mode: "act" | "plan" | "yolo",
+	mode: "act" | "plan" | "ask" | "debug" | "god" | "zen" | "yolo",
 ): ChatStartSessionRequest["toolPolicies"] | undefined {
 	if (spec.tools === undefined) {
 		return { "*": { autoApprove: true } };
@@ -470,7 +470,7 @@ export class CronRunner {
 	private async buildSystemPrompt(
 		spec: CronSpecRecord,
 		workspaceRoot: string,
-		mode: "act" | "plan" | "yolo",
+		mode: "act" | "plan" | "ask" | "debug" | "god" | "zen" | "yolo",
 		provider: string,
 	): Promise<string> {
 		const notes = buildNotesSystemPromptSection(spec.notesDirectory);

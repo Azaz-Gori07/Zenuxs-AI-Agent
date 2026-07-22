@@ -73,6 +73,54 @@ export const ToolPresets = {
 	},
 
 	/**
+	 * Ask mode (conversation-first, read-only)
+	 * Good for questions, explanations, and guidance
+	 */
+	ask: {
+		enableReadFiles: true,
+		enableSearch: true,
+		enableBash: false,
+		enableWebFetch: true,
+		enableApplyPatch: false,
+		enableEditor: false,
+		enableSkills: false,
+		enableAskQuestion: true,
+		enableSubmitAndExit: false,
+		enableSpawnAgent: false,
+		enableAgentTeams: false,
+		enableWriteFile: false,
+		enableGlob: false,
+		enableGrep: false,
+		enableWebSearch: true,
+		enableTodoWrite: true,
+		enablePlanExit: false,
+	},
+
+	/**
+	 * Debug mode (diagnostic-first, investigation focus)
+	 * Good for debugging, diagnosing issues, and system analysis
+	 */
+	debug: {
+		enableReadFiles: true,
+		enableSearch: true,
+		enableBash: true,
+		enableWebFetch: true,
+		enableApplyPatch: false,
+		enableEditor: true,
+		enableSkills: false,
+		enableAskQuestion: true,
+		enableSubmitAndExit: false,
+		enableSpawnAgent: true,
+		enableAgentTeams: true,
+		enableWriteFile: true,
+		enableGlob: true,
+		enableGrep: true,
+		enableWebSearch: true,
+		enableTodoWrite: true,
+		enablePlanExit: false,
+	},
+
+	/**
 	 * Search-focused tools (read_files + search_codebase)
 	 * Good for code exploration and analysis agents
 	 */
@@ -140,12 +188,12 @@ export type ToolPresetName = keyof typeof ToolPresets;
 export function resolveToolPresetName(options: {
 	mode?: AgentMode;
 }): ToolPresetName {
-	if (options.mode === "plan") {
-		return "plan";
-	}
-	if (options.mode === "yolo") {
-		return "yolo";
-	}
+	if (options.mode === "plan") return "plan";
+	if (options.mode === "yolo") return "yolo";
+	if (options.mode === "ask") return "ask";
+	if (options.mode === "debug") return "debug";
+	if (options.mode === "god") return "act";
+	if (options.mode === "zen") return "act";
 	return "act";
 }
 

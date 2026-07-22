@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { postMessage } from "../vscode-api.js";
 
 type Phase = "welcome" | "login";
@@ -274,7 +274,7 @@ const styles = {
 	},
 } as const;
 
-const providerIcons: Record<string, JSX.Element> = {
+const providerIcons: Record<string, React.ReactNode> = {
 	zenuxs: (
 		<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
 			<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
@@ -336,6 +336,21 @@ export function OnboardingView({ onComplete }: OnboardingViewProps) {
 	const handleMessage = useCallback((event: MessageEvent) => {
 		const msg = event.data;
 		if (!msg || typeof msg !== "object") return;
+
+		if (msg.type === "oauth_status") {
+			if (msg.status === "authenticating") {
+				setLoadingProvider(msg.providerId);
+				setError(null);
+			} else if (msg.status === "error") {
+				setLoadingProvider(null);
+				setError(msg.message || "Authentication failed. Please try again.");
+			} else if (msg.status === "success") {
+				setLoadingProvider(null);
+				setError(null);
+				onComplete?.();
+			}
+			return;
+		}
 
 		if (msg.type === "initial_data") {
 			if (msg.showOnboarding === false) {
@@ -410,7 +425,9 @@ export function OnboardingView({ onComplete }: OnboardingViewProps) {
 						<div style={styles.loginBadge}>Zenuxs Code</div>
 						<div style={styles.loginTitle}>Sign in to Zenuxs</div>
 						<div style={styles.loginSubtitle}>
-							Choose your preferred authentication method
+							{loadingProvider
+								? "Authenticating... Waiting for authentication approval... Please complete the login in your browser."
+								: "Choose your preferred authentication method"}
 						</div>
 
 						<div style={styles.buttonsContainer}>

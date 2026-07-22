@@ -165,7 +165,7 @@ export function registerScheduleImportCommand(
 					prompt: String(parsed.prompt ?? "").trim(),
 					provider,
 					model,
-					mode: parsed.mode === "plan" ? "plan" : "act",
+					mode: (["act", "plan", "ask", "debug", "god", "zen", "yolo"] as readonly string[]).includes(String(parsed.mode ?? "")) ? (parsed.mode as "act" | "plan" | "ask" | "debug" | "god" | "zen" | "yolo") : "act",
 					workspaceRoot,
 					cwd: String(parsed.cwd ?? "").trim() || undefined,
 					systemPrompt:

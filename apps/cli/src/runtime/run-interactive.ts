@@ -50,7 +50,10 @@ import {
 	type InteractiveExitSummary,
 } from "./interactive/exit-summary";
 import { createMistakeLimitDecisionResolver } from "./interactive/mistakes";
-import { createInteractiveModeSwitchTool } from "./interactive/mode";
+import {
+	createInteractiveModeSwitchTool,
+	type InteractiveUiMode,
+} from "./interactive/mode";
 import { assertInteractivePreflight } from "./interactive/preflight";
 import { createInteractiveSessionRuntime } from "./interactive/session-runtime";
 import {
@@ -133,11 +136,11 @@ export async function runInteractive(
 		tuiAskQuestion,
 	} = createInteractiveApprovalController(config);
 
-	const pendingModeChange: { current: "plan" | "act" | null } = {
+	const pendingModeChange: { current: InteractiveUiMode | null } = {
 		current: null,
 	};
 	const tuiModeChanged: {
-		current: ((mode: "plan" | "act") => void) | null;
+		current: ((mode: InteractiveUiMode) => void) | null;
 	} = { current: null };
 
 	const switchToActModeTool = createInteractiveModeSwitchTool({
@@ -146,7 +149,7 @@ export async function runInteractive(
 		tuiModeChanged,
 	});
 
-	config.extraTools = config.mode === "plan" ? [switchToActModeTool] : [];
+	config.extraTools = (config.mode === "plan" || config.mode === "ask" || config.mode === "debug") ? [switchToActModeTool] : [];
 
 	const uiEvents = getUIEventEmitter();
 	const chatCommandState: ChatCommandState = {

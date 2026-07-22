@@ -215,7 +215,7 @@ async function actionCreate(client: HubScheduleClient): Promise<void> {
 		prompt: (prompt as string).trim(),
 		provider: provider ?? "cline",
 		model: model ?? "openai/gpt-5.3-codex",
-		mode: (mode as string) === "plan" ? "plan" : "act",
+		mode: (["act", "plan", "ask", "debug", "god", "zen", "yolo"] as readonly string[]).includes(mode as string) ? (mode as "act" | "plan" | "ask" | "debug" | "god" | "zen" | "yolo") : "act",
 		workspaceRoot: (workspace as string).trim(),
 		systemPrompt,
 		maxIterations,

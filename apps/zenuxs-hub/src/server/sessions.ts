@@ -102,7 +102,7 @@ export function resolveLaunchContext(
 function buildSessionStartInput(
 	context: SessionContext,
 	options?: {
-		mode?: "act" | "plan";
+		mode?: "act" | "plan" | "ask" | "debug" | "god" | "zen" | "yolo";
 		systemPrompt?: string;
 		maxIterations?: number;
 		reasonLevel?: WebviewReasonLevel;

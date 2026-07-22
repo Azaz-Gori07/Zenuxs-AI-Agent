@@ -10,7 +10,7 @@ export type ConnectWhatsAppOptions = {
 	provider?: string;
 	apiKey?: string;
 	systemPrompt?: string;
-	mode: "act" | "plan";
+	mode: "act" | "plan" | "ask" | "debug" | "god" | "zen" | "yolo";
 	interactive: boolean;
 	maxIterations?: number;
 	enableTools: boolean;
@@ -40,7 +40,7 @@ export type ConnectTelegramOptions = {
 	provider?: string;
 	apiKey?: string;
 	systemPrompt?: string;
-	mode: "act" | "plan";
+	mode: "act" | "plan" | "ask" | "debug" | "god" | "zen" | "yolo";
 	interactive: boolean;
 	maxIterations?: number;
 	enableTools: boolean;
@@ -71,7 +71,7 @@ export type ConnectSlackOptions = {
 	provider?: string;
 	apiKey?: string;
 	systemPrompt?: string;
-	mode: "act" | "plan";
+	mode: "act" | "plan" | "ask" | "debug" | "god" | "zen" | "yolo";
 	interactive: boolean;
 	maxIterations?: number;
 	enableTools: boolean;
@@ -105,7 +105,7 @@ export type ConnectDiscordOptions = {
 	provider?: string;
 	apiKey?: string;
 	systemPrompt?: string;
-	mode: "act" | "plan";
+	mode: "act" | "plan" | "ask" | "debug" | "god" | "zen" | "yolo";
 	interactive: boolean;
 	maxIterations?: number;
 	enableTools: boolean;
@@ -133,7 +133,7 @@ export type ConnectGoogleChatOptions = {
 	provider?: string;
 	apiKey?: string;
 	systemPrompt?: string;
-	mode: "act" | "plan";
+	mode: "act" | "plan" | "ask" | "debug" | "god" | "zen" | "yolo";
 	interactive: boolean;
 	maxIterations?: number;
 	enableTools: boolean;
@@ -169,7 +169,7 @@ export type ConnectLinearOptions = {
 	provider?: string;
 	apiProviderKey?: string;
 	systemPrompt?: string;
-	mode: "act" | "plan";
+	mode: "act" | "plan" | "ask" | "debug" | "god" | "zen" | "yolo";
 	interactive: boolean;
 	maxIterations?: number;
 	enableTools: boolean;

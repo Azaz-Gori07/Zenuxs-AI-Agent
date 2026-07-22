@@ -2,8 +2,9 @@ import {
 	getClineEnvironmentConfig,
 	getZenuxsEnvironmentConfig,
 	type ITelemetryService,
+	type ProviderAuthType,
 } from "@cline/shared";
-export { getClineEnvironmentConfig };
+export { getClineEnvironmentConfig, type ProviderAuthType };
 import type { ProviderSettingsManager } from "../services/storage/provider-settings-manager";
 import type { ProviderSettings } from "../types/provider-settings";
 import {
@@ -297,6 +298,8 @@ const providerAuthHandlers = [
 	}),
 	createOAuthHandler({
 		providerId: "zenuxs",
+		formatAccessToken: formatZenuxsApiKey,
+		normalizeStoredAccessToken: stripZenuxsApiKeyPrefix,
 		login: ({ settings, callbacks, telemetry }) =>
 			loginZenuxsAuth({
 				apiBaseUrl: settings?.baseUrl?.trim(),
@@ -320,6 +323,13 @@ export function getProviderAuthHandler(
 
 export function isOAuthProvider(providerId: string): boolean {
 	return getProviderAuthHandler(providerId) !== undefined;
+}
+
+export function getProviderAuthType(providerId: string): ProviderAuthType {
+	if (isOAuthProvider(providerId)) {
+		return "OAUTH";
+	}
+	return "API_KEY";
 }
 
 export function getProviderAuthStorageId(

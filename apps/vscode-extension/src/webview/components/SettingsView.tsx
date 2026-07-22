@@ -111,7 +111,7 @@ const AUTO_APPROVALS: ApprovalPref[] = [
 ];
 
 export function SettingsView() {
-	const { state, saveSettings, toggleItem, loginOAuth, switchTab } = useExtensionState();
+	const { state, saveSettings, toggleItem, loginOAuth, logoutOAuth, switchTab } = useExtensionState();
 	const cfg = state.currentConfig;
 	const [section, setSection] = useState<SettingsSectionKey>("provider");
 	const [localCfg, setLocalCfg] = useState({ ...cfg });
@@ -120,7 +120,33 @@ export function SettingsView() {
 	const [providerModels, setProviderModels] = useState<Record<string, string[]>>({});
 	const [loadingProviders, setLoadingProviders] = useState(false);
 	const [providerError, setProviderError] = useState<string | null>(null);
-	const [oauthStatus, setOauthStatus] = useState<Record<string, "idle" | "authenticated" | "error">>({});
+	const [oauthStatus, setOauthStatus] = useState<Record<string, "idle" | "authenticating" | "success" | "error">>({});
+	const [oauthErrorMessage, setOauthErrorMessage] = useState<string | null>(null);
+
+	useEffect(() => {
+		const handler = (event: MessageEvent) => {
+			const msg = event.data;
+			if (!msg || typeof msg !== "object") return;
+			if (msg.type === "oauth_status") {
+				const pid = msg.providerId;
+				if (msg.status === "authenticating") {
+					setOauthStatus((prev) => ({ ...prev, [pid]: "authenticating" }));
+					setOauthErrorMessage(null);
+				} else if (msg.status === "success") {
+					setOauthStatus((prev) => ({ ...prev, [pid]: "success" }));
+					setOauthErrorMessage(null);
+				} else if (msg.status === "error") {
+					setOauthStatus((prev) => ({ ...prev, [pid]: "error" }));
+					setOauthErrorMessage(msg.message || "Authentication failed.");
+				} else if (msg.status === "logged_out") {
+					setOauthStatus((prev) => ({ ...prev, [pid]: "idle" }));
+					setOauthErrorMessage(null);
+				}
+			}
+		};
+		window.addEventListener("message", handler);
+		return () => window.removeEventListener("message", handler);
+	}, []);
 
 	useEffect(() => {
 		setLocalCfg({ ...cfg });
@@ -176,14 +202,31 @@ export function SettingsView() {
 
 	const selectedProvider = state.providers?.find((p: any) => p && (p.id === localCfg.providerId || p === localCfg.providerId));
 	const isOAuth = selectedProvider && typeof selectedProvider === "object" ? !!selectedProvider.isOAuth : ["cline", "cline-pass", "oca", "openai-codex", "zenuxs"].includes(localCfg.providerId);
+	const authType = selectedProvider && typeof selectedProvider === "object" && selectedProvider.authType
+		? selectedProvider.authType
+		: isOAuth
+		? "OAUTH"
+		: "API_KEY";
+
+	const isOAuthProvider = authType === "OAUTH";
+	const needsApiKey = authType === "API_KEY";
 	const hasSavedApiKey = selectedProvider && typeof selectedProvider === "object" ? !!selectedProvider.hasApiKey : false;
 	const isCustomProvider = localCfg.providerId === "custom";
-	const isBuiltinProvider = !isCustomProvider;
-	const needsApiKey = !isOAuth;
+	const isOAuthAuthenticated = (selectedProvider && typeof selectedProvider === "object" ? !!selectedProvider.oauthAccessTokenPresent : false) || oauthStatus[localCfg.providerId] === "success";
+	const accountId = selectedProvider && typeof selectedProvider === "object" ? selectedProvider.accountId : undefined;
+	const currentOAuthState = oauthStatus[localCfg.providerId] || (isOAuthAuthenticated ? "success" : "idle");
+
 	const handleOAuth = useCallback(() => {
-		setOauthStatus((prev) => ({ ...prev, [localCfg.providerId]: "idle" }));
+		setOauthStatus((prev) => ({ ...prev, [localCfg.providerId]: "authenticating" }));
+		setOauthErrorMessage(null);
 		loginOAuth(localCfg.providerId);
 	}, [localCfg.providerId, loginOAuth]);
+
+	const handleLogoutOAuth = useCallback((pid: string) => {
+		logoutOAuth(pid);
+		setOauthStatus((prev) => ({ ...prev, [pid]: "idle" }));
+		setOauthErrorMessage(null);
+	}, [logoutOAuth]);
 
 	const renderContent = () => {
 		switch (section) {
@@ -214,7 +257,11 @@ export function SettingsView() {
 								<input
 									type="text"
 									value={localCfg.modelId}
-									onChange={(e) => setLocalCfg({ ...localCfg, modelId: e.target.value })}
+									onChange={(e) => {
+										const newCfg = { ...localCfg, modelId: e.target.value };
+										setLocalCfg(newCfg);
+										saveSettings(newCfg);
+									}}
 									placeholder="e.g. gpt-4, llama-3-70b"
 								/>
 							</div>
@@ -223,7 +270,11 @@ export function SettingsView() {
 								<label>Model</label>
 								<select
 									value={localCfg.modelId}
-									onChange={(e) => setLocalCfg({ ...localCfg, modelId: e.target.value })}
+									onChange={(e) => {
+										const newCfg = { ...localCfg, modelId: e.target.value };
+										setLocalCfg(newCfg);
+										saveSettings(newCfg);
+									}}
 									disabled={loadingProviders}
 								>
 									<option value="">Select a model</option>
@@ -275,21 +326,83 @@ export function SettingsView() {
 							</div>
 						)}
 
-						<button className="btn" onClick={handleSaveProvider}>Save Configuration</button>
+						{needsApiKey && (
+							<button className="btn" onClick={handleSaveProvider}>Save Configuration</button>
+						)}
 
-						{isOAuth && (
-							<div className="oauth-section">
-								<span className="oauth-title">Authentication</span>
-								<div className="text-muted" style={{ fontSize: "0.85em", marginBottom: 4 }}>
-									{localCfg.providerId === "cline"
-										? "Zenuxs provider does not require separate API key or OAuth."
-										: "OAuth login may be required for this provider. If not authenticated, you will be redirected to the login page."}
+						{isOAuthProvider && (
+							<div className="oauth-section" style={{
+								marginTop: 10,
+								padding: 16,
+								borderRadius: 10,
+								background: "rgba(255, 255, 255, 0.03)",
+								border: "1px solid rgba(255, 255, 255, 0.08)",
+								display: "flex",
+								flexDirection: "column",
+								gap: 12
+							}}>
+								<div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+									<span style={{ fontWeight: 600, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(255,255,255,0.7)" }}>
+										Authentication
+									</span>
+									{isOAuthAuthenticated && (
+										<span style={{ fontSize: 12, color: "#10b981", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
+											✓ Connected
+										</span>
+									)}
 								</div>
-								<button className="btn secondary" style={{ width: "100%" }} onClick={handleOAuth}>
-									Login / Authenticate via Browser
-								</button>
-								{oauthStatus[localCfg.providerId] === "error" && (
-									<div className="text-muted" style={{ fontSize: "0.8em", color: "var(--warning)" }}>Authentication failed or cancelled.</div>
+
+								{currentOAuthState === "authenticating" ? (
+									<div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "16px 8px", gap: 10, textAlign: "center" }}>
+										<div className="spinner" style={{ width: 24, height: 24, border: "2px solid rgba(255,255,255,0.2)", borderTopColor: "#a78bfa", borderRadius: "50%", animation: "spin 0.6s linear infinite" }} />
+										<div style={{ fontWeight: 600, fontSize: 14, color: "#f8fafc" }}>Authenticating...</div>
+										<div style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.5)", lineHeight: 1.4 }}>
+											Waiting for authentication approval...<br />Please complete the login in your browser.
+										</div>
+										<button className="btn secondary" style={{ width: "100%", opacity: 0.6, cursor: "not-allowed", marginTop: 6 }} disabled>
+											Authenticating in browser...
+										</button>
+									</div>
+								) : isOAuthAuthenticated ? (
+									<div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+										<div style={{
+											padding: "10px 12px",
+											borderRadius: 8,
+											background: "rgba(16, 185, 129, 0.08)",
+											border: "1px solid rgba(16, 185, 129, 0.2)",
+											color: "#34d399",
+											fontSize: 13,
+											display: "flex",
+											alignItems: "center",
+											justifyContent: "space-between"
+										}}>
+											<span>✅ Login Successful</span>
+											<span style={{ fontSize: 11, opacity: 0.8 }}>
+												{accountId ? `Logged in as ${accountId}` : "Status: Connected"}
+											</span>
+										</div>
+										<button
+											className="btn secondary"
+											style={{ width: "100%", color: "#f43f5e", borderColor: "rgba(244, 63, 94, 0.3)", background: "rgba(244, 63, 94, 0.05)" }}
+											onClick={() => handleLogoutOAuth(localCfg.providerId)}
+										>
+											Logout
+										</button>
+									</div>
+								) : (
+									<div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+										<div style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.5)", lineHeight: 1.4 }}>
+											This provider authenticates securely via browser login.
+										</div>
+										<button className="btn primary" style={{ width: "100%" }} onClick={handleOAuth}>
+											Login with {selectedProvider?.name || localCfg.providerId}
+										</button>
+										{oauthErrorMessage && (
+											<div style={{ fontSize: 12, color: "#f43f5e", marginTop: 4, textAlign: "center" }}>
+												{oauthErrorMessage}
+											</div>
+										)}
+									</div>
 								)}
 							</div>
 						)}

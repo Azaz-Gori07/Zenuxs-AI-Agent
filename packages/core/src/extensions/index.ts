@@ -54,6 +54,16 @@ export {
 export type { ContextSource, ContextGeneration, CompactionConfig, CompactionInput, OverflowConfig } from "./context/context-system";
 
 // =============================================================================
+// Mode System
+// =============================================================================
+export {
+	MODE_BEHAVIORS,
+	getModeBehavior,
+	buildModeSystemPromptTag,
+} from "./modes";
+export type { ModeBehavior } from "./modes";
+
+// =============================================================================
 // Ported OpenCode Components - Enhanced Tool System
 // =============================================================================
 export {

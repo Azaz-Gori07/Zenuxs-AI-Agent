@@ -654,7 +654,7 @@ async function getPublicProviderModels(
 		return inFlight;
 	}
 
-	const request = fetchModelIdsFromSource(sourceUrl, providerId)
+	const request = fetchModelIdsFromSource(sourceUrl, providerId, config.apiKey)
 		.then((modelIds) => {
 			const data = Object.fromEntries(
 				modelIds.map((id) => [
@@ -865,14 +865,15 @@ export async function resolveProviderConfig(
 		// catalog.
 		const hasPublicModelSource = Boolean(
 			Llms.MODEL_COLLECTIONS_BY_PROVIDER_ID[providerId]?.provider
-				.modelsSourceUrl,
+				.modelsSourceUrl || config?.baseUrl,
 		);
 		const publicConfig: ProviderConfig | undefined = hasPublicModelSource
-			? (config ?? {
+			? {
 					providerId: providerId as ProviderConfig["providerId"],
 					modelId: defaults.modelId,
-					baseUrl: defaults.baseUrl,
-				})
+					baseUrl: config?.baseUrl || defaults.baseUrl,
+					apiKey: config?.apiKey,
+				}
 			: config;
 		const publicModels = publicConfig
 			? await getPublicProviderModels(

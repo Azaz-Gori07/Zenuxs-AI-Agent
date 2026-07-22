@@ -25,7 +25,8 @@ function createAuthFetch(
 	const authFetch = (async (input, init) => {
 		let lastResponse: Response | undefined;
 		for (let attempt = 0; attempt < 10; attempt++) {
-			const key = await resolver();
+			const resolvedKey = await resolver();
+			const key = resolvedKey?.trim() || (await resolveApiKey(config));
 			const headers = new Headers(init?.headers);
 			if (key) {
 				headers.set("Authorization", `Bearer ${key}`);
@@ -37,6 +38,23 @@ function createAuthFetch(
 				response.status === 502
 			) {
 				lastResponse = response;
+				try {
+					const clonedText = await response.clone().text();
+					if (
+						clonedText.includes("ResourceExhausted") ||
+						clonedText.includes("request limit reached")
+					) {
+						const customKeyHint = key
+							? " (Custom API Key active - worker request quota limit encountered)"
+							: "";
+						const enhancedMsg = `[${providerId}] Worker request limit reached. Please click 'New Chat' or retry to reset session state.${customKeyHint}\nDetails: ${clonedText}`;
+						return new Response(enhancedMsg, {
+							status: response.status,
+							statusText: response.statusText,
+							headers: response.headers,
+						});
+					}
+				} catch {}
 				await new Promise((r) => setTimeout(r, 1000));
 				continue;
 			}

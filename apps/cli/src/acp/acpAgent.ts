@@ -264,9 +264,10 @@ export class AcpAgent implements Agent {
 	async setSessionMode(
 		params: SetSessionModeRequest,
 	): Promise<SetSessionModeResponse> {
-		if (params.modeId !== "plan" && params.modeId !== "act") {
+		const validModes = ["act", "plan", "ask", "debug", "god", "zen", "yolo"];
+		if (!validModes.includes(params.modeId)) {
 			throw new Error(
-				`invalid modeId: ${params.modeId} (must be "plan" or "act")`,
+				`invalid modeId: ${params.modeId} (must be one of: ${validModes.join(", ")})`,
 			);
 		}
 		const session = this.sessions.get(params.sessionId);

@@ -68,7 +68,7 @@ export type WebviewChatMessage = Omit<
 export type WebviewConfig = {
 	provider?: string;
 	model?: string;
-	mode?: "act" | "plan";
+	mode?: "act" | "plan" | "ask" | "debug" | "god" | "zen" | "yolo";
 	systemPrompt?: string;
 	maxIterations?: number;
 	reasonLevel?: WebviewReasonLevel;

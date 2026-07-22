@@ -726,7 +726,7 @@ export default function Chat({
 	);
 	const [systemPrompt, setSystemPrompt] = useState("");
 	const [maxIterations, setMaxIterations] = useState("");
-	const [mode, setMode] = useState<"act" | "plan">("act");
+	const [mode, setMode] = useState<"act" | "plan" | "ask" | "debug" | "god" | "zen" | "yolo">("act");
 	const [reasonLevel, setReasonLevel] = useState<WebviewReasonLevel>("none");
 	const [enableTools, setEnableTools] = useState(true);
 	const [enableSpawn, setEnableSpawn] = useState(false);

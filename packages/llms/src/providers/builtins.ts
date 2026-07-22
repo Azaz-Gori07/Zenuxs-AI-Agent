@@ -631,6 +631,8 @@ const OPENAI_COMPATIBLE_SPECS: BuiltinSpec[] = [
     popular: 1,
     capabilities: ["tools"],
     defaultModelId: "gpt-4o",
+    modelsSourceUrl: "https://aiapi.zenuxs.in/api/zenuxs-code/proxy/models",
+    apiKeyEnv: ["ZENUXS_API_KEY", "LLM_API_KEY", "OPENAI_API_KEY"],
     defaults: { baseUrl: "https://aiapi.zenuxs.in/api/zenuxs-code/proxy" },
 },
 	cline,

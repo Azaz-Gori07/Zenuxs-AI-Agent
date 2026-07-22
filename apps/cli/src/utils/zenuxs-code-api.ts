@@ -38,8 +38,8 @@ export function readLegacyClineProviders(): {
 			? JSON.parse(readFileSync(secretsPath, "utf8"))
 			: {};
 
-		const mode =
-			(globalState.mode as string) === "plan" ? "plan" : "act";
+		const rawMode = (globalState.mode as string) || "";
+		const mode = (["act", "plan", "ask", "debug", "god", "zen", "yolo"] as readonly string[]).includes(rawMode) ? rawMode as "act" | "plan" | "ask" | "debug" | "god" | "zen" | "yolo" : "act";
 		const activeProvider =
 			(globalState[`${mode}ModeApiProvider`] as string)?.trim() || "";
 		if (!activeProvider) {

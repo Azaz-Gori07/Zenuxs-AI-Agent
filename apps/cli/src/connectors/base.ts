@@ -225,11 +225,12 @@ export abstract class ConnectorBase<Options, State>
 		return parsed;
 	}
 
-	protected parseMode(value: string | undefined): "act" | "plan" {
+	protected parseMode(value: string | undefined): "act" | "plan" | "ask" | "debug" | "god" | "zen" | "yolo" {
+		const valid = ["act", "plan", "ask", "debug", "god", "zen", "yolo"];
 		const mode = value?.trim().toLowerCase() || "act";
-		if (mode !== "act" && mode !== "plan") {
-			throw new Error(`invalid mode "${mode}" (expected "act" or "plan")`);
+		if (!valid.includes(mode)) {
+			throw new Error(`invalid mode "${mode}" (expected one of: ${valid.join(", ")})`);
 		}
-		return mode;
+		return mode as "act" | "plan" | "ask" | "debug" | "god" | "zen" | "yolo";
 	}
 }

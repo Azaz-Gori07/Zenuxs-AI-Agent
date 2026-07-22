@@ -171,6 +171,7 @@ export {
 	getPersistedProviderApiKey,
 	getProviderAuthHandler,
 	getProviderAuthStorageId,
+	getProviderAuthType,
 	getProviderOAuthCredentialsFromSettings,
 	isOAuthProvider,
 	loginAndSaveProviderOAuthCredentials,
@@ -178,6 +179,7 @@ export {
 	type ProviderAuthLoginInput,
 	type ProviderAuthRefreshInput,
 	type ProviderAuthSaveCredentialsInput,
+	type ProviderAuthType,
 	type ProviderOAuthCredentials,
 	resolveProviderApiKeyFromSettings,
 	saveProviderOAuthCredentials,
@@ -530,11 +532,15 @@ export {
 	type FeatureFlagsServiceOptions,
 	NoOpFeatureFlagsProvider,
 } from "./services/feature-flags";
-export type { GlobalSettings } from "./services/global-settings";
+export type { GlobalSettings, AutoApprovalSettings } from "./services/global-settings";
 export {
 	filterDisabledPluginPaths,
 	filterDisabledTools,
 	filterExtensionToolRegistrations,
+	AutoApprovalSettingsSchema,
+	getAutoApprovals,
+	setAutoApproval,
+	isAutoApproved,
 	GlobalSettingsSchema,
 	isAutoUpdateEnabledGlobally,
 	isPluginDisabledGlobally,
@@ -550,6 +556,12 @@ export {
 	toggleDisabledTool,
 	writeGlobalSettings,
 } from "./services/global-settings";
+export {
+	AutoApprovalService,
+	createAutoApprovalService,
+	APPROVAL_PERMISSIONS,
+} from "./services/auto-approval-service";
+export type { PermissionCategory } from "./services/auto-approval-service";
 export type {
 	PluginMcpSettingsMutation,
 	PluginMcpSettingsSyncResult,
@@ -591,6 +603,7 @@ export {
 	saveLocalProviderSettings,
 	type UpdateLocalProviderRequest,
 	updateLocalProvider,
+	validateCustomProviderConfig,
 } from "./services/providers/local-provider-service";
 export {
 	getProviderConfigFields,
@@ -942,6 +955,18 @@ export {
 	StoredProviderSettingsEntrySchema,
 	StoredProviderSettingsSchema,
 } from "./types/provider-settings";
+export {
+	SkillsRuntime,
+	createSkillsRuntime,
+} from "./skills";
+export type { LoadedSkill, SkillComposition } from "./skills";
+export {
+	MODE_BEHAVIORS,
+	getModeBehavior,
+	buildModeSystemPromptTag,
+} from "./extensions/modes";
+export type { ModeBehavior } from "./extensions/modes";
+
 export type {
 	SessionHistoryMetadata,
 	SessionHistoryRecord,

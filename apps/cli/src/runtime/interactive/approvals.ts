@@ -1,4 +1,5 @@
 import type { ToolApprovalRequest, ToolApprovalResult } from "@cline/shared";
+import { AutoApprovalService } from "@cline/core";
 import type { Config } from "../../utils/types";
 import {
 	applyInteractiveAutoApproveOverride,
@@ -18,6 +19,16 @@ export interface InteractiveRuntimeRefs {
 }
 
 export function createInteractiveApprovalController(config: Config) {
+	// Apply global auto approval settings to baseline policies
+	const autoApprovalService = new AutoApprovalService();
+	const enrichedPolicies = autoApprovalService.applyToToolPolicies(
+		config.toolPolicies ?? {},
+	);
+	// Update config toolPolicies to include auto approval overrides
+	for (const key of Object.keys(enrichedPolicies)) {
+		config.toolPolicies[key] = enrichedPolicies[key];
+	}
+
 	const autoApproveAllRef = {
 		current: config.toolPolicies["*"]?.autoApprove !== false,
 	};

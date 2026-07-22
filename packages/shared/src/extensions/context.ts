@@ -59,7 +59,7 @@ export interface WorkspaceContext extends WorkspaceInfo {
 	 * in the system prompt template.
 	 */
 	metadata?: string;
-	/** Agent mode: "act" | "plan" | "yolo" */
+	/** Agent mode: "act" | "plan" | "ask" | "debug" | "god" | "zen" | "yolo" */
 	mode?: string;
 	/** Additional rules/instructions injected into the system prompt */
 	rules?: string;

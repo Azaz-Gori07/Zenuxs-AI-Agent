@@ -4,6 +4,7 @@ import {
 	getPersistedProviderApiKey,
 	getProviderAuthHandler,
 	getProviderAuthStorageId,
+	getProviderAuthType,
 	isOAuthProvider,
 	loginAndSaveProviderOAuthCredentials,
 	resolveProviderApiKeyFromSettings,
@@ -50,6 +51,15 @@ describe("provider auth registry", () => {
 		);
 		expect(getProviderAuthHandler("openai-codex-cli")).toBeUndefined();
 		expect(isOAuthProvider("openai-codex-cli")).toBe(false);
+	});
+
+	it("resolves correct provider authType capability", () => {
+		expect(getProviderAuthType("zenuxs")).toBe("OAUTH");
+		expect(getProviderAuthType("cline")).toBe("OAUTH");
+		expect(getProviderAuthType("openai-codex")).toBe("OAUTH");
+		expect(getProviderAuthType("openrouter")).toBe("API_KEY");
+		expect(getProviderAuthType("anthropic")).toBe("API_KEY");
+		expect(getProviderAuthType("openai-native")).toBe("API_KEY");
 	});
 
 	it("returns storage provider IDs from handlers", () => {

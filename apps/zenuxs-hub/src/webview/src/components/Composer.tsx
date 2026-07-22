@@ -1,8 +1,6 @@
 import {
 	CheckIcon,
-	HatGlassesIcon,
 	PaperclipIcon,
-	PlayIcon,
 	Settings2Icon,
 	SignalHigh,
 	SignalLow,
@@ -337,7 +335,7 @@ export function Composer({
 	enableTools: boolean;
 	maxIterations: string;
 	model: string;
-	mode: "act" | "plan";
+	mode: "act" | "plan" | "ask" | "debug" | "god" | "zen" | "yolo";
 	modelSelectorOpen: boolean;
 	models: WebviewProviderModel[];
 	onStop: () => void;
@@ -346,7 +344,7 @@ export function Composer({
 	onEnableSpawnChange: (value: boolean) => void;
 	onEnableTeamsChange: (value: boolean) => void;
 	onEnableToolsChange: (value: boolean) => void;
-	onModeChange: (value: "act" | "plan") => void;
+	onModeChange: (value: "act" | "plan" | "ask" | "debug" | "god" | "zen" | "yolo") => void;
 	onMaxIterationsChange: (value: string) => void;
 	onModelChange: (value: string) => void;
 	onModelSelectorOpenChange: (value: boolean) => void;
@@ -500,17 +498,22 @@ export function Composer({
 							</PromptInputButton>
 							<PromptInputButton
 								disabled={disabled}
-								onClick={() => onModeChange(mode === "act" ? "plan" : "act")}
 								type="button"
-								variant={mode === "plan" ? "default" : "ghost"}
+								variant="ghost"
 								className="hidden"
 							>
-								{mode === "act" ? (
-									<PlayIcon className="size-3" />
-								) : (
-									<HatGlassesIcon className="size-3" />
-								)}
-								{mode}
+								<Select value={mode} onValueChange={(v) => onModeChange(v as typeof mode)}>
+									<SelectTrigger className="h-7 gap-1 border-0 bg-transparent px-2 text-xs shadow-none">
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										{(["act", "plan", "ask", "debug", "god", "zen", "yolo"] as const).map((m) => (
+											<SelectItem key={m} value={m}>
+												{m}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
 							</PromptInputButton>
 							<Badge
 								className="rounded-sm px-3 py-1 text-xs hidden"

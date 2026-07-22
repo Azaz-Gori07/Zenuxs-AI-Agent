@@ -55,8 +55,13 @@ export function extractModelIdsFromPayload(
 export async function fetchModelIdsFromSource(
 	url: string,
 	providerId: string,
+	apiKey?: string,
 ): Promise<string[]> {
-	const response = await fetch(url, { method: "GET" });
+	const headers: Record<string, string> = { accept: "application/json" };
+	if (apiKey?.trim()) {
+		headers["Authorization"] = `Bearer ${apiKey.trim()}`;
+	}
+	const response = await fetch(url, { method: "GET", headers });
 	if (!response.ok) {
 		throw new Error(
 			`failed to fetch models from ${url}: HTTP ${response.status}`,
@@ -78,7 +83,13 @@ export function resolveModelsSourceUrl(
 	modelsSourceUrl: string | undefined,
 ): string | undefined {
 	const source = modelsSourceUrl?.trim();
-	if (!source) return undefined;
+	if (!source) {
+		const configuredBase = baseUrl?.trim() || defaultBaseUrl?.trim();
+		if (configuredBase) {
+			return `${trimTrailingSlash(configuredBase)}/models`;
+		}
+		return undefined;
+	}
 	const configuredBase = baseUrl?.trim();
 	if (!configuredBase || !defaultBaseUrl?.trim()) return source;
 

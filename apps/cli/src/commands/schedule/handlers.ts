@@ -96,7 +96,7 @@ export function registerScheduleCommands(
 					prompt: opts.prompt,
 					provider: opts.provider,
 					model: opts.model,
-					mode: opts.mode === "plan" ? "plan" : "act",
+					mode: (["act", "plan", "ask", "debug", "god", "zen", "yolo"] as readonly string[]).includes(opts.mode ?? "") ? (opts.mode as "act" | "plan" | "ask" | "debug" | "god" | "zen" | "yolo") : "act",
 					workspaceRoot: opts.workspace,
 					cwd: opts.cwd,
 					systemPrompt: opts.systemPrompt,
