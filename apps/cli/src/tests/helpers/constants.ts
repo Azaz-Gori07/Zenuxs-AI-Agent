@@ -15,7 +15,7 @@ function resolveClineBin(): string {
 	}
 
 	throw new Error(
-		"Unable to resolve cline binary. Run bun -F @cline/cli build",
+		"Unable to resolve zenuxs-code binary. Run bun -F zenuxs-code build",
 	);
 }
 

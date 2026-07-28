@@ -467,7 +467,9 @@ export function ConfigPanelContent(props: ConfigPanelProps) {
 		setTokenBalanceError(undefined);
 		setTokenBalance(null);
 
-		const settings = psmRef.current.getProviderSettings("zenuxs");
+		const settings =
+			psmRef.current.getProviderSettings("zenuxs")
+			|| psmRef.current.getProviderSettings("cline");
 		const token = settings?.auth?.accessToken as string | undefined;
 		if (!token) {
 			setTokenBalanceError("Not signed in with Zenuxs. Sign in to see usage.");

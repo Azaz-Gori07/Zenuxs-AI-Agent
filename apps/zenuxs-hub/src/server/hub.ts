@@ -1,9 +1,9 @@
 ﻿import {
-	ClineCore,
 	ensureDetachedHubServer,
 	type HubServerDiscoveryRecord,
 	HubUIClient,
 	stopLocalHubServerGracefully,
+	ZenuxsCore,
 	toHubHealthUrl,
 } from "@cline/core";
 import type { HubUINotifyPayload } from "@cline/shared";
@@ -94,7 +94,7 @@ export async function attachHub(ctx: HubContext): Promise<void> {
 	ctx.hubUrl = hub.url;
 	ctx.hubAuthToken = hub.authToken;
 
-	ctx.cline = await ClineCore.create({
+	ctx.cline = await ZenuxsCore.create({
 		clientName: "zenuxs-hub",
 		backendMode: "hub",
 		capabilities: {

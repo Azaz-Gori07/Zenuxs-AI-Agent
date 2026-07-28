@@ -1137,6 +1137,8 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 			model: msg.modelId,
 			apiKey: nextApiKey,
 			baseUrl: msg.baseUrl || undefined,
+			// Preserve OAuth auth from existing settings so token refresh still works.
+			auth: existingSettings?.auth ? { ...existingSettings.auth } : undefined,
 		});
 
 		// Invalidate active runtime provider and model bindings so next prompt in current conversation dynamically uses updated provider
@@ -1602,9 +1604,15 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				const lastUsedProviderSettings = psm.getLastUsedProviderSettings({ isClinePassEnabled: false });
 				const rawProviderId = uiConfig?.providerId || extConfig.providerId || lastUsedProviderSettings?.provider || "cline";
 				const providerId = normalizeProviderId(rawProviderId);
-				const selectedProviderSettings = psm.getProviderSettings(providerId);
+				const selectedProviderSettings = psm.getProviderSettings(providerId)
+					// Fall back to "cline" if the provider key doesn't match (token may be stored under "cline")
+					|| psm.getProviderSettings("cline");
+<<<<<<< Updated upstream
 				const resolvedApiKey = resolveProviderApiKeyFromSettings(psm, providerId) || getPersistedProviderApiKey(providerId, selectedProviderSettings) || extConfig.apiKey || "";
 				loggerService.log({ level: LogLevel.DEBUG, category: LogCategory.AUTH, message: "Session API key resolved", source: "session", data: { providerId, hasKey: !!resolvedApiKey, keyPrefix: resolvedApiKey ? resolvedApiKey.substring(0, 10) + "..." : "none" } });
+=======
+				const resolvedApiKey = getPersistedProviderApiKey(providerId, selectedProviderSettings) || extConfig.apiKey || "";
+>>>>>>> Stashed changes
 				const resolvedBaseUrl = selectedProviderSettings?.baseUrl || extConfig.baseUrl || undefined;
 
 				// Resolve model ID: check UI config, VS Code settings, or provider settings, or use fallback
@@ -1657,7 +1665,9 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 
 				// Resolve the system prompt using workspace rules, custom instructions, and remote memories (matching CLI prompt compilation)
 				const psmForAuth = new ProviderSettingsManager();
-				const settingsForAuth = psmForAuth.getProviderSettings("cline");
+				const settingsForAuth =
+					psmForAuth.getProviderSettings("zenuxs")
+					|| psmForAuth.getProviderSettings("cline");
 				const zenuxsAuthToken = resolveLocalClineAuthToken(settingsForAuth)?.trim();
 
 				const compiledSystemPrompt = await resolveSystemPrompt({

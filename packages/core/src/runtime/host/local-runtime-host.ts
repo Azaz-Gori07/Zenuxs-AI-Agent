@@ -516,9 +516,12 @@ export class LocalRuntimeHost implements RuntimeHost {
 			execution: configWithProvider.execution,
 			prepareTurn: createContextCompactionPrepareTurn(configWithProvider),
 			zenuxsAuthToken:
-				this.providerSettingsManager
+				(this.providerSettingsManager
 					.getProviderSettings("zenuxs")
-					?.auth?.accessToken?.trim() || undefined,
+					?.auth?.accessToken
+					|| this.providerSettingsManager
+						.getProviderSettings("cline")
+						?.auth?.accessToken)?.trim() || undefined,
 			tools,
 			hooks: bootstrap.hooks,
 			extensions,

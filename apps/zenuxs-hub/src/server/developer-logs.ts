@@ -1,8 +1,6 @@
 import { loggerService } from "@cline/core";
-import type {
-	LogEntry,
-	WebviewDeveloperLog,
-} from "@cline/core";
+import type { LogEntry } from "@cline/core";
+import type { WebviewDeveloperLog } from "../webview-protocol";
 import type { HubContext } from "./state";
 import type { BrowserPeer } from "./types";
 

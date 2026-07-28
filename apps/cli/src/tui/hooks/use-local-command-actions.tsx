@@ -179,10 +179,12 @@ export function useLocalCommandActions(input: {
 
 	const logout = useCallback(async () => {
 		const manager = new ProviderSettingsManager();
-		const existing = manager.getProviderSettings("zenuxs");
-		if (existing) {
-			const { auth, ...rest } = existing;
-			manager.saveProviderSettings(rest, { setLastUsed: false });
+		for (const key of ["zenuxs", "cline"] as const) {
+			const existing = manager.getProviderSettings(key);
+			if (existing?.auth) {
+				const { auth, ...rest } = existing;
+				manager.saveProviderSettings(rest, { setLastUsed: false });
+			}
 		}
 		session.appendEntry({
 			kind: "status",
