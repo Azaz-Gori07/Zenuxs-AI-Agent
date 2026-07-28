@@ -1,10 +1,10 @@
 {
-  "name": "zenuxs-vscode",
-  "displayName": "Zenuxs",
+  "name": "zenuxs-code",
+  "displayName": "zenuxs-code",
   "description": "AI coding assistant powered by the Zenuxs runtime — autonomous engineering, multi-file editing, tool execution, and streaming responses.",
-  "version": "0.1.0",
+  "version": "1.1.2",
   "publisher": "zenuxs",
-  "icon": "assets/ChatGPT-3.png",
+  "icon": "assets/ChatGPT-1-removebg-preview.png",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -107,7 +107,7 @@
         {
           "id": "zenuxs",
           "title": "Zenuxs",
-          "icon": "assets/ChatGPT-3.png"
+"icon": "assets/ChatGPT-1-removebg-preview.png"
         }
       ]
     },

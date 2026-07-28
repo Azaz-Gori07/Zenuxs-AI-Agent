@@ -7,6 +7,8 @@
 //   bun script/publish-npm.ts --tag next     # publish with "next" tag
 //   bun script/publish-npm.ts --dry-run      # preview without publishing
 //   bun script/publish-npm.ts --allow-partial # publish only built platforms (testing only)
+//   bun script/publish-npm.ts --otp 123456   # npm 2FA one-time password
+//   bun script/publish-npm.ts --auth-type web # use npm browser/passkey auth
 //
 // Prerequisites:
 //   - Run script/build.ts first to generate dist/ packages
@@ -33,6 +35,8 @@ const { values } = parseArgs({
 	options: {
 		"dry-run": { type: "boolean", default: false },
 		"allow-partial": { type: "boolean", default: false },
+		"auth-type": { type: "string" },
+		otp: { type: "string" },
 		tag: { type: "string", default: "latest" },
 	},
 	strict: true,
@@ -40,6 +44,12 @@ const { values } = parseArgs({
 
 const dryRun = values["dry-run"] ?? false;
 const allowPartial = values["allow-partial"] ?? false;
+const npmOtp =
+	values.otp ??
+	process.env.NPM_CONFIG_OTP ??
+	process.env.npm_config_otp ??
+	process.env.OTP;
+const npmAuthType = values["auth-type"];
 const npmTag = values.tag ?? "latest";
 const wrapperPackageName = "zenuxs-code";
 
@@ -108,6 +118,8 @@ async function publishPackage(input: {
 	dir: string;
 	tag: string;
 	dryRun: boolean;
+	authType?: string;
+	otp?: string;
 }): Promise<void> {
 	if (process.platform !== "win32") {
 		await $`chmod -R 755 .`.cwd(input.dir);
@@ -126,7 +138,14 @@ async function publishPackage(input: {
 	console.log(`  Publishing ${input.name}@${input.version}...`);
 	removePackedTarballs(input.dir);
 	await $`bun pm pack`.cwd(input.dir);
-	await $`npm publish *.tgz --access public --tag ${input.tag}`.cwd(input.dir);
+	if (input.otp) {
+		await $`npm publish *.tgz --access public --tag ${input.tag} --otp ${input.otp}`.cwd(input.dir);
+	} else if (input.authType) {
+		const authTypeArg = `--auth-type=${input.authType}`;
+		await $`npm publish *.tgz --access public --tag ${input.tag} ${authTypeArg}`.cwd(input.dir);
+	} else {
+		await $`npm publish *.tgz --access public --tag ${input.tag}`.cwd(input.dir);
+	}
 	console.log(`  Published ${input.name}@${input.version}`);
 }
 
@@ -222,6 +241,8 @@ const platformTasks = Object.keys(binaries)
 			dir: pkgDir,
 			tag: npmTag,
 			dryRun,
+			authType: npmAuthType,
+			otp: npmOtp,
 		});
 	});
 await Promise.all(platformTasks);
@@ -318,6 +339,8 @@ if (dryRun) {
 		dir: mainPkgDir,
 		tag: npmTag,
 		dryRun: false,
+		authType: npmAuthType,
+		otp: npmOtp,
 	});
 	console.log(
 		`\nPublished ${wrapperPackageName}@${version} with tag ${npmTag}`,

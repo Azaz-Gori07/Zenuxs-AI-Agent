@@ -103,8 +103,16 @@ export async function buildConnectorStartRequest(input: {
 		apiKey = oauthResult.apiKey ?? "";
 	}
 
-	const zenuxsSettings = providerSettingsManager.getProviderSettings("zenuxs");
-	const zenuxsToken = zenuxsSettings?.auth?.accessToken?.trim() || undefined;
+	// Check both "zenuxs" and "cline" provider keys for an auth token.
+	// Users who log in via device auth ("cline" flow) have their token
+	// stored under "cline", while OAuth login stores under "zenuxs".
+	const zenuxsCandidates = ["zenuxs", "cline"] as const;
+	let zenuxsToken: string | undefined;
+	for (const key of zenuxsCandidates) {
+		const s = providerSettingsManager.getProviderSettings(key);
+		zenuxsToken = s?.auth?.accessToken?.trim();
+		if (zenuxsToken) break;
+	}
 
 	// Best-effort token balance check for shared DeepSeek pool
 	if (zenuxsToken && (provider === "nvidia" || input.options.model?.includes("deepseek-v4-flash"))) {
@@ -250,7 +258,9 @@ export async function getOrCreateSessionId<
 	// Sync session to zenuxs-code backend
 	try {
 		const psm = new ProviderSettingsManager();
-		const token = psm.getProviderSettings("zenuxs")?.auth?.accessToken?.trim();
+		const token =
+			psm.getProviderSettings("zenuxs")?.auth?.accessToken?.trim()
+			|| psm.getProviderSettings("cline")?.auth?.accessToken?.trim();
 		if (token) {
 			await registerCliClient(token);
 			// Sync local cline providers to zenuxs-code backend
@@ -363,7 +373,9 @@ export async function clearSession<TState extends ConnectorThreadState>(input: {
 		// Clean up from zenuxs-code backend
 		try {
 			const psm = new ProviderSettingsManager();
-			const token = psm.getProviderSettings("zenuxs")?.auth?.accessToken?.trim();
+			const token =
+				psm.getProviderSettings("zenuxs")?.auth?.accessToken?.trim()
+				|| psm.getProviderSettings("cline")?.auth?.accessToken?.trim();
 			if (token) await deleteSessionOnZenuxsCode(token, sessionId);
 		} catch {}
 	}

@@ -369,3 +369,19 @@ export async function syncProvidersToZenuxsCode(
 		// best-effort
 	}
 }
+
+/**
+ * Look up a Zenuxs auth token from provider settings, checking both the
+ * "zenuxs" and "cline" provider keys. The device auth flow stores tokens
+ * under "cline" while OAuth stores under "zenuxs".
+ */
+export function getZenuxsAuthToken(
+	manager: { getProviderSettings(providerId: string): { auth?: { accessToken?: string } } | undefined },
+): string | undefined {
+	for (const key of ["zenuxs", "cline"] as const) {
+		const s = manager.getProviderSettings(key);
+		const token = s?.auth?.accessToken?.trim();
+		if (token) return token;
+	}
+	return undefined;
+}

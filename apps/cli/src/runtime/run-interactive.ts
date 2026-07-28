@@ -640,7 +640,8 @@ export async function runInteractive(
 			// This is needed after onboarding links a Zenuxs account — the
 			// initial prompt was built before the token was saved.
 			const zenuxsSettings =
-				providerSettingsManager.getProviderSettings("zenuxs");
+				providerSettingsManager.getProviderSettings("zenuxs")
+				|| providerSettingsManager.getProviderSettings("cline");
 			const zenuxsToken =
 				zenuxsSettings?.auth?.accessToken?.trim() || undefined;
 			config.systemPrompt = await resolveSystemPrompt({

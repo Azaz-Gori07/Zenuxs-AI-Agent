@@ -40,7 +40,7 @@ function resolveZenuxsToken(): string | undefined {
 	try {
 		const { ProviderSettingsManager } = require("@cline/core") as typeof import("@cline/core");
 		const psm = new ProviderSettingsManager();
-		const zenuxsSettings = psm.getProviderSettings("zenuxs");
+		const zenuxsSettings = psm.getProviderSettings("zenuxs") || psm.getProviderSettings("cline");
 		return zenuxsSettings?.auth?.accessToken?.trim() || undefined;
 	} catch {
 		return undefined;

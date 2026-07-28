@@ -1061,8 +1061,11 @@ export async function runCli(): Promise<void> {
 		});
 
 		// Resolve Zenuxs AI auth token for shared memory injection.
-		// Check both zenuxs-specific provider settings and a global zenuxs-account store
-		const zenuxsSettings = providerSettingsManager.getProviderSettings("zenuxs");
+		// Check both zenuxs-specific and cline provider settings, since device
+		// auth stores tokens under "cline" while OAuth stores under "zenuxs".
+		const zenuxsSettings =
+			providerSettingsManager.getProviderSettings("zenuxs")
+			|| providerSettingsManager.getProviderSettings("cline");
 		const zenuxsToken =
 			zenuxsSettings?.auth?.accessToken?.trim()
 			|| selectedProviderSettings?.auth?.accessToken?.trim()

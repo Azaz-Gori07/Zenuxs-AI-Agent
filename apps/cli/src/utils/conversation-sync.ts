@@ -9,7 +9,11 @@ function headers(token: string): Record<string, string> {
 async function resolveToken(): Promise<string | undefined> {
 	try {
 		const psm = new ProviderSettingsManager();
-		return psm.getProviderSettings("zenuxs")?.auth?.accessToken?.trim() || undefined;
+		return (
+			psm.getProviderSettings("zenuxs")?.auth?.accessToken?.trim()
+			|| psm.getProviderSettings("cline")?.auth?.accessToken?.trim()
+			|| undefined
+		);
 	} catch { return undefined; }
 }
 

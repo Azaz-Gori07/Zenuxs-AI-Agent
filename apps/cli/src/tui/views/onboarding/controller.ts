@@ -340,7 +340,9 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 		setCloudProviderSelected(0);
 		setStep("zenuxs_providers");
 
-		const settings = providerSettingsManager.getProviderSettings("zenuxs");
+		const settings =
+			providerSettingsManager.getProviderSettings("zenuxs")
+			|| providerSettingsManager.getProviderSettings("cline");
 		const token = settings?.auth?.accessToken as string | undefined;
 		if (!token) {
 			setCloudProviderError("No Zenuxs token found. Try again.");
@@ -372,14 +374,13 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 		const apiBase = process.env.ZENUXS_CODE_API_URL?.trim() || "https://aiapi.zenuxs.in";
 		const proxyBaseUrl = `${apiBase}/api/zenuxs-code/proxy`;
 
-		// Save as proxy-only provider — NO auth field so CLI treats it as a plain
-		// openai-compatible proxy, not an OAuth provider that needs token refresh.
+		// Preserve the auth object (accessToken, refreshToken, expiresAt, accountId)
+		// so token refresh still works when the access token expires.
 		const existing = providerSettingsManager.getProviderSettings("zenuxs");
-		const { auth, ...restSettings } = existing ?? {};
 		const providerId = "zenuxs";
 		providerSettingsManager.saveProviderSettings(
 			{
-				...restSettings,
+				...existing,
 				provider: providerId,
 				baseUrl: proxyBaseUrl,
 				apiKey: token,
@@ -480,7 +481,9 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 			if (!provider) return;
 			if (provider.isOAuth) {
 				if (provider.id === "zenuxs") {
-					const existing = providerSettingsManager.getProviderSettings("zenuxs");
+					const existing =
+						providerSettingsManager.getProviderSettings("zenuxs")
+						|| providerSettingsManager.getProviderSettings("cline");
 					const token = existing?.auth?.accessToken;
 					if (token) {
 						setStep("zenuxs_providers");
