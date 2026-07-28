@@ -5,8 +5,9 @@ import { join } from "node:path";
 const DEFAULT_API_BASE = process.env.ZENUXS_CODE_API_URL?.trim() || "https://aiapi.zenuxs.in";
 
 function headers(token: string): Record<string, string> {
+	const trimmedToken = typeof token === "string" ? token.trim() : "";
 	return {
-		Authorization: `Bearer ${token}`,
+		Authorization: `Bearer ${trimmedToken}`,
 		"Content-Type": "application/json",
 	};
 }

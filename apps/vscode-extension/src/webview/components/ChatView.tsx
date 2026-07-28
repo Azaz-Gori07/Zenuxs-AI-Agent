@@ -422,21 +422,43 @@ export function ChatView() {
 			const ev = data.event;
 			if (!ev) return;
 
-			const name = (ev.name || "").toLowerCase();
+			const toolNameRaw = ev.toolName || ev.name || ev.id || "";
+			const name = toolNameRaw.toLowerCase();
 			const input = ev.input || {};
-			const filePath = normalizePath(input.filePath || input.path || input.TargetFile || input.AbsolutePath || "");
-			const cmd = input.command || input.commands || "";
-			const cwd = input.cwd || input.Cwd || "workspace";
+			const rawPath = input.filePath || input.path || input.TargetFile || input.AbsolutePath || input.SearchPath || input.DirectoryPath || input.file || "";
+			const filePath = normalizePath(typeof rawPath === "string" ? rawPath : "");
+			const cmd = typeof input.command === "string" ? input.command : typeof input.commands === "string" ? input.commands : typeof input.CommandLine === "string" ? input.CommandLine : "";
+			const cwd = typeof input.cwd === "string" ? input.cwd : typeof input.Cwd === "string" ? input.Cwd : "workspace";
 
 			let eventType: TimelineEvent["eventType"] = "tool";
 			let title = "";
 
-			if (name.includes("read")) { eventType = "reading"; title = `Reading ${filePath || "file"}`; }
-			else if (name.includes("write") || name.includes("create")) { eventType = "writing"; title = `Writing ${filePath || "file"}`; }
-			else if (name.includes("edit") || name.includes("replace") || name.includes("patch")) { eventType = "editing"; title = `Editing ${filePath || "file"}`; }
-			else if (name.includes("bash") || name.includes("shell") || name.includes("exec") || name === "run") { eventType = "command"; title = `Executing Command`; }
-			else if (name.includes("test")) { eventType = "testing"; title = `Running test`; }
-			else { eventType = "tool"; title = ev.name || "Executing tool"; }
+			if (name.includes("list_dir") || name.includes("glob") || name.includes("search") || name.includes("find") || name.includes("grep") || name.includes("directory")) {
+				eventType = "exploring";
+				title = `Exploring ${filePath || normalizePath(cwd) || "workspace"}`;
+			} else if (name.includes("analyze") || name.includes("semantic") || name.includes("inspect") || name.includes("dna")) {
+				eventType = "analyzing";
+				title = `Analyzing ${filePath || "codebase"}`;
+			} else if (name.includes("read") || name.includes("view")) {
+				eventType = "reading";
+				title = `Reading ${filePath || "file"}`;
+			} else if (name.includes("replace") || name.includes("edit") || name.includes("patch")) {
+				eventType = "editing";
+				title = `Editing ${filePath || "file"}`;
+			} else if (name.includes("write") || name.includes("create")) {
+				eventType = "writing";
+				title = `Writing ${filePath || "file"}`;
+			} else if (name.includes("bash") || name.includes("shell") || name.includes("exec") || name.includes("command") || name === "run") {
+				eventType = "command";
+				const displayCmd = cmd ? (cmd.length > 40 ? `${cmd.slice(0, 40)}...` : cmd) : "";
+				title = displayCmd ? `Executing: ${displayCmd}` : "Executing Command";
+			} else if (name.includes("test")) {
+				eventType = "testing";
+				title = "Running tests";
+			} else {
+				eventType = "tool";
+				title = toolNameRaw ? `Executing ${toolNameRaw}` : "Executing tool";
+			}
 
 			setActiveTask((prev: TaskDataV2 | null) => {
 				const now = Date.now();
@@ -796,17 +818,7 @@ export function ChatView() {
 						))}
 					</div>
 				)}
-				{isTaskCompleted && (
-					<div className="task-completed-banner">
-						<button className="start-new-task-btn" onClick={() => newSession()}>
-							<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-								<line x1="12" y1="5" x2="12" y2="19" />
-								<line x1="5" y1="12" x2="19" y2="12" />
-							</svg>
-							<span>Start New Task</span>
-						</button>
-					</div>
-				)}
+
 				<div className="textarea-wrapper">
 					<textarea
 						ref={inputRef}
@@ -1323,24 +1335,36 @@ function TaskHeader({ task, onToggleCollapse, onStop }: { task: TaskDataV2; onTo
 	);
 }
 
+const EVENT_ICONS: Record<string, string> = {
+	exploring: "🔍",
+	analyzing: "🧠",
+	reading: "📖",
+	editing: "✍️",
+	writing: "📝",
+	command: "🖥️",
+	testing: "🧪",
+	tool: "🔧",
+};
+
 function ExecEventRow({ event }: { event: TimelineEvent }) {
 	const isCommand = event.eventType === "command";
 	const isRunning = event.status === "running";
 	const isCompleted = event.status === "completed";
 	const isFailed = event.status === "failed";
+	const categoryIcon = EVENT_ICONS[event.eventType] || "🔧";
 
 	return (
 		<div className={`vertical-timeline-item ${event.status}`}>
-			<div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-				<span className="step-icon">
-					{isRunning ? <span className="dot-pulse" /> : isCompleted ? "✓" : isFailed ? "✗" : "○"}
+			<div style={{ display: "flex", alignItems: "center", gap: 8, padding: "3px 0" }}>
+				<span className="step-category-icon" style={{ fontSize: "1em" }}>
+					{categoryIcon}
 				</span>
-				<span style={{ fontSize: "0.82em", color: isFailed ? "var(--error)" : "#fff", fontWeight: 500 }}>
+				<span className="step-icon">
+					{isRunning ? <span className="dot-pulse" /> : isCompleted ? <span style={{ color: "var(--success)" }}>✓</span> : isFailed ? <span style={{ color: "var(--error)" }}>✗</span> : "○"}
+				</span>
+				<span style={{ fontSize: "0.85em", color: isFailed ? "var(--error)" : "var(--fg, #e2e8f0)", fontWeight: 500 }}>
 					{event.title}
 				</span>
-				{event.metadata?.filePath && (
-					<span className="step-path">{event.metadata.filePath}</span>
-				)}
 			</div>
 			{isCommand && (
 				<CommandCard metadata={event.metadata} status={event.status} durationMs={event.duration} />

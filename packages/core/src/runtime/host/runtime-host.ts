@@ -314,6 +314,7 @@ export interface RuntimeHost {
 	stopSession(sessionId: string): Promise<void>;
 	dispose(reason?: string): Promise<void>;
 	getSession(sessionId: string): Promise<SessionRecord | undefined>;
+	isSessionActive(sessionId: string): Promise<boolean>;
 	listSessions(limit?: number): Promise<SessionRecord[]>;
 	deleteSession(sessionId: string): Promise<boolean>;
 	updateSession(

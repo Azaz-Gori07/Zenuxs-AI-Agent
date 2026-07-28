@@ -190,7 +190,11 @@ describe("LocalRuntimeHost", () => {
 		process.env.CLINE_DIR = envSnapshot.CLINE_DIR;
 		setHomeDir(envSnapshot.HOME ?? "~");
 		setClineDir(envSnapshot.CLINE_DIR ?? join("~", ".cline"));
-		rmSync(isolatedHomeDir, { recursive: true, force: true });
+		try {
+			rmSync(isolatedHomeDir, { recursive: true, force: true });
+		} catch {
+			/* best-effort cleanup on Windows */
+		}
 	});
 
 	it("emits session lifecycle telemetry when configured", async () => {
@@ -5330,6 +5334,239 @@ describe("LocalRuntimeHost", () => {
 			const emissions = countTaskCompletedEmissions(adapter);
 			expect(emissions).toHaveLength(1);
 			expect(emissions[0]).toMatchObject({ source: "shutdown" });
+		});
+
+		it("correctly identifies active sessions and transparently recreates expired sessions on runTurn", async () => {
+			const manifest = createManifest("session-historical");
+			const sessionService = {
+				ensureSessionsDir: vi.fn().mockResolvedValue("/tmp/sessions"),
+				readSessionManifest: vi.fn().mockResolvedValue(manifest),
+				readSessionMessages: vi.fn().mockResolvedValue([]),
+				persistSessionMessages: vi.fn().mockResolvedValue(undefined),
+				updateSessionStatus: vi.fn().mockResolvedValue({ updated: true }),
+				writeSessionManifest: vi.fn().mockResolvedValue(undefined),
+				listSessions: vi.fn().mockResolvedValue([]),
+				createRootSessionWithArtifacts: vi.fn().mockResolvedValue({ manifestPath: "/tmp/manifest.json", messagesPath: "/tmp/messages.json", manifest }),
+			};
+			const agent = {
+				run: vi.fn().mockResolvedValue(createResult()),
+				continue: vi.fn().mockResolvedValue(createResult()),
+				getMessages: vi.fn().mockReturnValue([]),
+				getAgentId: vi.fn().mockReturnValue("agent-root-1"),
+				getConversationId: vi.fn().mockReturnValue("conv-root-1"),
+				abort: vi.fn(),
+				subscribeEvents: vi.fn().mockReturnValue(() => {}),
+				canStartRun: vi.fn().mockReturnValue(true),
+				shutdown: vi.fn().mockResolvedValue(undefined),
+			};
+			const manager = new RuntimeHostUnderTest({
+				distinctId,
+				sessionService: sessionService as never,
+				createAgent: () => agent as never,
+			});
+
+			expect(await manager.isSessionActive("session-historical")).toBe(false);
+
+			const turnResult = await manager.runTurn({
+				sessionId: "session-historical",
+				prompt: "continue historical chat",
+			});
+
+			expect(turnResult).toBeDefined();
+			expect(await manager.isSessionActive("session-historical")).toBe(true);
+		});
+
+		it("must NOT create a new session when startSession is called with an existing sessionId and initial messages (REPRODUCE: conversation cloning bug)", async () => {
+			const EXISTING_SESSION_ID = "session-tomorrow";
+			const manifest = createManifest(EXISTING_SESSION_ID);
+
+			const initialMessages: MessageWithMetadata[] = [
+				{ role: "user", content: [{ type: "text", text: "original question" }] },
+				{ role: "assistant", content: [{ type: "text", text: "original answer" }] },
+			];
+
+			const createRootSessionWithArtifacts = vi.fn().mockResolvedValue({
+				manifestPath: "/tmp/manifest.json",
+				messagesPath: "/tmp/messages.json",
+				manifest,
+			});
+			const persistSessionMessages = vi.fn().mockResolvedValue(undefined);
+
+			const sessionService = {
+				ensureSessionsDir: vi.fn().mockResolvedValue("/tmp/sessions"),
+				readSessionManifest: vi.fn().mockResolvedValue(manifest),
+				readSessionMessages: vi.fn().mockResolvedValue([]),
+				persistSessionMessages,
+				updateSessionStatus: vi.fn().mockResolvedValue({ updated: true }),
+				writeSessionManifest: vi.fn().mockResolvedValue(undefined),
+				listSessions: vi.fn().mockResolvedValue([]),
+				createRootSessionWithArtifacts,
+			};
+			const agent = {
+				run: vi.fn().mockResolvedValue(createResult({ messages: [...initialMessages, { role: "user", content: [{ type: "text", text: "hy" }] }, { role: "assistant", content: [{ type: "text", text: "response" }] }] })),
+				continue: vi.fn().mockResolvedValue(createResult({ messages: [...initialMessages, { role: "user", content: [{ type: "text", text: "hy" }] }, { role: "assistant", content: [{ type: "text", text: "response" }] }] })),
+				getMessages: vi.fn().mockReturnValue(initialMessages),
+				getAgentId: vi.fn().mockReturnValue("agent-root-1"),
+				getConversationId: vi.fn().mockReturnValue("conv-root-1"),
+				abort: vi.fn(),
+				subscribeEvents: vi.fn().mockReturnValue(() => {}),
+				canStartRun: vi.fn().mockReturnValue(true),
+				shutdown: vi.fn().mockResolvedValue(undefined),
+			};
+			const manager = new RuntimeHostUnderTest({
+				distinctId,
+				sessionService: sessionService as never,
+				createAgent: () => agent as never,
+			});
+
+			expect(await manager.isSessionActive(EXISTING_SESSION_ID)).toBe(false);
+
+			const startResult = await manager.startSession(
+				normalizeStartInput({
+					config: createConfig({ sessionId: EXISTING_SESSION_ID }),
+					prompt: "hy",
+					interactive: true,
+					initialMessages,
+				}),
+			);
+
+			expect(startResult.sessionId).toBe(EXISTING_SESSION_ID);
+			expect(createRootSessionWithArtifacts).not.toHaveBeenCalled();
+			expect(persistSessionMessages).toHaveBeenCalled();
+			expect(await manager.isSessionActive(EXISTING_SESSION_ID)).toBe(true);
+		});
+
+		it("must NOT clone session when multiple sequential prompts are sent (REPRODUCE: repeated cloning)", async () => {
+			const EXISTING_SESSION_ID = "session-repeat";
+			const manifest = createManifest(EXISTING_SESSION_ID);
+
+			const initialMessages: MessageWithMetadata[] = [
+				{ role: "user", content: [{ type: "text", text: "first" }] },
+			];
+
+			const allMessages = [...initialMessages];
+			const createRootSessionWithArtifacts = vi.fn().mockResolvedValue({
+				manifestPath: "/tmp/manifest.json",
+				messagesPath: "/tmp/messages.json",
+				manifest,
+			});
+			const persistSessionMessages = vi.fn().mockResolvedValue(undefined);
+
+			const sessionService = {
+				ensureSessionsDir: vi.fn().mockResolvedValue("/tmp/sessions"),
+				readSessionManifest: vi.fn().mockResolvedValue(manifest),
+				readSessionMessages: vi.fn().mockResolvedValue([]),
+				persistSessionMessages,
+				updateSessionStatus: vi.fn().mockResolvedValue({ updated: true }),
+				writeSessionManifest: vi.fn().mockResolvedValue(undefined),
+				listSessions: vi.fn().mockResolvedValue([]),
+				createRootSessionWithArtifacts,
+			};
+
+			const continueFn = vi.fn().mockImplementation(() => {
+				allMessages.push(
+					{ role: "user", content: [{ type: "text", text: "next" }] },
+					{ role: "assistant", content: [{ type: "text", text: "ok" }] },
+				);
+				return Promise.resolve(createResult({ messages: [...allMessages] }));
+			});
+
+			const agent = {
+				run: vi.fn().mockResolvedValue(createResult()),
+				continue: continueFn,
+				getMessages: vi.fn().mockImplementation(() => [...allMessages]),
+				getAgentId: vi.fn().mockReturnValue("agent-root-1"),
+				getConversationId: vi.fn().mockReturnValue("conv-root-1"),
+				abort: vi.fn(),
+				subscribeEvents: vi.fn().mockReturnValue(() => {}),
+				canStartRun: vi.fn().mockReturnValue(true),
+				shutdown: vi.fn().mockResolvedValue(undefined),
+			};
+			const manager = new RuntimeHostUnderTest({
+				distinctId,
+				sessionService: sessionService as never,
+				createAgent: () => agent as never,
+			});
+
+			const startResult = await manager.startSession(
+				normalizeStartInput({
+					config: createConfig({ sessionId: EXISTING_SESSION_ID }),
+					prompt: "first message",
+					interactive: true,
+					initialMessages,
+				}),
+			);
+			expect(startResult.sessionId).toBe(EXISTING_SESSION_ID);
+
+			const firstSessionId = startResult.sessionId;
+
+			const result2 = await manager.runTurn({
+				sessionId: EXISTING_SESSION_ID,
+				prompt: "second message",
+			});
+			expect(result2).toBeDefined();
+
+			expect(createRootSessionWithArtifacts).toHaveBeenCalledTimes(0);
+			expect(await manager.isSessionActive(EXISTING_SESSION_ID)).toBe(true);
+			expect(continueFn).toHaveBeenCalled();
+		});
+
+		it("REPRODUCE ROOT CAUSE: top-level sessionId is IGNORED because startSession reads from config.sessionId, not input.sessionId", async () => {
+			const EXISTING_SESSION_ID = "session-rootcause";
+			const manifest = createManifest(EXISTING_SESSION_ID);
+
+			const createRootSessionWithArtifacts = vi.fn().mockResolvedValue({
+				manifestPath: "/tmp/manifest.json",
+				messagesPath: "/tmp/messages.json",
+				manifest,
+			});
+
+			const sessionService = {
+				ensureSessionsDir: vi.fn().mockResolvedValue("/tmp/sessions"),
+				readSessionManifest: vi.fn().mockResolvedValue(manifest),
+				readSessionMessages: vi.fn().mockResolvedValue([]),
+				persistSessionMessages: vi.fn().mockResolvedValue(undefined),
+				updateSessionStatus: vi.fn().mockResolvedValue({ updated: true }),
+				writeSessionManifest: vi.fn().mockResolvedValue(undefined),
+				listSessions: vi.fn().mockResolvedValue([]),
+				createRootSessionWithArtifacts,
+			};
+			const agent = {
+				run: vi.fn().mockResolvedValue(createResult()),
+				continue: vi.fn().mockResolvedValue(createResult()),
+				getMessages: vi.fn().mockReturnValue([]),
+				getAgentId: vi.fn().mockReturnValue("agent-root-2"),
+				getConversationId: vi.fn().mockReturnValue("conv-root-2"),
+				abort: vi.fn(),
+				subscribeEvents: vi.fn().mockReturnValue(() => {}),
+				canStartRun: vi.fn().mockReturnValue(true),
+				shutdown: vi.fn().mockResolvedValue(undefined),
+			};
+			const manager = new RuntimeHostUnderTest({
+				distinctId,
+				sessionService: sessionService as never,
+				createAgent: () => agent as never,
+			});
+
+			expect(await manager.isSessionActive(EXISTING_SESSION_ID)).toBe(false);
+
+			const startResult = await manager.startSession(
+				normalizeStartInput({
+					config: createConfig({}),
+					prompt: "should resume existing session",
+					interactive: true,
+					initialMessages: [
+						{ role: "user", content: [{ type: "text", text: "prior msg" }] },
+					],
+				} as any),
+			);
+
+			expect(startResult.sessionId).not.toBe(EXISTING_SESSION_ID);
+			expect(createRootSessionWithArtifacts).toHaveBeenCalled();
+
+			const generatedId = startResult.sessionId;
+			expect(generatedId).toBeTruthy();
+			expect(generatedId.length).toBeGreaterThan(0);
 		});
 	});
 });

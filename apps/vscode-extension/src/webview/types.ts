@@ -379,7 +379,7 @@ export interface TimelineEvent {
 	duration?: number;
 	parentEventId?: string;
 	phase: "execution";
-	eventType: "planning" | "reading" | "writing" | "editing" | "command" | "tool" | "testing" | "warning" | "error" | "completion" | "cancellation" | "interruption";
+	eventType: "planning" | "exploring" | "analyzing" | "reading" | "writing" | "editing" | "command" | "tool" | "testing" | "warning" | "error" | "completion" | "cancellation" | "interruption";
 	status: "pending" | "running" | "completed" | "failed" | "cancelled";
 	title: string;
 	description?: string;

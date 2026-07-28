@@ -24,19 +24,24 @@ export function processWorkspaceInfo(info: WorkspaceInfo): string {
 }
 
 function buildWorkspaceMetadata(
-	rootPath: string,
+	rootPath?: string,
 	workspaceName?: string,
 	metadata?: string,
 ): string {
-	if (metadata?.trim()?.includes(WORKSPACE_CONFIGURATION_MARKER)) {
-		return metadata.trim();
+	const safeRoot = typeof rootPath === "string" ? rootPath : "";
+	const safeMeta = typeof metadata === "string" ? metadata : "";
+
+	if (safeMeta.trim().includes(WORKSPACE_CONFIGURATION_MARKER)) {
+		return safeMeta.trim();
 	}
 	const body =
-		metadata ||
+		safeMeta ||
 		JSON.stringify({
 			workspaces: {
-				[rootPath]: {
-					hint: workspaceName || rootPath.split("/").at(-1) || rootPath,
+				[safeRoot]: {
+					hint:
+						workspaceName ||
+						(safeRoot ? safeRoot.split(/[\\/]/).at(-1) || safeRoot : "workspace"),
 				},
 			},
 		});
@@ -84,19 +89,26 @@ export function buildZenuxsSystemPrompt(
 		overridePrompt,
 		providerId,
 		systemParts,
-	} = options;
-	const workspaceRoot = options.workspaceRoot ?? options.rootPath ?? "";
+	} = options || {};
+	const workspaceRoot =
+		typeof options?.workspaceRoot === "string"
+			? options.workspaceRoot
+			: typeof options?.rootPath === "string"
+				? options.rootPath
+				: "";
 	const isZenuxs = isZenuxsProvider(providerId || "");
+	const safeMeta = typeof metadata === "string" ? metadata : "";
+	const safeOverride = typeof overridePrompt === "string" ? overridePrompt : "";
 
 	let base: string;
-	if (overridePrompt?.trim()) {
-		const trimmed = overridePrompt.trim();
+	if (safeOverride.trim()) {
+		const trimmed = safeOverride.trim();
 		if (
 			isZenuxs &&
-			metadata?.trim() &&
+			safeMeta.trim() &&
 			!trimmed.includes(WORKSPACE_CONFIGURATION_MARKER)
 		) {
-			base = `${trimmed}\n\n${buildWorkspaceMetadata(workspaceRoot, workspaceName, metadata)}`.trim();
+			base = `${trimmed}\n\n${buildWorkspaceMetadata(workspaceRoot, workspaceName, safeMeta)}`.trim();
 		} else {
 			base = trimmed;
 		}

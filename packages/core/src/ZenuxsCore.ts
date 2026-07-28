@@ -420,6 +420,10 @@ export class ZenuxsCore {
 	 */
 	get: RuntimeHost["getSession"] = (...args) => this.host.getSession(...args);
 	/**
+	 * Checks whether a runtime session is currently active in memory.
+	 */
+	isSessionActive: RuntimeHost["isSessionActive"] = (...args) => this.host.isSessionActive(...args);
+	/**
 	 * Lists recent sessions through the shared history-listing path.
 	 */
 	listHistory = async (

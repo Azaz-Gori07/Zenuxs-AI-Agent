@@ -1,0 +1,30 @@
+{
+  "name": "@zenuxs/plugin-sdk",
+  "version": "0.1.0",
+  "description": "Zenuxs Code Plugin SDK for custom tool and extension authors",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@zenuxs/schema": "workspace:*",
+    "@zenuxs/engine": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5",
+    "vitest": "^4.0.18"
+  }
+}

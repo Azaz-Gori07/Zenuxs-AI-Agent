@@ -147,6 +147,8 @@ export async function loginZenuxsAuth(
 		throw new Error(`Token exchange failed: ${text}`);
 	}
 
+
+
 	const tokens = (await tokenResponse.json()) as {
 		access_token?: string;
 		refresh_token?: string;
@@ -185,35 +187,43 @@ export async function loginZenuxsAuth(
 	// 8. Exchange OAuth access token for app JWT via the AI backend
 	callbacks.onProgress?.("Exchanging OAuth token for session...");
 
-	const loginResponse = await fetch(`${aiApiUrl}/api/auth/oauth/login`, {
-		method: "POST",
-		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({ accessToken: oauthAccessToken }),
-	});
+	let appJwt = oauthAccessToken;
+	let appUserId = "";
 
-	let appJwt: string;
-	let appUserId: string;
+	try {
+		const loginResponse = await fetch(`${aiApiUrl}/api/auth/oauth/login`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ accessToken: oauthAccessToken }),
+		});
 
-	if (loginResponse.ok) {
-		const loginData = (await loginResponse.json()) as {
-			success: boolean;
-			token?: string;
-			user?: { _id?: string; name?: string; email?: string };
-		};
-		if (loginData.success && loginData.token) {
-			appJwt = loginData.token;
-			appUserId = loginData.user?._id || "";
-			userEmail = userEmail || loginData.user?.email || "";
-			userName = userName || loginData.user?.name || "";
+		if (loginResponse.ok) {
+			const loginData = (await loginResponse.json()) as {
+				success: boolean;
+				token?: string;
+				user?: { _id?: string; name?: string; email?: string };
+				error?: string;
+			};
+			if (loginData.success && loginData.token) {
+				appJwt = loginData.token;
+				appUserId = loginData.user?._id || "";
+				userEmail = userEmail || loginData.user?.email || "";
+				userName = userName || loginData.user?.name || "";
+			} else {
+				throw new Error(
+					`Session login failed: ${loginData.error || "Invalid response format"}`,
+				);
+			}
 		} else {
-			// Fall back to using the OAuth access token directly
-			appJwt = oauthAccessToken;
-			appUserId = "";
+			const errorText = await loginResponse.text().catch(() => "");
+			throw new Error(
+				`Backend auth session exchange failed with status ${loginResponse.status}: ${errorText}`,
+			);
 		}
-	} else {
-		// Fall back to using the OAuth access token directly
+	} catch (err) {
+		console.warn("[ZenuxsAuth] Session exchange warning:", err);
+		// Note: fallback to oauthAccessToken only if backend supports raw OAuth tokens
 		appJwt = oauthAccessToken;
-		appUserId = "";
 	}
 
 	const expiresIn = tokens.expires_in ? tokens.expires_in * 1000 : 3600 * 1000;
@@ -242,7 +252,7 @@ export async function refreshZenuxsAuth(
 		return credentials;
 	}
 
-		// Try refreshing with the OAuth refresh token
+	// Try refreshing with the OAuth refresh token
 	if (credentials.refresh && credentials.refresh !== credentials.access) {
 		try {
 			const tokenUrl = `${getZenuxsAuthServerUrl()}/oauth/token`;
@@ -263,12 +273,32 @@ export async function refreshZenuxsAuth(
 					expires_in?: number;
 				};
 				if (tokens.access_token) {
+					// Exchange refreshed OAuth token for backend session JWT
+					const aiApiUrl = getApiBaseUrl();
+					let appJwt = tokens.access_token;
+					try {
+						const loginResponse = await fetch(`${aiApiUrl}/api/auth/oauth/login`, {
+							method: "POST",
+							headers: { "Content-Type": "application/json" },
+							body: JSON.stringify({ accessToken: tokens.access_token }),
+						});
+						if (loginResponse.ok) {
+							const loginData = (await loginResponse.json()) as {
+								success?: boolean;
+								token?: string;
+							};
+							if (loginData.success && loginData.token) {
+								appJwt = loginData.token;
+							}
+						}
+					} catch {}
+
 					const newExpiry = tokens.expires_in
 						? Date.now() + tokens.expires_in * 1000
-						: credentials.expires;
+						: decodeJwtExpiry(appJwt) ?? credentials.expires;
 					return {
 						...credentials,
-						access: tokens.access_token,
+						access: appJwt,
 						refresh: tokens.refresh_token || credentials.refresh,
 						expires: newExpiry,
 					};

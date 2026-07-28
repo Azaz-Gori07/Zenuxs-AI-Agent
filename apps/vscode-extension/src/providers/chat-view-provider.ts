@@ -1669,10 +1669,9 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				});
 
 				// Check if the runtime session is currently active in memory
-				const liveSession = this.activeSessionId
-					? await core.get(this.activeSessionId).catch(() => null)
-					: null;
-				const isLiveRuntimeSession = Boolean(liveSession);
+				const isLiveRuntimeSession = this.activeSessionId
+					? await (core as any).isSessionActive?.(this.activeSessionId).catch(() => false) ?? false
+					: false;
 
 				const providerOrModelChanged =
 					this.activeRuntimeProviderId !== undefined &&
@@ -1741,10 +1740,10 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 								workspace: { rootPath: workspaceRoot, cwd, workspaceName: workspaceRoot.split(/[\\/]/).pop() ?? "", ide: "VS Code", platform: process.platform },
 								logger: sessionLogger,
 							},
+						sessionId: targetSessionId,
 						},
 						prompt: fullPrompt,
 						interactive: true,
-						sessionId: targetSessionId,
 						initialMessages,
 					});
 
@@ -1836,10 +1835,10 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 							logger: sessionLogger,
 							cwd: resolveCwd(),
 							workspaceRoot: resolveWorkspaceRoot(),
+							sessionId: lostSessionId,
 						},
 						prompt: prompt,
 						interactive: true,
-						sessionId: lostSessionId,
 						initialMessages: recoveredMessages,
 					});
 

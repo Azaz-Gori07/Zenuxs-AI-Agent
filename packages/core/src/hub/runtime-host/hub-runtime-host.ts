@@ -1045,6 +1045,13 @@ export class HubRuntimeHost implements RuntimeHost {
 		};
 	}
 
+	async isSessionActive(sessionId: string): Promise<boolean> {
+		const target = sessionId.trim();
+		if (!target) return false;
+		const session = await this.getSession(target).catch(() => undefined);
+		return session?.status === "running";
+	}
+
 	async runTurn(input: SendSessionInput): Promise<AgentResult | undefined> {
 		this.ensureSessionSubscription(input.sessionId);
 		const reply = await this.client.command(

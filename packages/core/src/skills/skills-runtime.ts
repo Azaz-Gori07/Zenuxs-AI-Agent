@@ -153,7 +153,7 @@ export class SkillsRuntime {
 		const frontmatter: Record<string, unknown> = {};
 		let body = content;
 
-		if (frontmatterMatch) {
+		if (frontmatterMatch && typeof frontmatterMatch[1] === "string") {
 			const yaml = frontmatterMatch[1];
 			for (const line of yaml.split("\n")) {
 				const colonIdx = line.indexOf(":");
@@ -183,18 +183,22 @@ export class SkillsRuntime {
 	}
 
 	private fileNameToName(filePath: string): string {
-		const basename = filePath.split(/[\\/]/).pop() ?? "unknown";
+		const safePath = typeof filePath === "string" ? filePath : "";
+		const basename = safePath.split(/[\\/]/).pop() ?? "unknown";
 		return basename.replace(extname(basename), "").replace(/[-_]/g, " ");
 	}
 
 	private resolveSource(filePath: string): LoadedSkill["source"] {
-		const normalized = resolve(filePath).toLowerCase();
+		const safePath = typeof filePath === "string" ? filePath : "";
+		const normalized = resolve(safePath).toLowerCase();
 		for (const searchPath of this.searchPaths) {
-			const resolved = resolve(searchPath).toLowerCase();
+			const safeSearchPath = typeof searchPath === "string" ? searchPath : "";
+			const resolved = resolve(safeSearchPath).toLowerCase();
 			if (normalized.startsWith(resolved)) {
-				if (searchPath.includes("worktree")) return "worktree";
-				if (searchPath.includes("workspace") || searchPath.includes(".zenuxs")) return "workspace";
-				return "global";
+				if (safeSearchPath.includes("worktree")) return "worktree";
+				if (safeSearchPath.includes(".gemini") || safeSearchPath.includes(".zenuxs"))
+					return "global";
+				return "workspace";
 			}
 		}
 		return "external";

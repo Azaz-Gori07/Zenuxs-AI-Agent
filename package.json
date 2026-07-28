@@ -7,6 +7,7 @@
     "apps/*",
     "apps/zenuxs-hub/src/webview"
   ],
+  "trustedDependencies": ["@zenuxs/engine", "@zenuxs/schema", "@zenuxs/providers", "@zenuxs/studio", "@zenuxs/lsp", "@zenuxs/plugin-sdk"],
   "scripts": {
     "build": "bun run build:sdk && bun -F zenuxs build",
     "build:sdk": "bun --production -F './packages/*' build",

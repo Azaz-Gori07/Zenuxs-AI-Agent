@@ -751,6 +751,13 @@ export interface AgentConfig {
 	 */
 	zenuxsAuthToken?: string;
 
+	/** Optional callback to read persisted session metadata */
+	readSessionMetadata?: () => Promise<Record<string, unknown> | undefined>;
+	/** Optional callback to write session metadata updates */
+	writeSessionMetadata?: (metadata: Record<string, unknown>) => Promise<void>;
+	/** Optional preloaded session metadata */
+	sessionMetadata?: Record<string, unknown>;
+
 	// -------------------------------------------------------------------------
 	// Callbacks
 	// -------------------------------------------------------------------------

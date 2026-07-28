@@ -1,0 +1,43 @@
+{
+  "name": "@zenuxs/engine",
+  "version": "0.1.0",
+  "description": "Zenuxs Code native runtime engine — orchestration, session management, agent execution",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./session": {
+      "types": "./dist/session/index.d.ts",
+      "import": "./dist/session/index.js"
+    },
+    "./agent": {
+      "types": "./dist/agent/index.d.ts",
+      "import": "./dist/agent/index.js"
+    },
+    "./tool": {
+      "types": "./dist/tool/index.d.ts",
+      "import": "./dist/tool/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@zenuxs/schema": "workspace:*",
+    "nanoid": "^5.1.7",
+    "zod": "^4.1.11"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5",
+    "vitest": "^4.0.18"
+  }
+}

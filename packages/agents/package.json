@@ -7,6 +7,7 @@
 		"directory": "sdk/packages/agents"
 	},
 	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
 	"dependencies": {
 		"@cline/llms": "workspace:*",
 		"@cline/shared": "workspace:*",
@@ -19,7 +20,8 @@
 		".": {
 			"browser": "./dist/index.js",
 			"types": "./dist/index.d.ts",
-			"import": "./dist/index.js"
+			"import": "./dist/index.js",
+			"default": "./dist/index.js"
 		}
 	},
 	"description": "Browser-safe agent runtime for the next-generation Cline SDK",
@@ -43,6 +45,5 @@
 	"engines": {
 		"node": ">=22"
 	},
-	"type": "module",
-	"types": "dist/index.d.ts"
+	"type": "module"
 }

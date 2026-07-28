@@ -310,9 +310,24 @@ export class ZenuxsAccountService {
 			}
 
 			if (!response.ok) {
-				throw new Error(
-					formatZenuxsAccountRequestFailure(response.status, text, parsed),
+				const requestId =
+					response.headers?.get?.("x-request-id") ||
+					response.headers?.get?.("request-id") ||
+					"unknown";
+				const failureMsg = formatZenuxsAccountRequestFailure(
+					response.status,
+					text,
+					parsed,
 				);
+				console.warn("[ZenuxsAccountService] Request failed", {
+					endpoint,
+					httpStatus: response.status,
+					responseBody: text,
+					requestId,
+					authStatus: response.status === 401 ? "unauthorized" : "authenticated",
+					failureReason: failureMsg,
+				});
+				throw new Error(failureMsg);
 			}
 
 			if (typeof parsed === "object" && parsed !== null) {

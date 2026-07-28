@@ -19,7 +19,7 @@
  * OAuth-retry and run replay feasible.
  */
 
-import type { AgentRuntime } from "@cline/agents";
+import type { AgentRuntime } from "@cline/agents";	
 import { createAgentRuntime } from "@cline/agents";
 import {
 	type AgentConfig,
@@ -401,6 +401,17 @@ export class SessionRuntime {
 
 		this.conversation = new ConversationStore(config.initialMessages);
 		this.messageBuilder = new MessageBuilder(getMessageBuilderOptionsFromEnv());
+
+		const initialRemoteId = (config as any)?.remoteConvId || (config.extensionContext?.session as any)?.remoteConvId;
+		if (typeof initialRemoteId === "string" && initialRemoteId.trim()) {
+			this.zenuxsRemoteConvId = initialRemoteId.trim();
+		} else if (config.readSessionMetadata) {
+			config.readSessionMetadata().then((meta: Record<string, unknown> | undefined) => {
+				if (meta?.remoteConvId && typeof meta.remoteConvId === "string") {
+					this.zenuxsRemoteConvId = meta.remoteConvId;
+				}
+			}).catch(() => {});
+		}
 		this.contributionRegistry = createContributionRegistry<
 			AgentExtension,
 			AgentTool,
@@ -1338,6 +1349,9 @@ export class SessionRuntime {
 				if (id) {
 					this.zenuxsRemoteConvId = id;
 					console.log(`[zenuxs-sync] remote conversation created: ${id}`);
+					if (this.config.writeSessionMetadata) {
+						this.config.writeSessionMetadata({ remoteConvId: id }).catch(() => {});
+					}
 				} else {
 					console.warn("[zenuxs-sync] failed to create remote conversation");
 				}

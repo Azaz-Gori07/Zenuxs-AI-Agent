@@ -1,0 +1,38 @@
+{
+  "name": "@zenuxs/providers",
+  "version": "0.1.0",
+  "description": "Zenuxs Code LLM provider integrations",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./anthropic": {
+      "types": "./dist/anthropic/index.d.ts",
+      "import": "./dist/anthropic/index.js"
+    },
+    "./openai": {
+      "types": "./dist/openai/index.d.ts",
+      "import": "./dist/openai/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@zenuxs/schema": "workspace:*",
+    "ai": "^4.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5",
+    "vitest": "^4.0.18"
+  }
+}

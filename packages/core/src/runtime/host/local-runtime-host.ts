@@ -381,21 +381,26 @@ export class LocalRuntimeHost implements RuntimeHost {
 			messages_path: messagesPath,
 		});
 		let resumedArtifacts: RootSessionArtifacts | undefined;
-		const isReadOnlyResumeStart =
-			requestedSessionId.length > 0 &&
-			initialMessages.length > 0 &&
-			!startInput.prompt?.trim();
-		if (isReadOnlyResumeStart) {
+		if (requestedSessionId.length > 0) {
 			const existingManifest = await this.invokeOptionalValue<SessionManifest>(
 				"readSessionManifest",
 				sessionId,
 			);
 			if (existingManifest) {
-				manifest = existingManifest;
+				manifest = {
+					...existingManifest,
+					...manifest,
+					prompt: existingManifest.prompt || manifest.prompt,
+					started_at: existingManifest.started_at || manifest.started_at,
+					metadata: {
+						...((existingManifest as any).metadata || {}),
+						...((manifest as any).metadata || {}),
+					},
+				};
 				resumedArtifacts = {
 					manifestPath,
 					messagesPath: existingManifest.messages_path || messagesPath,
-					manifest: existingManifest,
+					manifest,
 				};
 			}
 		}
@@ -760,8 +765,42 @@ export class LocalRuntimeHost implements RuntimeHost {
 		});
 	}
 
+	async isSessionActive(sessionId: string): Promise<boolean> {
+		const target = sessionId.trim();
+		if (!target) return false;
+		return this.sessions.has(target);
+	}
+
 	async runTurn(input: SendSessionInput): Promise<AgentResult | undefined> {
-		const session = this.getSessionOrThrow(input.sessionId);
+		let session = this.sessions.get(input.sessionId);
+		if (!session) {
+			const persisted = await this.getSession(input.sessionId);
+			if (persisted) {
+				const initialMessages = await this.readSessionMessages(input.sessionId).catch(() => []);
+				const startResult = await this.startSession({
+					source: (persisted as any).source ?? SessionSource.VSCODE,
+					config: {
+						sessionId: input.sessionId,
+						providerId: persisted.provider || "cline",
+						modelId: persisted.model || "anthropic/claude-sonnet-4.6",
+						systemPrompt: (persisted as any).systemPrompt || "",
+						cwd: persisted.cwd,
+						workspaceRoot: persisted.workspaceRoot,
+						mode: input.mode || "act",
+						enableTools: true,
+						enableSpawnAgent: (persisted as any).enable_spawn ?? true,
+						enableAgentTeams: (persisted as any).enable_teams ?? true,
+					},
+					prompt: input.prompt,
+					interactive: true,
+					initialMessages,
+					userImages: input.userImages,
+					userFiles: input.userFiles,
+				});
+				return startResult.result;
+			}
+			session = this.getSessionOrThrow(input.sessionId);
+		}
 		const canStartRun = session.agent.canStartRun();
 		const delivery =
 			input.delivery ??
@@ -915,9 +954,9 @@ export class LocalRuntimeHost implements RuntimeHost {
 		}
 		const target = sessionId.trim();
 		if (!target) return undefined;
-		const row = await this.getRow(target);
+		const row = await this.getRow(target).catch(() => undefined);
 		if (row) return toSessionRecord(row);
-		const manifest = await this.readManifest(target);
+		const manifest = await this.readManifest(target).catch(() => undefined);
 		return manifest ? manifestToSessionRecord(manifest) : undefined;
 	}
 

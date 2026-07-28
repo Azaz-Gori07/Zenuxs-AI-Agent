@@ -1,0 +1,30 @@
+{
+  "name": "@zenuxs/lsp",
+  "version": "0.1.0",
+  "description": "Zenuxs Code LSP (Language Server Protocol) integration",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@zenuxs/schema": "workspace:*",
+    "vscode-languageserver-protocol": "^3.17.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5",
+    "vitest": "^4.0.18"
+  }
+}

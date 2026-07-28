@@ -46,13 +46,39 @@ export type GrepInput = z.infer<typeof GrepInputSchema>;
 // =============================================================================
 
 function globToRegex(pattern: string): RegExp {
-	const escaped = pattern
-		.replace(/[.+^${}()|[\]\\]/g, "\\$&")
-		.replace(/\*\*/g, "||DOUBLESTAR||")
-		.replace(/\*/g, "[^/]*")
-		.replace(/\?/g, "[^/]")
-		.replace(/\|\\\|DOUBLESTAR\\\|/g, ".*");
-	return new RegExp(`^${escaped}$`);
+	const str = pattern.replace(/\\/g, "/");
+	let regexStr = "";
+	let i = 0;
+	while (i < str.length) {
+		const c = str[i];
+		if (c === "*") {
+			if (str[i + 1] === "*") {
+				if (str[i + 2] === "/") {
+					regexStr += "(?:.*\\/)?";
+					i += 3;
+					continue;
+				}
+				regexStr += ".*";
+				i += 2;
+				continue;
+			}
+			regexStr += "[^/]*";
+			i++;
+			continue;
+		}
+		if (c === "?") {
+			regexStr += "[^/]";
+			i++;
+			continue;
+		}
+		if ("[].+^${}()|\\".includes(c)) {
+			regexStr += "\\" + c;
+		} else {
+			regexStr += c;
+		}
+		i++;
+	}
+	return new RegExp(`^${regexStr}$`);
 }
 
 // Cache for compiled glob patterns in the glob tool.

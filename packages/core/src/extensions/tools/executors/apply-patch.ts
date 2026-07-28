@@ -71,11 +71,14 @@ function resolveFilePath(
 }
 
 function normalizeLineEndings(input: string): string[] {
-	return input.split("\n").map((line) => line.replace(/\r$/, ""));
+	if (typeof input !== "string") return [];
+	return input
+		.split("\n")
+		.map((line) => (typeof line === "string" ? line.replace(/\r$/, "") : ""));
 }
 
 function isWrapperLine(line: string): boolean {
-	if (line.trim() === "") {
+	if (typeof line !== "string" || line.trim() === "") {
 		return false;
 	}
 	return BASH_WRAPPERS.some((wrapper) => line.startsWith(wrapper));

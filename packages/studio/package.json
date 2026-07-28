@@ -1,0 +1,35 @@
+{
+  "name": "@zenuxs/studio",
+  "version": "0.1.0",
+  "description": "Zenuxs Code HTTP/WebSocket API server",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./api": {
+      "types": "./dist/api/index.d.ts",
+      "import": "./dist/api/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@zenuxs/engine": "workspace:*",
+    "@zenuxs/schema": "workspace:*",
+    "hono": "^4.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5",
+    "vitest": "^4.0.18"
+  }
+}

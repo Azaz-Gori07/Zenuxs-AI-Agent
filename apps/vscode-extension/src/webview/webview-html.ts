@@ -471,6 +471,44 @@ export function getWebviewHtml(
 		.btn.secondary { background: transparent; border: 1px solid var(--border); color: var(--fg); box-shadow: none; }
 		.btn.secondary:hover:not(:disabled) { background: rgba(255, 255, 255, 0.04); border-color: rgba(255,255,255,0.15); }
 		.btn.sm { padding: 5px 10px; font-size: 0.85em; border-radius: 4px; }
+		.task-completed-alert {
+			margin: 8px 0 12px 0;
+			padding: 10px 12px;
+			border-radius: 8px;
+			border: 1px solid rgba(16, 185, 129, 0.35);
+			background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0.04) 100%);
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+			animation: fadeInCompletion 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+		}
+		.alert-icon-badge {
+			width: 22px;
+			height: 22px;
+			border-radius: 50%;
+			background: rgba(16, 185, 129, 0.2);
+			border: 1px solid rgba(16, 185, 129, 0.4);
+			color: #10b981;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			flex-shrink: 0;
+		}
+		.alert-text-content {
+			display: flex;
+			flex-direction: column;
+			gap: 2px;
+		}
+		.alert-title {
+			font-weight: 600;
+			font-size: 0.88rem;
+			color: #10b981;
+		}
+		.alert-subtitle {
+			font-size: 0.8rem;
+			color: var(--muted, #94a3b8);
+		}
 		.task-completion-card {
 			margin: 10px 0 14px 0;
 			padding: 12px 14px;

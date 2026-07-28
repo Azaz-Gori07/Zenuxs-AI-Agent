@@ -76,8 +76,8 @@ function createLineDiff(
 ): string {
 	if (oldContent === newContent) return "";
 
-	const oldLines = oldContent.split("\n");
-	const newLines = newContent.split("\n");
+	const oldLines = typeof oldContent === "string" ? oldContent.split("\n") : [];
+	const newLines = typeof newContent === "string" ? newContent.split("\n") : [];
 	const maxLen = Math.max(oldLines.length, newLines.length);
 	const out: string[] = new Array(Math.min(maxLen * 2 + 2, maxLines * 2 + 2));
 	out[0] = "```diff";
@@ -87,26 +87,23 @@ function createLineDiff(
 	for (let i = 0; i < maxLen && emitted < maxLines; i++) {
 		const oldLine = oldLines[i];
 		const newLine = newLines[i];
-
-		if (oldLine === newLine) continue;
-
-		const lineNo = i + 1;
-		if (oldLine !== undefined) {
-			out[oi++] = `-${lineNo}: ${oldLine}`;
-			emitted++;
-		}
-		if (newLine !== undefined && emitted < maxLines) {
-			out[oi++] = `+${lineNo}: ${newLine}`;
-			emitted++;
+		if (oldLine !== newLine) {
+			if (oldLine !== undefined) {
+				out[oi++] = `- ${oldLine}`;
+				emitted++;
+			}
+			if (newLine !== undefined && emitted < maxLines) {
+				out[oi++] = `+ ${newLine}`;
+				emitted++;
+			}
 		}
 	}
 
-	if (emitted >= maxLines && oi < out.length - 1) {
-		out[oi++] = "... diff truncated ...";
+	if (emitted >= maxLines) {
+		out[oi++] = "... (diff truncated)";
 	}
 	out[oi++] = "```";
-	out.length = oi;
-	return out.join("\n");
+	return out.slice(0, oi).join("\n");
 }
 
 async function createFile(
