@@ -1,0 +1,231 @@
+[
+  {
+    "id": "1785226298239-1",
+    "seq": 1,
+    "timestamp": 1785226298239,
+    "iso": "2026-07-28T08:11:38.239Z",
+    "level": "INFO",
+    "category": "extension",
+    "message": "Extension activated",
+    "source": "extension",
+    "data": {
+      "version": "0.1.0",
+      "mode": "vscode-extension"
+    }
+  },
+  {
+    "id": "1785226305365-2",
+    "seq": 2,
+    "timestamp": 1785226305365,
+    "iso": "2026-07-28T08:11:45.365Z",
+    "level": "INFO",
+    "category": "console",
+    "message": "[React] App_render — activeTab:chat",
+    "source": "webview"
+  },
+  {
+    "id": "1785226305366-3",
+    "seq": 3,
+    "timestamp": 1785226305366,
+    "iso": "2026-07-28T08:11:45.366Z",
+    "level": "INFO",
+    "category": "console",
+    "message": "[React] ExtensionStateProvider_mount — SUCCESS",
+    "source": "webview"
+  },
+  {
+    "id": "1785226305367-4",
+    "seq": 4,
+    "timestamp": 1785226305367,
+    "iso": "2026-07-28T08:11:45.367Z",
+    "level": "INFO",
+    "category": "console",
+    "message": "[React] ready_message_sent — START",
+    "source": "webview"
+  },
+  {
+    "id": "1785226340727-5",
+    "seq": 5,
+    "timestamp": 1785226340727,
+    "iso": "2026-07-28T08:12:20.727Z",
+    "level": "DEBUG",
+    "category": "conversation",
+    "message": "Session history loaded: 9 sessions",
+    "source": "session"
+  },
+  {
+    "id": "1785226346341-6",
+    "seq": 6,
+    "timestamp": 1785226346341,
+    "iso": "2026-07-28T08:12:26.341Z",
+    "level": "INFO",
+    "category": "console",
+    "message": "[React] handleMessage_initial_data — RECEIVED",
+    "source": "webview"
+  },
+  {
+    "id": "1785226346345-7",
+    "seq": 7,
+    "timestamp": 1785226346345,
+    "iso": "2026-07-28T08:12:26.345Z",
+    "level": "INFO",
+    "category": "console",
+    "message": "[React] dispatch_initial_data — DISPATCHED",
+    "source": "webview"
+  },
+  {
+    "id": "1785226349132-8",
+    "seq": 8,
+    "timestamp": 1785226349132,
+    "iso": "2026-07-28T08:12:29.132Z",
+    "level": "INFO",
+    "category": "console",
+    "message": "[React] App_render — activeTab:chat",
+    "source": "webview"
+  },
+  {
+    "id": "1785226349134-9",
+    "seq": 9,
+    "timestamp": 1785226349134,
+    "iso": "2026-07-28T08:12:29.134Z",
+    "level": "INFO",
+    "category": "console",
+    "message": "[React] ExtensionStateProvider_mount — SUCCESS",
+    "source": "webview"
+  },
+  {
+    "id": "1785226349136-10",
+    "seq": 10,
+    "timestamp": 1785226349136,
+    "iso": "2026-07-28T08:12:29.136Z",
+    "level": "INFO",
+    "category": "console",
+    "message": "[React] ready_message_sent — START",
+    "source": "webview"
+  },
+  {
+    "id": "1785226350349-11",
+    "seq": 11,
+    "timestamp": 1785226350349,
+    "iso": "2026-07-28T08:12:30.349Z",
+    "level": "DEBUG",
+    "category": "conversation",
+    "message": "Session history loaded: 9 sessions",
+    "source": "session"
+  },
+  {
+    "id": "1785226350395-12",
+    "seq": 12,
+    "timestamp": 1785226350395,
+    "iso": "2026-07-28T08:12:30.395Z",
+    "level": "INFO",
+    "category": "console",
+    "message": "[React] handleMessage_initial_data — RECEIVED",
+    "source": "webview"
+  },
+  {
+    "id": "1785226350396-13",
+    "seq": 13,
+    "timestamp": 1785226350396,
+    "iso": "2026-07-28T08:12:30.396Z",
+    "level": "INFO",
+    "category": "console",
+    "message": "[React] dispatch_initial_data — DISPATCHED",
+    "source": "webview"
+  },
+  {
+    "id": "1785226392329-14",
+    "seq": 14,
+    "timestamp": 1785226392329,
+    "iso": "2026-07-28T08:13:12.329Z",
+    "level": "DEBUG",
+    "category": "conversation",
+    "message": "Session history loaded: 9 sessions",
+    "source": "session"
+  },
+  {
+    "id": "1785226392382-15",
+    "seq": 15,
+    "timestamp": 1785226392382,
+    "iso": "2026-07-28T08:13:12.382Z",
+    "level": "INFO",
+    "category": "console",
+    "message": "[React] handleMessage_initial_data — RECEIVED",
+    "source": "webview"
+  },
+  {
+    "id": "1785226392383-16",
+    "seq": 16,
+    "timestamp": 1785226392383,
+    "iso": "2026-07-28T08:13:12.383Z",
+    "level": "INFO",
+    "category": "console",
+    "message": "[React] dispatch_initial_data — DISPATCHED",
+    "source": "webview"
+  },
+  {
+    "id": "1785226394270-17",
+    "seq": 17,
+    "timestamp": 1785226394270,
+    "iso": "2026-07-28T08:13:14.270Z",
+    "level": "DEBUG",
+    "category": "auth",
+    "message": "Session API key resolved",
+    "source": "session",
+    "data": {
+      "providerId": "cline",
+      "hasKey": "****************",
+      "keyPrefix": "*********J..."
+    }
+  },
+  {
+    "id": "1785226394271-18",
+    "seq": 18,
+    "timestamp": 1785226394271,
+    "iso": "2026-07-28T08:13:14.271Z",
+    "level": "ERROR",
+    "category": "conversation",
+    "message": "Session error: resolvedModelId is not defined",
+    "source": "session"
+  },
+  {
+    "id": "1785226395168-19",
+    "seq": 19,
+    "timestamp": 1785226395168,
+    "iso": "2026-07-28T08:13:15.168Z",
+    "level": "DEBUG",
+    "category": "conversation",
+    "message": "Session history loaded: 9 sessions",
+    "source": "session"
+  },
+  {
+    "id": "1785226395205-20",
+    "seq": 20,
+    "timestamp": 1785226395205,
+    "iso": "2026-07-28T08:13:15.205Z",
+    "level": "INFO",
+    "category": "console",
+    "message": "[React] handleMessage_initial_data — RECEIVED",
+    "source": "webview"
+  },
+  {
+    "id": "1785226395206-21",
+    "seq": 21,
+    "timestamp": 1785226395206,
+    "iso": "2026-07-28T08:13:15.206Z",
+    "level": "INFO",
+    "category": "console",
+    "message": "[React] dispatch_initial_data — DISPATCHED",
+    "source": "webview"
+  },
+  {
+    "id": "1785226403424-22",
+    "seq": 22,
+    "timestamp": 1785226403424,
+    "iso": "2026-07-28T08:13:23.424Z",
+    "level": "INFO",
+    "category": "console",
+    "message": "[React] App_render — activeTab:settings",
+    "source": "webview"
+  }
+]

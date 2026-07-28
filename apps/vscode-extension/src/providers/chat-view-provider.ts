@@ -299,6 +299,8 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 					this.postToWebview({ type: "terminal_line", taskId: data.taskId, line: data.line, state: data.state });
 				} else if (type === "terminal_state_changed") {
 					this.postToWebview({ type: "terminal_state_changed", taskId: data.taskId, state: data.state });
+				} else if (type === "terminal_command") {
+					this.postToWebview({ type: "terminal_command", taskId: data.taskId, command: data.command, id: data.id });
 				} else if (type.startsWith("file:") || type.startsWith("session:")) {
 					this.postToWebview({ type: "live_edit_event", eventType: type, ...data });
 				}
@@ -1607,22 +1609,11 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				const selectedProviderSettings = psm.getProviderSettings(providerId)
 					// Fall back to "cline" if the provider key doesn't match (token may be stored under "cline")
 					|| psm.getProviderSettings("cline");
-<<<<<<< Updated upstream
-				const resolvedApiKey = resolveProviderApiKeyFromSettings(psm, providerId) || getPersistedProviderApiKey(providerId, selectedProviderSettings) || extConfig.apiKey || "";
-				loggerService.log({ level: LogLevel.DEBUG, category: LogCategory.AUTH, message: "Session API key resolved", source: "session", data: { providerId, hasKey: !!resolvedApiKey, keyPrefix: resolvedApiKey ? resolvedApiKey.substring(0, 10) + "..." : "none" } });
-=======
-				const resolvedApiKey = getPersistedProviderApiKey(providerId, selectedProviderSettings) || extConfig.apiKey || "";
->>>>>>> Stashed changes
-				const resolvedBaseUrl = selectedProviderSettings?.baseUrl || extConfig.baseUrl || undefined;
-
-				// Resolve model ID: check UI config, VS Code settings, or provider settings, or use fallback
-				const resolvedModelId = uiConfig?.modelId || extConfig.modelId || selectedProviderSettings?.model || "anthropic/claude-sonnet-4.6";
-
-				const modelId = resolvedModelId;
-
-				// Pre-flight readiness check: API-key-based providers (e.g. OpenRouter)
-				// must have a key configured before we contact the model. Without it the
-				// request fails with an opaque upstream error (e.g. OpenRouter's
+                const resolvedApiKey = resolveProviderApiKeyFromSettings(psm, providerId) || getPersistedProviderApiKey(providerId, selectedProviderSettings) || extConfig.apiKey || "";
+                loggerService.log({ level: LogLevel.DEBUG, category: LogCategory.AUTH, message: "Session API key resolved", source: "session", data: { providerId, hasKey: !!resolvedApiKey, keyPrefix: resolvedApiKey ? resolvedApiKey.substring(0, 10) + "..." : "none" } });
+                const resolvedBaseUrl = selectedProviderSettings?.baseUrl || extConfig.baseUrl || undefined;
+                const resolvedModelId = uiConfig?.modelId || extConfig.modelId || selectedProviderSettings?.model || "anthropic/claude-sonnet-4.6";
+                const modelId = resolvedModelId;
 				// "User not found." 500) and the session silently returns to idle, which
 				// looks like the chat "closing". Surface a clear, actionable error instead.
 				if (!isOAuthProvider(providerId) && !resolvedApiKey) {

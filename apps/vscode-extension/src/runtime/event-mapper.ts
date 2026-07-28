@@ -38,6 +38,10 @@ export type WebviewOutboundMessage =
 			reason?: string;
 	  }
 	| {
+			type: "usage";
+			usage: WebviewUsage;
+	  }
+	| {
 			type: "turn_done";
 			finishReason: string;
 			iterations: number;
@@ -246,8 +250,15 @@ function mapAgentEvent(event: AgentEvent): WebviewOutboundMessage[] {
 		}
 
 		case "usage": {
-			// Usage events are informational; we surface them as status
+			const usage: WebviewUsage = {
+				inputTokens: event.inputTokens,
+				outputTokens: event.outputTokens,
+				cacheReadInputTokens: event.cacheReadTokens,
+				cacheCreationInputTokens: event.cacheWriteTokens,
+				totalCost: event.totalCost,
+			};
 			return [
+				{ type: "usage", usage },
 				{
 					type: "status",
 					text: `Tokens: ${event.inputTokens} in / ${event.outputTokens} out`,

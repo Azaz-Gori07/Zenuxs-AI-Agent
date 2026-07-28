@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useExtensionState } from "../context/ExtensionStateContext.js";
 import { MarkdownBlock } from "./common/MarkdownBlock.js";
 import { TaskCompletionBlock } from "./TaskCompletionBlock.js";
-import type { AgentMode, TaskDataV2, TaskFsmState, TimelineEvent, TaskSummaryV2, FileChangesV2, PersistedTaskExecution, ProviderModel } from "../types.js";
+import type { AgentMode, TaskDataV2, TaskFsmState, TimelineEvent, TaskSummaryV2, FileChangesV2, PersistedTaskExecution, ProviderModel, ToolEventData } from "../types.js";
 import { SCHEMA_VERSION } from "../types.js";
 import { postMessage } from "../vscode-api.js";
 import { 
@@ -87,6 +87,7 @@ export function ChatView() {
 	const timelineState = useStore(TimelineStore);
 	const executionState = useStore(ExecutionStore);
 	const toolExecutionState = useStore(ToolExecutionStore);
+	const [contextSummaryTriggered, setContextSummaryTriggered] = useState(false);
 	const isExecutionActive = executionState.isRunning || state.isRunning;
 	const lastMsg = timelineState.messages.length > 0 ? timelineState.messages[timelineState.messages.length - 1] : undefined;
 	const isTaskCompleted = lastMsg?.role === "completion";
@@ -221,7 +222,26 @@ export function ChatView() {
 		if (executionState.contextMaxTokens !== ctx) {
 			ExecutionStore.updateContextWindow(ctx);
 		}
-	}, [state.currentConfig.providerId, state.currentConfig.modelId, getModelContextWindow]);
+	}, [state.currentConfig.providerId, state.currentConfig.modelId, getModelContextWindow, executionState.contextMaxTokens]);
+
+	useEffect(() => {
+		const percentage = Math.min(100, Math.max(0, (executionState.contextTokens / executionState.contextMaxTokens) * 100));
+		const threshold = percentage >= 100 ? 100 : percentage >= 95 ? 95 : undefined;
+		if (!threshold) {
+			setContextSummaryTriggered(false);
+			return;
+		}
+		if (contextSummaryTriggered) return;
+
+		const lastUserMessage = timelineState.messages.slice().reverse().find((msg) => msg.role === "user");
+		const goal = activeTask?.title || lastUserMessage?.text?.slice(0, 120) || "Current conversation goal";
+		const task = activeTask ? `${activeTask.title} (${activeTask.events.length} event${activeTask.events.length === 1 ? "" : "s"})` : lastUserMessage?.text?.slice(0, 120);
+		const summary =
+			"This conversation is nearing the model context limit. Summarize the current goal, active task, and key actions so the agent can continue without losing important context.";
+
+		AgentEventBus.publish("context_summary", { threshold, goal, task, summary });
+		setContextSummaryTriggered(true);
+	}, [executionState.contextTokens, executionState.contextMaxTokens, timelineState.messages, activeTask, contextSummaryTriggered]);
 
 	const handleInputChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
 		const val = e.target.value;
@@ -641,6 +661,85 @@ export function ChatView() {
 		return parts.slice(-2).join("/") || p;
 	}
 
+	function getToolEventType(event: ToolEventData): string {
+		const name = (event.name || "").toLowerCase();
+		if (name.includes("create") || name.includes("write") || name.includes("edit") || name.includes("replace") || name.includes("apply_diff")) return "writing";
+		if (name.includes("search") || name.includes("grep") || name.includes("glob") || name.includes("list_dir") || name.includes("directory")) return "searching";
+		if (name.includes("read") || name.includes("view")) return "reading";
+		if (name.includes("command") || name.includes("bash") || name.includes("shell") || name === "run") return "command";
+		if (name.includes("test")) return "testing";
+		return "tool";
+	}
+
+	function formatToolEventTitle(event: ToolEventData): string {
+		if (event.text) return event.text;
+		const type = getToolEventType(event);
+		const input = event.input as any;
+		const path = normalizePath(event.filePath || input?.filePath || input?.path || "");
+		if (type === "command") {
+			const command = typeof input?.command === "string" ? input.command : "command";
+			return `run: ${command}`;
+		}
+		if (path) {
+			const added = typeof input?.addedLines === "number" ? ` +${input.addedLines}` : "";
+			const removed = typeof input?.removedLines === "number" ? ` -${input.removedLines}` : "";
+			if (type === "reading") return `read file: ${path}`;
+			if (type === "writing") {
+				const verb = (event.name || "").toLowerCase().includes("create") ? "create file:" : "write file:";
+				return `${verb} ${path}${added || removed ? ` (${added}${removed})` : ""}`.trim();
+			}
+			return `${type} ${path}`;
+		}
+		return event.name ? `${event.name}` : "Tool action";
+	}
+
+	function renderToolEventDetails(event: ToolEventData) {
+		const input = event.input as any;
+		const command = typeof input?.command === "string" ? input.command : undefined;
+		const outputText = typeof event.output === "string" && event.output.trim() ? event.output.trim() : undefined;
+		const errorText = typeof event.error === "string" && event.error.trim() ? event.error.trim() : undefined;
+		const canvasBlocks: string[] = [];
+		if (command) canvasBlocks.push(`\`\`\`bash\n${command}\n\`\`\``);
+		else if (outputText) canvasBlocks.push(`\`\`\`text\n${outputText}\n\`\`\``);
+		else if (errorText) canvasBlocks.push(`\`\`\`text\n${errorText}\n\`\`\``);
+
+		return (
+			<div className="tool-event-details">
+				<div className="tool-event-canvas">
+					{canvasBlocks.length > 0 ? canvasBlocks.map((block, index) => (
+						<MarkdownBlock key={index} markdown={`\`\`\`${block.slice(3)}`} />
+					)) : (
+						<div className="tool-event-empty">No code preview available.</div>
+					)}
+				</div>
+			</div>
+		);
+	}
+
+	function renderToolEvents(events: ToolEventData[] | undefined) {
+		if (!events || events.length === 0) return null;
+		return (
+			<div className="tool-events-block">
+				{events.map((event, eventIndex) => {
+					const title = formatToolEventTitle(event);
+					const type = getToolEventType(event);
+					const stateLabel = event.state === "running" ? "Running" : event.state === "failed" || event.state === "output-error" ? "Failed" : event.state === "completed" ? "Completed" : event.state;
+					return (
+						<div key={`${event.id || eventIndex}-${title}`} className={`tool-event ${type} ${event.state === "failed" || event.state === "output-error" ? "failed" : "completed"}`}>
+							<details>
+								<summary className="tool-event-summary">
+									<span className={`tool-event-title ${type}`}>{title}</span>
+									<span className={`tool-event-status-badge ${event.state}`}>{stateLabel}</span>
+								</summary>
+								{renderToolEventDetails(event)}
+							</details>
+						</div>
+					);
+				})}
+			</div>
+		);
+	}
+
 	const contextPercentage = Math.min(100, Math.max(0, (executionState.contextTokens / executionState.contextMaxTokens) * 100));
 
 	return (
@@ -709,14 +808,16 @@ export function ChatView() {
 							const isUser = msg.role === "user";
 							const isAssistant = msg.role === "assistant";
 							const isError = msg.role === "error";
+							const isMeta = msg.role === "meta";
 							const isEditing = editingIndex === idx;
 							const isLastMessage = idx === timelineState.messages.length - 1;
 							const isStreamingThis = isAssistant && isLastMessage && isExecutionActive;
+							const senderLabel = isUser ? "You" : isAssistant ? "Zenuxs AI" : isError ? "Error" : isMeta ? "Context Summary" : "";
 
 							return (
-								<div key={idx} className={`message ${isUser ? "user" : isAssistant ? "assistant" : isError ? "error" : ""}`}>
+								<div key={idx} className={`message ${isUser ? "user" : isAssistant ? "assistant" : isError ? "error" : isMeta ? "meta" : ""}`}>
 									<div className="message-header">
-										<span className="brand-zenuxs">{isUser ? "You" : "Zenuxs AI"}</span>
+										<span className="brand-zenuxs">{senderLabel}</span>
 										<div className="message-actions">
 											{isAssistant && !isEditing && (
 												<button className="msg-action-btn" onClick={() => copyMessage(msg.text)} title="Copy">
@@ -741,9 +842,10 @@ export function ChatView() {
 									) : (
 										<>
 											<div className="message-text">
-												<MarkdownBlock markdown={msg.text} />
+												{msg.text ? <MarkdownBlock markdown={msg.text} /> : null}
 												{isStreamingThis && <span className="streaming-cursor" aria-hidden="true" />}
 											</div>
+											{renderToolEvents((msg as any).toolEvents)}
 											{(msg as any).reasoning ? (
 												<div className={`reasoning-block ${isStreamingThis ? "reasoning-live" : ""}`}>
 													<div className="reasoning-header" onClick={(e) => { const el = e.currentTarget.nextElementSibling as HTMLElement | null; if (el) { el.style.display = el.style.display === "none" ? "block" : "none"; } }}>
@@ -757,14 +859,6 @@ export function ChatView() {
 									)}
 								</div>
 							);
-						})}
-
-						{/* Thinking Animation — shown when model is thinking before any response text */}
-						{isExecutionActive && executionState.status === "thinking" && 
-						 timelineState.messages.length > 0 && 
-						 timelineState.messages[timelineState.messages.length - 1].role === "user" && (
-							<div key="thinking-block" className="message assistant" style={{ padding: "8px 12px 4px" }}>
-								<ThinkingAnimation />
 							</div>
 						)}
 					</div>

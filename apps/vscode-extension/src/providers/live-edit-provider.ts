@@ -306,9 +306,29 @@ export class ZenuxsLiveEditService {
 
 		this.fadeTimers.set(filePath, timer);
 
+		// Compute rough line-level delta for UI summary (+added, -removed)
+		let addedLines = 0;
+		let removedLines = 0;
+		try {
+			const original = this.activeSession?.originalContents.get(filePath) ?? "";
+			const origLines = original.split("\n");
+			const newLines = document.getText().split("\n");
+			if (newLines.length >= origLines.length) {
+				addedLines = newLines.length - origLines.length;
+				removedLines = 0;
+			} else {
+				removedLines = origLines.length - newLines.length;
+				addedLines = 0;
+			}
+		} catch (e) {
+			// best-effort, leave counts as 0 on error
+		}
+
 		this.publishSessionEvent("file:edit_completed", {
 			taskId: this.activeSession?.taskId,
 			filePath,
+			addedLines,
+			removedLines,
 		});
 	}
 

@@ -52,6 +52,7 @@ type Action =
 	| { type: "CLEAR_APPROVAL" }
 	| { type: "SET_APPROVAL_RESOLVED"; approvalId: string; approved: boolean; reason?: string }
 	| { type: "SET_TURN_DONE"; finishReason: string; iterations: number; usage?: import("../types.js").UsageData }
+	| { type: "SET_USAGE"; usage: import("../types.js").UsageData }
 	| { type: "SET_SESSION_STARTED"; sessionId: string }
 	| { type: "HYDRATE_SESSION"; sessionId: string; messages: import("../types.js").ChatMessage[] }
 	| { type: "RESET_SESSION" }
@@ -111,16 +112,32 @@ function reducer(state: AppState, action: Action): AppState {
 		}
 		case "UPDATE_TOOL_EVENT": {
 			const msgs = [...state.messages];
-			const last = msgs[msgs.length - 1];
-			if (last && last.role === "assistant") {
-				const events = [...(last.toolEvents || [])];
-				if (action.event) {
-					const idx = events.findIndex((e) => e.id === action.event?.id);
-					if (idx >= 0) events[idx] = { ...events[idx], ...action.event };
-					else events.push(action.event);
+			const event = action.event;
+			if (!event) return state;
+			const eventId = event.id || (event as any).toolCallId;
+			const existingIndex = msgs.findIndex((m) =>
+				m.role === "assistant" &&
+				Array.isArray(m.toolEvents) &&
+				m.toolEvents.some((e) => e.id === eventId || (e as any).toolCallId === eventId),
+			);
+			if (existingIndex >= 0) {
+				const existingMsg = msgs[existingIndex];
+				const events = [...(existingMsg.toolEvents || [])];
+				const idx = events.findIndex((e) => e.id === eventId || (e as any).toolCallId === eventId);
+				if (idx >= 0) {
+					const prevEvent = events[idx];
+					const nextEvent = { ...prevEvent, ...event };
+					if (event.state === "running" && typeof event.output === "string" && typeof prevEvent.output === "string") {
+						nextEvent.output = prevEvent.output + event.output;
+					}
+					events[idx] = nextEvent;
+				} else {
+					events.push(event);
 				}
-				msgs[msgs.length - 1] = { ...last, toolEvents: events };
-			} else msgs.push({ role: "assistant", text: "", toolEvents: action.event ? [action.event] : [] });
+				msgs[existingIndex] = { ...existingMsg, toolEvents: events };
+			} else {
+				msgs.push({ role: "assistant", text: action.text || "", toolEvents: [event] });
+			}
 			return { ...state, messages: msgs };
 		}
 		case "SET_APPROVAL_REQUEST": return { ...state, pendingApproval: action.payload };
@@ -172,6 +189,7 @@ function reducer(state: AppState, action: Action): AppState {
 		case "ADD_ERROR": return { ...state, messages: [...state.messages, { role: "error", text: action.text }], isRunning: false };
 		case "SET_RUNNING": return { ...state, isRunning: action.isRunning };
 		case "ADD_LOG": return { ...state, logs: [...state.logs, `[${new Date().toLocaleTimeString()}] ${action.text}`] };
+		case "SET_USAGE": return { ...state, usage: action.usage };
 		case "CLEAR_LOGS": return { ...state, logs: ["System logs cleared..."] };
 		case "SET_TAB":
 			if (state.activeTab === action.tab && (action.tab === "settings" || action.tab === "history")) {
@@ -296,8 +314,42 @@ export function ExtensionStateProvider({ children }: { children: ReactNode }) {
 			case "tool_event": dispatch({ type: "UPDATE_TOOL_EVENT", text: msg.text, event: msg.event }); break;
 			case "approval_request": dispatch({ type: "SET_APPROVAL_REQUEST", payload: msg }); break;
 			case "approval_resolved": dispatch({ type: "SET_APPROVAL_RESOLVED", approvalId: msg.approvalId, approved: msg.approved, reason: msg.reason }); break;
-			case "turn_done": dispatch({ type: "SET_TURN_DONE", finishReason: msg.finishReason, iterations: msg.iterations, usage: msg.usage }); break;
+			case "usage": dispatch({ type: "SET_USAGE", usage: msg.usage }); break;
+		case "turn_done": dispatch({ type: "SET_TURN_DONE", finishReason: msg.finishReason, iterations: msg.iterations, usage: msg.usage }); break;
 			case "session_started": dispatch({ type: "SET_SESSION_STARTED", sessionId: msg.sessionId }); break;
+			case "live_edit_event": {
+				const evType = (msg as any).eventType as string;
+				if (evType && evType.startsWith("file:")) {
+					const filePath = (msg as any).filePath as string | undefined;
+					if (evType === "file:active_changed") {
+						const text = `reading: ${filePath}`;
+						dispatch({ type: "ADD_LOG", text });
+						AgentEventBus.publish("tool_event", { text, event: { id: `read-${filePath}-${Date.now()}`, name: "read", input: { filePath }, state: "running" } });
+					} else if (evType === "file:incremental_chunk") {
+						const lineCount = (msg as any).lineCount;
+						const isFinal = Boolean((msg as any).isFinal);
+						const text = `writing: ${filePath}`;
+						dispatch({ type: "ADD_LOG", text });
+						AgentEventBus.publish("tool_event", { text, event: { id: `write-${filePath}-${Date.now()}`, name: "write", input: { filePath, lineCount }, state: isFinal ? "completed" : "running" } });
+					} else if (evType === "file:edit_completed") {
+						const added = (msg as any).addedLines ?? 0;
+						const removed = (msg as any).removedLines ?? 0;
+						const suffix = `${added > 0 ? `( +${added} )` : ""}${removed > 0 ? ` ( -${removed} )` : ""}`.trim();
+						const text = `write: ${filePath}${suffix ? ' ' + suffix : ''}`;
+						dispatch({ type: "ADD_LOG", text });
+						AgentEventBus.publish("tool_event", { text, event: { id: `write-done-${filePath}-${Date.now()}`, name: "write", input: { filePath, addedLines: added, removedLines: removed }, state: "completed" } });
+					}
+				}
+				break;
+			}
+			case "terminal_command": {
+				const cmd = (msg as any).command as string;
+				const id = (msg as any).id as string | undefined;
+				const text = `cmd: ${cmd}`;
+				dispatch({ type: "ADD_LOG", text });
+				AgentEventBus.publish("tool_event", { text, event: { id: id ?? `cmd-${Date.now()}`, name: "command", input: { command: cmd }, state: "running" } });
+				break;
+			}
 			case "session_hydrated": dispatch({ type: "HYDRATE_SESSION", sessionId: msg.sessionId, messages: msg.messages }); break;
 			case "reset_done": dispatch({ type: "RESET_SESSION" }); break;
 			case "error": dispatch({ type: "ADD_ERROR", text: msg.text }); dispatch({ type: "ADD_LOG", text: `Error: ${msg.text}` }); AgentEventBus.publish("error_occurred", { text: msg.text }); break;

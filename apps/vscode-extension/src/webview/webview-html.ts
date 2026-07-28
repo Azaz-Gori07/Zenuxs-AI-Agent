@@ -183,6 +183,18 @@ export function getWebviewHtml(
 		.message.error {
 			color: var(--error);
 		}
+		.message.meta {
+			align-self: flex-start;
+			background: rgba(56, 189, 248, 0.08);
+			border: 1px solid rgba(56, 189, 248, 0.14);
+			border-radius: 16px;
+		}
+		.message.meta .message-header {
+			color: rgba(56, 189, 248, 0.95);
+		}
+		.message.meta .brand-zenuxs {
+			color: #7dd3fc;
+		}
 		.message-header {
 			font-weight: 500; font-size: 0.78em; color: var(--muted);
 			display: flex; justify-content: space-between; align-items: center;
@@ -259,6 +271,89 @@ export function getWebviewHtml(
 			font-family: var(--font-mono); font-size: 0.85em; background: rgba(0, 0, 0, 0.25);
 			padding: 8px 10px; border-radius: 4px; overflow-x: auto; white-space: pre-wrap; max-height: 140px;
 			color: rgba(255,255,255,0.8); border: 1px solid rgba(255,255,255,0.03);
+		}
+		.tool-event-meta {
+			display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;
+		}
+		.tool-event-meta-row {
+			display: flex; gap: 6px; align-items: center;
+			font-size: 0.83em; color: rgba(255,255,255,0.78);
+		}
+		.tool-event-meta-label {
+			font-weight: 600; color: rgba(255,255,255,0.95);
+		}
+		.tool-event-canvas {
+			border: 1px solid rgba(255,255,255,0.08); background: rgba(15, 23, 42, 0.95);
+			border-radius: 10px; padding: 12px; overflow-x: auto; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
+		}
+		.tool-event-canvas .markdown-body {
+			margin: 0;
+		}
+		.tool-event-empty {
+			font-size: 0.88em; color: rgba(255,255,255,0.65); padding: 14px 0;
+		}
+		.tool-event {
+			border: 1px solid rgba(255, 255, 255, 0.08);
+			background: rgba(255, 255, 255, 0.015);
+			border-radius: 16px;
+			padding: 10px;
+			margin-bottom: 10px;
+		}
+		.tool-event-summary {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			gap: 10px;
+			padding: 0 4px;
+			cursor: pointer;
+			font-weight: 600;
+		}
+		.tool-event-title {
+			color: rgba(255, 255, 255, 0.9);
+			font-size: 0.95em;
+		}
+		.tool-event-title.command {
+			color: #c084fc;
+		}
+		.tool-event-title.writing {
+			color: #34d399;
+		}
+		.tool-event-title.reading {
+			color: #7dd3fc;
+			background: linear-gradient(90deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.85) 35%, rgba(255,255,255,0.7) 100%);
+			background-size: 200% 100%;
+			-webkit-background-clip: text;
+			color: transparent;
+			animation: reading-glow 2.5s linear infinite;
+		}
+		.tool-event-title.searching {
+			color: #facc15;
+		}
+		.tool-event-title.testing {
+			color: #fb923c;
+		}
+		.tool-event-status-badge {
+			font-size: 0.75em;
+			padding: 3px 8px;
+			border-radius: 999px;
+			text-transform: uppercase;
+			letter-spacing: 0.02em;
+		}
+		.tool-event-status-badge.running {
+			background: rgba(59, 130, 246, 0.16);
+			color: #93c5fd;
+		}
+		.tool-event-status-badge.completed {
+			background: rgba(16, 185, 129, 0.16);
+			color: #86efac;
+		}
+		.tool-event-status-badge.failed {
+			background: rgba(244, 63, 94, 0.16);
+			color: #fda4af;
+		}
+		@keyframes reading-glow {
+			0% { background-position: 0% 50%; }
+			100% { background-position: 200% 50%; }
 		}
 		.approval-card {
 			margin-top: 10px; border: 1px solid rgba(139, 92, 246, 0.3); border-radius: var(--radius); padding: 14px;
