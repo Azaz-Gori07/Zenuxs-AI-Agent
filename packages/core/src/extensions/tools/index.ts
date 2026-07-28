@@ -59,6 +59,12 @@ export {
 	resolveToolRoutingConfig,
 	type ToolRoutingRule,
 } from "./model-tool-routing";
+export {
+	evaluateToolSelection,
+	type IntentContext,
+	type SelectedToolDecision,
+	type ToolRoutingCandidate,
+} from "./tool-selection-policy";
 // Presets
 export {
 	createDefaultToolsWithPreset,

@@ -120,33 +120,7 @@ export function SettingsView() {
 	const [providerModels, setProviderModels] = useState<Record<string, string[]>>({});
 	const [loadingProviders, setLoadingProviders] = useState(false);
 	const [providerError, setProviderError] = useState<string | null>(null);
-	const [oauthStatus, setOauthStatus] = useState<Record<string, "idle" | "authenticating" | "success" | "error">>({});
 	const [oauthErrorMessage, setOauthErrorMessage] = useState<string | null>(null);
-
-	useEffect(() => {
-		const handler = (event: MessageEvent) => {
-			const msg = event.data;
-			if (!msg || typeof msg !== "object") return;
-			if (msg.type === "oauth_status") {
-				const pid = msg.providerId;
-				if (msg.status === "authenticating") {
-					setOauthStatus((prev) => ({ ...prev, [pid]: "authenticating" }));
-					setOauthErrorMessage(null);
-				} else if (msg.status === "success") {
-					setOauthStatus((prev) => ({ ...prev, [pid]: "success" }));
-					setOauthErrorMessage(null);
-				} else if (msg.status === "error") {
-					setOauthStatus((prev) => ({ ...prev, [pid]: "error" }));
-					setOauthErrorMessage(msg.message || "Authentication failed.");
-				} else if (msg.status === "logged_out") {
-					setOauthStatus((prev) => ({ ...prev, [pid]: "idle" }));
-					setOauthErrorMessage(null);
-				}
-			}
-		};
-		window.addEventListener("message", handler);
-		return () => window.removeEventListener("message", handler);
-	}, []);
 
 	useEffect(() => {
 		setLocalCfg({ ...cfg });
@@ -212,19 +186,16 @@ export function SettingsView() {
 	const needsApiKey = authType === "API_KEY";
 	const hasSavedApiKey = selectedProvider && typeof selectedProvider === "object" ? !!selectedProvider.hasApiKey : false;
 	const isCustomProvider = localCfg.providerId === "custom";
-	const isOAuthAuthenticated = (selectedProvider && typeof selectedProvider === "object" ? !!selectedProvider.oauthAccessTokenPresent : false) || oauthStatus[localCfg.providerId] === "success";
-	const accountId = selectedProvider && typeof selectedProvider === "object" ? selectedProvider.accountId : undefined;
-	const currentOAuthState = oauthStatus[localCfg.providerId] || (isOAuthAuthenticated ? "success" : "idle");
+	const isOAuthAuthenticated = (selectedProvider && typeof selectedProvider === "object" ? !!selectedProvider.oauthAccessTokenPresent : false) || state.oauthStatus[localCfg.providerId] === "success";
+	const currentOAuthState = state.oauthStatus[localCfg.providerId] || (isOAuthAuthenticated ? "success" : "idle");
 
 	const handleOAuth = useCallback(() => {
-		setOauthStatus((prev) => ({ ...prev, [localCfg.providerId]: "authenticating" }));
 		setOauthErrorMessage(null);
 		loginOAuth(localCfg.providerId);
 	}, [localCfg.providerId, loginOAuth]);
 
 	const handleLogoutOAuth = useCallback((pid: string) => {
 		logoutOAuth(pid);
-		setOauthStatus((prev) => ({ ...prev, [pid]: "idle" }));
 		setOauthErrorMessage(null);
 	}, [logoutOAuth]);
 
@@ -278,9 +249,11 @@ export function SettingsView() {
 									disabled={loadingProviders}
 								>
 									<option value="">Select a model</option>
-									{(providerModels[localCfg.providerId] || state.models[localCfg.providerId] || []).map((m) => (
-										<option key={m} value={m}>{m}</option>
-									))}
+									{((providerModels[localCfg.providerId] || state.models[localCfg.providerId] || []) as any[]).map((m) => {
+										const id = typeof m === "string" ? m : m.id;
+										const name = typeof m === "string" ? m : m.name;
+										return <option key={id} value={id}>{name}</option>;
+									})}
 								</select>
 								{loadingProviders && <div className="text-muted" style={{ fontSize: "0.8em" }}>Loading models...</div>}
 								{providerError && <div className="text-muted" style={{ fontSize: "0.8em", color: "var(--error)" }}>{providerError}</div>}
@@ -376,10 +349,7 @@ export function SettingsView() {
 											alignItems: "center",
 											justifyContent: "space-between"
 										}}>
-											<span>✅ Login Successful</span>
-											<span style={{ fontSize: 11, opacity: 0.8 }}>
-												{accountId ? `Logged in as ${accountId}` : "Status: Connected"}
-											</span>
+											<span>✅ Login Success</span>
 										</div>
 										<button
 											className="btn secondary"

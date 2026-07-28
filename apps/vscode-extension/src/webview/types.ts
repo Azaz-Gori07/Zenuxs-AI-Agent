@@ -1,4 +1,20 @@
+export interface ProviderModel {
+	id: string;
+	name: string;
+	category?: "recommended" | "free" | "paid";
+	contextWindow?: number;
+	pricing?: { input: number; output: number; cachedInput?: number };
+	capabilities?: string[];
+	supportsAttachments?: boolean;
+	supportsVision?: boolean;
+	supportsReasoning?: boolean;
+	isFavorite?: boolean;
+	recentlyUsed?: boolean;
+}
+
 export type TabId = "chat" | "history" | "settings" | "dashboard" | "logs" | "teams" | "console";
+
+export type AgentExecutionPhase = "idle" | "starting" | "streaming" | "executing_tools" | "waiting_approval" | "completed" | "cancelled" | "error";
 
 export type AgentMode = "act" | "plan" | "yolo" | "zen" | "ask" | "debug" | "god";
 
@@ -37,11 +53,27 @@ export interface Toggles {
 	mcp: ToggleItem[];
 }
 
+export interface TaskCompletionMetadata {
+	timestamp?: number;
+	completedAtFormatted?: string;
+	durationMs?: number;
+	toolsUsed?: number;
+	filesModified?: number;
+	inputTokens?: number;
+	outputTokens?: number;
+	totalCost?: number;
+	model?: string;
+	provider?: string;
+	checkpointRef?: string;
+	statusText?: string;
+}
+
 export interface ChatMessage {
-	role: "user" | "assistant" | "error" | "meta";
+	role: "user" | "assistant" | "error" | "meta" | "completion";
 	text: string;
 	reasoning?: string;
 	toolEvents?: ToolEventData[];
+	completionMetadata?: TaskCompletionMetadata;
 }
 
 export interface ToolEventData {
@@ -184,7 +216,7 @@ export type ApprovalKey =
 	| "questions";
 
 export type ExtensionMessage =
-	| { type: "initial_data"; providers: import("@cline/shared").ProviderListItem[]; models: Record<string, string[]>; currentConfig: ExtensionConfig; toggles: Toggles; sessionHistories: SessionHistory[]; dashboard?: DashboardData; mcpServers?: McpServerEntry[]; checkpoints?: CheckpointEntry[]; autoApprovals?: Record<string, boolean>; showOnboarding?: boolean }
+	| { type: "initial_data"; providers: import("@cline/shared").ProviderListItem[]; models: Record<string, ProviderModel[]>; currentConfig: ExtensionConfig; toggles: Toggles; sessionHistories: SessionHistory[]; dashboard?: DashboardData; mcpServers?: McpServerEntry[]; checkpoints?: CheckpointEntry[]; autoApprovals?: Record<string, boolean>; showOnboarding?: boolean }
 	| { type: "assistant_delta"; text: string }
 	| { type: "reasoning_delta"; text: string; redacted?: boolean }
 	| { type: "tool_event"; text: string; event?: ToolEventData }
@@ -197,7 +229,7 @@ export type ExtensionMessage =
 	| { type: "status"; text: string }
 	| { type: "logs_stream"; text: string }
 	| { type: "switch_tab"; tab: string }
-	| { type: "models"; providerId: string; models: unknown[] }
+	| { type: "models"; providerId: string; models: ProviderModel[] }
 	| { type: "models_request"; providerId: string }
 	| { type: "reset_done" }
 	| { type: "mcp_servers"; servers: McpServerEntry[] }
@@ -269,7 +301,7 @@ export type WebviewMessage =
 
 export interface AppState {
 	providers: import("@cline/shared").ProviderListItem[];
-	models: Record<string, string[]>;
+	models: Record<string, ProviderModel[]>;
 	currentConfig: ExtensionConfig;
 	toggles: Toggles;
 	sessionHistories: SessionHistory[];
@@ -290,6 +322,7 @@ export interface AppState {
 	connectors: ConnectorStatus[];
 	autoApprovals: Record<ApprovalKey, boolean>;
 	showOnboarding?: boolean;
+	oauthStatus: Record<string, "idle" | "authenticating" | "success" | "error">;
 }
 
 export const SCHEMA_VERSION = "2.0";

@@ -2,6 +2,38 @@
   "userId": "user_zw_yJ0pkDG",
   "mcpServers": [
     {
+      "name": "serena",
+      "transport": {
+        "type": "stdio",
+        "command": "npx",
+        "args": ["-y", "@anthropic/serena-mcp"]
+      }
+    },
+    {
+      "name": "playwright",
+      "transport": {
+        "type": "stdio",
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-playwright"]
+      }
+    },
+    {
+      "name": "context7",
+      "transport": {
+        "type": "stdio",
+        "command": "mcp-server-context7",
+        "args": []
+      }
+    },
+    {
+      "name": "git",
+      "transport": {
+        "type": "stdio",
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-git"]
+      }
+    },
+    {
       "name": "filesystem",
       "transport": {
         "type": "stdio",

@@ -198,7 +198,13 @@ export class TimelineStoreClass extends BaseStore<TimelineState> {
 		});
 
 		AgentEventBus.subscribe("session_hydrated", (data: { messages: ChatMessage[] }) => {
-			this.setState({ messages: data.messages });
+			const prevMsgs = this.state.messages;
+			const prevCompletion = prevMsgs.length > 0 && prevMsgs[prevMsgs.length - 1].role === "completion" ? prevMsgs[prevMsgs.length - 1] : undefined;
+			let nextMsgs = data.messages || [];
+			if (prevCompletion && !nextMsgs.some((m) => m.role === "completion")) {
+				nextMsgs = [...nextMsgs, prevCompletion];
+			}
+			this.setState({ messages: nextMsgs });
 		});
 
 		AgentEventBus.subscribe("reset_done", () => {
@@ -215,6 +221,51 @@ export class TimelineStoreClass extends BaseStore<TimelineState> {
 			this.setState({
 				messages: [...this.state.messages, { role: "error", text: data.text }],
 			});
+		});
+
+		AgentEventBus.subscribe("turn_done", (data: { finishReason: string; iterations: number; usage?: UsageData }) => {
+			const errorReasons = new Set(["error", "api_error", "invalid_tool_call", "tool_execution_failed", "mistake_limit", "failed"]);
+			const cancelReasons = new Set(["aborted", "cancelled", "stopped"]);
+			const isError = errorReasons.has(data.finishReason);
+			const isCancelled = cancelReasons.has(data.finishReason);
+
+			if (!isError && !isCancelled) {
+				const msgs = [...this.state.messages];
+				const hasToolExecutions = msgs.some((m) => m.role === "assistant" && m.toolEvents && m.toolEvents.length > 0);
+				if (!hasToolExecutions) {
+					return;
+				}
+
+				const now = new Date();
+				const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+				const lastAssistant = msgs.slice().reverse().find((m) => m.role === "assistant");
+				const toolsUsed = lastAssistant?.toolEvents ? lastAssistant.toolEvents.length : undefined;
+
+				const execState = ExecutionStore.getState();
+				const durationMs = execState.durationMs || undefined;
+				const inputTokens = data.usage?.inputTokens || execState.inputTokens || undefined;
+				const outputTokens = data.usage?.outputTokens || execState.outputTokens || undefined;
+				const totalCost = data.usage?.totalCost || execState.totalCost || undefined;
+
+				const lastMsg = msgs[msgs.length - 1];
+				if (!lastMsg || lastMsg.role !== "completion") {
+					msgs.push({
+						role: "completion",
+						text: "Task Completed Successfully",
+						completionMetadata: {
+							timestamp: now.getTime(),
+							completedAtFormatted: timeStr,
+							durationMs: durationMs && durationMs > 0 ? durationMs : undefined,
+							toolsUsed: toolsUsed && toolsUsed > 0 ? toolsUsed : undefined,
+							inputTokens,
+							outputTokens,
+							totalCost,
+							statusText: "The requested task has finished successfully.",
+						},
+					});
+					this.setState({ messages: msgs });
+				}
+			}
 		});
 	}
 
@@ -233,6 +284,7 @@ export type AgentState = "idle" | "thinking" | "searching" | "reading" | "writin
 
 export interface ExecutionState {
 	status: AgentState;
+	phase: import("../types.js").AgentExecutionPhase;
 	isRunning: boolean;
 	inputTokens: number;
 	outputTokens: number;
@@ -250,6 +302,7 @@ export class ExecutionStoreClass extends BaseStore<ExecutionState> {
 	constructor() {
 		super({
 			status: "idle",
+			phase: "idle",
 			isRunning: false,
 			inputTokens: 0,
 			outputTokens: 0,
@@ -264,6 +317,7 @@ export class ExecutionStoreClass extends BaseStore<ExecutionState> {
 			this.startTime = Date.now();
 			this.setState({
 				status: "thinking",
+				phase: "starting",
 				isRunning: true,
 				durationMs: 0,
 				compacted: false,
@@ -271,18 +325,29 @@ export class ExecutionStoreClass extends BaseStore<ExecutionState> {
 			this.startTimer();
 		});
 
+		AgentEventBus.subscribe("execution_started", () => {
+			this.startTime = Date.now();
+			this.setState({
+				status: "thinking",
+				phase: "starting",
+				isRunning: true,
+				durationMs: 0,
+			});
+			this.startTimer();
+		});
+
 		AgentEventBus.subscribe("user_message_sent", () => {
 			this.startTime = Date.now();
-			this.setState({ isRunning: true, status: "thinking" });
+			this.setState({ isRunning: true, phase: "starting", status: "thinking" });
 			this.startTimer();
 		});
 
 		AgentEventBus.subscribe("assistant_delta", () => {
-			this.setState({ status: "thinking" });
+			this.setState({ status: "thinking", phase: "streaming", isRunning: true });
 		});
 
 		AgentEventBus.subscribe("reasoning_delta", () => {
-			this.setState({ status: "thinking" });
+			this.setState({ status: "thinking", phase: "streaming", isRunning: true });
 		});
 
 		AgentEventBus.subscribe("tool_event", (data: { text: string; event?: ToolEventData }) => {
@@ -299,14 +364,21 @@ export class ExecutionStoreClass extends BaseStore<ExecutionState> {
 					} else if (name.includes("test")) {
 						status = "testing";
 					}
-					this.setState({ status });
+					this.setState({ status, phase: "executing_tools", isRunning: true });
 				}
 			}
 		});
 
+		AgentEventBus.subscribe("approval_request", () => {
+			this.setState({ phase: "waiting_approval", isRunning: true });
+		});
+
 		AgentEventBus.subscribe("turn_done", (data: { finishReason: string; iterations: number; usage?: UsageData }) => {
 			this.stopTimer();
-			const status: AgentState = data.finishReason === "error" || data.finishReason === "failed" ? "error" : "finished";
+			const isCancelled = data.finishReason === "aborted" || data.finishReason === "cancelled";
+			const isError = data.finishReason === "error" || data.finishReason === "failed";
+			const status: AgentState = isError ? "error" : isCancelled ? "idle" : "finished";
+			const phase: import("../types.js").AgentExecutionPhase = isCancelled ? "cancelled" : isError ? "error" : "completed";
 			const inputTokens = data.usage?.inputTokens || this.state.inputTokens;
 			const outputTokens = data.usage?.outputTokens || this.state.outputTokens;
 			const totalCost = data.usage?.totalCost || this.state.totalCost;
@@ -316,6 +388,7 @@ export class ExecutionStoreClass extends BaseStore<ExecutionState> {
 
 			this.setState({
 				status,
+				phase,
 				isRunning: false,
 				inputTokens,
 				outputTokens,
@@ -328,6 +401,7 @@ export class ExecutionStoreClass extends BaseStore<ExecutionState> {
 			this.stopTimer();
 			this.setState({
 				status: "idle",
+				phase: "idle",
 				isRunning: false,
 				inputTokens: 0,
 				outputTokens: 0,
@@ -340,7 +414,7 @@ export class ExecutionStoreClass extends BaseStore<ExecutionState> {
 
 		AgentEventBus.subscribe("error_occurred", () => {
 			this.stopTimer();
-			this.setState({ status: "error", isRunning: false });
+			this.setState({ status: "error", phase: "error", isRunning: false });
 		});
 
 		// Listen to status update events that might contain compaction info

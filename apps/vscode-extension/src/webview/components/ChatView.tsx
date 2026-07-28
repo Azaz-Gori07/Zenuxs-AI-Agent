@@ -1,7 +1,8 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useExtensionState } from "../context/ExtensionStateContext.js";
 import { MarkdownBlock } from "./common/MarkdownBlock.js";
-import type { AgentMode, TaskDataV2, TaskFsmState, TimelineEvent, TaskSummaryV2, FileChangesV2, PersistedTaskExecution } from "../types.js";
+import { TaskCompletionBlock } from "./TaskCompletionBlock.js";
+import type { AgentMode, TaskDataV2, TaskFsmState, TimelineEvent, TaskSummaryV2, FileChangesV2, PersistedTaskExecution, ProviderModel } from "../types.js";
 import { SCHEMA_VERSION } from "../types.js";
 import { postMessage } from "../vscode-api.js";
 import { 
@@ -77,7 +78,8 @@ export function ChatView() {
 		saveSettings, 
 		switchTab, 
 		restoreSession, 
-		renameSession 
+		renameSession,
+		newSession 
 	} = useExtensionState();
 
 	// Observe decoupled stores
@@ -85,6 +87,9 @@ export function ChatView() {
 	const timelineState = useStore(TimelineStore);
 	const executionState = useStore(ExecutionStore);
 	const toolExecutionState = useStore(ToolExecutionStore);
+	const isExecutionActive = executionState.isRunning || state.isRunning;
+	const lastMsg = timelineState.messages.length > 0 ? timelineState.messages[timelineState.messages.length - 1] : undefined;
+	const isTaskCompleted = lastMsg?.role === "completion";
 
 	const [input, setInput] = useState("");
 	const [autocompleteVisible, setAutocompleteVisible] = useState(false);
@@ -93,7 +98,7 @@ export function ChatView() {
 	const [editText, setEditText] = useState("");
 	const [showModeMenu, setShowModeMenu] = useState(false);
 	const [showModelMenu, setShowModelMenu] = useState(false);
-
+	const [modelSearchQuery, setModelSearchQuery] = useState("");
 
 	const inputRef = useRef<HTMLTextAreaElement>(null);
 	const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -167,6 +172,10 @@ export function ChatView() {
 	}, [input]);
 
 	useEffect(() => {
+		if (showModelMenu) setModelSearchQuery("");
+	}, [showModelMenu]);
+
+	useEffect(() => {
 		if (!showModeMenu && !showModelMenu) return;
 		const handleDocumentClick = (e: MouseEvent) => {
 			const container = document.querySelector(".bottom-left-controls");
@@ -186,22 +195,14 @@ export function ChatView() {
 			"gpt-5.5": 1_050_000, "gpt-5.4": 1_050_000, "gpt-5.4-mini": 400_000,
 			"gpt-5.3": 1_050_000, "gpt-5.3-codex": 200_000, "gpt-5.2": 1_050_000,
 			"gpt-5.1": 1_050_000, "gpt-5": 1_050_000,
-			"gpt-4.5": 128_000, "gpt-4o": 128_000, "gpt-4o-mini": 128_000,
-			"o5": 200_000, "o5-mini": 200_000, "o4": 200_000, "o4-mini": 200_000,
-			"o3": 200_000, "o3-mini": 200_000,
-			"claude-sonnet-4-6": 1_000_000, "claude-sonnet-4.6": 1_000_000,
-			"claude-sonnet-4.5": 200_000, "claude-sonnet-4": 200_000,
-			"claude-opus-4.8": 1_000_000, "claude-opus-4.5": 200_000, "claude-opus-4": 200_000,
-			"claude-3.5-sonnet": 200_000, "claude-3-opus": 200_000,
+			"claude-3-5-sonnet": 200_000, "claude-3-7-sonnet": 200_000,
+			"claude-3-5-haiku": 200_000, "claude-3-opus": 200_000,
+			"gpt-4o": 128_000, "gpt-4o-mini": 128_000, "o1": 200_000, "o3-mini": 200_000,
 			"gemini-3.1-flash": 1_048_576, "gemini-3.1-flash-lite": 1_048_576,
 			"gemini-3.1-pro": 1_048_576, "gemini-2.5-pro": 1_048_576,
 			"gemini-2.5-flash": 1_048_576, "gemini-2.0-flash": 1_048_576,
 			"deepseek-v4-flash": 1_000_000, "deepseek-v4-pro": 1_000_000,
 			"deepseek-v4-flash-free": 128_000, "deepseek-v3": 64_000,
-			"llama-3.1-70b": 128_000, "llama-3.1-8b": 128_000,
-			"llama-3.3-70b": 128_000, "llama-4": 1_000_000,
-			"mistral-large": 128_000, "mistral-medium": 32_000,
-			"nemotron-70b": 128_000,
 		};
 		for (const [key, val] of Object.entries(known)) {
 			if (cleanId.toLowerCase().includes(key.toLowerCase())) return val;
@@ -237,7 +238,7 @@ export function ChatView() {
 
 	const handleSend = useCallback(() => {
 		const trimmed = input.trim();
-		if (!trimmed || executionState.isRunning) return;
+		if (!trimmed || isExecutionActive) return;
 
 		if (trimmed.startsWith("/mode ")) {
 			const modeStr = trimmed.replace("/mode ", "").trim().toLowerCase();
@@ -272,7 +273,7 @@ export function ChatView() {
 			reasoningEffort: state.currentConfig.reasoningEffort,
 			mode: state.currentConfig.mode,
 		});
-	}, [input, executionState.isRunning, state.currentConfig, sendMessage, dispatch, scrollToBottom]);
+	}, [input, isExecutionActive, state.currentConfig, sendMessage, dispatch, scrollToBottom]);
 
 	const handleKeyDown = useCallback(
 		(e: React.KeyboardEvent) => {
@@ -289,9 +290,19 @@ export function ChatView() {
 				}
 				if (e.key === "Escape") { setAutocompleteVisible(false); return; }
 			}
-			if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
+			if (e.key === "Escape" && isExecutionActive) {
+				e.preventDefault();
+				abort();
+				return;
+			}
+			if (e.key === "Enter" && !e.shiftKey) {
+				e.preventDefault();
+				if (!isExecutionActive) {
+					handleSend();
+				}
+			}
 		},
-		[input, autocompleteVisible, autocompleteIdx, handleSend],
+		[input, autocompleteVisible, autocompleteIdx, handleSend, isExecutionActive, abort],
 	);
 
 	const copyMessage = useCallback((text: string) => {
@@ -331,7 +342,29 @@ export function ChatView() {
 	const mode = state.currentConfig.mode || "act";
 	const providerId = state.currentConfig.providerId || "default";
 	const activeModel = state.currentConfig.modelId || "default";
-	const availableModels = state.models[providerId] || ["default"];
+	const rawModels: ProviderModel[] = state.models[providerId] || [];
+	const availableModels = rawModels.length > 0 ? rawModels : [{ id: "default", name: "Default" }];
+
+	const filteredModels = useMemo(() => {
+		if (!modelSearchQuery) return availableModels;
+		const q = modelSearchQuery.toLowerCase();
+		return availableModels.filter((m) => m.id.toLowerCase().includes(q) || m.name.toLowerCase().includes(q));
+	}, [availableModels, modelSearchQuery]);
+
+	const groupedModels = useMemo(() => {
+		const groups: { label: string; key: string; models: ProviderModel[] }[] = [];
+		const fav = filteredModels.filter((m) => m.isFavorite);
+		if (fav.length > 0) groups.push({ label: "Favorites", key: "favorites", models: fav });
+		const rec = filteredModels.filter((m) => m.category === "recommended" && !m.isFavorite);
+		if (rec.length > 0) groups.push({ label: "Recommended", key: "recommended", models: rec });
+		const free = filteredModels.filter((m) => m.category === "free" && !m.isFavorite);
+		if (free.length > 0) groups.push({ label: "Free", key: "free", models: free });
+		const paid = filteredModels.filter((m) => m.category === "paid" && !m.isFavorite);
+		if (paid.length > 0) groups.push({ label: "Paid", key: "paid", models: paid });
+		const other = filteredModels.filter((m) => !m.category && !m.isFavorite);
+		if (other.length > 0) groups.push({ label: "Other", key: "other", models: other });
+		return groups;
+	}, [filteredModels]);
 
 	// ==========================================
 	// TASK MANAGEMENT: auto-create on tool use, no fixed phases
@@ -647,12 +680,16 @@ export function ChatView() {
 				{timelineState.messages.length > 0 && (
 					<div className="chat-messages-list">
 						{timelineState.messages.map((msg, idx) => {
+							if (msg.role === "completion") {
+								return <TaskCompletionBlock key={idx} metadata={msg.completionMetadata} text={msg.text} />;
+							}
+
 							const isUser = msg.role === "user";
 							const isAssistant = msg.role === "assistant";
 							const isError = msg.role === "error";
 							const isEditing = editingIndex === idx;
 							const isLastMessage = idx === timelineState.messages.length - 1;
-							const isStreamingThis = isAssistant && isLastMessage && executionState.isRunning;
+							const isStreamingThis = isAssistant && isLastMessage && isExecutionActive;
 
 							return (
 								<div key={idx} className={`message ${isUser ? "user" : isAssistant ? "assistant" : isError ? "error" : ""}`}>
@@ -701,7 +738,7 @@ export function ChatView() {
 						})}
 
 						{/* Thinking Animation — shown when model is thinking before any response text */}
-						{executionState.isRunning && executionState.status === "thinking" && 
+						{isExecutionActive && executionState.status === "thinking" && 
 						 timelineState.messages.length > 0 && 
 						 timelineState.messages[timelineState.messages.length - 1].role === "user" && (
 							<div key="thinking-block" className="message assistant" style={{ padding: "8px 12px 4px" }}>
@@ -759,6 +796,17 @@ export function ChatView() {
 						))}
 					</div>
 				)}
+				{isTaskCompleted && (
+					<div className="task-completed-banner">
+						<button className="start-new-task-btn" onClick={() => newSession()}>
+							<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+								<line x1="12" y1="5" x2="12" y2="19" />
+								<line x1="5" y1="12" x2="19" y2="12" />
+							</svg>
+							<span>Start New Task</span>
+						</button>
+					</div>
+				)}
 				<div className="textarea-wrapper">
 					<textarea
 						ref={inputRef}
@@ -783,17 +831,45 @@ export function ChatView() {
 								{getProviderLabel(providerId)} / {activeModel.split("/").pop() || "Model"} ▾
 							</button>
 							{showModelMenu && (
-								<div className="model-dropdown">
-									{availableModels.map((m) => (
-										<div
-											key={m}
-											className={`model-dropdown-item ${activeModel === m ? "active" : ""}`}
-											onClick={() => selectModel(m)}
-											title={m}
-										>
-											{m}
-										</div>
-									))}
+								<div className="model-dropdown enhanced">
+									<div className="model-search-wrapper">
+										<input
+											className="model-search-input"
+											type="text"
+											placeholder="Search models..."
+											value={modelSearchQuery}
+											onChange={(e) => setModelSearchQuery(e.target.value)}
+											onClick={(e) => e.stopPropagation()}
+											autoFocus
+										/>
+									</div>
+									<div className="model-dropdown-items">
+										{groupedModels.length === 0 ? (
+											<div className="model-dropdown-empty">No models match</div>
+										) : (
+											groupedModels.map((group) => (
+												<div key={group.key}>
+													<div className="model-group-header">{group.label}</div>
+													{group.models.map((m) => (
+														<div
+															key={m.id}
+															className={`model-dropdown-item ${activeModel === m.id ? "active" : ""}`}
+															onClick={() => selectModel(m.id)}
+															title={m.id}
+														>
+															<span className="model-item-name">{m.name}</span>
+															<span className="model-item-badges">
+																{m.supportsReasoning && <span className="model-badge reasoning">R</span>}
+																{m.supportsVision && <span className="model-badge vision">V</span>}
+																{m.supportsAttachments && <span className="model-badge files">F</span>}
+																{m.contextWindow && <span className="model-badge ctx">{(m.contextWindow / 1000).toFixed(0)}K</span>}
+															</span>
+														</div>
+													))}
+												</div>
+											))
+										)}
+									</div>
 								</div>
 							)}
 						</div>
@@ -828,26 +904,24 @@ export function ChatView() {
 							)}
 						</div>
 					</div>
-					{(input.trim() || executionState.isRunning) && (
-						<button
-							className={`send-icon-btn ${executionState.isRunning ? "stop" : ""}`}
-							disabled={!executionState.isRunning && !input.trim()}
-							onClick={executionState.isRunning ? abort : handleSend}
-							title={executionState.isRunning ? "Stop (Esc)" : "Send (Enter)"}
-							aria-label={executionState.isRunning ? "Stop execution" : "Send message"}
-						>
-							{executionState.isRunning ? (
-								<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-									<rect x="6" y="6" width="12" height="12" rx="2" />
-								</svg>
-							) : (
-								<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-									<line x1="22" y1="2" x2="11" y2="13" />
-									<polygon points="22 2 15 22 11 13 2 9 22 2" />
-								</svg>
-							)}
-						</button>
-					)}
+					<button
+						className={`send-icon-btn ${isExecutionActive ? "stop" : ""}`}
+						disabled={!isExecutionActive && !input.trim()}
+						onClick={isExecutionActive ? abort : handleSend}
+						title={isExecutionActive ? "Stop (Esc)" : "Send (Enter)"}
+						aria-label={isExecutionActive ? "Stop execution" : "Send message"}
+					>
+						{isExecutionActive ? (
+							<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+								<rect x="6" y="6" width="12" height="12" rx="2" />
+							</svg>
+						) : (
+							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+								<line x1="22" y1="2" x2="11" y2="13" />
+								<polygon points="22 2 15 22 11 13 2 9 22 2" />
+							</svg>
+						)}
+					</button>
 				</div>
 				<div className="chat-bottom-bar">
 					<button className="attachment-btn" onClick={attachFile} title="Attach Active File Context" aria-label="Attach file context">

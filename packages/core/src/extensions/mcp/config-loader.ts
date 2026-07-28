@@ -233,10 +233,30 @@ function setOwnServerRecord(
 	});
 }
 
+export const DEFAULT_BUILTIN_MCP_SETTINGS: McpSettingsFile = {
+	mcpServers: {
+		serena: {
+			transport: { type: "stdio", command: "npx", args: ["-y", "@anthropic/serena-mcp"] },
+		},
+		playwright: {
+			transport: { type: "stdio", command: "npx", args: ["-y", "@modelcontextprotocol/server-playwright"] },
+		},
+		context7: {
+			transport: { type: "stdio", command: "mcp-server-context7", args: [] },
+		},
+		git: {
+			transport: { type: "stdio", command: "npx", args: ["-y", "@modelcontextprotocol/server-git"] },
+		},
+	},
+};
+
 export function loadMcpSettingsFile(
 	options: LoadMcpSettingsOptions = {},
 ): McpSettingsFile {
 	const filePath = options.filePath ?? resolveDefaultMcpSettingsPath();
+	if (!existsSync(filePath)) {
+		return DEFAULT_BUILTIN_MCP_SETTINGS;
+	}
 	const raw = readFileSync(filePath, "utf8");
 	let parsed: unknown;
 	try {
