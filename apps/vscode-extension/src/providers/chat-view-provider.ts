@@ -1607,8 +1607,12 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				const selectedProviderSettings = psm.getProviderSettings(providerId)
 					// Fall back to "cline" if the provider key doesn't match (token may be stored under "cline")
 					|| psm.getProviderSettings("cline");
+<<<<<<< Updated upstream
 				const resolvedApiKey = resolveProviderApiKeyFromSettings(psm, providerId) || getPersistedProviderApiKey(providerId, selectedProviderSettings) || extConfig.apiKey || "";
 				loggerService.log({ level: LogLevel.DEBUG, category: LogCategory.AUTH, message: "Session API key resolved", source: "session", data: { providerId, hasKey: !!resolvedApiKey, keyPrefix: resolvedApiKey ? resolvedApiKey.substring(0, 10) + "..." : "none" } });
+=======
+				const resolvedApiKey = getPersistedProviderApiKey(providerId, selectedProviderSettings) || extConfig.apiKey || "";
+>>>>>>> Stashed changes
 				const resolvedBaseUrl = selectedProviderSettings?.baseUrl || extConfig.baseUrl || undefined;
 
 				// Resolve model ID: check UI config, VS Code settings, or provider settings, or use fallback
