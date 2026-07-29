@@ -23,7 +23,7 @@ export function activate(context: vscode.ExtensionContext): void {
 	console.log = (...args: unknown[]) => {
 		originalLog.apply(console, args);
 		devLogs.console.log(args.map((a) => (typeof a === "string" ? a : JSON.stringify(a))).join(" "), args);
-	};
+	};	
 	console.info = (...args: unknown[]) => {
 		originalInfo.apply(console, args);
 		devLogs.console.info(args.map((a) => (typeof a === "string" ? a : JSON.stringify(a))).join(" "), args);
