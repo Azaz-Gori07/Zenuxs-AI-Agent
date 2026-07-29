@@ -557,6 +557,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				logger,
 				onToolApprovalRequest: (request: ToolApprovalRequest) =>
 					this.requestToolApproval(request),
+				getAuthToken: () => AuthService.getInstance().authToken,
 			});
 			this.mcpManager = new InMemoryMcpManager({
 				clientFactory: createDefaultMcpServerClientFactory(),

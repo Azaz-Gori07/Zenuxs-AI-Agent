@@ -25,16 +25,10 @@ let syncTimer: ReturnType<typeof setInterval> | undefined;
 let pollTimer: ReturnType<typeof setInterval> | undefined;
 let remoteConvId: string | undefined;
 let lastSyncMessages = 0;
-
-function getAuthToken(): string | undefined {
-	try {
-		const { AuthService } = require("../services/auth-service.js");
-		return AuthService.getInstance().authToken || undefined;
-	} catch { return undefined; }
-}
+let getAuthToken: (() => string | undefined) | undefined;
 
 async function syncFetch(path: string, opts?: RequestInit): Promise<any> {
-	const token = getAuthToken();
+	const token = getAuthToken?.();
 	if (!token) return null;
 	try {
 		const res = await fetch(`${SYNC_API}${path}`, {
@@ -138,6 +132,7 @@ export interface ExtensionCoreBridgeOptions {
 	onToolApprovalRequest?: (
 		request: ToolApprovalRequest,
 	) => Promise<ToolApprovalResult> | ToolApprovalResult;
+	getAuthToken?: () => string | undefined;
 }
 
 export class ExtensionCoreBridge {
@@ -152,6 +147,9 @@ export class ExtensionCoreBridge {
 
 	constructor(options: ExtensionCoreBridgeOptions) {
 		this.options = options;
+		if (options.getAuthToken) {
+			getAuthToken = options.getAuthToken;
+		}
 	}
 
 	async getCore(): Promise<ZenuxsCore> {
