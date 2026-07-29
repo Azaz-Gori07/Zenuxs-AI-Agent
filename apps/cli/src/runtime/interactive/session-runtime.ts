@@ -14,7 +14,7 @@ import {
 	toProviderConfig,
 } from "@cline/core";
 import type { Message } from "@cline/shared";
-import { syncSessionConversation } from "../../utils/conversation-sync";
+import { syncSessionConversation, checkPendingMessages, deliverPendingMessages } from "../../utils/conversation-sync";
 import { createCliCore } from "../../session/session";
 import { submitAndExitInTerminal } from "../../utils/approval";
 import type {
@@ -109,6 +109,33 @@ export function createInteractiveSessionRuntime(input: {
 	let activeSessionId = "";
 	let abortRequested = false;
 	let missingSessionRecoveryPromise: Promise<void> | undefined;
+	let syncConversationId: string | undefined;
+	let pendingMsgInterval: ReturnType<typeof setInterval> | undefined;
+
+	const startPendingMsgPolling = () => {
+		if (pendingMsgInterval) return;
+		pendingMsgInterval = setInterval(async () => {
+			if (!syncConversationId || shutdownRequested || abortRequested) return;
+			try {
+				const pending = await checkPendingMessages(syncConversationId);
+				if (pending.length === 0) return;
+				if (!sessionManager || !activeSessionId) return;
+				const msg = pending[0];
+				console.warn(`[zenuxs] processing pending web message: ${msg.content?.slice(0, 50)}`);
+				await sessionManager.send({ sessionId: activeSessionId, prompt: msg.content });
+				await deliverPendingMessages(syncConversationId, [msg._id]);
+			} catch (err) {
+				console.warn("[zenuxs] pending message error:", err);
+			}
+		}, 5000);
+	};
+
+	const stopPendingMsgPolling = () => {
+		if (pendingMsgInterval) {
+			clearInterval(pendingMsgInterval);
+			pendingMsgInterval = undefined;
+		}
+	};
 	// A reset can happen while an earlier manager.start() is still in flight.
 	// Bump this before resets and restarts so stale starts cannot become active.
 	let sessionStartGeneration = 0;
@@ -281,6 +308,7 @@ export function createInteractiveSessionRuntime(input: {
 			} else {
 				await startFreshSession(initialMessages);
 			}
+				startPendingMsgPolling();
 		})().catch((error) => {
 			startupError = error;
 			throw error;
@@ -644,6 +672,7 @@ export function createInteractiveSessionRuntime(input: {
 		}
 		cleanupPromise = (async () => {
 			shutdownRequested = true;
+			stopPendingMsgPolling();
 			let exitSummary: InteractiveExitSummary | undefined;
 			try {
 				await startupPromise?.catch(() => {});
@@ -658,7 +687,12 @@ export function createInteractiveSessionRuntime(input: {
 				const sid = activeSessionId;
 				if (sid) {
 					const msgs = await readCurrentMessages().catch(() => []);
-					syncSessionConversation(sid, msgs, configRef.current.workspaceRoot || configRef.current.cwd).catch(() => {});
+					syncConversationId = await syncSessionConversation(
+						sid,
+						msgs,
+						configRef.current.workspaceRoot || configRef.current.cwd,
+						syncConversationId,
+					).catch(() => syncConversationId);
 				}
 				// Mark hooks shut down before session disposal so late abort/stop
 				// emissions cannot dispatch over a closing hub transport.
@@ -714,6 +748,7 @@ export function createInteractiveSessionRuntime(input: {
 		abortAll,
 		cleanup,
 		getActiveSessionId: () => activeSessionId,
+		getSyncConversationId: () => syncConversationId,
 		isShutdownRequested: () => shutdownRequested,
 	};
 }
