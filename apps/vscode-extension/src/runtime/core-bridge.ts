@@ -19,6 +19,51 @@ import {
 	NoOpFeatureFlagsProvider,
 } from "@cline/core";
 
+const SYNC_API = "https://aiapi.zenuxs.in/api";
+
+let syncTimer: ReturnType<typeof setInterval> | undefined;
+let pollTimer: ReturnType<typeof setInterval> | undefined;
+let remoteConvId: string | undefined;
+
+function getAuthToken(): string | undefined {
+	try {
+		const { AuthService } = require("../services/auth-service.js");
+		return AuthService.getInstance().getState()?.accessToken || undefined;
+	} catch { return undefined; }
+}
+
+async function syncFetch(path: string, opts?: RequestInit): Promise<any> {
+	const token = getAuthToken();
+	if (!token) return null;
+	try {
+		const res = await fetch(`${SYNC_API}${path}`, {
+			...opts,
+			headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json", ...opts?.headers },
+		});
+		return res.ok ? await res.json() : null;
+	} catch { return null; }
+}
+
+async function registerProject(workspaceRoot: string, logger?: BasicLogger) {
+	const folderName = workspaceRoot.split(/[\\/]/).filter(Boolean).pop() || "vscode";
+	const res = await syncFetch("/sync/projects/register", {
+		method: "POST",
+		body: JSON.stringify({ projectId: folderName, name: folderName, type: "local" }),
+	});
+	if (res?.success) logger?.log?.("[sync] project registered:", folderName);
+}
+
+function startSync(workspaceRoot: string, logger?: BasicLogger) {
+	if (syncTimer) return;
+	registerProject(workspaceRoot, logger);
+	syncTimer = setInterval(() => registerProject(workspaceRoot, logger), 30000);
+}
+
+function stopSync() {
+	if (syncTimer) { clearInterval(syncTimer); syncTimer = undefined; }
+	if (pollTimer) { clearInterval(pollTimer); pollTimer = undefined; }
+}
+
 /**
  * Options for initializing the extension runtime bridge.
  * Mirrors the CLI's createCliCore() options.
@@ -169,6 +214,9 @@ export class ExtensionCoreBridge {
 			}
 		});
 
+		// Start sync: register project and poll for web messages
+		startSync(workspaceRoot, logger);
+
 		logger?.log?.("Extension core runtime initialized", {
 			backendMode: "local",
 		});
@@ -236,6 +284,7 @@ export class ExtensionCoreBridge {
 	 * Dispose the runtime and clean up all resources.
 	 */
 	async dispose(): Promise<void> {
+		stopSync();
 		this.unsubscribeEvents?.();
 		this.unsubscribeEvents = undefined;
 		this.eventListeners.clear();
