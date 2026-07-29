@@ -415,40 +415,69 @@ export class ExecutionStoreClass extends BaseStore<ExecutionState> {
 					? inputTokens + outputTokens
 					: inputTokens ?? this.state.contextTokens;
 
-				this.setState({
-					status,
-					phase,
-					isRunning: false,
-					inputTokens,
-					outputTokens,
-					totalCost,
-					contextTokens,
-				});
-			}),
-			AgentEventBus.subscribe("reset_done", () => {
-				this.stopTimer();
-				this.setState({
-					status: "idle",
-					phase: "idle",
-					isRunning: false,
-					inputTokens: 0,
-					outputTokens: 0,
-					totalCost: 0,
-					durationMs: 0,
-					contextTokens: 0,
-					compacted: false,
-				});
-			}),
-			AgentEventBus.subscribe("error_occurred", () => {
-				this.stopTimer();
-				this.setState({ status: "error", phase: "error", isRunning: false });
-			}),
-			AgentEventBus.subscribe("status", (data: { text: string }) => {
-				if (data.text && (data.text.includes("compaction") || data.text.includes("compacted"))) {
+		AgentEventBus.subscribe("approval_request", () => {
+			this.setState({ phase: "waiting_approval", isRunning: true });
+		});
+
+		AgentEventBus.subscribe("turn_done", (data: { finishReason: string; iterations: number; usage?: UsageData }) => {
+			this.stopTimer();
+			const isCancelled = data.finishReason === "aborted" || data.finishReason === "cancelled";
+			const isError = data.finishReason === "error" || data.finishReason === "failed";
+			const status: AgentState = isError ? "error" : isCancelled ? "idle" : "finished";
+			const phase: import("../types.js").AgentExecutionPhase = isCancelled ? "cancelled" : isError ? "error" : "completed";
+			const inputTokens = data.usage?.inputTokens ?? this.state.inputTokens;
+			const outputTokens = data.usage?.outputTokens ?? this.state.outputTokens;
+			const totalCost = data.usage?.totalCost ?? this.state.totalCost;
+			const contextTokens = typeof inputTokens === "number" && typeof outputTokens === "number"
+				? inputTokens + outputTokens
+				: inputTokens ?? this.state.contextTokens;
+
+			this.setState({
+				status,
+				phase,
+				isRunning: false,
+				inputTokens,
+				outputTokens,
+				totalCost,
+				contextTokens,
+			});
+		});
+
+		AgentEventBus.subscribe("reset_done", () => {
+			this.stopTimer();
+			this.setState({
+				status: "idle",
+				phase: "idle",
+				isRunning: false,
+				inputTokens: 0,
+				outputTokens: 0,
+				totalCost: 0,
+				durationMs: 0,
+				contextTokens: 0,
+				compacted: false,
+			});
+		});
+
+		AgentEventBus.subscribe("error_occurred", () => {
+			this.stopTimer();
+			this.setState({ status: "error", phase: "error", isRunning: false });
+		});
+
+		AgentEventBus.subscribe("status", (data: { text: string }) => {
+			if (data.text) {
+				const tokenMatch = data.text.match(/Tokens:\s*(\d+)\s*in\s*\/\s*(\d+)\s*out/i);
+				if (tokenMatch) {
+					const inputTokens = Number(tokenMatch[1]);
+					const outputTokens = Number(tokenMatch[2]);
+					const totalCost = this.state.totalCost;
+					const contextTokens = inputTokens + outputTokens;
+					this.setState({ inputTokens, outputTokens, totalCost, contextTokens });
+				}
+				if (data.text.includes("compaction") || data.text.includes("compacted")) {
 					this.setState({ compacted: true });
 				}
-			}),
-		);
+			}
+		});
 	}
 
 	updateContextWindow(maxTokens: number) {

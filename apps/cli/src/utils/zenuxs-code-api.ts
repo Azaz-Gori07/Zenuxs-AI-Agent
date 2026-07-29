@@ -381,8 +381,11 @@ export function getZenuxsAuthToken(
 ): string | undefined {
 	for (const key of ["zenuxs", "cline"] as const) {
 		const s = manager.getProviderSettings(key);
-		const token = s?.auth?.accessToken?.trim();
-		if (token) return token;
+		const raw = s?.auth?.accessToken?.trim();
+		if (raw) {
+			const prefix = "workos:";
+			return raw.toLowerCase().startsWith(prefix) ? raw.slice(prefix.length) : raw;
+		}
 	}
 	return undefined;
 }

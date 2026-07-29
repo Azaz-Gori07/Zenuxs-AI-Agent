@@ -1,4 +1,4 @@
-import { ProviderSettingsManager } from "@cline/core";
+import { ProviderSettingsManager, getProviderOAuthCredentialsFromSettings } from "@cline/core";
 
 const DEFAULT_API_BASE = process.env.ZENUXS_CODE_API_URL?.trim() || "https://aiapi.zenuxs.in";
 
@@ -10,8 +10,8 @@ async function resolveToken(): Promise<string | undefined> {
 	try {
 		const psm = new ProviderSettingsManager();
 		return (
-			psm.getProviderSettings("zenuxs")?.auth?.accessToken?.trim()
-			|| psm.getProviderSettings("cline")?.auth?.accessToken?.trim()
+			getProviderOAuthCredentialsFromSettings("zenuxs", psm.getProviderSettings("zenuxs") ?? {} as never)?.access
+			|| getProviderOAuthCredentialsFromSettings("cline", psm.getProviderSettings("cline") ?? {} as never)?.access
 			|| undefined
 		);
 	} catch { return undefined; }

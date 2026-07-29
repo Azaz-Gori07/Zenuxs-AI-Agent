@@ -5,6 +5,7 @@ import {
 	Llms,
 	ProviderSettingsManager,
 	SqliteSessionStore,
+	getProviderOAuthCredentialsFromSettings,
 } from "@cline/core";
 import {
 	readLegacyClineProviders,
@@ -110,8 +111,12 @@ export async function buildConnectorStartRequest(input: {
 	let zenuxsToken: string | undefined;
 	for (const key of zenuxsCandidates) {
 		const s = providerSettingsManager.getProviderSettings(key);
-		zenuxsToken = s?.auth?.accessToken?.trim();
-		if (zenuxsToken) break;
+		const raw = s?.auth?.accessToken?.trim();
+		if (raw) {
+			const prefix = "workos:";
+			zenuxsToken = raw.toLowerCase().startsWith(prefix) ? raw.slice(prefix.length) : raw;
+			break;
+		}
 	}
 
 	// Best-effort token balance check for shared DeepSeek pool
@@ -259,8 +264,8 @@ export async function getOrCreateSessionId<
 	try {
 		const psm = new ProviderSettingsManager();
 		const token =
-			psm.getProviderSettings("zenuxs")?.auth?.accessToken?.trim()
-			|| psm.getProviderSettings("cline")?.auth?.accessToken?.trim();
+			getProviderOAuthCredentialsFromSettings("zenuxs", psm.getProviderSettings("zenuxs") ?? {} as never)?.access
+			|| getProviderOAuthCredentialsFromSettings("cline", psm.getProviderSettings("cline") ?? {} as never)?.access;
 		if (token) {
 			await registerCliClient(token);
 			// Sync local cline providers to zenuxs-code backend
@@ -374,8 +379,8 @@ export async function clearSession<TState extends ConnectorThreadState>(input: {
 		try {
 			const psm = new ProviderSettingsManager();
 			const token =
-				psm.getProviderSettings("zenuxs")?.auth?.accessToken?.trim()
-				|| psm.getProviderSettings("cline")?.auth?.accessToken?.trim();
+				getProviderOAuthCredentialsFromSettings("zenuxs", psm.getProviderSettings("zenuxs") ?? {} as never)?.access
+				|| getProviderOAuthCredentialsFromSettings("cline", psm.getProviderSettings("cline") ?? {} as never)?.access;
 			if (token) await deleteSessionOnZenuxsCode(token, sessionId);
 		} catch {}
 	}

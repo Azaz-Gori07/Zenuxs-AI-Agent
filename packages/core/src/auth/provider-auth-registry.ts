@@ -298,8 +298,6 @@ const providerAuthHandlers = [
 	}),
 	createOAuthHandler({
 		providerId: "zenuxs",
-		formatAccessToken: formatZenuxsApiKey,
-		normalizeStoredAccessToken: stripZenuxsApiKeyPrefix,
 		login: ({ settings, callbacks, telemetry }) =>
 			loginZenuxsAuth({
 				apiBaseUrl: settings?.baseUrl?.trim(),

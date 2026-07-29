@@ -12,7 +12,7 @@ import {
 	normalizeUserInput,
 } from "@cline/shared";
 import { setHomeDirIfUnset } from "@cline/shared/storage";
-import { isOAuthProvider } from "../../auth/provider-auth-registry";
+import { isOAuthProvider, getProviderOAuthCredentialsFromSettings } from "../../auth/provider-auth-registry";
 import { AuthenticationStrategy, OAuthStrategy, ApiKeyStrategy } from "../../auth/strategy";
 import { createContextCompactionPrepareTurn } from "../../extensions/context/compaction";
 import type { ToolExecutors } from "../../extensions/tools";
@@ -516,12 +516,14 @@ export class LocalRuntimeHost implements RuntimeHost {
 			execution: configWithProvider.execution,
 			prepareTurn: createContextCompactionPrepareTurn(configWithProvider),
 			zenuxsAuthToken:
-				(this.providerSettingsManager
-					.getProviderSettings("zenuxs")
-					?.auth?.accessToken
-					|| this.providerSettingsManager
-						.getProviderSettings("cline")
-						?.auth?.accessToken)?.trim() || undefined,
+				(getProviderOAuthCredentialsFromSettings(
+					"zenuxs",
+					this.providerSettingsManager.getProviderSettings("zenuxs") ?? {} as never,
+				)?.access
+					|| getProviderOAuthCredentialsFromSettings(
+						"cline",
+						this.providerSettingsManager.getProviderSettings("cline") ?? {} as never,
+					)?.access)?.trim() || undefined,
 			tools,
 			hooks: bootstrap.hooks,
 			extensions,

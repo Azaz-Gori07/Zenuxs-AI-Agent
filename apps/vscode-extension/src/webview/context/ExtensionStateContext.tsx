@@ -314,8 +314,13 @@ export function ExtensionStateProvider({ children }: { children: ReactNode }) {
 			case "tool_event": dispatch({ type: "UPDATE_TOOL_EVENT", text: msg.text, event: msg.event }); break;
 			case "approval_request": dispatch({ type: "SET_APPROVAL_REQUEST", payload: msg }); break;
 			case "approval_resolved": dispatch({ type: "SET_APPROVAL_RESOLVED", approvalId: msg.approvalId, approved: msg.approved, reason: msg.reason }); break;
-			case "usage": dispatch({ type: "SET_USAGE", usage: msg.usage }); break;
-		case "turn_done": dispatch({ type: "SET_TURN_DONE", finishReason: msg.finishReason, iterations: msg.iterations, usage: msg.usage }); break;
+			case "usage":
+				if (msg.usage) {
+					AgentEventBus.publish("usage", msg.usage);
+					dispatch({ type: "SET_USAGE", usage: msg.usage });
+				}
+				break;
+			case "turn_done": dispatch({ type: "SET_TURN_DONE", finishReason: msg.finishReason, iterations: msg.iterations, usage: msg.usage }); break;
 			case "session_started": dispatch({ type: "SET_SESSION_STARTED", sessionId: msg.sessionId }); break;
 			case "live_edit_event": {
 				const evType = (msg as any).eventType as string;
