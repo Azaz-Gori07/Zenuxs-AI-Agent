@@ -111,6 +111,29 @@ export function createInteractiveSessionRuntime(input: {
 	let missingSessionRecoveryPromise: Promise<void> | undefined;
 	let syncConversationId: string | undefined;
 	let pendingMsgInterval: ReturnType<typeof setInterval> | undefined;
+	let syncHeartbeatInterval: ReturnType<typeof setInterval> | undefined;
+
+	/** Sync conversations periodically to keep CloudProject online=true */
+	const startSyncHeartbeat = () => {
+		if (syncHeartbeatInterval) return;
+		syncHeartbeatInterval = setInterval(async () => {
+			if (!activeSessionId || shutdownRequested || abortRequested) return;
+			const msgs = await readCurrentMessages().catch(() => []);
+			syncConversationId = await syncSessionConversation(
+				activeSessionId,
+				msgs,
+				configRef.current.workspaceRoot || configRef.current.cwd,
+				syncConversationId,
+			).catch(() => syncConversationId);
+		}, 30000);
+	};
+
+	const stopSyncHeartbeat = () => {
+		if (syncHeartbeatInterval) {
+			clearInterval(syncHeartbeatInterval);
+			syncHeartbeatInterval = undefined;
+		}
+	};
 
 	const startPendingMsgPolling = () => {
 		if (pendingMsgInterval) return;
@@ -308,7 +331,18 @@ export function createInteractiveSessionRuntime(input: {
 			} else {
 				await startFreshSession(initialMessages);
 			}
+				// Sync conversation early so syncConversationId is set for polling
+				if (activeSessionId) {
+					const msgs = await readCurrentMessages().catch(() => []);
+					syncConversationId = await syncSessionConversation(
+						activeSessionId,
+						msgs,
+						configRef.current.workspaceRoot || configRef.current.cwd,
+						syncConversationId,
+					).catch(() => syncConversationId);
+				}
 				startPendingMsgPolling();
+				startSyncHeartbeat();
 		})().catch((error) => {
 			startupError = error;
 			throw error;
@@ -673,6 +707,7 @@ export function createInteractiveSessionRuntime(input: {
 		cleanupPromise = (async () => {
 			shutdownRequested = true;
 			stopPendingMsgPolling();
+			stopSyncHeartbeat();
 			let exitSummary: InteractiveExitSummary | undefined;
 			try {
 				await startupPromise?.catch(() => {});
