@@ -24,6 +24,7 @@ const SYNC_API = "https://aiapi.zenuxs.in/api";
 let syncTimer: ReturnType<typeof setInterval> | undefined;
 let pollTimer: ReturnType<typeof setInterval> | undefined;
 let remoteConvId: string | undefined;
+let lastSyncMessages = 0;
 
 function getAuthToken(): string | undefined {
 	try {
@@ -53,10 +54,73 @@ async function registerProject(workspaceRoot: string, logger?: BasicLogger) {
 	if (res?.success) logger?.log?.("[sync] project registered:", folderName);
 }
 
+function extractText(content: unknown): string {
+	if (typeof content === "string") return content;
+	if (Array.isArray(content)) {
+		return content.map((p) => (typeof p === "object" && p && "text" in p ? String(p.text) : "")).filter(Boolean).join("");
+	}
+	return "";
+}
+
+function messagesToSync(messages: { role: string; content: unknown }[]) {
+	return messages.map((m) => ({
+		role: m.role === "user" || m.role === "assistant" ? m.role : "user",
+		content: extractText(m.content),
+	})).filter((m) => m.content.trim());
+}
+
+async function syncConversation(
+	sessionId: string,
+	messages: { role: string; content: unknown }[],
+	workspaceRoot: string,
+	logger?: BasicLogger,
+) {
+	if (!sessionId || messages.length === 0) return;
+	const syncable = messagesToSync(messages);
+	if (syncable.length === 0 || syncable.length === lastSyncMessages) return;
+	lastSyncMessages = syncable.length;
+
+	const existing = remoteConvId;
+	const url = existing
+		? `/sync/conversations/${existing}`
+		: "/sync/conversations";
+	const res = await syncFetch(url, {
+		method: existing ? "PUT" : "POST",
+		body: JSON.stringify({
+			conversationId: existing,
+			title: syncable[0]?.content?.slice(0, 50) || "Extension Session",
+			messages: syncable,
+			workspaceRoot,
+		}),
+	});
+	if (res?.conversation?._id) {
+		if (remoteConvId !== res.conversation._id) {
+			remoteConvId = res.conversation._id;
+			logger?.log?.("[sync] conversation linked:", remoteConvId);
+		}
+	}
+}
+
+async function pollPendingMessages(logger?: BasicLogger) {
+	if (!remoteConvId) return;
+	try {
+		const data = await syncFetch(`/sync/conversations/${remoteConvId}/pending`);
+		const pending = (data?.pendingMessages || []).filter((m: any) => !m.delivered);
+		if (pending.length > 0) {
+			logger?.log?.("[sync] pending messages:", pending.length);
+			await syncFetch(`/sync/conversations/${remoteConvId}/pending/deliver`, {
+				method: "POST",
+				body: JSON.stringify({ messageIds: pending.map((m: any) => m._id) }),
+			});
+		}
+	} catch {}
+}
+
 function startSync(workspaceRoot: string, logger?: BasicLogger) {
 	if (syncTimer) return;
 	registerProject(workspaceRoot, logger);
 	syncTimer = setInterval(() => registerProject(workspaceRoot, logger), 30000);
+	pollTimer = setInterval(() => pollPendingMessages(logger), 5000);
 }
 
 function stopSync() {
@@ -64,10 +128,6 @@ function stopSync() {
 	if (pollTimer) { clearInterval(pollTimer); pollTimer = undefined; }
 }
 
-/**
- * Options for initializing the extension runtime bridge.
- * Mirrors the CLI's createCliCore() options.
- */
 export interface ExtensionCoreBridgeOptions {
 	cwd: string;
 	workspaceRoot: string;
@@ -80,16 +140,6 @@ export interface ExtensionCoreBridgeOptions {
 	) => Promise<ToolApprovalResult> | ToolApprovalResult;
 }
 
-/**
- * Singleton bridge between the VS Code extension and the ZenuxsCore runtime.
- *
- * This mirrors the CLI's `createCliCore()` from apps/cli/src/session/session.ts
- * exactly, using the same ZenuxsCore.create() pattern with feature flags,
- * telemetry, hub options, and message artifact uploaders.
- *
- * One ZenuxsCore instance is created per VS Code window and shared across
- * all extension features (chat panel, commands, inline chat, etc.).
- */
 export class ExtensionCoreBridge {
 	private core: ZenuxsCore | undefined;
 	private initPromise: Promise<ZenuxsCore> | undefined;
@@ -97,15 +147,13 @@ export class ExtensionCoreBridge {
 	private eventListeners = new Set<(event: CoreSessionEvent) => void>();
 	private unsubscribeEvents: (() => void) | undefined;
 	private userInstructionService: UserInstructionConfigService | undefined;
+	private lastSnapshotSessionId: string | undefined;
+	private syncDebounceTimer: ReturnType<typeof setTimeout> | undefined;
 
 	constructor(options: ExtensionCoreBridgeOptions) {
 		this.options = options;
 	}
 
-	/**
-	 * Returns the ZenuxsCore instance, creating it if necessary.
-	 * Subsequent calls return the same instance.
-	 */
 	async getCore(): Promise<ZenuxsCore> {
 		if (this.core) {
 			return this.core;
@@ -118,17 +166,34 @@ export class ExtensionCoreBridge {
 		return this.core;
 	}
 
-	/**
-	 * Returns the user instruction config service.
-	 */
 	getUserInstructionService(): UserInstructionConfigService | undefined {
 		return this.userInstructionService;
+	}
+
+	private handleEvent(event: CoreSessionEvent) {
+		if (event.type === "session_snapshot") {
+			const { sessionId, snapshot } = event.payload;
+			this.lastSnapshotSessionId = sessionId;
+			const messages = snapshot?.turnHistory?.messages || snapshot?.messages || [];
+			if (messages.length > 0) {
+				if (this.syncDebounceTimer) clearTimeout(this.syncDebounceTimer);
+				this.syncDebounceTimer = setTimeout(() => {
+					syncConversation(sessionId, messages, this.options.workspaceRoot, this.options.logger);
+				}, 2000);
+			}
+		}
+		if (event.type === "ended") {
+			lastSyncMessages = 0;
+			remoteConvId = undefined;
+		}
+		for (const listener of this.eventListeners) {
+			try { listener(event); } catch {}
+		}
 	}
 
 	private async createCore(): Promise<ZenuxsCore> {
 		const { cwd, workspaceRoot, logger } = this.options;
 
-		// Initialize user instruction config service (rules, skills, workflows)
 		this.userInstructionService = createUserInstructionConfigService({
 			skills: {
 				workspacePath: workspaceRoot,
@@ -140,15 +205,11 @@ export class ExtensionCoreBridge {
 		});
 		await this.userInstructionService.start().catch(() => {});
 
-		// Create telemetry service matching CLI pattern
 		const telemetry = this.options.telemetry;
-
-		// Create feature flags service
 		const featureFlags = this.createFeatureFlagsService(telemetry);
 
 		const { vsCodeEditorTool, vsCodeTerminalTool } = await import("../tools/index.js");
 
-		// Build capabilities with tool approval and native VS Code tools
 		const capabilities: RuntimeCapabilities = {
 			...this.options.capabilities,
 			requestToolApproval: this.options.onToolApprovalRequest
@@ -179,9 +240,8 @@ export class ExtensionCoreBridge {
 			},
 		};
 
-		// Build core matching CLI's createCliCore() exactly
 		const core = await ZenuxsCore.create({
-			backendMode: "local", // Always local for VS Code extension
+			backendMode: "local",
 			clientName: "vscode-extension",
 			hub: {
 				cwd,
@@ -196,25 +256,16 @@ export class ExtensionCoreBridge {
 			toolPolicies: this.options.toolPolicies,
 		});
 
-		// Poll feature flags on startup (matching CLI pattern)
 		try {
 			await core.featureFlags.poll();
 		} catch (error) {
 			logger?.error?.("Error polling feature flags", { error });
 		}
 
-		// Subscribe to all session events so we can fan them out to listeners
 		this.unsubscribeEvents = core.subscribe((event: CoreSessionEvent) => {
-			for (const listener of this.eventListeners) {
-				try {
-					listener(event);
-				} catch {
-					// Listener errors should not break the runtime
-				}
-			}
+			this.handleEvent(event);
 		});
 
-		// Start sync: register project and poll for web messages
 		startSync(workspaceRoot, logger);
 
 		logger?.log?.("Extension core runtime initialized", {
@@ -224,9 +275,6 @@ export class ExtensionCoreBridge {
 		return core;
 	}
 
-	/**
-	 * Creates feature flags service matching CLI pattern.
-	 */
 	private createFeatureFlagsService(
 		telemetry?: ITelemetryService,
 	): FeatureFlagsService {
@@ -237,9 +285,6 @@ export class ExtensionCoreBridge {
 		});
 	}
 
-	/**
-	 * Subscribe to all runtime events. Returns an unsubscribe function.
-	 */
 	subscribe(listener: (event: CoreSessionEvent) => void): () => void {
 		this.eventListeners.add(listener);
 		return () => {
@@ -247,20 +292,12 @@ export class ExtensionCoreBridge {
 		};
 	}
 
-	/**
-	 * Prewarm the file index for faster tool execution (matching CLI pattern).
-	 */
 	async prewarmFileIndex(): Promise<void> {
 		try {
 			await prewarmFileIndex(this.options.cwd);
-		} catch {
-			// Best-effort
-		}
+		} catch {}
 	}
 
-	/**
-	 * List session history from the backend (matching CLI's listSessions()).
-	 */
 	async listSessions(
 		limit = 50,
 		options?: { workspaceRoot?: string; hydrate?: boolean },
@@ -280,9 +317,6 @@ export class ExtensionCoreBridge {
 		}
 	}
 
-	/**
-	 * Dispose the runtime and clean up all resources.
-	 */
 	async dispose(): Promise<void> {
 		stopSync();
 		this.unsubscribeEvents?.();
