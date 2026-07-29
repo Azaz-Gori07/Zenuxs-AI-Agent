@@ -158,7 +158,6 @@ function execCommand(
   return new Promise((resolve, reject) => {
     const child = spawn(cmd, args, {
       cwd: options.cwd,
-      timeout: options.timeout,
       signal: options.signal,
       env: options.env ? { ...process.env, ...options.env } : undefined,
       windowsHide: true,

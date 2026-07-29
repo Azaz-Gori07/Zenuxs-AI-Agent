@@ -13,7 +13,7 @@
 
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import * as ts from "typescript";
+import type * as TsTypes from "typescript";
 import type { SearchMatch } from "../types";
 import {
 	isBinaryFile,
@@ -52,7 +52,14 @@ const AST_EXTENSIONS = new Set([
 	".cjs",
 ]);
 
-function getScriptKind(filePath: string): ts.ScriptKind {
+let _tsMod: typeof TsTypes | null = null;
+
+async function loadTs(): Promise<typeof TsTypes> {
+	if (!_tsMod) _tsMod = await import("typescript");
+	return _tsMod;
+}
+
+function getScriptKind(filePath: string, ts: typeof TsTypes): TsTypes.ScriptKind {
 	const ext = path.extname(filePath).toLowerCase();
 	switch (ext) {
 		case ".tsx":
@@ -96,14 +103,15 @@ interface SymbolMatch {
 }
 
 function extractSymbols(
-	sourceFile: ts.SourceFile,
+	sourceFile: TsTypes.SourceFile,
 	_filePath: string,
 	relativePath: string,
+	ts: typeof TsTypes,
 ): SymbolMatch[] {
 	const symbols: SymbolMatch[] = [];
 	const stack: string[] = [];
 
-	function location(node: ts.Node): { line: number; column: number } {
+	function location(node: TsTypes.Node): { line: number; column: number } {
 		const { line, character } = ts.getLineAndCharacterOfPosition(
 			sourceFile,
 			node.getStart(sourceFile),
@@ -111,7 +119,7 @@ function extractSymbols(
 		return { line: line + 1, column: character + 1 };
 	}
 
-	function lineText(node: ts.Node): string {
+	function lineText(node: TsTypes.Node): string {
 		const { line } = ts.getLineAndCharacterOfPosition(
 			sourceFile,
 			node.getStart(sourceFile),
@@ -119,7 +127,7 @@ function extractSymbols(
 		return sourceFile.getFullText().split("\n")[line] ?? "";
 	}
 
-	function record(name: string, kind: string, node: ts.Node, container?: string) {
+	function record(name: string, kind: string, node: TsTypes.Node, container?: string) {
 		const { line, column } = location(node);
 		symbols.push({
 			name,
@@ -132,7 +140,7 @@ function extractSymbols(
 		});
 	}
 
-	function visit(node: ts.Node) {
+	function visit(node: TsTypes.Node) {
 		let containerPushed = false;
 
 		if (ts.isFunctionDeclaration(node)) {
@@ -211,15 +219,16 @@ async function scanFile(
 		return;
 	}
 
+	const ts = await loadTs();
 	const sourceFile = ts.createSourceFile(
 		filePath,
 		content,
 		ts.ScriptTarget.Latest,
 		true,
-		getScriptKind(filePath),
+		getScriptKind(filePath, ts),
 	);
 
-	const symbols = extractSymbols(sourceFile, filePath, relativePath);
+	const symbols = extractSymbols(sourceFile, filePath, relativePath, ts);
 	for (const symbol of symbols) {
 		if (isMatch(symbol.name, query)) {
 			matches.push(symbol);

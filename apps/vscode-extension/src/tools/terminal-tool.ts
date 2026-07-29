@@ -150,6 +150,18 @@ export class VsCodeTerminalTool extends EventEmitter {
 			longRunning: false,
 		};
 	}
+
+	/**
+	 * Dispose the active terminal and clean up resources.
+	 */
+	dispose(): void {
+		if (this.activeTerminal) {
+			this.activeTerminal.dispose();
+			this.activeTerminal = undefined;
+		}
+		this.fullOutputBuffer = "";
+		this.removeAllListeners();
+	}
 }
 
 export const vsCodeTerminalTool = new VsCodeTerminalTool();

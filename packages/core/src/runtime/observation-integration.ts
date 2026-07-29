@@ -41,9 +41,6 @@ import {
   logError,
 } from "./logging";
 import {
-  emitToolCallComplete,
-} from "./event-bus";
-import {
   getWorkspaceIndexer,
 } from "./workspace-indexer";
 import {
@@ -170,15 +167,6 @@ export function createObservationHooks(config: ObservationConfig): Partial<Agent
       const goalTracker = getGoalTracker();
       goalTracker.recordIteration();
       goalTracker.recordToolCall();
-
-      // Emit tool call complete event
-      emitToolCallComplete(
-        config.sessionId,
-        toolName,
-        ctx.toolCall.toolCallId,
-        ctx.result.output,
-        Date.now() - startTime.getTime(),
-      );
 
       // If autonomous execution is active, continue to next task automatically
       if (goalTracker.isAutonomousActive()) {

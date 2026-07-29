@@ -3,6 +3,7 @@ import { cors } from "hono/cors"
 import { logger } from "hono/logger"
 import { compress } from "hono/compress"
 import type { ZenuxsEngine } from "@zenuxs/engine"
+import { createServer, type Server } from "node:http"
 
 export interface StudioConfig {
   host?: string
@@ -14,7 +15,7 @@ export class Studio {
   readonly app: Hono
   readonly config: StudioConfig
   readonly engine: ZenuxsEngine
-  private server?: { stop: () => void }
+  private httpServer?: Server
 
   constructor(config: StudioConfig) {
     this.config = config
@@ -34,7 +35,7 @@ export class Studio {
     this.app.get("/health", (c) => c.json({ status: "ok", timestamp: new Date().toISOString() }))
 
     this.app.get("/api/v1/sessions", async (c) => {
-      const sessions = await this.engine.orchestrator.list?.() ?? []
+      const sessions = await this.engine.orchestrator.list() ?? []
       return c.json({ sessions })
     })
 
@@ -66,31 +67,36 @@ export class Studio {
       return c.json({ tools })
     })
 
-    this.app.get("/api/v1/providers", (c) => {
-      const { providerManager } = require("@zenuxs/providers")
-      return c.json({ providers: providerManager.list().map((p: any) => ({ id: p.id, name: p.name })) })
+    this.app.get("/api/v1/providers", async (c) => {
+      const { providerManager } = await import("@zenuxs/providers")
+      return c.json({ providers: providerManager.list().map((p) => ({ id: p.id, name: p.name })) })
     })
 
     this.app.get("/api/v1/config", (c) => c.json({ config: this.engine.config }))
   }
 
   async start(): Promise<void> {
-    const port = this.config.port ?? 0
+    const port = this.config.port ?? 3000
+    const host = this.config.host ?? "0.0.0.0"
     return new Promise((resolve, reject) => {
-      const server = Bun.serve({
-        port,
-        fetch: this.app.fetch,
+      const server = createServer(this.app.fetch)
+      server.listen(port, host, () => {
+        this.httpServer = server
+        resolve()
       })
-      this.server = { stop: () => server.stop(true) }
-      resolve()
+      server.on("error", reject)
     })
   }
 
   async stop(): Promise<void> {
-    if (this.server) {
-      this.server.stop()
-      this.server = undefined
-    }
+    return new Promise((resolve, reject) => {
+      if (this.httpServer) {
+        this.httpServer.close((err) => {
+          if (err) reject(err)
+          else { this.httpServer = undefined; resolve() }
+        })
+      } else resolve()
+    })
   }
 }
 

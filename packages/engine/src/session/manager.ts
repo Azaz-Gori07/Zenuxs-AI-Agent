@@ -14,6 +14,7 @@ export interface SessionStore {
   getMessages(sessionId: string): Promise<Message[]>
   addEvent(event: SessionEvent): Promise<void>
   getEvents(sessionId: string): Promise<SessionEvent[]>
+  close(): void
 }
 
 export class InMemoryStore implements SessionStore {
@@ -73,6 +74,8 @@ export class InMemoryStore implements SessionStore {
   async getEvents(sessionId: string): Promise<SessionEvent[]> {
     return this.events.get(sessionId) ?? []
   }
+
+  close(): void {}
 }
 
 export class SessionManager {
@@ -170,6 +173,8 @@ export class SessionManager {
     })
     this.abortControllers.delete(sessionId)
   }
-}
 
-export * as SessionManager from "."
+  close(): void {
+    this.store.close()
+  }
+}

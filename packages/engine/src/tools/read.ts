@@ -24,7 +24,7 @@ export const handler: ToolHandler = {
         const entries = await fs.readdir(path)
         const output = entries.map((e: string) => {
           const childStat = fs.stat(`${path}/${e}`).catch(() => null)
-          return `${childStat?.isDirectory() ? "📁" : "📄"} ${e}`
+          return `${childStat?.isDirectory() ? "[DIR]" : "[FILE]"} ${e}`
         }).join("\n")
         return { title: `Directory: ${path}`, output, metadata: { path, entries: entries.length } }
       }

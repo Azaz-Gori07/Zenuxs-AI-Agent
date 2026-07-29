@@ -35,6 +35,14 @@ logs/
 .DS_Store
 Thumbs.db
 
+# User-specific config
+.zenuxs-user-config.json
+*.user-config.json
+
+# Profiling / diagnostics
+*FLAMEGRAPH_DATA.json
+*PROFILE_DATA.json
+
 # Runtime caches and temporary directories
 .bun/
 .cache/

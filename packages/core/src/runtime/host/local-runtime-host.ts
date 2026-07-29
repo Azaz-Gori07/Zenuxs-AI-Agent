@@ -948,6 +948,7 @@ export class LocalRuntimeHost implements RuntimeHost {
 		);
 		this.usageBySession.clear();
 		this.aggregateUsageBySession.clear();
+		this.sessionService.close();
 	}
 
 	async getSession(sessionId: string): Promise<SessionRecord | undefined> {

@@ -56,8 +56,8 @@ export class EventStore {
     return this.storage.getEvents(sessionId)
   }
 
-  async replay(sessionId: string, fromSequence?: number): AsyncGenerator<SessionEvent> {
-    return this.storage.replay(sessionId, fromSequence)
+  async *replay(sessionId: string, fromSequence?: number): AsyncGenerator<SessionEvent> {
+    yield* this.storage.replay(sessionId, fromSequence)
   }
 
   async getProjectedState<T>(
@@ -68,5 +68,3 @@ export class EventStore {
     return projector(events)
   }
 }
-
-export * as EventStore from "."

@@ -8,6 +8,9 @@ import * as GlobTool from "./glob"
 import * as QuestionTool from "./question"
 import * as WebFetchTool from "./webfetch"
 import * as WebSearchTool from "./websearch"
+import * as TodoWriteTool from "./todowrite"
+import * as SkillTool from "./skill"
+import * as ApplyPatchTool from "./apply-patch"
 
 export function buildCoreTools(): RegisteredTool[] {
   const tools: RegisteredTool[] = [
@@ -17,8 +20,12 @@ export function buildCoreTools(): RegisteredTool[] {
     { definition: ShellTool.definition, handler: ShellTool.handler },
     { definition: GrepTool.definition, handler: GrepTool.handler },
     { definition: GlobTool.definition, handler: GlobTool.handler },
+    { definition: QuestionTool.definition, handler: QuestionTool.handler },
     { definition: WebFetchTool.definition, handler: WebFetchTool.handler },
     { definition: WebSearchTool.definition, handler: WebSearchTool.handler },
+    { definition: TodoWriteTool.definition, handler: TodoWriteTool.handler },
+    { definition: SkillTool.definition, handler: SkillTool.handler },
+    { definition: ApplyPatchTool.definition, handler: ApplyPatchTool.handler },
   ]
   return tools
 }

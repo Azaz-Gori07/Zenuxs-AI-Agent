@@ -28,8 +28,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@zenuxs/schema": "workspace:*",
-    "ai": "^4.0.0"
+    "@zenuxs/schema": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.4.5",

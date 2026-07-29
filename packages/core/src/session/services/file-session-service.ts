@@ -281,4 +281,8 @@ export class FileSessionService extends UnifiedSessionPersistenceService {
 	override ensureSessionsDir(): string {
 		return super.ensureSessionsDir();
 	}
+
+	close(): void {
+		// FileSessionService has no DB connection to close.
+	}
 }

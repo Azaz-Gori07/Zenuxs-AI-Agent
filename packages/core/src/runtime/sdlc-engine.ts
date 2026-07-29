@@ -28,7 +28,6 @@
 
 import { getGoalTracker, type GoalDecomposition, type GoalMilestone } from "./goal-tracker";
 import { logInfo } from "./logging";
-import { emitExecutionStart } from "./event-bus";
 
 export enum SDLCPhase {
   REQUIREMENT_ANALYSIS = "requirement_analysis",
@@ -233,14 +232,6 @@ export class SDLCEngine {
 
     // Phase 3: Project Breakdown
     await this.breakdownProject(workspaceRoot);
-
-    // Emit execution start event
-    emitExecutionStart(
-      sessionId,
-      this.currentProject.productDescription,
-      "sdlc",
-      workspaceRoot,
-    );
 
     logInfo("SDLC", "Project initialized", {
       name: this.currentProject.name,

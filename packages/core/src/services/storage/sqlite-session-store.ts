@@ -200,9 +200,31 @@ export class SqliteSessionStore implements SessionStore {
 			 FROM sessions WHERE session_id = ?`,
 			[sessionId],
 		);
-		if (!row) {
-			return undefined;
+		return row ? this.rowToRecord(row) : undefined;
+	}
+
+	list(limit = 200): SessionRecord[] {
+		const rows = this.queryAll<Record<string, unknown>>(
+			`SELECT session_id, source, pid, started_at, ended_at, exit_code, status, interactive,
+				provider, model, cwd, workspace_root, team_name,
+				enable_tools, enable_spawn, enable_teams,
+				parent_session_id, parent_agent_id, agent_id, conversation_id, is_subagent,
+				prompt, metadata_json, hook_path, messages_path, updated_at
+			 FROM sessions ORDER BY started_at DESC LIMIT ?`,
+			[limit],
+		);
+		const result: SessionRecord[] = [];
+		for (const row of rows) {
+			const record = this.rowToRecord(row);
+			if (record) {
+				result.push(record);
+			}
 		}
+		return result;
+	}
+
+	private rowToRecord(row: Record<string, unknown>): SessionRecord | undefined {
+		if (!row.session_id) return undefined;
 		return {
 			sessionId: asString(row.session_id),
 			source: asString(row.source) as SessionRecord["source"],
@@ -228,9 +250,7 @@ export class SqliteSessionStore implements SessionStore {
 			prompt: asOptionalString(row.prompt),
 			metadata: (() => {
 				const raw = asOptionalString(row.metadata_json);
-				if (!raw) {
-					return undefined;
-				}
+				if (!raw) return undefined;
 				try {
 					const parsed = JSON.parse(raw) as unknown;
 					if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
@@ -245,21 +265,6 @@ export class SqliteSessionStore implements SessionStore {
 			messagesPath: asOptionalString(row.messages_path),
 			updatedAt: asOptionalString(row.updated_at) ?? nowIso(),
 		};
-	}
-
-	list(limit = 200): SessionRecord[] {
-		const rows = this.queryAll<Record<string, unknown>>(
-			`SELECT session_id FROM sessions ORDER BY started_at DESC LIMIT ?`,
-			[limit],
-		);
-		const result: SessionRecord[] = [];
-		for (const row of rows) {
-			const item = this.get(asString(row.session_id));
-			if (item) {
-				result.push(item);
-			}
-		}
-		return result;
 	}
 
 	delete(sessionId: string, cascade = false): boolean {

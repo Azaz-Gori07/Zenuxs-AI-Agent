@@ -165,6 +165,10 @@ export class ExecutionCacheManager {
   }
 
   clear(): void {
+    if (this.ttlSweepTimer) {
+      clearInterval(this.ttlSweepTimer);
+      this.ttlSweepTimer = null;
+    }
     this.cache.clear();
     this.stats = { hits: 0, misses: 0 };
     this.estimatedMemoryBytes = 0;

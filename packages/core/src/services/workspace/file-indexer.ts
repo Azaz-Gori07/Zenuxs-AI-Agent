@@ -278,6 +278,11 @@ class FileIndexWorkerClient {
 		return result;
 	}
 
+	dispose(): void {
+		this.worker.terminate();
+		this.flushPending(new Error("File index worker disposed"));
+	}
+
 	private flushPending(error: Error): void {
 		for (const [requestId, request] of this.pending.entries()) {
 			request.reject(error);

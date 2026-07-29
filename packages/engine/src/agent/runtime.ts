@@ -1,4 +1,4 @@
-import type { AgentMode, AgentConfig, AgentEvent, AgentResult } from "@zenuxs/schema"
+import type { AgentMode } from "@zenuxs/schema"
 import type { ToolRegistry, RegisteredTool } from "../tool/registry"
 import type { PermissionEvaluator } from "../permission/evaluator"
 

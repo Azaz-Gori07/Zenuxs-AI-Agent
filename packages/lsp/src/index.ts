@@ -60,8 +60,10 @@ export class LSPClient {
         textDocument: { uri, languageId: this.language, version: 1, text: content },
       })
       const diagnostics = await new Promise<LSPDiagnostic[]>((resolve) => {
+        const timer = setTimeout(() => resolve([]), 5000)
         const handler = (params: { uri: string; diagnostics: Array<{ range: { start: { line: number; character: number } }; message: string; severity?: number; code?: string }> }) => {
           if (params.uri === uri) {
+            clearTimeout(timer)
             resolve(params.diagnostics.map((d) => ({
               file: uri,
               line: d.range.start.line,
@@ -73,7 +75,6 @@ export class LSPClient {
           }
         }
         this.connection!.onNotification("textDocument/publishDiagnostics", handler)
-        setTimeout(() => resolve([]), 5000)
       })
       this.connection.sendNotification("textDocument/didClose", { textDocument: { uri } })
       return diagnostics

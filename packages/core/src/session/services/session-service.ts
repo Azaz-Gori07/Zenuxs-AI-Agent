@@ -275,6 +275,10 @@ export class CoreSessionService extends UnifiedSessionPersistenceService {
 		);
 	}
 
+	close(): void {
+		this.store.close();
+	}
+
 	createRootSession(input: CreateRootSessionInput): void {
 		this.store.run(
 			`INSERT OR REPLACE INTO sessions (

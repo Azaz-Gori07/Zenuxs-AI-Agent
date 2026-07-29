@@ -74,7 +74,7 @@ describe("build env helpers", () => {
 		expect(
 			augmentNodeCommandForDebug(["node", "script.js"], {
 				env: {
-					[CLINE_BUILD_ENV_ENV]: "development",
+					[ZENUXS_BUILD_ENV_ENV]: "development",
 					[ZENUXS_DEBUG_HOST_ENV]: "0.0.0.0",
 					[ZENUXS_DEBUG_PORT_BASE_ENV]: "9500",
 				},
@@ -106,7 +106,7 @@ describe("build env helpers", () => {
 		expect(
 			augmentNodeCommandForDebug(["node", "--inspect=9229", "script.js"], {
 				env: {
-					[CLINE_BUILD_ENV_ENV]: "development",
+					[ZENUXS_BUILD_ENV_ENV]: "development",
 					NODE_OPTIONS: "--enable-source-maps",
 				},
 			}),

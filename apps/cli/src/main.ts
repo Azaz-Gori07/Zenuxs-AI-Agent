@@ -666,6 +666,128 @@ export async function runCli(): Promise<void> {
 			});
 		});
 
+	// Serve command
+	program
+		.command("serve")
+		.description("Start a HTTP API server")
+		.option("-H, --hostname <host>", "Hostname to bind to", "127.0.0.1")
+		.option("-p, --port <port>", "Port to listen on")
+		.option("--register", "Register with the daemon")
+		.action(async () => {
+			const opts = program.opts() as { hostname?: string; port?: string; register?: boolean }
+			const { runServeCommand } = await import("./commands/serve")
+			const { version } = await import("../package.json")
+			const daemon = new (await import("./services/daemon")).DaemonManager(version)
+			ctx.exitCode = await runServeCommand({
+				hostname: opts.hostname ?? "127.0.0.1",
+				port: opts.port ? Number(opts.port) : undefined,
+				register: opts.register ?? false,
+				daemon,
+			})
+		})
+
+	// API command
+	program
+		.command("api")
+		.description("Make authenticated requests to a running server")
+		.argument("<request...>", "HTTP method + path, or OpenAPI operation ID")
+		.option("-d, --data <body>", "Request body")
+		.option("-H, --header <header...>", "Additional headers (key:value)")
+		.option("-p, --param <params...>", "Path/query parameters (key=value)")
+		.action(async (request: string[]) => {
+			const opts = program.opts() as { data?: string; header?: string[]; param?: string[] }
+			const { runApiCommand } = await import("./commands/api")
+			const { version } = await import("../package.json")
+			const daemon = new (await import("./services/daemon")).DaemonManager(version)
+			const params: Record<string, string> = {}
+			if (opts.param) {
+				for (const p of opts.param) {
+					const idx = p.indexOf("=")
+					if (idx > 0) params[p.slice(0, idx)] = p.slice(idx + 1)
+				}
+			}
+			ctx.exitCode = await runApiCommand({
+				request,
+				data: opts.data,
+				header: opts.header ?? [],
+				param: params,
+				daemon,
+			})
+		})
+
+	// Migrate command
+	program
+		.command("migrate")
+		.description("Run database migrations")
+		.option("-f, --file <path>", "Database file path")
+		.option("-v, --verbose", "Show verbose output")
+		.action(async () => {
+			const opts = program.opts() as { file?: string; verbose?: boolean }
+			const { runMigrateCommand } = await import("./commands/migrate")
+			ctx.exitCode = await runMigrateCommand({
+				file: opts.file,
+				verbose: opts.verbose ?? false,
+			})
+		})
+
+	// Service command group
+	const serviceCmd = program
+		.command("service")
+		.description("Manage the background server process")
+		.action(() => { serviceCmd.help() })
+	serviceCmd
+		.command("start")
+		.description("Start the background server")
+		.action(async () => {
+			const { runServiceCommand } = await import("./commands/service")
+			const { version } = await import("../package.json")
+			const daemon = new (await import("./services/daemon")).DaemonManager(version)
+			ctx.exitCode = await runServiceCommand({ action: "start", daemon })
+		})
+	serviceCmd
+		.command("stop")
+		.description("Stop the background server")
+		.action(async () => {
+			const { runServiceCommand } = await import("./commands/service")
+			const { version } = await import("../package.json")
+			const daemon = new (await import("./services/daemon")).DaemonManager(version)
+			ctx.exitCode = await runServiceCommand({ action: "stop", daemon })
+		})
+	serviceCmd
+		.command("status")
+		.description("Check server status")
+		.action(async () => {
+			const { runServiceCommand } = await import("./commands/service")
+			const { version } = await import("../package.json")
+			const daemon = new (await import("./services/daemon")).DaemonManager(version)
+			ctx.exitCode = await runServiceCommand({ action: "status", daemon })
+		})
+	serviceCmd
+		.command("password")
+		.description("Get or set the server password")
+		.argument("[password]", "New password value")
+		.action(async (password?: string) => {
+			const { runServiceCommand } = await import("./commands/service")
+			const { version } = await import("../package.json")
+			const daemon = new (await import("./services/daemon")).DaemonManager(version)
+			ctx.exitCode = await runServiceCommand({ action: "password", password, daemon })
+		})
+
+	// Debug command group
+	const debugCmd = program
+		.command("debug")
+		.description("Debugging and troubleshooting tools")
+		.action(() => { debugCmd.help() })
+	debugCmd
+		.command("agents")
+		.description("List all agents")
+		.option("-d, --directory <path>", "Workspace directory")
+		.action(async () => {
+			const opts = debugCmd.opts() as { directory?: string }
+			const { runDebugAgentsCommand } = await import("./commands/debug-agents")
+			ctx.exitCode = await runDebugAgentsCommand({ directory: opts.directory })
+		})
+
 	try {
 		await program.parseAsync(normalizedArgs, { from: "user" });
 	} catch (err: unknown) {

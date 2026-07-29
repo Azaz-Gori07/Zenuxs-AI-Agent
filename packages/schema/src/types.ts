@@ -64,5 +64,3 @@ export const MessageSchema = z.object({
 })
 
 export type Message = z.infer<typeof MessageSchema>
-
-export * as Schema from "."
