@@ -145,6 +145,15 @@ export class AgentTerminalService {
 		session.busy = true;
 		const item = session.commandQueue.shift()!;
 
+		// Announce the command start so UI can show a clickable dropdown / command node
+		if (this.eventBus && typeof this.eventBus.publish === "function") {
+			this.eventBus.publish("terminal_command", {
+				taskId: session.taskId,
+				command: item.command,
+				id: item.id,
+			});
+		}
+
 		this.setTerminalState(session, "Running");
 		const outputLines: string[] = [];
 

@@ -172,33 +172,58 @@ export class TimelineStoreClass extends BaseStore<TimelineState> {
 			}),
 			AgentEventBus.subscribe("tool_event", (data: { text: string; event?: ToolEventData }) => {
 				const msgs = [...this.state.messages];
-				const last = msgs[msgs.length - 1];
 				const eventText = data.text;
 				const ops = [...this.state.recentOperations];
 				if (eventText) {
 					ops.push(eventText);
 					if (ops.length > 50) ops.shift();
 				}
+				if (!data.event) {
+					this.setState({ recentOperations: ops });
+					return;
+				}
 
-				if (last && last.role === "assistant") {
-					const events = [...(last.toolEvents || [])];
-					if (data.event) {
-						const idx = events.findIndex((e) => e.id === data.event?.id);
-						if (idx >= 0) {
-							events[idx] = { ...events[idx], ...data.event };
-						} else {
-							events.push(data.event);
+				const eventId = data.event.id || (data.event as any).toolCallId;
+				const existingIndex = msgs.findIndex((m) =>
+					m.role === "assistant" &&
+					Array.isArray(m.toolEvents) &&
+					m.toolEvents.some((e) => e.id === eventId || (e as any).toolCallId === eventId),
+				);
+
+				if (existingIndex >= 0) {
+					const existingMsg = msgs[existingIndex];
+					const events = [...(existingMsg.toolEvents || [])];
+					const eventIndex = events.findIndex((e) => e.id === eventId || (e as any).toolCallId === eventId);
+					if (eventIndex >= 0) {
+						const prevEvent = events[eventIndex];
+						const nextEvent = { ...prevEvent, ...data.event };
+						if (data.event.state === "running" && typeof data.event.output === "string" && typeof prevEvent.output === "string") {
+							nextEvent.output = prevEvent.output + data.event.output;
 						}
+						events[eventIndex] = nextEvent;
 					}
-					msgs[msgs.length - 1] = { ...last, toolEvents: events };
+					msgs[existingIndex] = { ...existingMsg, toolEvents: events, text: existingMsg.text || eventText || "" };
 				} else {
 					msgs.push({
 						role: "assistant",
-						text: "",
-						toolEvents: data.event ? [data.event] : [],
+						text: eventText || "",
+						toolEvents: [data.event],
 					});
 				}
 				this.setState({ messages: msgs, recentOperations: ops });
+			}),
+			AgentEventBus.subscribe("context_summary", (data: { threshold: number; goal?: string; task?: string; summary: string }) => {
+				const msgs = [...this.state.messages];
+				const textParts = [`Context usage has reached ${data.threshold}% of the model window.`];
+				if (data.goal) textParts.push(`Goal: ${data.goal}`);
+				if (data.task) textParts.push(`Task: ${data.task}`);
+				textParts.push(data.summary);
+				const text = textParts.join("\n\n");
+				const isDuplicate = msgs.some((m) => m.role === "meta" && m.text === text);
+				if (!isDuplicate) {
+					msgs.push({ role: "meta", text });
+					this.setState({ messages: msgs });
+				}
 			}),
 			AgentEventBus.subscribe("session_hydrated", (data: { messages: ChatMessage[] }) => {
 				const prevMsgs = this.state.messages;
@@ -346,6 +371,16 @@ export class ExecutionStoreClass extends BaseStore<ExecutionState> {
 			AgentEventBus.subscribe("reasoning_delta", () => {
 				this.setState({ status: "thinking", phase: "streaming", isRunning: true });
 			}),
+			AgentEventBus.subscribe("usage", (data: UsageData | { usage?: UsageData }) => {
+				const usage = "usage" in data && data.usage ? data.usage : (data as UsageData);
+				const inputTokens = usage.inputTokens ?? this.state.inputTokens;
+				const outputTokens = usage.outputTokens ?? this.state.outputTokens;
+				const totalCost = usage.totalCost ?? this.state.totalCost;
+				const contextTokens = typeof inputTokens === "number" && typeof outputTokens === "number"
+					? inputTokens + outputTokens
+					: inputTokens ?? this.state.contextTokens;
+				this.setState({ inputTokens, outputTokens, totalCost, contextTokens });
+			}),
 			AgentEventBus.subscribe("tool_event", (data: { text: string; event?: ToolEventData }) => {
 				if (data.event) {
 					const name = (data.event.name || "").toLowerCase();
@@ -373,11 +408,12 @@ export class ExecutionStoreClass extends BaseStore<ExecutionState> {
 				const isError = data.finishReason === "error" || data.finishReason === "failed";
 				const status: AgentState = isError ? "error" : isCancelled ? "idle" : "finished";
 				const phase: import("../types.js").AgentExecutionPhase = isCancelled ? "cancelled" : isError ? "error" : "completed";
-				const inputTokens = data.usage?.inputTokens || this.state.inputTokens;
-				const outputTokens = data.usage?.outputTokens || this.state.outputTokens;
-				const totalCost = data.usage?.totalCost || this.state.totalCost;
-
-				const contextTokens = inputTokens;
+				const inputTokens = data.usage?.inputTokens ?? this.state.inputTokens;
+				const outputTokens = data.usage?.outputTokens ?? this.state.outputTokens;
+				const totalCost = data.usage?.totalCost ?? this.state.totalCost;
+				const contextTokens = typeof inputTokens === "number" && typeof outputTokens === "number"
+					? inputTokens + outputTokens
+					: inputTokens ?? this.state.contextTokens;
 
 				this.setState({
 					status,

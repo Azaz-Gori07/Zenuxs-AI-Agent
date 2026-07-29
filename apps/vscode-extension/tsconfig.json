@@ -15,7 +15,7 @@
     "declarationMap": true,
     "sourceMap": true,
     "jsx": "react-jsx",
-    "types": ["node"]
+    "types": ["node", "vscode"]
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["node_modules", "dist", "**/*.test.ts"]

@@ -78,6 +78,7 @@ export interface ChatMessage {
 
 export interface ToolEventData {
 	id?: string;
+	toolCallId?: string;
 	name?: string;
 	text?: string;
 	state: "running" | "completed" | "failed" | "input-available" | "output-available" | "output-error";
@@ -223,6 +224,7 @@ export type ExtensionMessage =
 	| { type: "approval_request"; approvalId: string; sessionId: string; agentId: string; conversationId: string; iteration: number; toolCallId: string; toolName: string; input: unknown }
 	| { type: "approval_resolved"; approvalId: string; approved: boolean; reason?: string }
 	| { type: "turn_done"; finishReason: string; iterations: number; usage?: UsageData }
+	| { type: "usage"; usage: UsageData }
 	| { type: "session_started"; sessionId: string }
 	| { type: "session_hydrated"; sessionId: string; messages: ChatMessage[]; executionTasks?: PersistedTaskExecution[] }
 	| { type: "error"; text: string }
