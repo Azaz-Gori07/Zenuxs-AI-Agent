@@ -29,7 +29,7 @@ let lastSyncMessages = 0;
 function getAuthToken(): string | undefined {
 	try {
 		const { AuthService } = require("../services/auth-service.js");
-		return AuthService.getInstance().getState()?.accessToken || undefined;
+		return AuthService.getInstance().authToken || undefined;
 	} catch { return undefined; }
 }
 
