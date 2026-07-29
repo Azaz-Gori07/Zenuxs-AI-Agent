@@ -859,8 +859,7 @@ export function ChatView() {
 									)}
 								</div>
 							);
-							</div>
-						)}
+						})}
 					</div>
 				)}
 
