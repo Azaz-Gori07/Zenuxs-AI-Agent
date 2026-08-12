@@ -1585,6 +1585,61 @@ describe("AgentRuntime", () => {
 		});
 	});
 
+	it("merges streamed tool-call deltas when the model re-emits the complete arguments object after a partial fragment", async () => {
+		const executedInput: any[] = [];
+		const editTool: AgentTool = {
+			name: "edit",
+			description: "Edit a file",
+			inputSchema: { type: "object" },
+			async execute(input) {
+				executedInput.push(input);
+				return { success: true };
+			},
+		};
+
+		const model = new ScriptedModel([
+			() => [
+				{
+					type: "tool-call-delta",
+					toolCallId: "call_edit_1",
+					toolName: "edit",
+					inputText: '{"filePath":"src/a.ts","old":"', // partial fragment streamed first
+				},
+				{
+					type: "tool-call-delta",
+					toolCallId: "call_edit_1",
+					toolName: "edit",
+					inputText: 'const x = 1', // mid-stream chunk
+				},
+				{
+					type: "tool-call-delta",
+					toolCallId: "call_edit_1",
+					toolName: "edit",
+					inputText: '{"filePath":"src/a.ts","old":"const x = 1","new":"const x = 2"}', // provider re-emits full object
+				},
+				{ type: "finish", reason: "tool-calls" },
+			],
+			() => [
+				{ type: "text-delta", text: "edited" },
+				{ type: "finish", reason: "stop" },
+			],
+		]);
+
+		const runtime = new AgentRuntime({ model, tools: [editTool] });
+		const result = await runtime.run("Edit file");
+
+		expect(result.status).toBe("completed");
+		expect(executedInput).toEqual([
+			{
+				filePath: "src/a.ts",
+				old: "const x = 1",
+				new: "const x = 2",
+				oldString: "const x = 1",
+				newString: "const x = 2",
+			},
+		]);
+	});
+
 	it("routes generic search tool calls to grep when grep is the registered file-search implementation", async () => {
 		const executedInput: any[] = [];
 		const grepTool: AgentTool = {

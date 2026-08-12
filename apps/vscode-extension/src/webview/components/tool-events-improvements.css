@@ -1,0 +1,123 @@
+/* Improved Tool Event Styling */
+.tool-events-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.tool-event {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.015);
+  border-radius: 12px;
+  padding: 12px;
+  transition: all 0.2s ease;
+}
+
+.tool-event:hover {
+  background: rgba(255, 255, 255, 0.025);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tool-event-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 0 4px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.tool-event-title {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.95em;
+}
+
+.tool-event-title.command {
+  color: #c084fc;
+}
+
+.tool-event-title.writing {
+  color: #34d399;
+}
+
+.tool-event-title.reading {
+  color: #7dd3fc;
+  background: linear-gradient(90deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.85) 35%, rgba(255,255,255,0.7) 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: reading-glow 2.5s linear infinite;
+}
+
+.tool-event-title.searching {
+  color: #facc15;
+}
+
+.tool-event-title.testing {
+  color: #fb923c;
+}
+
+.tool-event-status-badge {
+  font-size: 0.75em;
+  padding: 3px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.tool-event-status-badge.running {
+  background: rgba(59, 130, 246, 0.16);
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  animation: pulse-badge 2s ease-in-out infinite;
+}
+
+.tool-event-status-badge.completed {
+  background: rgba(16, 185, 129, 0.16);
+  color: #86efac;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.tool-event-status-badge.failed {
+  background: rgba(244, 63, 94, 0.16);
+  color: #fda4af;
+  border: 1px solid rgba(244, 63, 94, 0.3);
+}
+
+.tool-event-details {
+  margin-top: 10px;
+}
+
+.tool-event-canvas {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 23, 42, 0.95);
+  border-radius: 8px;
+  padding: 12px;
+  overflow-x: auto;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+
+.tool-event-empty {
+  font-size: 0.88em;
+  color: rgba(255, 255, 255, 0.65);
+  padding: 14px 0;
+}
+
+@keyframes reading-glow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+@keyframes pulse-badge {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+  50% {
+    opacity: 0.7;
+    box-shadow: 0 0 0 6px rgba(59, 130, 246, 0);
+  }
+}

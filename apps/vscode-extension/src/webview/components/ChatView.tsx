@@ -329,6 +329,12 @@ export function ChatView() {
 		navigator.clipboard.writeText(text);
 	}, []);
 
+	const revertMessage = useCallback((index: number, originalText: string) => {
+		const msgs = [...timelineState.messages];
+		msgs[index] = { ...msgs[index], text: originalText };
+		dispatch({ type: "SET_INITIAL_DATA", payload: { messages: msgs } });
+	}, [timelineState.messages, dispatch]);
+
 	const startEdit = useCallback((index: number, currentText: string) => {
 		setEditingIndex(index);
 		setEditText(currentText);
@@ -814,51 +820,56 @@ export function ChatView() {
 							const isStreamingThis = isAssistant && isLastMessage && isExecutionActive;
 							const senderLabel = isUser ? "You" : isAssistant ? "Zenuxs AI" : isError ? "Error" : isMeta ? "Context Summary" : "";
 
-							return (
-								<div key={idx} className={`message ${isUser ? "user" : isAssistant ? "assistant" : isError ? "error" : isMeta ? "meta" : ""}`}>
-									<div className="message-header">
-										<span className="brand-zenuxs">{senderLabel}</span>
-										<div className="message-actions">
-											{isAssistant && !isEditing && (
-												<button className="msg-action-btn" onClick={() => copyMessage(msg.text)} title="Copy">
-													<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-												</button>
-											)}
-											{!isError && !isEditing && (
-												<button className="msg-action-btn" onClick={() => startEdit(idx, msg.text)} title="Edit">
-													<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-												</button>
-											)}
+						return (
+							<div key={idx} className={`message ${isUser ? "user" : isAssistant ? "assistant" : isError ? "error" : isMeta ? "meta" : ""}`}>
+								<div className="message-header">
+									<span className="brand-zenuxs">{senderLabel}</span>
+									<div className="message-actions">
+										{isAssistant && !isEditing && (
+											<button className="msg-action-btn" onClick={() => copyMessage(msg.text)} title="Copy">
+												<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+											</button>
+										)}
+										{!isError && !isEditing && (
+											<button className="msg-action-btn" onClick={() => startEdit(idx, msg.text)} title="Edit">
+												<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+											</button>
+										)}
+										{!isError && !isEditing && !isUser && (
+											<button className="msg-action-btn" onClick={() => revertMessage(idx, msg.text)} title="Revert">
+												<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"/></svg>
+											</button>
+										)}
+									</div>
+								</div>
+								{isEditing ? (
+									<div className="edit-box">
+										<textarea value={editText} onChange={(e) => setEditText(e.target.value)} />
+										<div className="edit-actions">
+											<button className="btn sm" onClick={submitEdit}>Save & Resend</button>
+											<button className="btn secondary sm" onClick={cancelEdit}>Cancel</button>
 										</div>
 									</div>
-									{isEditing ? (
-										<div className="edit-box">
-											<textarea value={editText} onChange={(e) => setEditText(e.target.value)} />
-											<div className="edit-actions">
-												<button className="btn sm" onClick={submitEdit}>Save & Resend</button>
-												<button className="btn secondary sm" onClick={cancelEdit}>Cancel</button>
-											</div>
+								) : (
+									<>
+										<div className="message-text">
+											{msg.text ? <MarkdownBlock markdown={msg.text} /> : null}
+											{isStreamingThis && <span className="streaming-cursor" aria-hidden="true" />}
 										</div>
-									) : (
-										<>
-											<div className="message-text">
-												{msg.text ? <MarkdownBlock markdown={msg.text} /> : null}
-												{isStreamingThis && <span className="streaming-cursor" aria-hidden="true" />}
-											</div>
-											{renderToolEvents((msg as any).toolEvents)}
-											{(msg as any).reasoning ? (
-												<div className={`reasoning-block ${isStreamingThis ? "reasoning-live" : ""}`}>
-													<div className="reasoning-header" onClick={(e) => { const el = e.currentTarget.nextElementSibling as HTMLElement | null; if (el) { el.style.display = el.style.display === "none" ? "block" : "none"; } }}>
-														<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-														Reasoning
-													</div>
-													<div className="reasoning-content" style={{ display: isStreamingThis ? "block" : "none" }}><MarkdownBlock markdown={(msg as any).reasoning} /></div>
+										{!isUser && renderToolEvents((msg as any).toolEvents)}
+										{!isUser && (msg as any).reasoning ? (
+											<div className={`reasoning-block ${isStreamingThis ? "reasoning-live" : ""}`}>
+												<div className="reasoning-header" onClick={(e) => { const el = e.currentTarget.nextElementSibling as HTMLElement | null; if (el) { el.style.display = el.style.display === "none" ? "block" : "none"; } }}>
+													<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+													Reasoning
 												</div>
-											) : null}
-										</>
-									)}
-								</div>
-							);
+												<div className="reasoning-content" style={{ display: isStreamingThis ? "block" : "none" }}><MarkdownBlock markdown={(msg as any).reasoning} /></div>
+											</div>
+										) : null}
+									</>
+								)}
+							</div>
+						);
 						})}
 					</div>
 				)}

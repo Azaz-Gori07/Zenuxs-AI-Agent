@@ -79,7 +79,6 @@ export function activate(context: vscode.ExtensionContext): void {
 
 	// Create the chat view provider (manages its own ExtensionCoreBridge)
 	const chatProvider = new ZenuxsChatViewProvider(context);
-
 	// Register the webview view provider for the sidebar chat panel
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider(

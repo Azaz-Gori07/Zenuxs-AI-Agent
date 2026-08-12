@@ -368,6 +368,9 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				});
 				continue;
 			}
+			// Internal system/context messages are for the model only — never show them in chat
+			if (m.role === "system") continue;
+
 			let role: "user" | "assistant" | "error" | "meta" | "completion" = "user";
 			if (m.role === "assistant") role = "assistant";
 			else if (m.role === "user") role = "user";
@@ -1528,10 +1531,8 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 			const editorCtx = captureEditorContext();
 			const editorContextText = formatEditorContextForPrompt(editorCtx);
 
-			// Build the full prompt with editor context
-			const fullPrompt = editorContextText
-				? `${prompt}\n\n${editorContextText}`
-				: prompt;
+			// Pass the clean user prompt to the core so the visible user message stays clean.
+			// Editor context is attached separately as a hidden system message on fresh sessions.
 
 			// Subscribe to events for this turn
 			const unsubscribe = bridge.subscribe((event: CoreSessionEvent) => {
@@ -1697,10 +1698,20 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 					const targetSessionId = this.activeSessionId || plannedSessionId;
 
 					let initialMessages = this.restoredMessagesCache;
+					const hadRestoredCache = !!initialMessages;
 					if (!initialMessages && targetSessionId) {
 						initialMessages = await core.readMessages(targetSessionId).catch(() => undefined);
 					}
 					this.restoredMessagesCache = undefined;
+
+					// On a truly fresh session, feed the editor context to the model as a
+					// hidden system message instead of polluting the user's visible message.
+					const isFreshStart =
+						!hadRestoredCache &&
+						(!initialMessages || initialMessages.length === 0);
+					if (isFreshStart && editorContextText) {
+						initialMessages = [{ role: "system", content: editorContextText }];
+					}
 
 					this.postToWebview({
 						type: "session_started",
@@ -1744,7 +1755,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 							},
 						sessionId: targetSessionId,
 						},
-						prompt: fullPrompt,
+						prompt,
 						interactive: true,
 						initialMessages,
 					});
@@ -1771,7 +1782,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 					loggerService.log({ level: LogLevel.DEBUG, category: LogCategory.CONVERSATION, message: "Session send", source: "session", sessionId: this.activeSessionId });
 					const result = await core.send({
 						sessionId: this.activeSessionId,
-						prompt: fullPrompt,
+						prompt,
 					});
 
 					if (result) {
@@ -1964,6 +1975,23 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 					event.type === "status" &&
 					event.payload?.status === "idle" &&
 					event.payload?.sessionId === sessionId
+				) {
+					if (timeoutId) clearTimeout(timeoutId);
+					unsubscribe();
+					resolve();
+				}
+				// Provider/auth failures (403 gate, bad key) surface as a
+				// non-recoverable run error that never transitions the session
+				// to idle or emits an explicit "ended" event. Without this the
+				// tagged progress holder hangs on "Thinking…" forever even
+				// though the error was already posted to the webview.
+				if (
+					event.type === "agent_event" &&
+					event.payload.sessionId === sessionId &&
+					(event.payload.event.type === "error" ||
+						(event.payload.event.type === "done" &&
+							(event.payload.event.reason === "error" ||
+								event.payload.event.reason === "api_error")))
 				) {
 					if (timeoutId) clearTimeout(timeoutId);
 					unsubscribe();

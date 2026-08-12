@@ -2435,10 +2435,19 @@ function mergeToolInputText(current: string, incoming: string): string {
 	}
 	const trimmedIncoming = incoming.trim();
 	if (trimmedIncoming.startsWith("{") || trimmedIncoming.startsWith("[")) {
+		const trimmedCurrent = current.trim();
 		try {
 			const parsedIncoming = JSON.parse(trimmedIncoming);
 			if (typeof parsedIncoming === "object" && parsedIncoming !== null) {
-				const parsedCurrent = JSON.parse(current.trim());
+				// A complete JSON payload usually means the provider re-emitted
+				// the full accumulated arguments (e.g. Gemini/Anthropic
+				// function_call deltas). If the accumulated text is a prefix of
+				// the complete payload, replace it instead of appending so the
+				// merged arguments stay JSON-parseable.
+				if (trimmedCurrent && trimmedIncoming.startsWith(trimmedCurrent)) {
+					return incoming;
+				}
+				const parsedCurrent = JSON.parse(trimmedCurrent);
 				if (typeof parsedCurrent === "object" && parsedCurrent !== null) {
 					return incoming;
 				}

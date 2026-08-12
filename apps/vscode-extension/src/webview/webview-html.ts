@@ -1358,6 +1358,7 @@ export function getWebviewHtml(
 			margin-top: 4px;
 		}
 	</style>
+	<link rel="stylesheet" href="${scriptUri}../components/tool-events-improvements.css" type="text/css">
 </head>
 <body>
 	<div id="root"><div class="welcome-placeholder"><img class="welcome-icon" src="${logoUri}" alt="Logo" /><h2>Loading Zenuxs...</h2></div></div>
