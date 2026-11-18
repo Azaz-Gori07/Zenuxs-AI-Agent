@@ -29,6 +29,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.x",
+    "node-pty": "1.2.0-beta.11",
     "typescript": "^5.4.5",
     "vitest": "^4.0.18"
   }
