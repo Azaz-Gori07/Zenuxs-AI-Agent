@@ -1,0 +1,5 @@
+=== COMMAND: headless --output-format stream-json ===
+=== TIMESTAMP: 2026-11-18T18:20:42Z ===
+=== SHA: 465c276f84f8811112da3fbf2e477e8f63e21985 ===
+{"ts":"2026-11-18T18:20:43.500Z","type":"run_result","finishReason":"completed","iterations":1,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":75,"text":"Mode check OK.","model":{"id":"fake-model","provider":"openai-compatible"}}
+=== EXIT: 0 ===

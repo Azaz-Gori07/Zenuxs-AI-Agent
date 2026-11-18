@@ -30,6 +30,10 @@ export function addRootOptions(cmd: Command): Command {
 			)
 			.option("--json", "Output messages as JSON instead of styled text")
 			.option(
+				"--output-format <format>",
+				"Output format for headless prompts: text, json, stream-json",
+			)
+			.option(
 				"--auto-approve <boolean>",
 				"Set tool auto-approval for all tools (default: true)",
 				normalizeAutoApproveValue,
@@ -138,7 +142,14 @@ export function commanderToParsedArgs(program: Command): ParsedArgs {
 	const result: ParsedArgs = {
 		verbose: !!opts.verbose,
 		interactive: !!opts.tui,
-		outputMode: opts.json ? "json" : "text",
+		outputMode:
+			opts.outputFormat === "json" || opts.outputFormat === "stream-json"
+				? "json"
+				: opts.outputFormat === "text"
+					? "text"
+					: opts.json
+						? "json"
+						: "text",
 		mode: opts.mode ?? (opts.plan ? "plan" : opts.yolo ? "yolo" : opts.zen ? "zen" : "act"),
 		sandbox: !!opts.dataDir,
 		acpMode: !!opts.acp,
