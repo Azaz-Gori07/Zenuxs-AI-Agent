@@ -1,0 +1,22 @@
+{
+  "name": "default",
+  "description": "Canned text stream followed by a read tool call, a malformed tool call, 429, 500, and a slow stream.",
+  "steps": [
+    { "type": "text", "content": "Hello from the deterministic fake provider." },
+    {
+      "type": "tool",
+      "tool_calls": [
+        { "id": "call_read_1", "name": "read", "arguments": { "path": "/tmp/fake-provider-target.txt" } }
+      ]
+    },
+    {
+      "type": "tool",
+      "tool_calls": [
+        { "id": "call_malformed_1", "name": "read", "arguments_raw": "{\"path\": \"/tmp/broken\"", "fragments": ["{\"path\": \"/tmp/broken\""] }
+      ]
+    },
+    { "type": "status", "status": 429, "error": "Rate limit injected by fake provider" },
+    { "type": "status", "status": 500, "error": "Server error injected by fake provider" },
+    { "type": "text", "content": "Slow response completed.", "delayMs": 1500, "chunkSize": 4, "delayPerChunkMs": 20 }
+  ]
+}
