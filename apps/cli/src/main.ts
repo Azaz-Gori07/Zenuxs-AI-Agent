@@ -1,6 +1,7 @@
 import { fstatSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename } from "node:path";
+import { resolveProviderConfig as coreResolveProviderConfig } from "@cline/core";
 import type { ToolPolicy } from "@cline/core";
 
 import { registerDisposable, profiler } from "@cline/shared";
@@ -1144,7 +1145,7 @@ export async function runCli(): Promise<void> {
 					}
 				: undefined;
 			const resolveProviderConfigId = profiler.start("cli.resolveProviderConfig", "startup");
-			const resolvedProviderConfig = await coreServer.resolveProviderConfig(
+			const resolvedProviderConfig = await coreResolveProviderConfig(
 				provider,
 				catalogOptions,
 				persistedProviderConfig,

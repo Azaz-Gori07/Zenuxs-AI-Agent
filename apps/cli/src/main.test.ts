@@ -150,7 +150,7 @@ vi.mock("./runtime/run-interactive", () => {
 });
 vi.mock("./utils/session", () => sessionMocks);
 vi.mock("./session/session", () => sessionMocks);
-vi.mock("@cline/core", () => {
+function createCoreMock() {
 	return {
 		resolveProviderConfig: llmMocks.resolveProviderConfig,
 		createTeamName: vi.fn(() => "team-test"),
@@ -173,7 +173,12 @@ vi.mock("@cline/core", () => {
 			}
 		},
 	};
-});
+}
+
+vi.mock("@cline/core", createCoreMock);
+// The vitest config aliases @cline/core to its source path; dynamic imports in
+// main.ts resolve through that alias, so register the factory for both ids.
+vi.mock("../../packages/core/src/index.ts", createCoreMock);
 vi.mock("./utils/provider-auth", () => authMocks);
 vi.mock("./utils/feature-flags", () => ({
 	getCliFeatureFlagsService: () => ({
