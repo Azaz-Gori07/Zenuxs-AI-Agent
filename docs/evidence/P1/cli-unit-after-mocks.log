@@ -1,0 +1,697 @@
+=== COMMAND: bun run --cwd apps/cli test:unit ===
+=== TIMESTAMP: 2026-11-18T14:44:06Z ===
+=== SHA: 3d07d7d41abf6f3e895e37dc8b3f4867c1eb070b ===
+$ vitest run --config vitest.config.ts
+
+ RUN  v4.1.9 /home/azaz/Projects/Zenuxs-AI-Agent/apps/cli
+
+stderr | src/runtime/interactive/session-runtime.test.ts > createInteractiveSessionRuntime > defers creating the replacement session after a new-session reset
+[zenuxs-sync] no messages
+
+stderr | src/runtime/interactive/session-runtime.test.ts > createInteractiveSessionRuntime > defers creating the replacement session after a new-session reset
+[zenuxs-sync] no messages
+
+stderr | src/runtime/interactive/session-runtime.test.ts > createInteractiveSessionRuntime > adds a live interactive approval policy hook to started sessions
+[zenuxs-sync] no messages
+
+stderr | src/runtime/interactive/session-runtime.test.ts > createInteractiveSessionRuntime > starts fresh after resetting an initially resumed session
+[zenuxs-sync] no messages
+
+stderr | src/runtime/interactive/session-runtime.test.ts > createInteractiveSessionRuntime > starts fresh after resetting an initially resumed session
+[zenuxs-sync] no messages
+
+stderr | src/runtime/interactive/session-runtime.test.ts > createInteractiveSessionRuntime > keeps explicit empty restarts eager for config-driven restarts
+[zenuxs-sync] no messages
+
+stderr | src/runtime/interactive/session-runtime.test.ts > createInteractiveSessionRuntime > recovers and retries when the active interactive session disappeared
+[zenuxs-sync] 1 raw msgs -> 1 syncable
+
+stderr | src/runtime/interactive/session-runtime.test.ts > createInteractiveSessionRuntime > recovers and retries when the active interactive session disappeared
+[zenuxs-sync] POST /api/sync/conversations -> 401
+
+stderr | src/runtime/interactive/session-runtime.test.ts > createInteractiveSessionRuntime > recovers and retries when the active interactive session disappeared
+[zenuxs-sync] response body: {"success":false,"message":"Invalid token"}
+
+ ❯ src/runtime/interactive/session-runtime.test.ts (6 tests | 1 failed) 16955ms
+     ✓ defers creating the replacement session after a new-session reset 12ms
+     ✓ adds a live interactive approval policy hook to started sessions 2ms
+     ✓ starts fresh after resetting an initially resumed session 2ms
+     ✓ keeps explicit empty restarts eager for config-driven restarts 1ms
+     ✓ recovers and retries when the active interactive session disappeared  1931ms
+     × waits for missing-session recovery before cleanup disposes the manager 15005ms
+stderr | src/main.test.ts > runCli lightweight command dispatch > rejects root kanban with a prompt
+[31merror:[0m Use --kanban without a prompt.
+
+stderr | src/main.test.ts > runCli lightweight command dispatch > exits gracefully for handled command errors
+[31merror:[0m history delete requires --session-id <id>
+
+Created worktree at /tmp/cline-worktree
+Created worktree at /tmp/cline-worktree
+stderr | src/main.test.ts > runCli lightweight command dispatch > rejects interactive --worktree when no terminal is attached
+[31merror:[0m --worktree without a prompt requires an interactive terminal.
+
+Created worktree at /tmp/cline-worktree
+stderr | src/main.test.ts > runCli lightweight command dispatch > validates resumed sessions before creating a worktree
+[31merror:[0m Session not found: missing
+
+stderr | src/main.test.ts > runCli lightweight command dispatch > rejects the removed llm compaction alias
+[31merror:[0m invalid compaction mode "llm" (expected "agentic", "basic", or "off")
+
+stderr | src/main.test.ts > runCli lightweight command dispatch > rejects the removed truncation compaction alias
+[31merror:[0m invalid compaction mode "truncation" (expected "agentic", "basic", or "off")
+
+stderr | src/main.test.ts > runCli lightweight command dispatch > rejects invalid compaction modes
+[31merror:[0m invalid compaction mode "aggressive" (expected "agentic", "basic", or "off")
+
+ ❯ src/main.test.ts (63 tests | 3 failed) 26873ms
+     ✓ does not load runtime modules for history json listing  311ms
+     ✓ does not load runtime modules for root update 42ms
+     ✓ does not load runtime modules for root kanban flag 36ms
+     ✓ rejects root kanban with a prompt 36ms
+     ✓ exits gracefully for handled command errors 36ms
+     ✓ does not load runtime modules for history export 37ms
+     ✓ does not load interactive runtime for single-prompt mode  692ms
+     ✓ rejects multiple bare positional prompt tokens 27ms
+     ✓ runs quoted positional prompt text 116ms
+     ✓ rejects unknown root flags before loading runtime modules 23ms
+     ✓ creates a worktree and runs prompt sessions from it 114ms
+     ✓ creates a worktree for default interactive mode  3406ms
+     ✓ rejects interactive --worktree when no terminal is attached 24ms
+     ✓ allows --worktree with piped stdin 129ms
+     ✓ validates resumed sessions before creating a worktree 23ms
+     ✓ does not force chat view for default interactive mode  2888ms
+     ✓ passes the migration notice marker into interactive mode  2060ms
+     ✓ does not start OAuth before onboarding in interactive mode  1617ms
+     × loads live catalog models for default interactive model selection 1849ms
+     × passes a positional prompt into TUI mode for startup submission 1882ms
+     × uses the bundled catalog path for single-prompt runs 116ms
+     ✓ treats dash-prefixed positional text after -- as a prompt 114ms
+     ✓ applies --auto-approve as a runtime policy without changing the config default  1373ms
+     ✓ forces chat view when resuming a session  2237ms
+     ✓ resumes a history-picked session in a child process 21ms
+     ✓ propagates the child exit code when resuming from history picker 19ms
+     ✓ forces chat view when the history-picker child cannot launch  1625ms
+     ✓ does not pass non-Cline provider settings as Cline account options  1449ms
+     ✓ passes Cline provider settings as Cline account options  1232ms
+     ✓ seeds feature flag identity from persisted Cline account id before checking flags  1651ms
+     ✓ runs kanban before loading runtime modules 21ms
+     ✓ runs dashboard before loading runtime modules 19ms
+     ✓ prints an install hint when kanban is missing 19ms
+     ✓ skips hub prewarm for yolo runs 113ms
+     ✓ rewrites /team prompts and enables teams in single-prompt mode 124ms
+     ✓ shows /team usage in single-prompt mode when no task is provided 110ms
+     ✓ enables thinking when explicit thinking level is provided 108ms
+     ✓ leaves thinking disabled when --thinking is not provided 114ms
+     ✓ maps --thinking to medium effort 106ms
+     ✓ uses persisted reasoning effort when --thinking is not provided 101ms
+     ✓ prefers explicit --thinking over persisted reasoning effort 104ms
+     ✓ enables truncation compaction by default for prompt runs 107ms
+     ✓ supports basic truncation compaction for prompt runs 105ms
+     ✓ supports agentic compaction for prompt runs 108ms
+     ✓ rejects the removed llm compaction alias 24ms
+     ✓ rejects the removed truncation compaction alias 20ms
+     ✓ supports disabling compaction for prompt runs 115ms
+     ✓ rejects invalid compaction modes 25ms
+     ✓ does not fail fast for headless json mode with an OAuth provider 119ms
+     ✓ does not fail fast for headless json mode with a non-OAuth provider 102ms
+     ✓ returns false when stdin is a TTY 19ms
+     ✓ returns true when stdin is a FIFO (pipe) 0ms
+     ✓ returns true when stdin is a file 0ms
+     ✓ returns false in headless/CI (not TTY, not pipe, not file) 0ms
+     ✓ returns false when fstatSync throws 0ms
+     ✓ returns undefined when --config is not present 0ms
+     ✓ parses the space-separated form: --config <dir> 0ms
+     ✓ parses the equals form: --config=<dir> 0ms
+     ✓ trims surrounding whitespace from the value 0ms
+     ✓ returns undefined for empty or whitespace-only values 0ms
+     ✓ returns undefined when --config has no following value (space form) 0ms
+     ✓ returns the first occurrence when --config appears multiple times 0ms
+     ✓ does not match unrelated flags that share a prefix 0ms
+ ❯ src/commands/auth.test.ts (5 tests | 1 failed) 1029ms
+     ✓ parses Azure API version quick setup option 5ms
+     × preserves existing manual apiKey while updating OAuth tokens 8ms
+     ✓ does not double-prefix persisted Cline OAuth tokens 0ms
+     ✓ keeps CLI-only codex shorthand in CLI parsing 0ms
+     ✓ loads OpenTUI React after provider catalog initialization  1014ms
+ ❯ src/tui/zenuxs-account.test.ts (3 tests | 1 failed) 833ms
+     ✓ refreshes persisted Cline OAuth credentials before creating the account service  823ms
+     × asks the user to re-authenticate when Cline OAuth credentials cannot refresh 7ms
+     ✓ identifies the loaded Zenuxs account for telemetry and feature flags 2ms
+ ❯ src/commands/distribution-package.test.ts (3 tests | 1 failed) 32ms
+     ✓ rejects direct source package publishing by default 2ms
+     × rejects direct source package packing by default 17ms
+     ✓ packs the generated npm wrapper package 11ms
+ ❯ src/runtime/interactive/compaction.test.ts (6 tests | 1 failed) 22ms
+     × resolves manual compaction provider config from persisted OAuth settings 12ms
+     ✓ prefers active CLI reasoning effort over persisted provider reasoning settings 1ms
+     ✓ passes the selected model context window to manual compaction 3ms
+     ✓ falls back to legacy contextWindow for manual compaction 1ms
+     ✓ uses a useful target budget for manual compaction 3ms
+     ✓ reports compaction when core returns changed messages with the same count 1ms
+ ❯ src/tui/components/dialogs/command-palette.test.ts (6 tests | 1 failed) 13ms
+     ✓ builds action-only palette items with shortcuts 5ms
+     ✓ shows fork only when the current session can be forked 0ms
+     × covers visible local slash commands with palette wording 5ms
+     ✓ ranks direct actions over lower confidence matches 1ms
+     ✓ finds opt shortcut matches without using searchable text input keys 0ms
+     ✓ keeps option right available for word navigation 0ms
+ ❯ src/commands/dashboard.test.ts (4 tests | 1 failed) 15ms
+     ✓ starts the dashboard server, opens the invite URL, and waits for shutdown 4ms
+     ✓ honors --no-open behavior 1ms
+     × finds webview assets from the published wrapper package layout 7ms
+     ✓ settles shutdown when server stop rejects 2ms
+ ❯ src/tui/commands/slash-command-registry.test.ts (10 tests | 1 failed) 17ms
+     ✓ keeps TUI-local commands local even when runtime also advertises them 3ms
+     ✓ surfaces plugin commands as runtime-executable commands 1ms
+     × surfaces skills and workflows in autocomplete and the skills picker 8ms
+     ✓ expands user command tokens and manually typed user commands before submission 1ms
+     ✓ does not expand commands omitted from a refreshed user-command registry 0ms
+     ✓ hides fork from autocomplete until a session has messages 1ms
+     ✓ keeps skills visible even when no invokable skills are installed 0ms
+     ✓ exposes plugins as a local settings shortcut 1ms
+     ✓ keeps config as a hidden alias for settings 1ms
+     ✓ always exposes the account command 0ms
+ ❯ src/connectors/common.test.ts (7 tests | 1 failed) 12ms
+     ✓ preserves the connect subcommand when building detached connector args 2ms
+     ✓ preserves bun conditions and resolves the cli entrypoint for detached launches 1ms
+     × uses a dynamic connector inspector port for development node launches 6ms
+     ✓ reads messages through the hub session client 1ms
+     ✓ can restrict fallback replies to messages after a known boundary 0ms
+     ✓ does not read prior assistant replies before the boundary 0ms
+     ✓ reads the session message count through the hub session client 0ms
+ ❯ src/utils/internal-launch.test.ts (3 tests | 1 failed) 10ms
+     ✓ resolves the source entrypoint when running from TypeScript 3ms
+     ✓ falls back to launching the compiled binary directly for bunfs argv 0ms
+     × adds node debug flags for development node launches 6ms
+ ❯ src/commands/bin-wrapper.test.ts (3 tests | 3 failed) 7ms
+     × preserves the child process exit status 4ms
+     × passes the wrapper path to the compiled binary 1ms
+     × propagates child process signal termination on POSIX 1ms
+ ✓ src/connectors/connector-host.test.ts (24 tests) 31040ms
+     ✓ allows owner-addressed connector slash commands in shared threads  2358ms
+     ✓ keeps bare connector slash commands available in DMs  1837ms
+     ✓ keeps tools disabled when connector startup forced no-tools  2460ms
+     ✓ posts Telegram runtime replies as raw text and disables tools in runtime config  2446ms
+     ✓ lets Telegram adapters override final runtime reply delivery  2462ms
+     ✓ suppresses connector /idle control replies  2146ms
+     ✓ mutes a connector thread until /unmute  2984ms
+     ✓ mutes a specific participant in the current connector thread  2447ms
+     ✓ posts adapter fallback replies when the runtime stream is empty  2453ms
+     ✓ does not post stale fallback replies when no current-turn reply exists  2314ms
+     ✓ keeps Telegram empty-stream behavior from reading session history  2360ms
+     ✓ starts a normal turn when the active session is in a different thread  2498ms
+     ✓ starts a fresh session when persisted thread session is missing from the hub  2247ms
+ ✓ src/commands/plugin.test.ts (32 tests) 9362ms
+     ✓ installs a local plugin file into the global plugin root  398ms
+     ✓ installs a remote plugin file into the workspace plugin root  413ms
+     ✓ installs an official plugin slug from the configured collection repo  447ms
+     ✓ installs an official package plugin and runs package dependency install  429ms
+     ✓ keeps explicit relative paths as local plugin installs  407ms
+     ✓ installs into cwd plugin root when cwd is provided  404ms
+     ✓ omits and removes host SDK packages from npm-sourced installs  413ms
+     ✓ requires --force before replacing an existing install  818ms
+     ✓ keeps an existing install when a forced replacement fails during staging  405ms
+     ✓ uninstalls a package plugin by package name  408ms
+     ✓ prints JSON output for command callers  435ms
+     ✓ does not run MCP OAuth follow-up for JSON plugin installs  407ms
+     ✓ warns when plugin MCP settings sync fails after install  425ms
+     ✓ detects plugin-owned remote MCP servers as OAuth candidates  428ms
+     ✓ does not treat remote MCP servers with static headers as OAuth candidates  423ms
+     ✓ skips plugin MCP OAuth candidates that already have tokens  466ms
+     ✓ authorizes selected plugin MCP OAuth candidates during interactive installs  436ms
+     ✓ keeps plugin install successful when MCP OAuth authorization fails  401ms
+     ✓ prints guidance for plugin MCP OAuth candidates in non-interactive installs  396ms
+     ✓ prints JSON output for official plugin installs  467ms
+     ✓ uses shared search paths for cwd installs  414ms
+ ✓ src/runtime/interactive/config-data.test.ts (20 tests) 3283ms
+     ✓ loads plugin tools when requested  409ms
+     ✓ loads plugin-owned MCP servers from settings  400ms
+     ✓ does not load plugin MCP rows directly from plugin diagnostics  401ms
+     ✓ keeps failed plugins visible with their load error  396ms
+     ✓ loads and toggles plugin enabled state from global settings  808ms
+     ✓ uses the package name for package-backed plugin entries  408ms
+     ✓ disables and re-syncs plugin-owned MCP servers when toggling plugins  399ms
+stderr | src/runtime/run-agent.test.ts > runAgent > starts the session with normalized user input
+[zenuxs] run-agent: 0 messages for session session-1
+
+stderr | src/runtime/run-agent.test.ts > runAgent > starts the session with normalized user input
+[zenuxs-sync] no token
+
+stderr | src/runtime/run-agent.test.ts > runAgent > registers CLI capability factory through the CLI core facade
+[zenuxs] run-agent: 0 messages for session session-1
+
+stderr | src/runtime/run-agent.test.ts > runAgent > registers CLI capability factory through the CLI core facade
+[zenuxs-sync] no token
+
+stderr | src/runtime/run-agent.test.ts > runAgent > provides submit_and_exit for one-shot yolo runs
+[zenuxs] run-agent: 0 messages for session session-1
+
+stderr | src/runtime/run-agent.test.ts > runAgent > provides submit_and_exit for one-shot yolo runs
+[zenuxs-sync] no token
+
+stderr | src/runtime/run-agent.test.ts > runAgent > clears a stale failing exit code after a successful run
+[zenuxs] run-agent: 0 messages for session session-1
+
+stderr | src/runtime/run-agent.test.ts > runAgent > clears a stale failing exit code after a successful run
+[zenuxs-sync] no token
+
+stderr | src/runtime/run-agent.test.ts > runAgent > does not append thinking stats to non-verbose text output
+[zenuxs] run-agent: 0 messages for session session-1
+
+stderr | src/runtime/run-agent.test.ts > runAgent > does not append thinking stats to non-verbose text output
+[zenuxs-sync] no token
+
+stderr | src/runtime/run-agent.test.ts > runAgent > omits verbose estimated cost for subscription-backed providers
+[zenuxs] run-agent: 0 messages for session session-1
+
+stderr | src/runtime/run-agent.test.ts > runAgent > omits verbose estimated cost for subscription-backed providers
+[zenuxs-sync] no token
+
+stderr | src/runtime/run-agent.test.ts > runAgent > zeros Cline free model costs in JSON results and agent events
+[zenuxs] run-agent: 0 messages for session session-1
+
+stderr | src/runtime/run-agent.test.ts > runAgent > zeros Cline free model costs in JSON results and agent events
+[zenuxs-sync] no token
+
+ ✓ src/runtime/run-agent.test.ts (14 tests) 1288ms
+     ✓ emits JSON error lines for non-completed results  1038ms
+ ✓ src/connectors/registry.test.ts (1 test) 1306ms
+     ✓ registers the Discord connector  1304ms
+ ✓ src/utils/plugin-chat-commands.test.ts (2 tests) 867ms
+     ✓ bridges plugin extension commands onto the chat command host  417ms
+     ✓ bridges plugin command submit prompts onto the chat command context  448ms
+ ✓ src/session/session.test.ts (11 tests) 1010ms
+ ✓ src/utils/provider-catalog.test.ts (1 test) 814ms
+     ✓ passes the ClinePass feature flag into the SDK provider list  813ms
+ ✓ src/utils/worktree.test.ts (6 tests) 201ms
+ ✓ src/acp/index.test.ts (1 test) 169ms
+ ✓ src/runtime/run-zen.test.ts (1 test) 56ms
+ ✓ src/commands/schedule.test.ts (6 tests) 40ms
+ ✓ src/connectors/adapters/telegram-format.test.ts (10 tests) 45ms
+ ✓ src/tui/utils/clipboard.test.ts (16 tests) 28ms
+stderr | src/commands/kanban.test.ts > kanban command helpers > fails when kanban is missing and no installer is available
+[31merror:[0m kanban is not installed. Install it with "npm i -g kanban"
+
+ ✓ src/commands/kanban.test.ts (12 tests) 29ms
+ ✓ src/connectors/adapters/discord.test.ts (17 tests) 25ms
+ ✓ src/logging/adapter.test.ts (12 tests) 24ms
+ ✓ src/utils/free-model-cost.test.ts (7 tests) 26ms
+ ✓ src/commands/history.test.ts (11 tests) 25ms
+ ✓ src/utils/helpers.test.ts (37 tests) 26ms
+ ✓ src/tui/index.test.ts (3 tests) 22ms
+ ✓ src/utils/output.test.ts (6 tests) 18ms
+ ✓ src/connectors/adapters/telegram.test.ts (19 tests) 21ms
+ ✓ src/commands/doctor.test.ts (6 tests) 16ms
+ ✓ src/utils/feature-flags.test.ts (1 test) 15ms
+ ✓ src/utils/chat-commands.test.ts (16 tests) 14ms
+ ✓ src/runtime/interactive/exit-summary.test.ts (5 tests) 13ms
+ ✓ src/tui/components/status-bar.test.ts (6 tests) 11ms
+[36mChecking for updates…[0m
+[32m✓[0m Already on the latest version [1m3.0.29[0m
+ ✓ src/commands/update.test.ts (7 tests) 12ms
+ ✓ src/connectors/adapters/slack.test.ts (16 tests) 12ms
+ ✓ src/tui/utils/selection-copy.test.ts (9 tests) 12ms
+ ✓ src/wizards/mcp/settings.test.ts (4 tests) 10ms
+ ✓ src/tui/components/dialogs/mcp-manager-dialog.test.ts (5 tests) 8ms
+ ✓ src/runtime/interactive/chat-command-runner.test.ts (5 tests) 9ms
+ ✓ src/utils/hooks.test.ts (6 tests) 9ms
+ ✓ src/tui/hooks/use-local-command-actions.test.ts (8 tests) 13ms
+ ✓ src/connectors/runtime-turn.test.ts (4 tests) 8ms
+ ✓ src/connectors/thread-bindings.test.ts (7 tests) 8ms
+ ✓ src/runtime/interactive/mode.test.ts (2 tests) 6ms
+ ✓ src/commands/hub.test.ts (2 tests) 14ms
+ ✓ src/commands/mcp.test.ts (9 tests) 10ms
+ ✓ src/runtime/session-events.test.ts (6 tests) 8ms
+ ✓ src/tui/interactive-welcome.test.ts (3 tests) 9ms
+ ✓ src/tui/stdio-capture.test.ts (6 tests) 8ms
+ ✓ src/runtime/interactive/approvals.test.ts (5 tests) 10ms
+ ✓ src/tui/hooks/use-root-keyboard.test.ts (3 tests) 3ms
+ ✓ src/utils/telemetry.activation.test.ts (5 tests) 10ms
+ ✓ src/tui/views/onboarding/auth.test.ts (4 tests) 9ms
+ ✓ src/tui/views/config-view.test.ts (15 tests) 8ms
+ ✓ src/utils/events.test.ts (9 tests) 8ms
+ ✓ src/tui/views/onboarding/model.test.ts (8 tests) 7ms
+ ✓ src/tui/components/dialogs/config-dialogs.test.ts (7 tests) 7ms
+ ✓ src/commands/skill.test.ts (9 tests) 6ms
+ ✓ src/tui/utils/tool-errors.test.ts (7 tests) 6ms
+ ✓ src/tui/utils/provider-config-values.test.ts (7 tests) 6ms
+ ✓ src/tui/hooks/use-autocomplete.test.ts (6 tests) 7ms
+ ✓ src/tui/components/searchable-list.test.ts (3 tests) 4ms
+ ✓ src/connectors/session-runtime.test.ts (3 tests) 6ms
+ ✓ src/tui/utils/image-paste.test.ts (5 tests) 5ms
+ ✓ src/kanban-migration/notice.test.ts (6 tests) 6ms
+ ✓ src/utils/provider-readiness.test.ts (7 tests) 5ms
+ ✓ src/runtime/interactive/fork/metadata.test.ts (1 test) 4ms
+ ✓ src/utils/compaction-mode.test.ts (6 tests) 5ms
+ ✓ src/wizards/connect/platforms.test.ts (5 tests) 6ms
+ ✓ src/runtime/tool-policies.test.ts (4 tests) 5ms
+ ✓ src/runtime/prompt.test.ts (3 tests) 5ms
+ ✓ src/utils/resume.test.ts (2 tests) 4ms
+ ✓ src/connectors/task-updates.test.ts (4 tests) 4ms
+ ✓ src/utils/team-command.test.ts (4 tests) 4ms
+ ✓ src/tui/utils/terminal-title.test.ts (5 tests) 5ms
+ ✓ src/runtime/interactive/fork/title.test.ts (4 tests) 5ms
+ ✓ src/tui/components/dialogs/loading-dialog.test.ts (2 tests) 5ms
+ ✓ src/tui/utils/syntax-style.test.ts (2 tests) 3ms
+ ✓ src/tui/utils/pasted-snippets.test.ts (5 tests) 4ms
+ ✓ src/utils/history-resume.test.ts (7 tests) 5ms
+ ✓ src/utils/aws-region.test.ts (3 tests) 4ms
+ ✓ src/runtime/interactive/mistakes.test.ts (3 tests) 5ms
+ ✓ src/tui/palette.test.ts (6 tests) 4ms
+ ✓ src/tui/utils/skill-command-input.test.ts (4 tests) 4ms
+ ✓ src/runtime/active-runtime.test.ts (2 tests) 4ms
+ ✓ src/tui/hooks/transcript-keybinds.test.ts (4 tests) 3ms
+ ✓ src/utils/input-history.test.ts (4 tests) 4ms
+ ✓ src/connectors/adapters/gchat.test.ts (3 tests) 5ms
+ ✓ src/connectors/adapters/whatsapp.test.ts (3 tests) 5ms
+ ✓ src/utils/provider-auth.test.ts (7 tests) 4ms
+ ✓ src/tui/contexts/session-context.test.ts (2 tests) 3ms
+ ✓ src/commands/build-options.test.ts (3 tests) 4ms
+ ✓ src/tui/hooks/use-input-history.test.ts (7 tests) 4ms
+ ✓ src/tui/hooks/use-queued-prompts.test.ts (3 tests) 4ms
+ ✓ src/tui/utils/provider-sections.test.ts (1 test) 3ms
+ ✓ src/connectors/adapters/linear.test.ts (3 tests) 4ms
+ ✓ src/utils/zenuxs-pass-errors.test.ts (2 tests) 3ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 16 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/main.test.ts > runCli lightweight command dispatch > loads live catalog models for default interactive model selection
+AssertionError: expected "vi.fn()" to be called with arguments: [ 'cline', …(2) ]
+
+Number of calls: 0
+
+ ❯ src/main.test.ts:678:42
+    676|
+    677|   await expect(runCli()).resolves.toBeUndefined();
+    678|   expect(llmMocks.resolveProviderConfig).toHaveBeenCalledWith(
+       |                                          ^
+    679|    "cline",
+    680|    {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/16]⎯
+
+ FAIL  src/main.test.ts > runCli lightweight command dispatch > passes a positional prompt into TUI mode for startup submission
+AssertionError: expected "vi.fn()" to be called with arguments: [ 'cline', …(2) ]
+
+Number of calls: 0
+
+ ❯ src/main.test.ts:707:42
+    705|
+    706|   await expect(runCli()).resolves.toBeUndefined();
+    707|   expect(llmMocks.resolveProviderConfig).toHaveBeenCalledWith(
+       |                                          ^
+    708|    "cline",
+    709|    {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/16]⎯
+
+ FAIL  src/main.test.ts > runCli lightweight command dispatch > uses the bundled catalog path for single-prompt runs
+AssertionError: expected "vi.fn()" to be called with arguments: [ 'cline', undefined, undefined ]
+
+Number of calls: 0
+
+ ❯ src/main.test.ts:735:42
+    733|
+    734|   await expect(runCli()).resolves.toBeUndefined();
+    735|   expect(llmMocks.resolveProviderConfig).toHaveBeenCalledWith(
+       |                                          ^
+    736|    "cline",
+    737|    undefined,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/16]⎯
+
+ FAIL  src/connectors/common.test.ts > spawnDetachedConnector > uses a dynamic connector inspector port for development node launches
+AssertionError: expected { …(2) } to deeply equal { …(2) }
+
+- Expected
++ Received
+
+@@ -1,9 +1,7 @@
+  {
+    "childArgs": [
+-     "--inspect=127.0.0.1:0",
+-     "--enable-source-maps",
+      "/home/azaz/Projects/Zenuxs-AI-Agent/apps/cli/src/index.ts",
+      "connect",
+      "telegram",
+      "-m",
+      "ClineAdapterBot",
+
+ ❯ src/connectors/common.test.ts:72:5
+     70|     { CLINE_BUILD_ENV: "development" },
+     71|    ),
+     72|   ).toEqual({
+       |     ^
+     73|    launcher: "/usr/local/bin/node",
+     74|    childArgs: [
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/16]⎯
+
+ FAIL  src/commands/auth.test.ts > saveOAuthProviderSettings > preserves existing manual apiKey while updating OAuth tokens
+AssertionError: expected "vi.fn()" to be called with arguments: [ ObjectContaining{…}, …(1) ]
+
+Received:
+
+  1st vi.fn() call:
+
+  [
+-   ObjectContaining {
++   {
+      "apiKey": "manual-key",
+-     "auth": ObjectContaining {
++     "auth": {
+        "accessToken": "workos:new-access",
++       "accountId": "acct-new",
++       "expiresAt": 4000000000000,
++       "refreshToken": "new-refresh",
+      },
+      "provider": "cline",
+    },
+    {
++     "setLastUsed": false,
+      "tokenSource": "oauth",
+    },
+  ]
+
+
+Number of calls: 1
+
+ ❯ src/commands/auth.test.ts:74:16
+     72|    },
+     73|   });
+     74|   expect(save).toHaveBeenCalledWith(
+       |                ^
+     75|    expect.objectContaining({
+     76|     provider: "cline",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/16]⎯
+
+ FAIL  src/commands/bin-wrapper.test.ts > bin/cline wrapper > preserves the child process exit status
+Error: ENOENT: no such file or directory, copyfile '/home/azaz/Projects/Zenuxs-AI-Agent/apps/cli/bin/cline' -> '/tmp/cline-bin-package-kGLI1E/bin/cline'
+ ❯ createWrapperCopy src/commands/bin-wrapper.test.ts:23:2
+     21|  mkdirSync(binDir, { recursive: true });
+     22|  const wrapperPath = join(binDir, "zenuxs");
+     23|  copyFileSync(sourceWrapperPath, wrapperPath);
+       |  ^
+     24|  chmodSync(wrapperPath, 0o755);
+     25|  return wrapperPath;
+ ❯ runWrapper src/commands/bin-wrapper.test.ts:37:22
+ ❯ src/commands/bin-wrapper.test.ts:53:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/16]⎯
+
+ FAIL  src/commands/bin-wrapper.test.ts > bin/cline wrapper > passes the wrapper path to the compiled binary
+Error: ENOENT: no such file or directory, copyfile '/home/azaz/Projects/Zenuxs-AI-Agent/apps/cli/bin/cline' -> '/tmp/cline-bin-package-k7nimn/bin/cline'
+ ❯ createWrapperCopy src/commands/bin-wrapper.test.ts:23:2
+     21|  mkdirSync(binDir, { recursive: true });
+     22|  const wrapperPath = join(binDir, "zenuxs");
+     23|  copyFileSync(sourceWrapperPath, wrapperPath);
+       |  ^
+     24|  chmodSync(wrapperPath, 0o755);
+     25|  return wrapperPath;
+ ❯ runWrapper src/commands/bin-wrapper.test.ts:37:22
+ ❯ src/commands/bin-wrapper.test.ts:65:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/16]⎯
+
+ FAIL  src/commands/bin-wrapper.test.ts > bin/cline wrapper > propagates child process signal termination on POSIX
+Error: ENOENT: no such file or directory, copyfile '/home/azaz/Projects/Zenuxs-AI-Agent/apps/cli/bin/cline' -> '/tmp/cline-bin-package-JAM4SS/bin/cline'
+ ❯ createWrapperCopy src/commands/bin-wrapper.test.ts:23:2
+     21|  mkdirSync(binDir, { recursive: true });
+     22|  const wrapperPath = join(binDir, "zenuxs");
+     23|  copyFileSync(sourceWrapperPath, wrapperPath);
+       |  ^
+     24|  chmodSync(wrapperPath, 0o755);
+     25|  return wrapperPath;
+ ❯ runWrapper src/commands/bin-wrapper.test.ts:37:22
+ ❯ src/commands/bin-wrapper.test.ts:80:19
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/16]⎯
+
+ FAIL  src/commands/dashboard.test.ts > runDashboardCommand > finds webview assets from the published wrapper package layout
+AssertionError: expected '/home/azaz/Projects/Zenuxs-AI-Agent/a…' to be '/tmp/cline-wrapper-layout-MFecfN/node…' // Object.is equality
+
+Expected: "/tmp/cline-wrapper-layout-MFecfN/node_modules/cline/node_modules/@cline/cli-linux-x64/zenuxs-hub/webview"
+Received: "/home/azaz/Projects/Zenuxs-AI-Agent/apps/zenuxs-hub/dist/webview"
+
+ ❯ src/commands/dashboard.test.ts:191:34
+    191|  });
+    192|
+    193|  it("settles shutdown when server stop rejects", async () => {
+       |                            ^
+    194|   const shutdown = waitForProcessShutdown({
+    195|    listenUrl: "http://127.0.0.1:8787/",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/16]⎯
+
+ FAIL  src/commands/distribution-package.test.ts > CLI distribution package shape > rejects direct source package packing by default
+AssertionError: expected +0 not to be +0 // Object.is equality
+ ❯ src/commands/distribution-package.test.ts:38:29
+     36|   });
+     37|
+     38|   expect(result.status).not.toBe(0);
+       |                             ^
+     39|   expect(result.stderr).toContain(DIRECT_PUBLISH_GUARD_MESSAGE);
+     40|  });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/16]⎯
+
+ FAIL  src/tui/zenuxs-account.test.ts > createZenuxsAccountService > asks the user to re-authenticate when Cline OAuth credentials cannot refresh
+AssertionError: expected [Function] to throw error including 'Zenuxs account requires re-authentica…' but got 'Zenuxs AI session expired. Please re-…'
+
+Expected: "Zenuxs account requires re-authentication. Run cline auth cline."
+Received: "Zenuxs AI session expired. Please re-authenticate by running: zenuxs auth -p zenuxs"
+
+ ❯ src/tui/zenuxs-account.test.ts:184:4
+    182|   await expect(
+    183|    createZenuxsAccountService({ config: makeConfig() }),
+    184|   ).rejects.toThrow(
+       |    ^
+    185|    "Zenuxs account requires re-authentication. Run cline auth cline.",
+    186|   );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/16]⎯
+
+ FAIL  src/utils/internal-launch.test.ts > internal launch helpers > adds node debug flags for development node launches
+AssertionError: expected { …(2) } to deeply equal { …(2) }
+
+- Expected
++ Received
+
+@@ -1,9 +1,7 @@
+  {
+    "childArgs": [
+-     "--inspect=127.0.0.1:0",
+-     "--enable-source-maps",
+      "/home/azaz/Projects/Zenuxs-AI-Agent/apps/cli/src/index.ts",
+      "hub",
+      "start",
+    ],
+    "launcher": "/usr/local/bin/node",
+
+ ❯ src/utils/internal-launch.test.ts:65:19
+     63|   });
+     64|
+     65|   expect(command).toEqual({
+       |                   ^
+     66|    launcher: "/usr/local/bin/node",
+     67|    childArgs: [
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/16]⎯
+
+ FAIL  src/runtime/interactive/compaction.test.ts > compactInteractiveMessages > resolves manual compaction provider config from persisted OAuth settings
+AssertionError: expected undefined to be 'stored-access-token' // Object.is equality
+
+- Expected:
+"stored-access-token"
+
++ Received:
+undefined
+
+ ❯ src/runtime/interactive/compaction.test.ts:78:33
+     76|   expect(providerConfig.providerId).toBe("openai-native");
+     77|   expect(providerConfig.modelId).toBe("gpt-test");
+     78|   expect(providerConfig.apiKey).toBe("stored-access-token");
+       |                                 ^
+     79|   expect(providerConfig.accessToken).toBe("stored-access-token");
+     80|   expect(providerConfig.refreshToken).toBe("stored-refresh-token");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/16]⎯
+
+ FAIL  src/runtime/interactive/session-runtime.test.ts > createInteractiveSessionRuntime > waits for missing-session recovery before cleanup disposes the manager
+Error: Test timed out in 15000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ src/runtime/interactive/session-runtime.test.ts:368:2
+    366|  });
+    367|
+    368|  it("waits for missing-session recovery before cleanup disposes the ma…
+       |  ^
+    369|   const manager = makeManager();
+    370|   const recoveryRead = deferred<Message[]>();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/16]⎯
+
+ FAIL  src/tui/commands/slash-command-registry.test.ts > slash command registry > surfaces skills and workflows in autocomplete and the skills picker
+AssertionError: expected [ 'settings', 'connect', …(13) ] to deeply equal ArrayContaining{…}
+
+- Expected
++ Received
+
+- ArrayContaining [
++ [
+    "settings",
++   "connect",
++   "models",
++   "account",
+    "mcp",
+-   "account",
+-   "model",
++   "plugins",
++   "compact",
+    "skills",
++   "undo",
++   "clear",
++   "logout",
++   "cleardata",
++   "history",
++   "help",
+    "quit",
+  ]
+
+ ❯ src/tui/commands/slash-command-registry.test.ts:97:5
+     95|   expect(
+     96|    getVisibleSystemSlashCommands(registry).map((cmd) => cmd.name),
+     97|   ).toEqual(
+       |     ^
+     98|    expect.arrayContaining([
+     99|     "settings",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/16]⎯
+
+ FAIL  src/tui/components/dialogs/command-palette.test.ts > command palette > covers visible local slash commands with palette wording
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/tui/components/dialogs/command-palette.test.ts:57:51
+     55|
+     56|   for (const command of slashCommands) {
+     57|    expect(paletteByCommandName.has(command.name)).toBe(true);
+       |                                                   ^
+     58|   }
+     59|   expect(paletteByCommandName.get("settings")?.description).toBe(
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/16]⎯
+
+
+ Test Files  12 failed | 92 passed (104)
+      Tests  16 failed | 728 passed (744)
+   Start at  20:14:07
+   Duration  147.52s (transform 3.81s, setup 0ms, import 38.52s, tests 96.02s, environment 11ms)
+
+error: script "test:unit" exited with code 1
+=== EXIT: 1 ===

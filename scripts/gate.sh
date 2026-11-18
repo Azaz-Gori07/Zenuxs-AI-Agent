@@ -61,6 +61,7 @@ run_step "test:unit:core" bun run --cwd packages/core test:unit
 run_step "test:unit:engine" bun run --cwd packages/engine test
 run_step "test:unit:schema" bun run --cwd packages/schema test
 run_step "fake-provider:smoke" node tests/fake-provider/smoke-test.mjs
+run_step "tui:pty" node scripts/tui-pty-test.mjs docs/evidence/F-tui/pty-transcript.log
 run_step "matrix:check" node scripts/check-matrix.mjs
 run_step "security:check" node scripts/security-check.mjs
 

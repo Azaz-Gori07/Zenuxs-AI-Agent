@@ -1,0 +1,1056 @@
+=== COMMAND: bun run --cwd apps/cli test:unit ===
+=== TIMESTAMP: 2026-11-18T14:37:25Z ===
+=== SHA: 315fac718d982e5fab77543efe0361f8a31b133c ===
+$ vitest run --config vitest.config.ts
+
+ RUN  v4.1.9 /home/azaz/Projects/Zenuxs-AI-Agent/apps/cli
+
+stderr | src/main.test.ts > runCli lightweight command dispatch > rejects root kanban with a prompt
+[31merror:[0m Use --kanban without a prompt.
+
+stderr | src/main.test.ts > runCli lightweight command dispatch > exits gracefully for handled command errors
+[31merror:[0m history delete requires --session-id <id>
+
+Created worktree at /tmp/cline-worktree
+Created worktree at /tmp/cline-worktree
+stderr | src/main.test.ts > runCli lightweight command dispatch > rejects interactive --worktree when no terminal is attached
+[31merror:[0m --worktree without a prompt requires an interactive terminal.
+
+Created worktree at /tmp/cline-worktree
+stderr | src/main.test.ts > runCli lightweight command dispatch > validates resumed sessions before creating a worktree
+[31merror:[0m Session not found: missing
+
+stderr | src/main.test.ts > runCli lightweight command dispatch > rejects the removed llm compaction alias
+[31merror:[0m invalid compaction mode "llm" (expected "agentic", "basic", or "off")
+
+stderr | src/main.test.ts > runCli lightweight command dispatch > rejects the removed truncation compaction alias
+[31merror:[0m invalid compaction mode "truncation" (expected "agentic", "basic", or "off")
+
+stderr | src/main.test.ts > runCli lightweight command dispatch > rejects invalid compaction modes
+[31merror:[0m invalid compaction mode "aggressive" (expected "agentic", "basic", or "off")
+
+ ❯ src/main.test.ts (63 tests | 3 failed) 15076ms
+     ✓ does not load runtime modules for history json listing  590ms
+     ✓ does not load runtime modules for root update 39ms
+     ✓ does not load runtime modules for root kanban flag 32ms
+     ✓ rejects root kanban with a prompt 34ms
+     ✓ exits gracefully for handled command errors 32ms
+     ✓ does not load runtime modules for history export 39ms
+     ✓ does not load interactive runtime for single-prompt mode  2637ms
+     ✓ rejects multiple bare positional prompt tokens 24ms
+     ✓ runs quoted positional prompt text 112ms
+     ✓ rejects unknown root flags before loading runtime modules 23ms
+     ✓ creates a worktree and runs prompt sessions from it 113ms
+     ✓ creates a worktree for default interactive mode  1511ms
+     ✓ rejects interactive --worktree when no terminal is attached 29ms
+     ✓ allows --worktree with piped stdin 98ms
+     ✓ validates resumed sessions before creating a worktree 22ms
+     ✓ does not force chat view for default interactive mode  1020ms
+     ✓ passes the migration notice marker into interactive mode  665ms
+     ✓ does not start OAuth before onboarding in interactive mode  650ms
+     × loads live catalog models for default interactive model selection 663ms
+     × passes a positional prompt into TUI mode for startup submission 634ms
+     × uses the bundled catalog path for single-prompt runs 102ms
+     ✓ treats dash-prefixed positional text after -- as a prompt 94ms
+     ✓ applies --auto-approve as a runtime policy without changing the config default  733ms
+     ✓ forces chat view when resuming a session  622ms
+     ✓ resumes a history-picked session in a child process 22ms
+     ✓ propagates the child exit code when resuming from history picker 17ms
+     ✓ forces chat view when the history-picker child cannot launch  754ms
+     ✓ does not pass non-Cline provider settings as Cline account options  908ms
+     ✓ passes Cline provider settings as Cline account options  730ms
+     ✓ seeds feature flag identity from persisted Cline account id before checking flags  533ms
+     ✓ runs kanban before loading runtime modules 19ms
+     ✓ runs dashboard before loading runtime modules 17ms
+     ✓ prints an install hint when kanban is missing 18ms
+     ✓ skips hub prewarm for yolo runs 108ms
+     ✓ rewrites /team prompts and enables teams in single-prompt mode 100ms
+     ✓ shows /team usage in single-prompt mode when no task is provided 103ms
+     ✓ enables thinking when explicit thinking level is provided 99ms
+     ✓ leaves thinking disabled when --thinking is not provided 102ms
+     ✓ maps --thinking to medium effort 102ms
+     ✓ uses persisted reasoning effort when --thinking is not provided 100ms
+     ✓ prefers explicit --thinking over persisted reasoning effort 114ms
+     ✓ enables truncation compaction by default for prompt runs 154ms
+     ✓ supports basic truncation compaction for prompt runs 93ms
+     ✓ supports agentic compaction for prompt runs 109ms
+     ✓ rejects the removed llm compaction alias 16ms
+     ✓ rejects the removed truncation compaction alias 18ms
+     ✓ supports disabling compaction for prompt runs 100ms
+     ✓ rejects invalid compaction modes 14ms
+     ✓ does not fail fast for headless json mode with an OAuth provider 92ms
+     ✓ does not fail fast for headless json mode with a non-OAuth provider 93ms
+     ✓ returns false when stdin is a TTY 14ms
+     ✓ returns true when stdin is a FIFO (pipe) 0ms
+     ✓ returns true when stdin is a file 0ms
+     ✓ returns false in headless/CI (not TTY, not pipe, not file) 0ms
+     ✓ returns false when fstatSync throws 0ms
+     ✓ returns undefined when --config is not present 0ms
+     ✓ parses the space-separated form: --config <dir> 0ms
+     ✓ parses the equals form: --config=<dir> 0ms
+     ✓ trims surrounding whitespace from the value 0ms
+     ✓ returns undefined for empty or whitespace-only values 0ms
+     ✓ returns undefined when --config has no following value (space form) 0ms
+     ✓ returns the first occurrence when --config appears multiple times 0ms
+     ✓ does not match unrelated flags that share a prefix 0ms
+stderr | src/runtime/interactive/session-runtime.test.ts > createInteractiveSessionRuntime > defers creating the replacement session after a new-session reset
+[zenuxs-sync] no messages
+
+stderr | src/runtime/interactive/session-runtime.test.ts > createInteractiveSessionRuntime > defers creating the replacement session after a new-session reset
+[zenuxs-sync] no messages
+
+stderr | src/runtime/interactive/session-runtime.test.ts > createInteractiveSessionRuntime > adds a live interactive approval policy hook to started sessions
+[zenuxs-sync] no messages
+
+stderr | src/runtime/interactive/session-runtime.test.ts > createInteractiveSessionRuntime > starts fresh after resetting an initially resumed session
+[zenuxs-sync] no messages
+
+stderr | src/runtime/interactive/session-runtime.test.ts > createInteractiveSessionRuntime > starts fresh after resetting an initially resumed session
+[zenuxs-sync] no messages
+
+stderr | src/runtime/interactive/session-runtime.test.ts > createInteractiveSessionRuntime > keeps explicit empty restarts eager for config-driven restarts
+[zenuxs-sync] no messages
+
+stderr | src/runtime/interactive/session-runtime.test.ts > createInteractiveSessionRuntime > recovers and retries when the active interactive session disappeared
+[zenuxs-sync] 1 raw msgs -> 1 syncable
+
+stderr | src/runtime/interactive/session-runtime.test.ts > createInteractiveSessionRuntime > waits for missing-session recovery before cleanup disposes the manager
+[zenuxs-sync] POST /api/sync/conversations -> 401
+
+stderr | src/runtime/interactive/session-runtime.test.ts > createInteractiveSessionRuntime > waits for missing-session recovery before cleanup disposes the manager
+[zenuxs-sync] response body: {"success":false,"message":"Invalid token"}
+
+stderr | src/runtime/interactive/session-runtime.test.ts > createInteractiveSessionRuntime > waits for missing-session recovery before cleanup disposes the manager
+[zenuxs-sync] no messages
+
+stderr | src/runtime/interactive/session-runtime.test.ts > createInteractiveSessionRuntime > waits for missing-session recovery before cleanup disposes the manager
+[zenuxs-sync] no messages
+
+stderr | src/runtime/interactive/session-runtime.test.ts > createInteractiveSessionRuntime > waits for missing-session recovery before cleanup disposes the manager
+[zenuxs-sync] no messages
+
+stderr | src/runtime/interactive/session-runtime.test.ts > createInteractiveSessionRuntime > waits for missing-session recovery before cleanup disposes the manager
+[zenuxs-sync] no messages
+
+ ❯ src/runtime/interactive/session-runtime.test.ts (6 tests | 2 failed) 30026ms
+     ✓ defers creating the replacement session after a new-session reset 13ms
+     ✓ adds a live interactive approval policy hook to started sessions 1ms
+     ✓ starts fresh after resetting an initially resumed session 2ms
+     ✓ keeps explicit empty restarts eager for config-driven restarts 1ms
+     × recovers and retries when the active interactive session disappeared 15006ms
+     × waits for missing-session recovery before cleanup disposes the manager 15002ms
+ ❯ src/commands/auth.test.ts (5 tests | 1 failed) 1013ms
+     ✓ parses Azure API version quick setup option 4ms
+     × preserves existing manual apiKey while updating OAuth tokens 9ms
+     ✓ does not double-prefix persisted Cline OAuth tokens 0ms
+     ✓ keeps CLI-only codex shorthand in CLI parsing 0ms
+     ✓ loads OpenTUI React after provider catalog initialization  998ms
+ ❯ src/tui/zenuxs-account.test.ts (3 tests | 1 failed) 963ms
+     ✓ refreshes persisted Cline OAuth credentials before creating the account service  948ms
+     × asks the user to re-authenticate when Cline OAuth credentials cannot refresh 12ms
+     ✓ identifies the loaded Zenuxs account for telemetry and feature flags 2ms
+ ❯ src/runtime/run-agent.test.ts (14 tests | 14 failed) 235ms
+     × starts the session with normalized user input 221ms
+     × registers CLI capability factory through the CLI core facade 2ms
+     × provides submit_and_exit for one-shot yolo runs 1ms
+     × clears a stale failing exit code after a successful run 1ms
+     × does not fail an aborted run when teardown hooks throw 1ms
+     × sets a failing exit code when session startup throws 1ms
+     × renders ClinePass subscription errors with friendly copy when startup throws 1ms
+     × emits JSON error lines for non-completed results 1ms
+     × renders ClinePass subscription errors with friendly copy for failed results 1ms
+     × surfaces post-run bookkeeping failures after a completed result 1ms
+     × sets a failing exit code when the run result finishes with an error 1ms
+     × does not append thinking stats to non-verbose text output 1ms
+     × omits verbose estimated cost for subscription-backed providers 1ms
+     × zeros Cline free model costs in JSON results and agent events 1ms
+ ❯ src/commands/distribution-package.test.ts (3 tests | 1 failed) 36ms
+     ✓ rejects direct source package publishing by default 2ms
+     × rejects direct source package packing by default 19ms
+     ✓ packs the generated npm wrapper package 13ms
+ ❯ src/runtime/interactive/compaction.test.ts (6 tests | 1 failed) 23ms
+     × resolves manual compaction provider config from persisted OAuth settings 12ms
+     ✓ prefers active CLI reasoning effort over persisted provider reasoning settings 1ms
+     ✓ passes the selected model context window to manual compaction 3ms
+     ✓ falls back to legacy contextWindow for manual compaction 1ms
+     ✓ uses a useful target budget for manual compaction 3ms
+     ✓ reports compaction when core returns changed messages with the same count 1ms
+ ❯ src/commands/dashboard.test.ts (4 tests | 1 failed) 17ms
+     ✓ starts the dashboard server, opens the invite URL, and waits for shutdown 3ms
+     ✓ honors --no-open behavior 2ms
+     × finds webview assets from the published wrapper package layout 8ms
+     ✓ settles shutdown when server stop rejects 2ms
+ ❯ src/tui/commands/slash-command-registry.test.ts (10 tests | 1 failed) 16ms
+     ✓ keeps TUI-local commands local even when runtime also advertises them 3ms
+     ✓ surfaces plugin commands as runtime-executable commands 1ms
+     × surfaces skills and workflows in autocomplete and the skills picker 7ms
+     ✓ expands user command tokens and manually typed user commands before submission 1ms
+     ✓ does not expand commands omitted from a refreshed user-command registry 1ms
+     ✓ hides fork from autocomplete until a session has messages 1ms
+     ✓ keeps skills visible even when no invokable skills are installed 0ms
+     ✓ exposes plugins as a local settings shortcut 0ms
+     ✓ keeps config as a hidden alias for settings 0ms
+     ✓ always exposes the account command 0ms
+ ❯ src/tui/components/dialogs/command-palette.test.ts (6 tests | 1 failed) 20ms
+     ✓ builds action-only palette items with shortcuts 7ms
+     ✓ shows fork only when the current session can be forked 1ms
+     × covers visible local slash commands with palette wording 8ms
+     ✓ ranks direct actions over lower confidence matches 1ms
+     ✓ finds opt shortcut matches without using searchable text input keys 1ms
+     ✓ keeps option right available for word navigation 0ms
+ ❯ src/connectors/common.test.ts (7 tests | 1 failed) 13ms
+     ✓ preserves the connect subcommand when building detached connector args 2ms
+     ✓ preserves bun conditions and resolves the cli entrypoint for detached launches 1ms
+     × uses a dynamic connector inspector port for development node launches 7ms
+     ✓ reads messages through the hub session client 1ms
+     ✓ can restrict fallback replies to messages after a known boundary 1ms
+     ✓ does not read prior assistant replies before the boundary 0ms
+     ✓ reads the session message count through the hub session client 0ms
+ ❯ src/utils/internal-launch.test.ts (3 tests | 1 failed) 10ms
+     ✓ resolves the source entrypoint when running from TypeScript 2ms
+     ✓ falls back to launching the compiled binary directly for bunfs argv 0ms
+     × adds node debug flags for development node launches 6ms
+ ❯ src/commands/bin-wrapper.test.ts (3 tests | 3 failed) 8ms
+     × preserves the child process exit status 5ms
+     × passes the wrapper path to the compiled binary 1ms
+     × propagates child process signal termination on POSIX 1ms
+ ✓ src/connectors/connector-host.test.ts (24 tests) 31019ms
+     ✓ allows owner-addressed connector slash commands in shared threads  1519ms
+     ✓ keeps bare connector slash commands available in DMs  1862ms
+     ✓ keeps tools disabled when connector startup forced no-tools  2843ms
+     ✓ posts Telegram runtime replies as raw text and disables tools in runtime config  2859ms
+     ✓ lets Telegram adapters override final runtime reply delivery  2253ms
+     ✓ suppresses connector /idle control replies  2335ms
+     ✓ mutes a connector thread until /unmute  2703ms
+     ✓ mutes a specific participant in the current connector thread  2277ms
+     ✓ posts adapter fallback replies when the runtime stream is empty  2459ms
+     ✓ does not post stale fallback replies when no current-turn reply exists  2198ms
+     ✓ keeps Telegram empty-stream behavior from reading session history  2357ms
+     ✓ starts a normal turn when the active session is in a different thread  2459ms
+     ✓ starts a fresh session when persisted thread session is missing from the hub  2864ms
+ ✓ src/commands/plugin.test.ts (32 tests) 9354ms
+     ✓ installs a local plugin file into the global plugin root  454ms
+     ✓ installs a remote plugin file into the workspace plugin root  457ms
+     ✓ installs an official plugin slug from the configured collection repo  426ms
+     ✓ installs an official package plugin and runs package dependency install  450ms
+     ✓ keeps explicit relative paths as local plugin installs  382ms
+     ✓ installs into cwd plugin root when cwd is provided  425ms
+     ✓ omits and removes host SDK packages from npm-sourced installs  418ms
+     ✓ requires --force before replacing an existing install  781ms
+     ✓ keeps an existing install when a forced replacement fails during staging  406ms
+     ✓ uninstalls a package plugin by package name  408ms
+     ✓ prints JSON output for command callers  403ms
+     ✓ does not run MCP OAuth follow-up for JSON plugin installs  492ms
+     ✓ warns when plugin MCP settings sync fails after install  438ms
+     ✓ detects plugin-owned remote MCP servers as OAuth candidates  433ms
+     ✓ does not treat remote MCP servers with static headers as OAuth candidates  412ms
+     ✓ skips plugin MCP OAuth candidates that already have tokens  423ms
+     ✓ authorizes selected plugin MCP OAuth candidates during interactive installs  398ms
+     ✓ keeps plugin install successful when MCP OAuth authorization fails  417ms
+     ✓ prints guidance for plugin MCP OAuth candidates in non-interactive installs  403ms
+     ✓ prints JSON output for official plugin installs  414ms
+     ✓ uses shared search paths for cwd installs  398ms
+ ✓ src/runtime/interactive/config-data.test.ts (20 tests) 3192ms
+     ✓ loads plugin tools when requested  390ms
+     ✓ loads plugin-owned MCP servers from settings  391ms
+     ✓ does not load plugin MCP rows directly from plugin diagnostics  403ms
+     ✓ keeps failed plugins visible with their load error  400ms
+     ✓ loads and toggles plugin enabled state from global settings  762ms
+     ✓ uses the package name for package-backed plugin entries  407ms
+     ✓ disables and re-syncs plugin-owned MCP servers when toggling plugins  381ms
+ ✓ src/connectors/registry.test.ts (1 test) 1226ms
+     ✓ registers the Discord connector  1224ms
+ ✓ src/utils/plugin-chat-commands.test.ts (2 tests) 1018ms
+     ✓ bridges plugin extension commands onto the chat command host  534ms
+     ✓ bridges plugin command submit prompts onto the chat command context  483ms
+ ✓ src/session/session.test.ts (11 tests) 937ms
+ ✓ src/utils/provider-catalog.test.ts (1 test) 801ms
+     ✓ passes the ClinePass feature flag into the SDK provider list  799ms
+ ✓ src/utils/worktree.test.ts (6 tests) 214ms
+ ✓ src/acp/index.test.ts (1 test) 163ms
+ ✓ src/runtime/run-zen.test.ts (1 test) 59ms
+ ✓ src/commands/schedule.test.ts (6 tests) 48ms
+ ✓ src/connectors/adapters/telegram-format.test.ts (10 tests) 47ms
+ ✓ src/commands/history.test.ts (11 tests) 26ms
+ ✓ src/utils/helpers.test.ts (37 tests) 25ms
+ ✓ src/tui/utils/clipboard.test.ts (16 tests) 32ms
+ ✓ src/utils/free-model-cost.test.ts (7 tests) 27ms
+ ✓ src/wizards/mcp/settings.test.ts (4 tests) 10ms
+stderr | src/commands/kanban.test.ts > kanban command helpers > fails when kanban is missing and no installer is available
+[31merror:[0m kanban is not installed. Install it with "npm i -g kanban"
+
+ ✓ src/commands/kanban.test.ts (12 tests) 30ms
+ ✓ src/commands/mcp.test.ts (9 tests) 8ms
+ ✓ src/connectors/adapters/discord.test.ts (17 tests) 28ms
+ ✓ src/commands/hub.test.ts (2 tests) 8ms
+ ✓ src/tui/index.test.ts (3 tests) 25ms
+ ✓ src/tui/views/onboarding/model.test.ts (8 tests) 6ms
+ ✓ src/logging/adapter.test.ts (12 tests) 28ms
+ ✓ src/commands/doctor.test.ts (6 tests) 20ms
+ ✓ src/utils/output.test.ts (6 tests) 24ms
+ ✓ src/connectors/adapters/telegram.test.ts (19 tests) 22ms
+ ✓ src/utils/chat-commands.test.ts (16 tests) 15ms
+ ✓ src/connectors/adapters/slack.test.ts (16 tests) 10ms
+ ✓ src/runtime/interactive/exit-summary.test.ts (5 tests) 12ms
+ ✓ src/utils/feature-flags.test.ts (1 test) 16ms
+ ✓ src/utils/hooks.test.ts (6 tests) 9ms
+ ✓ src/runtime/interactive/approvals.test.ts (5 tests) 7ms
+ ✓ src/tui/interactive-welcome.test.ts (3 tests) 7ms
+ ✓ src/utils/events.test.ts (9 tests) 7ms
+ ✓ src/tui/hooks/use-local-command-actions.test.ts (8 tests) 9ms
+ ✓ src/utils/telemetry.activation.test.ts (5 tests) 7ms
+ ✓ src/runtime/interactive/chat-command-runner.test.ts (5 tests) 10ms
+[36mChecking for updates…[0m
+[32m✓[0m Already on the latest version [1m3.0.29[0m
+ ✓ src/commands/update.test.ts (7 tests) 11ms
+ ✓ src/tui/utils/selection-copy.test.ts (9 tests) 10ms
+ ✓ src/tui/components/status-bar.test.ts (6 tests) 12ms
+ ✓ src/tui/components/dialogs/loading-dialog.test.ts (2 tests) 5ms
+ ✓ src/utils/resume.test.ts (2 tests) 5ms
+ ✓ src/runtime/active-runtime.test.ts (2 tests) 4ms
+ ✓ src/commands/build-options.test.ts (3 tests) 3ms
+ ✓ src/tui/components/dialogs/mcp-manager-dialog.test.ts (5 tests) 10ms
+ ✓ src/connectors/runtime-turn.test.ts (4 tests) 9ms
+ ✓ src/connectors/thread-bindings.test.ts (7 tests) 8ms
+ ✓ src/tui/hooks/use-input-history.test.ts (7 tests) 3ms
+ ✓ src/tui/views/onboarding/auth.test.ts (4 tests) 7ms
+ ✓ src/runtime/session-events.test.ts (6 tests) 8ms
+ ✓ src/tui/stdio-capture.test.ts (6 tests) 7ms
+ ✓ src/tui/views/config-view.test.ts (15 tests) 7ms
+ ✓ src/connectors/session-runtime.test.ts (3 tests) 6ms
+ ✓ src/tui/utils/image-paste.test.ts (5 tests) 5ms
+ ✓ src/tui/utils/provider-config-values.test.ts (7 tests) 6ms
+ ✓ src/runtime/prompt.test.ts (3 tests) 5ms
+ ✓ src/kanban-migration/notice.test.ts (6 tests) 5ms
+ ✓ src/commands/skill.test.ts (9 tests) 6ms
+ ✓ src/tui/components/dialogs/config-dialogs.test.ts (7 tests) 6ms
+ ✓ src/runtime/interactive/mode.test.ts (2 tests) 8ms
+ ✓ src/tui/utils/tool-errors.test.ts (7 tests) 6ms
+ ✓ src/utils/compaction-mode.test.ts (6 tests) 5ms
+ ✓ src/tui/utils/pasted-snippets.test.ts (5 tests) 4ms
+ ✓ src/runtime/tool-policies.test.ts (4 tests) 5ms
+ ✓ src/utils/provider-readiness.test.ts (7 tests) 5ms
+ ✓ src/wizards/connect/platforms.test.ts (5 tests) 5ms
+ ✓ src/tui/utils/skill-command-input.test.ts (4 tests) 4ms
+ ✓ src/tui/palette.test.ts (6 tests) 4ms
+ ✓ src/tui/utils/terminal-title.test.ts (5 tests) 5ms
+ ✓ src/runtime/interactive/fork/title.test.ts (4 tests) 5ms
+ ✓ src/runtime/interactive/mistakes.test.ts (3 tests) 4ms
+ ✓ src/utils/team-command.test.ts (4 tests) 5ms
+ ✓ src/utils/history-resume.test.ts (7 tests) 4ms
+ ✓ src/tui/utils/syntax-style.test.ts (2 tests) 4ms
+ ✓ src/tui/hooks/use-autocomplete.test.ts (6 tests) 6ms
+ ✓ src/runtime/interactive/fork/metadata.test.ts (1 test) 5ms
+ ✓ src/tui/components/searchable-list.test.ts (3 tests) 6ms
+ ✓ src/tui/hooks/transcript-keybinds.test.ts (4 tests) 4ms
+ ✓ src/connectors/task-updates.test.ts (4 tests) 5ms
+ ✓ src/utils/aws-region.test.ts (3 tests) 4ms
+ ✓ src/utils/provider-auth.test.ts (7 tests) 4ms
+ ✓ src/utils/input-history.test.ts (4 tests) 4ms
+ ✓ src/connectors/adapters/whatsapp.test.ts (3 tests) 4ms
+ ✓ src/tui/hooks/use-queued-prompts.test.ts (3 tests) 3ms
+ ✓ src/utils/zenuxs-pass-errors.test.ts (2 tests) 3ms
+ ✓ src/connectors/adapters/gchat.test.ts (3 tests) 4ms
+ ✓ src/connectors/adapters/linear.test.ts (3 tests) 3ms
+ ✓ src/tui/utils/provider-sections.test.ts (1 test) 3ms
+ ✓ src/tui/hooks/use-root-keyboard.test.ts (3 tests) 7ms
+ ✓ src/tui/contexts/session-context.test.ts (2 tests) 4ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 31 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/main.test.ts > runCli lightweight command dispatch > loads live catalog models for default interactive model selection
+AssertionError: expected "vi.fn()" to be called with arguments: [ 'cline', …(2) ]
+
+Number of calls: 0
+
+ ❯ src/main.test.ts:678:42
+    676|
+    677|   await expect(runCli()).resolves.toBeUndefined();
+    678|   expect(llmMocks.resolveProviderConfig).toHaveBeenCalledWith(
+       |                                          ^
+    679|    "cline",
+    680|    {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/31]⎯
+
+ FAIL  src/main.test.ts > runCli lightweight command dispatch > passes a positional prompt into TUI mode for startup submission
+AssertionError: expected "vi.fn()" to be called with arguments: [ 'cline', …(2) ]
+
+Number of calls: 0
+
+ ❯ src/main.test.ts:707:42
+    705|
+    706|   await expect(runCli()).resolves.toBeUndefined();
+    707|   expect(llmMocks.resolveProviderConfig).toHaveBeenCalledWith(
+       |                                          ^
+    708|    "cline",
+    709|    {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/31]⎯
+
+ FAIL  src/main.test.ts > runCli lightweight command dispatch > uses the bundled catalog path for single-prompt runs
+AssertionError: expected "vi.fn()" to be called with arguments: [ 'cline', undefined, undefined ]
+
+Number of calls: 0
+
+ ❯ src/main.test.ts:735:42
+    733|
+    734|   await expect(runCli()).resolves.toBeUndefined();
+    735|   expect(llmMocks.resolveProviderConfig).toHaveBeenCalledWith(
+       |                                          ^
+    736|    "cline",
+    737|    undefined,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/31]⎯
+
+ FAIL  src/connectors/common.test.ts > spawnDetachedConnector > uses a dynamic connector inspector port for development node launches
+AssertionError: expected { …(2) } to deeply equal { …(2) }
+
+- Expected
++ Received
+
+@@ -1,9 +1,7 @@
+  {
+    "childArgs": [
+-     "--inspect=127.0.0.1:0",
+-     "--enable-source-maps",
+      "/home/azaz/Projects/Zenuxs-AI-Agent/apps/cli/src/index.ts",
+      "connect",
+      "telegram",
+      "-m",
+      "ClineAdapterBot",
+
+ ❯ src/connectors/common.test.ts:72:5
+     70|     { CLINE_BUILD_ENV: "development" },
+     71|    ),
+     72|   ).toEqual({
+       |     ^
+     73|    launcher: "/usr/local/bin/node",
+     74|    childArgs: [
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/31]⎯
+
+ FAIL  src/commands/auth.test.ts > saveOAuthProviderSettings > preserves existing manual apiKey while updating OAuth tokens
+AssertionError: expected "vi.fn()" to be called with arguments: [ ObjectContaining{…}, …(1) ]
+
+Received:
+
+  1st vi.fn() call:
+
+  [
+-   ObjectContaining {
++   {
+      "apiKey": "manual-key",
+-     "auth": ObjectContaining {
++     "auth": {
+        "accessToken": "workos:new-access",
++       "accountId": "acct-new",
++       "expiresAt": 4000000000000,
++       "refreshToken": "new-refresh",
+      },
+      "provider": "cline",
+    },
+    {
++     "setLastUsed": false,
+      "tokenSource": "oauth",
+    },
+  ]
+
+
+Number of calls: 1
+
+ ❯ src/commands/auth.test.ts:74:16
+     72|    },
+     73|   });
+     74|   expect(save).toHaveBeenCalledWith(
+       |                ^
+     75|    expect.objectContaining({
+     76|     provider: "cline",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/31]⎯
+
+ FAIL  src/commands/bin-wrapper.test.ts > bin/cline wrapper > preserves the child process exit status
+Error: ENOENT: no such file or directory, copyfile '/home/azaz/Projects/Zenuxs-AI-Agent/apps/cli/bin/cline' -> '/tmp/cline-bin-package-XKpPrJ/bin/cline'
+ ❯ createWrapperCopy src/commands/bin-wrapper.test.ts:23:2
+     21|  mkdirSync(binDir, { recursive: true });
+     22|  const wrapperPath = join(binDir, "cline");
+     23|  copyFileSync(sourceWrapperPath, wrapperPath);
+       |  ^
+     24|  chmodSync(wrapperPath, 0o755);
+     25|  return wrapperPath;
+ ❯ runWrapper src/commands/bin-wrapper.test.ts:37:22
+ ❯ src/commands/bin-wrapper.test.ts:53:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/31]⎯
+
+ FAIL  src/commands/bin-wrapper.test.ts > bin/cline wrapper > passes the wrapper path to the compiled binary
+Error: ENOENT: no such file or directory, copyfile '/home/azaz/Projects/Zenuxs-AI-Agent/apps/cli/bin/cline' -> '/tmp/cline-bin-package-xcZon4/bin/cline'
+ ❯ createWrapperCopy src/commands/bin-wrapper.test.ts:23:2
+     21|  mkdirSync(binDir, { recursive: true });
+     22|  const wrapperPath = join(binDir, "cline");
+     23|  copyFileSync(sourceWrapperPath, wrapperPath);
+       |  ^
+     24|  chmodSync(wrapperPath, 0o755);
+     25|  return wrapperPath;
+ ❯ runWrapper src/commands/bin-wrapper.test.ts:37:22
+ ❯ src/commands/bin-wrapper.test.ts:65:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/31]⎯
+
+ FAIL  src/commands/bin-wrapper.test.ts > bin/cline wrapper > propagates child process signal termination on POSIX
+Error: ENOENT: no such file or directory, copyfile '/home/azaz/Projects/Zenuxs-AI-Agent/apps/cli/bin/cline' -> '/tmp/cline-bin-package-A9rCwj/bin/cline'
+ ❯ createWrapperCopy src/commands/bin-wrapper.test.ts:23:2
+     21|  mkdirSync(binDir, { recursive: true });
+     22|  const wrapperPath = join(binDir, "cline");
+     23|  copyFileSync(sourceWrapperPath, wrapperPath);
+       |  ^
+     24|  chmodSync(wrapperPath, 0o755);
+     25|  return wrapperPath;
+ ❯ runWrapper src/commands/bin-wrapper.test.ts:37:22
+ ❯ src/commands/bin-wrapper.test.ts:80:19
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/31]⎯
+
+ FAIL  src/commands/dashboard.test.ts > runDashboardCommand > finds webview assets from the published wrapper package layout
+AssertionError: expected '/home/azaz/Projects/Zenuxs-AI-Agent/a…' to be '/tmp/cline-wrapper-layout-mM7i6c/node…' // Object.is equality
+
+Expected: "/tmp/cline-wrapper-layout-mM7i6c/node_modules/cline/node_modules/@cline/cli-linux-x64/zenuxs-hub/webview"
+Received: "/home/azaz/Projects/Zenuxs-AI-Agent/apps/zenuxs-hub/dist/webview"
+
+ ❯ src/commands/dashboard.test.ts:191:34
+    189|
+    190|   expect(exitCode).toBe(0);
+    191|   expect(observedWebviewDistDir).toBe(webviewDistDir);
+       |                                  ^
+    192|  });
+    193|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/31]⎯
+
+ FAIL  src/commands/distribution-package.test.ts > CLI distribution package shape > rejects direct source package packing by default
+AssertionError: expected +0 not to be +0 // Object.is equality
+ ❯ src/commands/distribution-package.test.ts:38:29
+     36|   });
+     37|
+     38|   expect(result.status).not.toBe(0);
+       |                             ^
+     39|   expect(result.stderr).toContain(DIRECT_PUBLISH_GUARD_MESSAGE);
+     40|  });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/31]⎯
+
+ FAIL  src/runtime/run-agent.test.ts > runAgent > starts the session with normalized user input
+AssertionError: promise rejected "Error: [vitest] No "AutoApprovalService" … { codeFrame: '…' }" instead of resolving
+ ❯ src/runtime/run-agent.test.ts:194:4
+    192|     } as never,
+    193|    ),
+    194|   ).resolves.toBeUndefined();
+       |    ^
+    195|
+    196|   expect(sessionManagerMocks.start).toHaveBeenCalledWith(
+
+Caused by: Error: [vitest] No "AutoApprovalService" export is defined on the "@cline/core" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+vi.mock(import("@cline/core"), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    // your mocked methods
+  }
+})
+
+ ❯ runAgent src/runtime/run-agent.ts:171:34
+ ❯ src/runtime/run-agent.test.ts:172:4
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/31]⎯
+
+ FAIL  src/runtime/run-agent.test.ts > runAgent > registers CLI capability factory through the CLI core facade
+AssertionError: promise rejected "Error: [vitest] No "AutoApprovalService" … { codeFrame: '…' }" instead of resolving
+ ❯ src/runtime/run-agent.test.ts:276:4
+    274|     workspaceRoot: process.cwd(),
+    275|    } as never),
+    276|   ).resolves.toBeUndefined();
+       |    ^
+    277|
+    278|   expect(createCliCore).toHaveBeenCalledWith(
+
+Caused by: Error: [vitest] No "AutoApprovalService" export is defined on the "@cline/core" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+vi.mock(import("@cline/core"), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    // your mocked methods
+  }
+})
+
+ ❯ runAgent src/runtime/run-agent.ts:171:34
+ ❯ src/runtime/run-agent.test.ts:257:4
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/31]⎯
+
+ FAIL  src/runtime/run-agent.test.ts > runAgent > provides submit_and_exit for one-shot yolo runs
+AssertionError: promise rejected "Error: [vitest] No "AutoApprovalService" … { codeFrame: '…' }" instead of resolving
+ ❯ src/runtime/run-agent.test.ts:353:4
+    351|     workspaceRoot: process.cwd(),
+    352|    } as never),
+    353|   ).resolves.toBeUndefined();
+       |    ^
+    354|
+    355|   expect(createCliCore).toHaveBeenCalledWith(
+
+Caused by: Error: [vitest] No "AutoApprovalService" export is defined on the "@cline/core" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+vi.mock(import("@cline/core"), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    // your mocked methods
+  }
+})
+
+ ❯ runAgent src/runtime/run-agent.ts:171:34
+ ❯ src/runtime/run-agent.test.ts:334:4
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/31]⎯
+
+ FAIL  src/runtime/run-agent.test.ts > runAgent > clears a stale failing exit code after a successful run
+AssertionError: promise rejected "Error: [vitest] No "AutoApprovalService" … { codeFrame: '…' }" instead of resolving
+ ❯ src/runtime/run-agent.test.ts:425:4
+    423|     workspaceRoot: process.cwd(),
+    424|    } as never),
+    425|   ).resolves.toBeUndefined();
+       |    ^
+    426|
+    427|   expect(process.exitCode).toBe(0);
+
+Caused by: Error: [vitest] No "AutoApprovalService" export is defined on the "@cline/core" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+vi.mock(import("@cline/core"), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    // your mocked methods
+  }
+})
+
+ ❯ runAgent src/runtime/run-agent.ts:171:34
+ ❯ src/runtime/run-agent.test.ts:406:4
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/31]⎯
+
+ FAIL  src/runtime/run-agent.test.ts > runAgent > does not fail an aborted run when teardown hooks throw
+AssertionError: promise rejected "Error: [vitest] No "AutoApprovalService" … { codeFrame: '…' }" instead of resolving
+ ❯ src/runtime/run-agent.test.ts:491:4
+    489|     workspaceRoot: process.cwd(),
+    490|    } as never),
+    491|   ).resolves.toBeUndefined();
+       |    ^
+    492|
+    493|   expect(process.exitCode).not.toBe(1);
+
+Caused by: Error: [vitest] No "AutoApprovalService" export is defined on the "@cline/core" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+vi.mock(import("@cline/core"), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    // your mocked methods
+  }
+})
+
+ ❯ runAgent src/runtime/run-agent.ts:171:34
+ ❯ src/runtime/run-agent.test.ts:472:4
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/31]⎯
+
+ FAIL  src/runtime/run-agent.test.ts > runAgent > sets a failing exit code when session startup throws
+AssertionError: promise rejected "Error: [vitest] No "AutoApprovalService" … { codeFrame: '…' }" instead of resolving
+ ❯ src/runtime/run-agent.test.ts:529:4
+    527|     workspaceRoot: process.cwd(),
+    528|    } as never),
+    529|   ).resolves.toBeUndefined();
+       |    ^
+    530|
+    531|   expect(process.exitCode).toBe(1);
+
+Caused by: Error: [vitest] No "AutoApprovalService" export is defined on the "@cline/core" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+vi.mock(import("@cline/core"), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    // your mocked methods
+  }
+})
+
+ ❯ runAgent src/runtime/run-agent.ts:171:34
+ ❯ src/runtime/run-agent.test.ts:510:4
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/31]⎯
+
+ FAIL  src/runtime/run-agent.test.ts > runAgent > renders ClinePass subscription errors with friendly copy when startup throws
+AssertionError: promise rejected "Error: [vitest] No "AutoApprovalService" … { codeFrame: '…' }" instead of resolving
+ ❯ src/runtime/run-agent.test.ts:563:4
+    561|     workspaceRoot: process.cwd(),
+    562|    } as never),
+    563|   ).resolves.toBeUndefined();
+       |    ^
+    564|
+    565|   expect(process.exitCode).toBe(1);
+
+Caused by: Error: [vitest] No "AutoApprovalService" export is defined on the "@cline/core" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+vi.mock(import("@cline/core"), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    // your mocked methods
+  }
+})
+
+ ❯ runAgent src/runtime/run-agent.ts:171:34
+ ❯ src/runtime/run-agent.test.ts:546:4
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/31]⎯
+
+ FAIL  src/runtime/run-agent.test.ts > runAgent > emits JSON error lines for non-completed results
+AssertionError: promise rejected "Error: [vitest] No "AutoApprovalService" … { codeFrame: '…' }" instead of resolving
+ ❯ src/runtime/run-agent.test.ts:628:4
+    626|     workspaceRoot: process.cwd(),
+    627|    } as never),
+    628|   ).resolves.toBeUndefined();
+       |    ^
+    629|
+    630|   expect(process.exitCode).toBe(1);
+
+Caused by: Error: [vitest] No "AutoApprovalService" export is defined on the "@cline/core" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+vi.mock(import("@cline/core"), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    // your mocked methods
+  }
+})
+
+ ❯ runAgent src/runtime/run-agent.ts:171:34
+ ❯ src/runtime/run-agent.test.ts:609:4
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/31]⎯
+
+ FAIL  src/runtime/run-agent.test.ts > runAgent > renders ClinePass subscription errors with friendly copy for failed results
+AssertionError: promise rejected "Error: [vitest] No "AutoApprovalService" … { codeFrame: '…' }" instead of resolving
+ ❯ src/runtime/run-agent.test.ts:685:4
+    683|     workspaceRoot: process.cwd(),
+    684|    } as never),
+    685|   ).resolves.toBeUndefined();
+       |    ^
+    686|
+    687|   expect(process.exitCode).toBe(1);
+
+Caused by: Error: [vitest] No "AutoApprovalService" export is defined on the "@cline/core" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+vi.mock(import("@cline/core"), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    // your mocked methods
+  }
+})
+
+ ❯ runAgent src/runtime/run-agent.ts:171:34
+ ❯ src/runtime/run-agent.test.ts:668:4
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/31]⎯
+
+ FAIL  src/runtime/run-agent.test.ts > runAgent > surfaces post-run bookkeeping failures after a completed result
+AssertionError: promise rejected "Error: [vitest] No "AutoApprovalService" … { codeFrame: '…' }" instead of resolving
+ ❯ src/runtime/run-agent.test.ts:754:4
+    752|     workspaceRoot: process.cwd(),
+    753|    } as never),
+    754|   ).resolves.toBeUndefined();
+       |    ^
+    755|
+    756|   expect(process.exitCode).toBe(1);
+
+Caused by: Error: [vitest] No "AutoApprovalService" export is defined on the "@cline/core" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+vi.mock(import("@cline/core"), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    // your mocked methods
+  }
+})
+
+ ❯ runAgent src/runtime/run-agent.ts:171:34
+ ❯ src/runtime/run-agent.test.ts:733:4
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/31]⎯
+
+ FAIL  src/runtime/run-agent.test.ts > runAgent > sets a failing exit code when the run result finishes with an error
+AssertionError: promise rejected "Error: [vitest] No "AutoApprovalService" … { codeFrame: '…' }" instead of resolving
+ ❯ src/runtime/run-agent.test.ts:816:4
+    814|     workspaceRoot: process.cwd(),
+    815|    } as never),
+    816|   ).resolves.toBeUndefined();
+       |    ^
+    817|
+    818|   expect(process.exitCode).toBe(1);
+
+Caused by: Error: [vitest] No "AutoApprovalService" export is defined on the "@cline/core" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+vi.mock(import("@cline/core"), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    // your mocked methods
+  }
+})
+
+ ❯ runAgent src/runtime/run-agent.ts:171:34
+ ❯ src/runtime/run-agent.test.ts:797:4
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/31]⎯
+
+ FAIL  src/runtime/run-agent.test.ts > runAgent > does not append thinking stats to non-verbose text output
+AssertionError: promise rejected "Error: [vitest] No "AutoApprovalService" … { codeFrame: '…' }" instead of resolving
+ ❯ src/runtime/run-agent.test.ts:877:4
+    875|     workspaceRoot: process.cwd(),
+    876|    } as never),
+    877|   ).resolves.toBeUndefined();
+       |    ^
+    878|
+    879|   expect(process.exitCode).toBe(0);
+
+Caused by: Error: [vitest] No "AutoApprovalService" export is defined on the "@cline/core" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+vi.mock(import("@cline/core"), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    // your mocked methods
+  }
+})
+
+ ❯ runAgent src/runtime/run-agent.ts:171:34
+ ❯ src/runtime/run-agent.test.ts:858:4
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/31]⎯
+
+ FAIL  src/runtime/run-agent.test.ts > runAgent > omits verbose estimated cost for subscription-backed providers
+AssertionError: promise rejected "Error: [vitest] No "AutoApprovalService" … { codeFrame: '…' }" instead of resolving
+ ❯ src/runtime/run-agent.test.ts:948:4
+    946|     workspaceRoot: process.cwd(),
+    947|    } as never),
+    948|   ).resolves.toBeUndefined();
+       |    ^
+    949|
+    950|   expect(outputMocks.writeln).not.toHaveBeenCalledWith(
+
+Caused by: Error: [vitest] No "AutoApprovalService" export is defined on the "@cline/core" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+vi.mock(import("@cline/core"), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    // your mocked methods
+  }
+})
+
+ ❯ runAgent src/runtime/run-agent.ts:171:34
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/31]⎯
+
+ FAIL  src/runtime/run-agent.test.ts > runAgent > zeros Cline free model costs in JSON results and agent events
+AssertionError: promise rejected "Error: [vitest] No "AutoApprovalService" … { codeFrame: '…' }" instead of resolving
+ ❯ src/runtime/run-agent.test.ts:1040:4
+    1038|     workspaceRoot: process.cwd(),
+    1039|    } as never),
+    1040|   ).resolves.toBeUndefined();
+       |    ^
+    1041|
+    1042|   const runResult = outputMocks.emitJsonLine.mock.calls.find(
+
+Caused by: Error: [vitest] No "AutoApprovalService" export is defined on the "@cline/core" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+vi.mock(import("@cline/core"), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    // your mocked methods
+  }
+})
+
+ ❯ runAgent src/runtime/run-agent.ts:171:34
+ ❯ src/runtime/run-agent.test.ts:1020:4
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[24/31]⎯
+
+ FAIL  src/tui/zenuxs-account.test.ts > createZenuxsAccountService > asks the user to re-authenticate when Cline OAuth credentials cannot refresh
+AssertionError: expected [Function] to throw error including 'Zenuxs account requires re-authentica…' but got 'Zenuxs AI session expired. Please re-…'
+
+Expected: "Zenuxs account requires re-authentication. Run cline auth cline."
+Received: "Zenuxs AI session expired. Please re-authenticate by running: zenuxs auth -p zenuxs"
+
+ ❯ src/tui/zenuxs-account.test.ts:184:4
+    182|   await expect(
+    183|    createZenuxsAccountService({ config: makeConfig() }),
+    184|   ).rejects.toThrow(
+       |    ^
+    185|    "Zenuxs account requires re-authentication. Run cline auth cline.",
+    186|   );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[25/31]⎯
+
+ FAIL  src/utils/internal-launch.test.ts > internal launch helpers > adds node debug flags for development node launches
+AssertionError: expected { …(2) } to deeply equal { …(2) }
+
+- Expected
++ Received
+
+@@ -1,9 +1,7 @@
+  {
+    "childArgs": [
+-     "--inspect=127.0.0.1:0",
+-     "--enable-source-maps",
+      "/home/azaz/Projects/Zenuxs-AI-Agent/apps/cli/src/index.ts",
+      "hub",
+      "start",
+    ],
+    "launcher": "/usr/local/bin/node",
+
+ ❯ src/utils/internal-launch.test.ts:65:19
+     63|   });
+     64|
+     65|   expect(command).toEqual({
+       |                   ^
+     66|    launcher: "/usr/local/bin/node",
+     67|    childArgs: [
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[26/31]⎯
+
+ FAIL  src/runtime/interactive/compaction.test.ts > compactInteractiveMessages > resolves manual compaction provider config from persisted OAuth settings
+AssertionError: expected undefined to be 'stored-access-token' // Object.is equality
+
+- Expected:
+"stored-access-token"
+
++ Received:
+undefined
+
+ ❯ src/runtime/interactive/compaction.test.ts:78:33
+     76|   expect(providerConfig.providerId).toBe("openai-native");
+     77|   expect(providerConfig.modelId).toBe("gpt-test");
+     78|   expect(providerConfig.apiKey).toBe("stored-access-token");
+       |                                 ^
+     79|   expect(providerConfig.accessToken).toBe("stored-access-token");
+     80|   expect(providerConfig.refreshToken).toBe("stored-refresh-token");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[27/31]⎯
+
+ FAIL  src/runtime/interactive/session-runtime.test.ts > createInteractiveSessionRuntime > recovers and retries when the active interactive session disappeared
+Error: Test timed out in 15000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ src/runtime/interactive/session-runtime.test.ts:328:2
+    326|  });
+    327|
+    328|  it("recovers and retries when the active interactive session disappea…
+       |  ^
+    329|   const manager = makeManager();
+    330|   const messages = [
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[28/31]⎯
+
+ FAIL  src/runtime/interactive/session-runtime.test.ts > createInteractiveSessionRuntime > waits for missing-session recovery before cleanup disposes the manager
+Error: Test timed out in 15000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ src/runtime/interactive/session-runtime.test.ts:368:2
+    366|  });
+    367|
+    368|  it("waits for missing-session recovery before cleanup disposes the ma…
+       |  ^
+    369|   const manager = makeManager();
+    370|   const recoveryRead = deferred<Message[]>();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[29/31]⎯
+
+ FAIL  src/tui/commands/slash-command-registry.test.ts > slash command registry > surfaces skills and workflows in autocomplete and the skills picker
+AssertionError: expected [ 'settings', 'connect', …(13) ] to deeply equal ArrayContaining{…}
+
+- Expected
++ Received
+
+- ArrayContaining [
++ [
+    "settings",
++   "connect",
++   "models",
++   "account",
+    "mcp",
+-   "account",
+-   "model",
++   "plugins",
++   "compact",
+    "skills",
++   "undo",
++   "clear",
++   "logout",
++   "cleardata",
++   "history",
++   "help",
+    "quit",
+  ]
+
+ ❯ src/tui/commands/slash-command-registry.test.ts:97:5
+     95|   expect(
+     96|    getVisibleSystemSlashCommands(registry).map((cmd) => cmd.name),
+     97|   ).toEqual(
+       |     ^
+     98|    expect.arrayContaining([
+     99|     "settings",
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[30/31]⎯
+
+ FAIL  src/tui/components/dialogs/command-palette.test.ts > command palette > covers visible local slash commands with palette wording
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/tui/components/dialogs/command-palette.test.ts:57:51
+     55|
+     56|   for (const command of slashCommands) {
+     57|    expect(paletteByCommandName.has(command.name)).toBe(true);
+       |                                                   ^
+     58|   }
+     59|   expect(paletteByCommandName.get("settings")?.description).toBe(
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[31/31]⎯
+
+
+ Test Files  13 failed | 91 passed (104)
+      Tests  31 failed | 713 passed (744)
+   Start at  20:07:25
+   Duration  146.47s (transform 4.12s, setup 0ms, import 36.96s, tests 96.25s, environment 11ms)
+
+error: script "test:unit" exited with code 1
+=== EXIT: 1 ===

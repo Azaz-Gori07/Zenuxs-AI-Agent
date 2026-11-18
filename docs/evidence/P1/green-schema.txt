@@ -1,0 +1,15 @@
+=== COMMAND: bun run --cwd packages/schema test ===
+=== TIMESTAMP: 2026-11-18T18:14:52Z ===
+=== SHA: 685c49da513bf575e7c6605d945c0847a55e8149 ===
+$ vitest run
+
+ RUN  v4.1.9 /home/azaz/Projects/Zenuxs-AI-Agent/packages/schema
+
+ ✓ src/schema.test.ts (4 tests) 7ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  23:44:52
+   Duration  239ms (transform 48ms, setup 0ms, import 112ms, tests 7ms, environment 0ms)
+
+=== EXIT: 0 ===
