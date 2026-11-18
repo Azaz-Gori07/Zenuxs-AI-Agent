@@ -6,6 +6,7 @@ const sessionManagerMocks = vi.hoisted(() => ({
 	stop: vi.fn(),
 	dispose: vi.fn(),
 	abort: vi.fn(),
+	readMessages: vi.fn(async (): Promise<unknown[]> => []),
 	getAccumulatedUsage: vi.fn(),
 }));
 
@@ -52,6 +53,11 @@ vi.mock("@cline/core", () => ({
 	prewarmFileIndex: vi.fn(async () => undefined),
 	SessionSource: {
 		CLI: "cli",
+	},
+	AutoApprovalService: class {
+		applyToToolPolicies(policies: unknown): unknown {
+			return policies
+		}
 	},
 }));
 

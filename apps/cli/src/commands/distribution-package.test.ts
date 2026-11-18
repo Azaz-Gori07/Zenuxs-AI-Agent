@@ -52,7 +52,7 @@ describe("CLI distribution package shape", () => {
 						description: "CLI test package",
 						license: "Apache-2.0",
 						bin: {
-							cline: "./bin/cline",
+							zenuxs: "./bin/zenuxs",
 						},
 						scripts: {
 							postinstall: "node ./postinstall.mjs || true",
@@ -66,14 +66,14 @@ describe("CLI distribution package shape", () => {
 				)}\n`,
 			);
 			await writeFile(
-				join(packageDir, "bin", "cline"),
+				join(packageDir, "bin", "zenuxs"),
 				[
 					"#!/usr/bin/env node",
-					'console.log("cline wrapper smoke test");',
+					'console.log("zenuxs wrapper smoke test");',
 					"",
 				].join("\n"),
 			);
-			await chmod(join(packageDir, "bin", "cline"), 0o755);
+			await chmod(join(packageDir, "bin", "zenuxs"), 0o755);
 			await writeFile(
 				join(packageDir, "postinstall.mjs"),
 				"process.exit(0);\n",

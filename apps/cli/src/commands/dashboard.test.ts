@@ -151,15 +151,14 @@ describe("runDashboardCommand", () => {
 
 	it("finds webview assets from the published wrapper package layout", async () => {
 		const root = mkdtempSync(join(tmpdir(), "cline-wrapper-layout-"));
-		const wrapperPath = join(root, "node_modules", "cline", "bin", "cline");
+		const wrapperPath = join(root, "node_modules", "zenuxs-code", "bin", "zenuxs");
 		const platformName = platform() === "win32" ? "windows" : platform();
 		const webviewDistDir = join(
 			root,
 			"node_modules",
-			"cline",
+			"zenuxs-code",
 			"node_modules",
-			"@cline",
-			`cli-${platformName}-${arch()}`,
+			`zenuxs-code-${platformName}-${arch()}`,
 			"zenuxs-hub",
 			"webview",
 		);

@@ -12,14 +12,14 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 const sourceWrapperPath = fileURLToPath(
-	new URL("../../bin/cline", import.meta.url),
+	new URL("../../bin/zenuxs", import.meta.url),
 );
 
 function createWrapperCopy(): string {
 	const dir = mkdtempSync(join(tmpdir(), "cline-bin-package-"));
 	const binDir = join(dir, "bin");
 	mkdirSync(binDir, { recursive: true });
-	const wrapperPath = join(binDir, "cline");
+	const wrapperPath = join(binDir, "zenuxs");
 	copyFileSync(sourceWrapperPath, wrapperPath);
 	chmodSync(wrapperPath, 0o755);
 	return wrapperPath;
@@ -38,13 +38,13 @@ function runWrapper(target: string, args: string[] = []) {
 	return spawnSync(process.execPath, [wrapperPath, ...args], {
 		env: {
 			...process.env,
-			CLINE_BIN_PATH: target,
+			ZENUXS_CODE_BIN_PATH: target,
 		},
 		encoding: "utf8",
 	});
 }
 
-describe("bin/cline wrapper", () => {
+describe("bin/zenuxs wrapper", () => {
 	it("preserves the child process exit status", () => {
 		const target = createExecutableScript(`
 process.exit(Number(process.argv[2] ?? "0"));
@@ -59,14 +59,14 @@ process.exit(Number(process.argv[2] ?? "0"));
 
 	it("passes the wrapper path to the compiled binary", () => {
 		const target = createExecutableScript(`
-console.log(process.env.CLINE_WRAPPER_PATH ?? "");
+console.log(process.env.ZENUXS_CODE_WRAPPER_PATH ?? "");
 `);
 
 		const result = runWrapper(target);
 
 		expect(result.error).toBeUndefined();
 		expect(result.status).toBe(0);
-		expect(result.stdout.trim()).toMatch(/bin[/\\]cline$/);
+		expect(result.stdout.trim()).toMatch(/bin[/\\]zenuxs$/);
 	});
 
 	it.skipIf(process.platform === "win32")(
