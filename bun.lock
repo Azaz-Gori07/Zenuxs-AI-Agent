@@ -60,7 +60,7 @@
     },
     "apps/vscode-extension": {
       "name": "zenuxs-code-vscode",
-      "version": "1.1.2",
+      "version": "1.1.4",
       "dependencies": {
         "@cline/core": "workspace:*",
         "@cline/shared": "workspace:*",
@@ -244,6 +244,7 @@
       "version": "0.1.0",
       "dependencies": {
         "@zenuxs/schema": "workspace:*",
+        "vscode-jsonrpc": "^9.0.1",
         "vscode-languageserver-protocol": "^3.17.5",
       },
       "devDependencies": {
@@ -299,7 +300,9 @@
       "name": "@zenuxs/studio",
       "version": "0.1.0",
       "dependencies": {
+        "@hono/node-server": "^1.19.14",
         "@zenuxs/engine": "workspace:*",
+        "@zenuxs/providers": "workspace:*",
         "@zenuxs/schema": "workspace:*",
         "hono": "^4.0.0",
       },

@@ -1,4 +1,4 @@
-import type { ProviderConfig, ProviderModel, ProviderRoute } from "@zenuxs/schema"
+import type { ProviderConfig, ProviderRoute } from "@zenuxs/schema"
 
 export interface ProviderHandler {
   readonly id: string

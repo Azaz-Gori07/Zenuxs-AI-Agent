@@ -24,7 +24,9 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@hono/node-server": "^1.19.14",
     "@zenuxs/engine": "workspace:*",
+    "@zenuxs/providers": "workspace:*",
     "@zenuxs/schema": "workspace:*",
     "hono": "^4.0.0"
   },

@@ -1,5 +1,10 @@
 import { spawn, type ChildProcess } from "node:child_process"
-import { createConnection, type Connection } from "vscode-languageserver-protocol"
+import {
+  createMessageConnection,
+  StreamMessageReader,
+  StreamMessageWriter,
+  type MessageConnection,
+} from "vscode-jsonrpc/node"
 
 export interface LSPDiagnostic {
   file: string
@@ -17,7 +22,7 @@ export interface LanguageServerConfig {
   fileExtensions: string[]
 }
 
-const LANGUAGE_SERVERS: LanguageServerConfig[] = [
+export const LANGUAGE_SERVERS: LanguageServerConfig[] = [
   { language: "typescript", command: "typescript-language-server", args: ["--stdio"], fileExtensions: [".ts", ".tsx", ".js", ".jsx"] },
   { language: "python", command: "pyright-langserver", args: ["--stdio"], fileExtensions: [".py"] },
   { language: "rust", command: "rust-analyzer", args: [], fileExtensions: [".rs"] },
@@ -28,7 +33,7 @@ export class LSPClient {
   readonly language: string
   readonly config: LanguageServerConfig
   private process: ChildProcess | null = null
-  private connection: Connection | null = null
+  private connection: MessageConnection | null = null
 
   constructor(config: LanguageServerConfig) {
     this.config = config
@@ -38,9 +43,12 @@ export class LSPClient {
   async start(workspaceUri: string): Promise<void> {
     this.process = spawn(this.config.command, this.config.args, { stdio: ["pipe", "pipe", "pipe"] })
     if (!this.process.stdin || !this.process.stdout) throw new Error("Failed to spawn LSP server")
-    this.connection = createConnection(this.process.stdout, this.process.stdin)
+    this.connection = createMessageConnection(
+      new StreamMessageReader(this.process.stdout),
+      new StreamMessageWriter(this.process.stdin),
+    )
     this.connection.listen()
-    this.connection.initialize({
+    await this.connection.sendRequest("initialize", {
       processId: process.pid,
       rootUri: workspaceUri,
       capabilities: {
@@ -51,6 +59,7 @@ export class LSPClient {
         },
       },
     })
+    this.connection.sendNotification("initialized", {})
   }
 
   async getDiagnostics(uri: string, content: string): Promise<LSPDiagnostic[]> {

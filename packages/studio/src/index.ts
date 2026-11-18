@@ -3,7 +3,8 @@ import { cors } from "hono/cors"
 import { logger } from "hono/logger"
 import { compress } from "hono/compress"
 import type { ZenuxsEngine } from "@zenuxs/engine"
-import { createServer, type Server } from "node:http"
+import { type Server } from "node:http"
+import { serve } from "@hono/node-server"
 
 export interface StudioConfig {
   host?: string
@@ -79,11 +80,13 @@ export class Studio {
     const port = this.config.port ?? 3000
     const host = this.config.host ?? "0.0.0.0"
     return new Promise((resolve, reject) => {
-      const server = createServer(this.app.fetch)
-      server.listen(port, host, () => {
-        this.httpServer = server
-        resolve()
-      })
+      const server = serve(
+        { fetch: this.app.fetch, port, hostname: host },
+        () => {
+          this.httpServer = server as Server
+          resolve()
+        },
+      )
       server.on("error", reject)
     })
   }

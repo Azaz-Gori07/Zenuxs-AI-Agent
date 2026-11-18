@@ -1,1 +1,1 @@
-export { Studio, type StudioConfig } from "./index"
+export { Studio, type StudioConfig } from "../index"
