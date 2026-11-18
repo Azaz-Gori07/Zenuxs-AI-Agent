@@ -1,0 +1,18 @@
+=== COMMAND: built-in openai-compatible with fake baseUrl ===
+=== TIMESTAMP: 2026-11-18T17:54:34Z ===
+=== SHA: 233d60dcde5aae4a47478ac5b02c3d77703e71a7 ===
+{"ts":"2026-11-18T17:54:35.174Z","type":"hook_event","hookEventName":"agent_start","agentId":"agent_1795024475166_u7a3il","taskId":"conv_1795024475171_42g9dh6","parentAgentId":null}
+{"ts":"2026-11-18T17:54:35.175Z","type":"agent_event","event":{"type":"iteration_start","iteration":1}}
+{"ts":"2026-11-18T17:54:35.212Z","type":"agent_event","event":{"type":"content_start","contentType":"text","text":"Hello from "}}
+{"ts":"2026-11-18T17:54:35.214Z","type":"agent_event","event":{"type":"content_start","contentType":"text","text":"the determi"}}
+{"ts":"2026-11-18T17:54:35.214Z","type":"agent_event","event":{"type":"content_start","contentType":"text","text":"nistic fake"}}
+{"ts":"2026-11-18T17:54:35.215Z","type":"agent_event","event":{"type":"content_start","contentType":"text","text":" provider."}}
+{"ts":"2026-11-18T17:54:35.216Z","type":"agent_event","event":{"type":"usage","inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"cost":0,"totalInputTokens":0,"totalOutputTokens":0,"totalCacheReadTokens":0,"totalCacheWriteTokens":0,"totalCost":0}}
+{"ts":"2026-11-18T17:54:35.217Z","type":"agent_event","event":{"type":"content_end","contentType":"text","text":"Hello from the deterministic fake provider."}}
+{"ts":"2026-11-18T17:54:35.218Z","type":"agent_event","event":{"type":"iteration_end","iteration":1,"hadToolCalls":false,"toolCallCount":0}}
+{"ts":"2026-11-18T17:54:35.219Z","type":"hook_event","hookEventName":"agent_end","agentId":"agent_1795024475166_u7a3il","taskId":"conv_1795024475171_42g9dh6","parentAgentId":null}
+{"ts":"2026-11-18T17:54:35.220Z","type":"agent_event","event":{"type":"done","reason":"completed","text":"Hello from the deterministic fake provider.","iterations":1,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0}}}
+{"ts":"2026-11-18T17:54:35.229Z","type":"run_result","finishReason":"completed","iterations":1,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":48,"text":"Hello from the deterministic fake provider.","model":{"id":"fake-model","provider":"openai-compatible"}}
+[zenuxs] run-agent: 2 messages for session 1795024475135_tmur2
+[zenuxs-sync] no token
+=== EXIT: 0 ===

@@ -1,0 +1,93 @@
+=== COMMAND: headless multi-tool task (read file) against fake provider ===
+=== TIMESTAMP: 2026-11-18T17:54:57Z ===
+=== SHA: 233d60dcde5aae4a47478ac5b02c3d77703e71a7 ===
+
+=================== AUTHENTICATION DECISION [SESSION_START] ===================
+Selected Provider:            openai-compatible
+Resolved Provider:            openai-compatible
+Provider Metadata:            {"provider":"openai-compatible","apiKey":"fake-key","model":"fake-model","protocol":"openai-chat","client":"openai-compatible","baseUrl":"http://127.0.0.1:4317/v1"}
+Authentication Type:          API Key
+Selected Strategy:            ApiKeyStrategy
+Reason Strategy Was Selected: Provider is not registered in providerAuthHandlers (API Key)
+API Key Exists:               YES
+OAuth Credentials Exist:      NO
+Entered OAuth Pipeline:        NO
+Entered ApiKey Pipeline:       YES
+Retry Invoked:                NO
+AuthenticationManager Invoked: NO
+Request Headers Built:        Authorization: Bearer ****
+========================================================================
+
+
+=================== AUTHENTICATION DECISION [SYNC_CREDENTIALS] ===================
+Selected Provider:            openai-compatible
+Resolved Provider:            openai-compatible
+Provider Metadata:            {"provider":"openai-compatible","apiKey":"fake-key","model":"fake-model","protocol":"openai-chat","client":"openai-compatible","baseUrl":"http://127.0.0.1:4317/v1"}
+Authentication Type:          API Key
+Selected Strategy:            ApiKeyStrategy
+Reason Strategy Was Selected: Provider is not registered in providerAuthHandlers (API Key)
+API Key Exists:               YES
+OAuth Credentials Exist:      NO
+Entered OAuth Pipeline:        NO
+Entered ApiKey Pipeline:       YES
+Retry Invoked:                NO
+AuthenticationManager Invoked: NO
+Request Headers Built:        Authorization: Bearer ****
+========================================================================
+
+
+=================== AUTHENTICATION DECISION [RUN_START] ===================
+Selected Provider:            openai-compatible
+Resolved Provider:            openai-compatible
+Provider Metadata:            {"provider":"openai-compatible","apiKey":"fake-key","model":"fake-model","protocol":"openai-chat","client":"openai-compatible","baseUrl":"http://127.0.0.1:4317/v1"}
+Authentication Type:          API Key
+Selected Strategy:            ApiKeyStrategy
+Reason Strategy Was Selected: Provider is not registered in providerAuthHandlers (API Key)
+API Key Exists:               YES
+OAuth Credentials Exist:      NO
+Entered OAuth Pipeline:        NO
+Entered ApiKey Pipeline:       YES
+Retry Invoked:                NO
+AuthenticationManager Invoked: NO
+Request Headers Built:        Authorization: Bearer ****
+========================================================================
+
+{"ts":"2026-11-18T17:54:58.772Z","type":"hook_event","hookEventName":"agent_start","agentId":"agent_1795024498761_c5xiok","taskId":"conv_1795024498765_y55krqi","parentAgentId":null}
+{"ts":"2026-11-18T17:54:58.774Z","type":"agent_event","event":{"type":"iteration_start","iteration":1}}
+AI SDK Warning System: To turn off warning logging, set the AI_SDK_LOG_WARNINGS global to false.
+AI SDK Warning (openai-compatible.chat / fake-model): The 'openai-compatible' key in providerOptions is deprecated. Use 'openaiCompatible' instead.
+{"ts":"2026-11-18T17:54:58.819Z","type":"agent_event","event":{"type":"usage","inputTokens":0,"outputTokens":0,"totalInputTokens":0,"totalOutputTokens":0,"totalCost":0}}
+{"ts":"2026-11-18T17:54:58.821Z","type":"hook_event","hookEventName":"tool_call","agentId":"agent_1795024498761_c5xiok","taskId":"conv_1795024498765_y55krqi","parentAgentId":null}
+{"ts":"2026-11-18T17:54:58.822Z","type":"agent_event","event":{"type":"content_start","contentType":"tool","toolName":"read","toolCallId":"call_read_1","input":{"path":"/tmp/zenuxs-l3/target.txt","filePath":"/tmp/zenuxs-l3/target.txt","files":[{"path":"/tmp/zenuxs-l3/target.txt"}]}}}
+{"ts":"2026-11-18T17:54:58.824Z","type":"agent_event","event":{"type":"content_end","contentType":"tool","toolName":"read","toolCallId":"call_read_1","output":{"title":"Read target.txt","output":"/tmp/zenuxs-l3/target.txt\n2 of 2 lines\n\nZENUXS_L3_TARGET_CONTENT=42\n","metadata":{"preview":"ZENUXS_L3_TARGET_CONTENT=42\n","truncated":false,"lineStart":1,"lineEnd":2,"totalLines":2}},"durationMs":1}}
+{"ts":"2026-11-18T17:54:58.824Z","type":"agent_event","event":{"type":"iteration_end","iteration":1,"hadToolCalls":true,"toolCallCount":1}}
+{"ts":"2026-11-18T17:54:58.824Z","type":"agent_event","event":{"type":"iteration_start","iteration":2}}
+{"ts":"2026-11-18T17:54:58.831Z","type":"agent_event","event":{"type":"content_start","contentType":"text","text":"I read t","accumulated":"I read t"}}
+{"ts":"2026-11-18T17:54:58.831Z","type":"agent_event","event":{"type":"content_start","contentType":"text","text":"he file ","accumulated":"I read the file "}}
+{"ts":"2026-11-18T17:54:58.831Z","type":"agent_event","event":{"type":"content_start","contentType":"text","text":"successf","accumulated":"I read the file successf"}}
+{"ts":"2026-11-18T17:54:58.831Z","type":"agent_event","event":{"type":"content_start","contentType":"text","text":"ully.","accumulated":"I read the file successfully."}}
+AI SDK Warning (openai-compatible.chat / fake-model): The 'openai-compatible' key in providerOptions is deprecated. Use 'openaiCompatible' instead.
+{"ts":"2026-11-18T17:54:58.832Z","type":"agent_event","event":{"type":"usage","inputTokens":0,"outputTokens":0,"totalInputTokens":0,"totalOutputTokens":0,"totalCost":0}}
+{"ts":"2026-11-18T17:54:58.832Z","type":"agent_event","event":{"type":"content_end","contentType":"text","text":"I read the file successfully."}}
+{"ts":"2026-11-18T17:54:58.833Z","type":"agent_event","event":{"type":"iteration_end","iteration":2,"hadToolCalls":false,"toolCallCount":0}}
+{"ts":"2026-11-18T17:54:58.834Z","type":"hook_event","hookEventName":"agent_end","agentId":"agent_1795024498761_c5xiok","taskId":"conv_1795024498765_y55krqi","parentAgentId":null}
+{"ts":"2026-11-18T17:54:58.834Z","type":"agent_event","event":{"type":"done","reason":"completed","text":"I read the file successfully.","iterations":2,"usage":{"inputTokens":0,"outputTokens":0,"totalCost":0}}}
+
+=================== AUTHENTICATION DECISION [RUN_SUCCESS] ===================
+Selected Provider:            openai-compatible
+Resolved Provider:            openai-compatible
+Provider Metadata:            {"provider":"openai-compatible","apiKey":"fake-key","model":"fake-model","protocol":"openai-chat","client":"openai-compatible","baseUrl":"http://127.0.0.1:4317/v1"}
+Authentication Type:          API Key
+Selected Strategy:            ApiKeyStrategy
+Reason Strategy Was Selected: Provider is not registered in providerAuthHandlers (API Key)
+API Key Exists:               YES
+OAuth Credentials Exist:      NO
+Entered OAuth Pipeline:        NO
+Entered ApiKey Pipeline:       YES
+Retry Invoked:                NO
+AuthenticationManager Invoked: NO
+Request Headers Built:        Authorization: Bearer ****
+========================================================================
+
+{"ts":"2026-11-18T17:54:58.843Z","type":"run_result","finishReason":"completed","iterations":2,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":67,"text":"I read the file successfully.","model":{"id":"fake-model","provider":"openai-compatible"}}
+=== EXIT: 0 ===

@@ -1,0 +1,9 @@
+=== COMMAND: ZENUXS_PROVIDER_SETTINGS_PATH=/tmp/zenuxs-l3/providers.json bun apps/cli/src/index.ts -P fake-local -m fake-model --auto-approve true --json 'Say hello' ===
+=== TIMESTAMP: 2026-11-18T17:53:00Z ===
+=== SHA: 233d60dcde5aae4a47478ac5b02c3d77703e71a7 ===
+{"ts":"2026-11-18T17:53:01.747Z","type":"hook_event","hookEventName":"agent_start","agentId":"agent_1795024381727_n57s33","taskId":"conv_1795024381738_9hdy45r","parentAgentId":null}
+{"ts":"2026-11-18T17:53:01.750Z","type":"agent_event","event":{"type":"iteration_start","iteration":1}}
+{"ts":"2026-11-18T17:53:01.781Z","type":"agent_event","event":{"type":"done","reason":"error","text":"Unknown or disabled provider \"fake-local\".","iterations":1,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0}}}
+{"ts":"2026-11-18T17:53:01.784Z","type":"run_result","finishReason":"error","iterations":1,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":34,"text":"Unknown or disabled provider \"fake-local\".","model":{"id":"fake-model","provider":"fake-local","info":{"id":"fake-model","name":"fake-model"}}}
+{"ts":"2026-11-18T17:53:01.784Z","type":"error","message":"Unknown or disabled provider \"fake-local\"."}
+=== EXIT: 1 ===

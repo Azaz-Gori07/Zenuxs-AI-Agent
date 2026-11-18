@@ -1,0 +1,78 @@
+=== COMMAND: fake-provider L3 headless task ===
+=== TIMESTAMP: 2026-11-18T17:52:24Z ===
+=== SHA: 233d60dcde5aae4a47478ac5b02c3d77703e71a7 ===
+
+=================== AUTHENTICATION DECISION [SESSION_START] ===================
+Selected Provider:            openai-compatible
+Resolved Provider:            openai-compatible
+Provider Metadata:            {"provider":"openai-compatible","model":"fake-model"}
+Authentication Type:          API Key
+Selected Strategy:            ApiKeyStrategy
+Reason Strategy Was Selected: Provider is not registered in providerAuthHandlers (API Key)
+API Key Exists:               NO
+OAuth Credentials Exist:      NO
+Entered OAuth Pipeline:        NO
+Entered ApiKey Pipeline:       YES
+Retry Invoked:                NO
+AuthenticationManager Invoked: NO
+Request Headers Built:        None
+========================================================================
+
+
+=================== AUTHENTICATION DECISION [SYNC_CREDENTIALS] ===================
+Selected Provider:            openai-compatible
+Resolved Provider:            openai-compatible
+Provider Metadata:            {"provider":"openai-compatible","model":"fake-model"}
+Authentication Type:          API Key
+Selected Strategy:            ApiKeyStrategy
+Reason Strategy Was Selected: Provider is not registered in providerAuthHandlers (API Key)
+API Key Exists:               NO
+OAuth Credentials Exist:      NO
+Entered OAuth Pipeline:        NO
+Entered ApiKey Pipeline:       YES
+Retry Invoked:                NO
+AuthenticationManager Invoked: NO
+Request Headers Built:        None
+========================================================================
+
+
+=================== AUTHENTICATION DECISION [RUN_START] ===================
+Selected Provider:            openai-compatible
+Resolved Provider:            openai-compatible
+Provider Metadata:            {"provider":"openai-compatible","model":"fake-model"}
+Authentication Type:          API Key
+Selected Strategy:            ApiKeyStrategy
+Reason Strategy Was Selected: Provider is not registered in providerAuthHandlers (API Key)
+API Key Exists:               NO
+OAuth Credentials Exist:      NO
+Entered OAuth Pipeline:        NO
+Entered ApiKey Pipeline:       YES
+Retry Invoked:                NO
+AuthenticationManager Invoked: NO
+Request Headers Built:        None
+========================================================================
+
+{"ts":"2026-11-18T17:52:25.671Z","type":"hook_event","hookEventName":"agent_start","agentId":"agent_1795024345657_nvl0zh","taskId":"conv_1795024345662_w8th1id","parentAgentId":null}
+{"ts":"2026-11-18T17:52:25.672Z","type":"agent_event","event":{"type":"iteration_start","iteration":1}}
+{"ts":"2026-11-18T17:52:26.995Z","type":"hook_event","hookEventName":"agent_error","agentId":"agent_1795024345657_nvl0zh","taskId":"conv_1795024345662_w8th1id","parentAgentId":null}
+{"ts":"2026-11-18T17:52:26.996Z","type":"agent_event","event":{"type":"error","error":{"name":"Error","message":"Incorrect API key provided: fake-key. You can find your API key at https://platform.openai.com/account/api-keys.","stack":"Error: Incorrect API key provided: fake-key. You can find your API key at https://platform.openai.com/account/api-keys.\n    at execute (/home/azaz/Projects/Zenuxs-AI-Agent/packages/agents/src/agent-runtime.ts:829:16)"},"recoverable":false,"iteration":1}}
+
+=================== AUTHENTICATION DECISION [RUN_SUCCESS] ===================
+Selected Provider:            openai-compatible
+Resolved Provider:            openai-compatible
+Provider Metadata:            {"provider":"openai-compatible","model":"fake-model"}
+Authentication Type:          API Key
+Selected Strategy:            ApiKeyStrategy
+Reason Strategy Was Selected: Provider is not registered in providerAuthHandlers (API Key)
+API Key Exists:               NO
+OAuth Credentials Exist:      NO
+Entered OAuth Pipeline:        NO
+Entered ApiKey Pipeline:       YES
+Retry Invoked:                NO
+AuthenticationManager Invoked: NO
+Request Headers Built:        None
+========================================================================
+
+{"ts":"2026-11-18T17:52:27.000Z","type":"run_result","finishReason":"error","iterations":1,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":1331,"text":"Incorrect API key provided: fake-key. You can find your API key at https://platform.openai.com/account/api-keys.","model":{"id":"fake-model","provider":"openai-compatible"}}
+{"ts":"2026-11-18T17:52:27.000Z","type":"error","message":"Incorrect API key provided: fake-key. You can find your API key at https://platform.openai.com/account/api-keys."}
+=== EXIT: 1 ===
