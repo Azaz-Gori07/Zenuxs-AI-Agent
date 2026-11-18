@@ -1,0 +1,12 @@
+=== COMMAND: bash scripts/package-extension.sh ===
+=== TIMESTAMP: 2026-11-18T18:12:31Z ===
+=== SHA: 237ba513f066d39f9dddbc3afb205e13be669cbc ===
+The file extension/dist/extension.js is large (19.33 MB)
+
+ DONE  Packaged: /tmp/zenuxs-code.vsix (12 files, 4.25 MB)
+Installing extensions...
+Extension 'zenuxs-code.vsix' was successfully installed.
+(node:714283) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `code --trace-deprecation ...` to show where the warning was created)
+VSIX_READY=/tmp/zenuxs-code.vsix
+=== EXIT: 0 ===

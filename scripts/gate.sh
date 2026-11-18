@@ -55,6 +55,7 @@ run_step "typecheck:cli" bun run --cwd apps/cli typecheck
 run_step "typecheck:schema" bun run --cwd packages/schema typecheck
 run_step "typecheck:engine" bun run --cwd packages/engine typecheck
 run_step "build:extension" bun run build:extension
+run_step "vsix:build-install" bash scripts/package-extension.sh
 run_step "test:unit:cli" bun run --cwd apps/cli test:unit
 run_step "test:unit:core" bun run --cwd packages/core test:unit
 run_step "test:unit:engine" bun run --cwd packages/engine test
