@@ -3,6 +3,9 @@ import { z } from "zod"
 export const AgentModeSchema = z.enum([
   "act",
   "plan",
+  "build",
+  "edit",
+  "guarded",
   "yolo",
   "zen",
   "ask",
