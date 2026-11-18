@@ -1,26 +1,30 @@
 # STATUS
 
-**Current phase**: P1 — Green baseline
-**Current node**: P1.1 — Fix @zenuxs/schema Zod v4 API
-**Mode**: AUTONOMOUS (no approval gates per mission)
+**Current phase**: P2–P7 feature verification (P1 green baseline complete)
+**Current node**: F-ctx compaction verification
+**Mode**: AUTONOMOUS
 
 ## Phase status
-- [x] P0 Recon and plan (docs A-F exist, backed by real runs) — 2026-11-18
-- [ ] P1 Green baseline (gate, fake provider, PTY + VS Code harnesses, CI)
-- [ ] P2 Core runtime (F-prov, F-core, F-tools, F-toolrobust, F-cfg)
-- [ ] P3 State and safety (F-perm, F-mode, F-sess, F-ctx, F-ckpt)
-- [ ] P4 Intelligence (F-prompt, F-rag, web tools, git)
-- [ ] P5 Extensibility (F-mcp, F-hooks, F-skills, F-plug, F-cmd, F-sub, F-auto)
-- [ ] P6 CLI/TUI (F-cli, F-tui)
-- [ ] P7 Extension (F-ext)
+- [x] P0 Recon and plan (docs A-F exist, backed by real runs)
+- [x] P1 Green baseline — build, typecheck, extension build, VSIX build+install, CLI/core/engine/schema unit tests, fake provider, PTY harness, gate + CI all run; gate has 1 remaining failure (matrix check)
+- [ ] P2 Core runtime — streaming + multi-tool L3 verified; provider/tool scope partially verified
+- [ ] P3 State and safety — session persist/resume verified; modes added; compaction/permissions/checkpoints pending
+- [ ] P4 Intelligence — prompt/RAG/web/git pending
+- [ ] P5 Extensibility — hooks L3 verified; MCP/plugins/skills/subagents/automation pending
+- [ ] P6 CLI/TUI — headless L3 + PTY transcript verified; scenario matrix pending
+- [ ] P7 Extension — VSIX build/install verified; webview E2E pending
 - [ ] P8 Integration and stress
 - [ ] P9 Parity and polish
 
-## Feature status (authoritative matrix: docs/03-gap-analysis.md)
-All 24 seeded feature IDs are currently PARTIAL/BROKEN; none VERIFIED yet.
-No matrix row has L3 evidence on current code.
+## Verification evidence captured
+- L3 headless streaming: docs/evidence/F-core/l3-headless-4.log
+- L3 multi-tool read: docs/evidence/F-tools/l3-multitool-1.log
+- L3 modes (act/plan/build/edit/guarded/yolo): docs/evidence/F-mode/l3-mode-*.log
+- L3 session persist + resume: docs/evidence/F-sess/l3-session-*.log
+- L3 hook execution: docs/evidence/F-hooks/l3-hook-pretooluse.log
+- L3 VSIX build + install: docs/evidence/F-ext/l3-vsix-package-install.log
+- L3 TUI pty transcript: docs/evidence/F-tui/pty-transcript.log
 
 ## Counters
-- Baseline defects logged: 9 (7 P0, 2 P1... see FAILURES.md; exact counts in file)
-- Recon evidence files: docs/evidence/P0 (7 logs), docs/evidence/reference (7 logs)
-- Docs written: 00, 01, 02, 03, 04, 05 (+ docs/recon/ref-features.md)
+- Gate results: 15 of 16 steps PASS; matrix:check FAIL (rows not yet VERIFIED)
+- Open defects: BASE-08, BASE-09 (P2 packaging/rebrand), no open P0/P1
