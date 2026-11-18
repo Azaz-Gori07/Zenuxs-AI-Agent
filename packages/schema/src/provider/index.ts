@@ -34,7 +34,7 @@ export const ProviderConfigSchema = z.object({
   auth: ProviderAuthSchema,
   models: z.array(ProviderModelSchema),
   defaultModelId: z.string().optional(),
-  headers: z.record(z.string()).optional(),
+  headers: z.record(z.string(), z.string()).optional(),
   timeoutMs: z.number().int().positive().default(60000),
 })
 
@@ -46,7 +46,7 @@ export const ProviderRouteSchema = z.object({
   protocol: z.enum(["openai", "anthropic", "bedrock", "gemini", "custom"]),
   endpoint: z.string().url(),
   auth: ProviderAuthSchema,
-  framing: z.record(z.unknown()).optional(),
+  framing: z.record(z.string(), z.unknown()).optional(),
 })
 
 export type ProviderRoute = z.infer<typeof ProviderRouteSchema>

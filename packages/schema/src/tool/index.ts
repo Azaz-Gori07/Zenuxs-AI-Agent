@@ -5,7 +5,7 @@ export const ToolParameterSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
   required: z.boolean().default(false),
-  schema: z.record(z.unknown()),
+  schema: z.record(z.string(), z.unknown()),
 })
 
 export type ToolParameter = z.infer<typeof ToolParameterSchema>
@@ -36,7 +36,7 @@ export const ToolExecutionContextSchema = z.object({
   toolCallId: ToolCallIDSchema,
   agent: z.string(),
   abort: z.boolean().default(false),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 })
 
 export type ToolExecutionContext = z.infer<typeof ToolExecutionContextSchema>
@@ -44,7 +44,7 @@ export type ToolExecutionContext = z.infer<typeof ToolExecutionContextSchema>
 export const ToolExecutionResultSchema = z.object({
   title: z.string(),
   output: z.string(),
-  metadata: z.record(z.unknown()),
+  metadata: z.record(z.string(), z.unknown()),
   attachments: z
     .array(
       z.object({

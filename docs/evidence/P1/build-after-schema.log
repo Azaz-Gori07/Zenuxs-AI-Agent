@@ -1,0 +1,190 @@
+=== COMMAND: bun run build (after schema fix) ===
+=== TIMESTAMP: 2026-11-18T14:09:49Z ===
+=== SHA: dab94207674ffcd17412fe4962a827f2565715c6 ===
+$ bun run build:sdk && bun -F zenuxs-code build
+$ bun --production -F './packages/*' build
+@zenuxs/schema build: Exited with code 0
+@zenuxs/providers build: src/index.ts(1,31): error TS6196: 'ProviderModel' is declared but never used.
+@zenuxs/lsp build: src/client/index.ts(1,10): error TS2303: Circular definition of import alias 'LSPClient'.
+@zenuxs/lsp build: src/client/index.ts(1,21): error TS2303: Circular definition of import alias 'LSPManager'.
+@zenuxs/lsp build: src/client/index.ts(1,33): error TS2303: Circular definition of import alias 'LANGUAGE_SERVERS'.
+@zenuxs/lsp build: src/client/index.ts(2,15): error TS2303: Circular definition of import alias 'LSPDiagnostic'.
+@zenuxs/lsp build: src/client/index.ts(2,30): error TS2303: Circular definition of import alias 'LanguageServerConfig'.
+@zenuxs/lsp build: src/index.ts(2,10): error TS2305: Module '"vscode-languageserver-protocol"' has no exported member 'createConnection'.
+@zenuxs/lsp build: src/index.ts(2,33): error TS2724: '"vscode-languageserver-protocol"' has no exported member named 'Connection'. Did you mean 'CodeAction'?
+@zenuxs/providers build: Exited with code 2
+@zenuxs/lsp build: Exited with code 2
+@cline/shared build: Exited with code 0
+@zenuxs/engine build: src/db/migrations.ts(269,29): error TS2307: Cannot find module '.' or its corresponding type declarations.
+@zenuxs/engine build: src/mcp/auth-store.ts(30,14): error TS2323: Cannot redeclare exported variable 'McpAuthStore'.
+@zenuxs/engine build: src/mcp/auth-store.ts(46,37): error TS2339: Property 'record' does not exist on type '{ tokens: ZodOptional<ZodObject<{ accessToken: ZodString; refreshToken: ZodOptional<ZodString>; expiresAt: ZodOptional<ZodNumber>; scope: ZodOptional<...>; }, $strip>>; clientInfo: ZodOptional<...>; codeVerifier: ZodOptional<...>; oauthState: ZodOptional<...>; serverUrl: ZodOptional<...>; }'.
+@zenuxs/engine build: src/mcp/auth-store.ts(181,8): error TS2323: Cannot redeclare exported variable 'McpAuthStore'.
+@zenuxs/engine build: src/mcp/auth-store.ts(181,8): error TS2440: Import declaration conflicts with local declaration of 'McpAuthStore'.
+@zenuxs/engine build: src/mcp/browser.ts(3,14): error TS2323: Cannot redeclare exported variable 'McpBrowser'.
+@zenuxs/engine build: src/mcp/browser.ts(25,8): error TS2323: Cannot redeclare exported variable 'McpBrowser'.
+@zenuxs/engine build: src/mcp/browser.ts(25,8): error TS2440: Import declaration conflicts with local declaration of 'McpBrowser'.
+@zenuxs/engine build: src/mcp/mcpmgr.ts(15,29): error TS6133: 'McpAuthEntry' is declared but its value is never read.
+@zenuxs/engine build: src/mcp/mcpmgr.ts(16,53): error TS2300: Duplicate identifier 'McpOAuthCallback'.
+@zenuxs/engine build: src/mcp/mcpmgr.ts(16,53): error TS2724: '"./oauth-provider"' has no exported member named 'McpOAuthCallback'. Did you mean 'McpOAuthCallbacks'?
+@zenuxs/engine build: src/mcp/mcpmgr.ts(16,71): error TS6133: 'parseRedirectUri' is declared but its value is never read.
+@zenuxs/engine build: src/mcp/mcpmgr.ts(17,13): error TS2300: Duplicate identifier 'McpOAuthCallback'.
+@zenuxs/engine build: src/mcp/mcpmgr.ts(70,14): error TS2323: Cannot redeclare exported variable 'McpManager'.
+@zenuxs/engine build: src/mcp/mcpmgr.ts(123,9): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+@zenuxs/engine build:   Type 'undefined' is not assignable to type 'string'.
+@zenuxs/engine build: src/mcp/mcpmgr.ts(156,24): error TS6133: 'transportName' is declared but its value is never read.
+@zenuxs/engine build: src/mcp/mcpmgr.ts(193,7): error TS2322: Type '{ [x: string]: string | undefined; }' is not assignable to type 'Record<string, string>'.
+@zenuxs/engine build:   'string' index signatures are incompatible.
+@zenuxs/engine build:     Type 'string | undefined' is not assignable to type 'string'.
+@zenuxs/engine build:       Type 'undefined' is not assignable to type 'string'.
+@zenuxs/engine build: src/mcp/mcpmgr.ts(234,7): error TS2322: Type 'number | null | undefined' is not assignable to type 'number | undefined'.
+@zenuxs/engine build:   Type 'null' is not assignable to type 'number | undefined'.
+@zenuxs/engine build: src/mcp/mcpmgr.ts(542,52): error TS6133: 'transport' is declared but its value is never read.
+@zenuxs/engine build: src/mcp/mcpmgr.ts(619,8): error TS2323: Cannot redeclare exported variable 'McpManager'.
+@zenuxs/engine build: src/mcp/mcpmgr.ts(619,8): error TS2440: Import declaration conflicts with local declaration of 'McpManager'.
+@zenuxs/engine build: src/mcp/oauth-provider.ts(25,14): error TS2323: Cannot redeclare exported variable 'McpOAuthProvider'.
+@zenuxs/engine build: src/mcp/oauth-provider.ts(202,8): error TS2323: Cannot redeclare exported variable 'McpOAuthProvider'.
+@zenuxs/engine build: src/mcp/oauth-provider.ts(202,8): error TS2440: Import declaration conflicts with local declaration of 'McpOAuthProvider'.
+@zenuxs/engine build: src/session/compaction.ts(169,28): error TS18048: 'lastUser' is possibly 'undefined'.
+@zenuxs/engine build: src/session/context-epoch.ts(23,14): error TS2323: Cannot redeclare exported variable 'ContextEpoch'.
+@zenuxs/engine build: src/session/context-epoch.ts(121,7): error TS18048: 'last' is possibly 'undefined'.
+@zenuxs/engine build: src/session/context-epoch.ts(122,7): error TS18048: 'last' is possibly 'undefined'.
+@zenuxs/engine build: src/session/context-epoch.ts(123,7): error TS18048: 'last' is possibly 'undefined'.
+@zenuxs/engine build: src/session/context-epoch.ts(128,8): error TS2323: Cannot redeclare exported variable 'ContextEpoch'.
+@zenuxs/engine build: src/session/context-epoch.ts(128,8): error TS2440: Import declaration conflicts with local declaration of 'ContextEpoch'.
+@zenuxs/engine build: src/session/manager.ts(1,15): error TS6196: 'Session' is declared but never used.
+@zenuxs/engine build: src/session/manager.ts(8,19): error TS2709: Cannot use namespace 'Session' as a type.
+@zenuxs/engine build: src/session/manager.ts(9,28): error TS2709: Cannot use namespace 'Session' as a type.
+@zenuxs/engine build: src/session/manager.ts(10,27): error TS2709: Cannot use namespace 'Session' as a type.
+@zenuxs/engine build: src/session/manager.ts(12,87): error TS2709: Cannot use namespace 'Session' as a type.
+@zenuxs/engine build: src/session/manager.ts(21,38): error TS2709: Cannot use namespace 'Session' as a type.
+@zenuxs/engine build: src/session/manager.ts(25,25): error TS2709: Cannot use namespace 'Session' as a type.
+@zenuxs/engine build: src/session/manager.ts(31,34): error TS2709: Cannot use namespace 'Session' as a type.
+@zenuxs/engine build: src/session/manager.ts(35,32): error TS2709: Cannot use namespace 'Session' as a type.
+@zenuxs/engine build: src/session/manager.ts(48,93): error TS2709: Cannot use namespace 'Session' as a type.
+@zenuxs/engine build: src/session/manager.ts(95,15): error TS2709: Cannot use namespace 'Session' as a type.
+@zenuxs/engine build: src/session/manager.ts(96,20): error TS2709: Cannot use namespace 'Session' as a type.
+@zenuxs/engine build: src/session/manager.ts(121,44): error TS2709: Cannot use namespace 'Session' as a type.
+@zenuxs/engine build: src/session/orchestrator.ts(1,15): error TS6196: 'Session' is declared but never used.
+@zenuxs/engine build: src/session/orchestrator.ts(5,68): error TS6133: 'createStreamEvent' is declared but its value is never read.
+@zenuxs/engine build: src/session/orchestrator.ts(80,51): error TS2709: Cannot use namespace 'Session' as a type.
+@zenuxs/engine build: src/session/orchestrator.ts(137,86): error TS2709: Cannot use namespace 'Session' as a type.
+@zenuxs/engine build: src/session/orchestrator.ts(145,48): error TS2709: Cannot use namespace 'Session' as a type.
+@zenuxs/engine build: src/session/orchestrator.ts(188,44): error TS2709: Cannot use namespace 'Session' as a type.
+@zenuxs/engine build: src/session/orchestrator.ts(206,24): error TS2339: Property 'close' does not exist on type 'StreamEmitter'.
+@zenuxs/engine build: src/session/sqlite-store.ts(1,15): error TS6196: 'Session' is declared but never used.
+@zenuxs/engine build: src/session/sqlite-store.ts(21,48): error TS2307: Cannot find module 'bun:sqlite' or its corresponding type declarations.
+@zenuxs/engine build: src/session/sqlite-store.ts(28,52): error TS2307: Cannot find module 'node:sqlite' or its corresponding type declarations.
+@zenuxs/engine build: src/session/sqlite-store.ts(92,25): error TS2709: Cannot use namespace 'Session' as a type.
+@zenuxs/engine build: src/session/sqlite-store.ts(115,34): error TS2709: Cannot use namespace 'Session' as a type.
+@zenuxs/engine build: src/session/sqlite-store.ts(122,32): error TS2709: Cannot use namespace 'Session' as a type.
+@zenuxs/engine build: src/session/sqlite-store.ts(166,93): error TS2709: Cannot use namespace 'Session' as a type.
+@zenuxs/engine build: src/session/sqlite-store.ts(256,35): error TS2709: Cannot use namespace 'Session' as a type.
+@zenuxs/engine build: src/stream/events.ts(181,31): error TS2307: Cannot find module '.' or its corresponding type declarations.
+@zenuxs/engine build: src/tool/external-dir.ts(18,15): error TS2741: Property 'defaultAction' is missing in type '{}' but required in type 'ExternalDirConfig'.
+@zenuxs/engine build: src/tool/registry.ts(41,11): error TS6133: 'permissionActions' is declared but its value is never read.
+@zenuxs/engine build: src/tools/apply-patch.ts(1,31): error TS6196: 'ToolExecutionContext' is declared but never used.
+@zenuxs/engine build: src/tools/apply-patch.ts(29,23): error TS6133: 'ctx' is declared but its value is never read.
+@zenuxs/engine build: src/tools/apply-patch.ts(39,37): error TS18048: 'op' is possibly 'undefined'.
+@zenuxs/engine build: src/tools/apply-patch.ts(44,47): error TS18048: 'op' is possibly 'undefined'.
+@zenuxs/engine build: src/tools/apply-patch.ts(44,84): error TS18048: 'op' is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(16,32): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(17,32): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(20,7): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(20,7): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+@zenuxs/engine build:   Type 'undefined' is not assignable to type 'number'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(20,42): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(20,74): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(20,74): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+@zenuxs/engine build:   Type 'undefined' is not assignable to type 'number'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(20,88): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(20,102): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(23,3): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+@zenuxs/engine build:   Type 'undefined' is not assignable to type 'number'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(23,10): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(52,13): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(64,13): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(85,25): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(86,23): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(89,22): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(91,56): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(105,25): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(106,23): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(109,22): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(111,56): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(147,25): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(148,24): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(151,11): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(152,13): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(162,25): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(163,24): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(166,11): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(167,13): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(181,76): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ n: string; r: string; t: string; "'": string; '"': string; "\\": string; }'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(186,76): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ n: string; r: string; t: string; "'": string; '"': string; "\\": string; }'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(216,26): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(217,24): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(221,11): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(223,45): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(235,26): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(236,24): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(239,11): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit-strategies.ts(239,58): error TS2532: Object is possibly 'undefined'.
+@zenuxs/engine build: src/tools/edit.ts(1,31): error TS6196: 'ToolExecutionContext' is declared but never used.
+@zenuxs/engine build: src/tools/edit.ts(20,23): error TS6133: 'ctx' is declared but its value is never read.
+@zenuxs/engine build: src/tools/glob.ts(1,31): error TS6196: 'ToolExecutionContext' is declared but never used.
+@zenuxs/engine build: src/tools/glob.ts(18,23): error TS6133: 'ctx' is declared but its value is never read.
+@zenuxs/engine build: src/tools/glob.ts(21,33): error TS2307: Cannot find module 'glob' or its corresponding type declarations.
+@zenuxs/engine build: src/tools/grep.ts(1,31): error TS6196: 'ToolExecutionContext' is declared but never used.
+@zenuxs/engine build: src/tools/grep.ts(19,23): error TS6133: 'ctx' is declared but its value is never read.
+@zenuxs/engine build: src/tools/grep.ts(27,96): error TS6133: 'error' is declared but its value is never read.
+@zenuxs/engine build: src/tools/index.ts(17,5): error TS2741: Property 'identity' is missing in type '{ definition: { id: string; description: string; parameters: { name: string; required: boolean; schema: Record<string, unknown>; description?: string | undefined; }[]; retryable: boolean; maxRetries: number; ... 4 more ...; modeRestrictions?: string[] | undefined; }; handler: ToolHandler; }' but required in type 'RegisteredTool'.
+@zenuxs/engine build: src/tools/index.ts(18,5): error TS2741: Property 'identity' is missing in type '{ definition: { id: string; description: string; parameters: { name: string; required: boolean; schema: Record<string, unknown>; description?: string | undefined; }[]; retryable: boolean; maxRetries: number; ... 4 more ...; modeRestrictions?: string[] | undefined; }; handler: ToolHandler; }' but required in type 'RegisteredTool'.
+@zenuxs/engine build: src/tools/index.ts(19,5): error TS2741: Property 'identity' is missing in type '{ definition: { id: string; description: string; parameters: { name: string; required: boolean; schema: Record<string, unknown>; description?: string | undefined; }[]; retryable: boolean; maxRetries: number; ... 4 more ...; modeRestrictions?: string[] | undefined; }; handler: ToolHandler; }' but required in type 'RegisteredTool'.
+@zenuxs/engine build: src/tools/index.ts(20,5): error TS2741: Property 'identity' is missing in type '{ definition: { id: string; description: string; parameters: { name: string; required: boolean; schema: Record<string, unknown>; description?: string | undefined; }[]; retryable: boolean; maxRetries: number; ... 4 more ...; modeRestrictions?: string[] | undefined; }; handler: ToolHandler; }' but required in type 'RegisteredTool'.
+@zenuxs/engine build: src/tools/index.ts(21,5): error TS2741: Property 'identity' is missing in type '{ definition: { id: string; description: string; parameters: { name: string; required: boolean; schema: Record<string, unknown>; description?: string | undefined; }[]; retryable: boolean; maxRetries: number; ... 4 more ...; modeRestrictions?: string[] | undefined; }; handler: ToolHandler; }' but required in type 'RegisteredTool'.
+@zenuxs/engine build: src/tools/index.ts(22,5): error TS2741: Property 'identity' is missing in type '{ definition: { id: string; description: string; parameters: { name: string; required: boolean; schema: Record<string, unknown>; description?: string | undefined; }[]; retryable: boolean; maxRetries: number; ... 4 more ...; modeRestrictions?: string[] | undefined; }; handler: ToolHandler; }' but required in type 'RegisteredTool'.
+@zenuxs/engine build: src/tools/index.ts(23,5): error TS2741: Property 'identity' is missing in type '{ definition: { id: string; description: string; parameters: { name: string; required: boolean; schema: Record<string, unknown>; description?: string | undefined; }[]; retryable: boolean; maxRetries: number; ... 4 more ...; modeRestrictions?: string[] | undefined; }; handler: ToolHandler; }' but required in type 'RegisteredTool'.
+@zenuxs/engine build: src/tools/index.ts(24,5): error TS2741: Property 'identity' is missing in type '{ definition: { id: string; description: string; parameters: { name: string; required: boolean; schema: Record<string, unknown>; description?: string | undefined; }[]; retryable: boolean; maxRetries: number; ... 4 more ...; modeRestrictions?: string[] | undefined; }; handler: ToolHandler; }' but required in type 'RegisteredTool'.
+@zenuxs/engine build: src/tools/index.ts(25,5): error TS2741: Property 'identity' is missing in type '{ definition: { id: string; description: string; parameters: { name: string; required: boolean; schema: Record<string, unknown>; description?: string | undefined; }[]; retryable: boolean; maxRetries: number; ... 4 more ...; modeRestrictions?: string[] | undefined; }; handler: ToolHandler; }' but required in type 'RegisteredTool'.
+@zenuxs/engine build: src/tools/index.ts(26,5): error TS2741: Property 'identity' is missing in type '{ definition: { id: string; description: string; parameters: { name: string; required: boolean; schema: Record<string, unknown>; description?: string | undefined; }[]; retryable: boolean; maxRetries: number; ... 4 more ...; modeRestrictions?: string[] | undefined; }; handler: ToolHandler; }' but required in type 'RegisteredTool'.
+@zenuxs/engine build: src/tools/index.ts(27,5): error TS2741: Property 'identity' is missing in type '{ definition: { id: string; description: string; parameters: { name: string; required: boolean; schema: Record<string, unknown>; description?: string | undefined; }[]; retryable: boolean; maxRetries: number; ... 4 more ...; modeRestrictions?: string[] | undefined; }; handler: ToolHandler; }' but required in type 'RegisteredTool'.
+@zenuxs/engine build: src/tools/index.ts(28,5): error TS2741: Property 'identity' is missing in type '{ definition: { id: string; description: string; parameters: { name: string; required: boolean; schema: Record<string, unknown>; description?: string | undefined; }[]; retryable: boolean; maxRetries: number; ... 4 more ...; modeRestrictions?: string[] | undefined; }; handler: ToolHandler; }' but required in type 'RegisteredTool'.
+@zenuxs/engine build: src/tools/read.ts(1,31): error TS6196: 'ToolExecutionContext' is declared but never used.
+@zenuxs/engine build: src/tools/read.ts(18,23): error TS6133: 'ctx' is declared but its value is never read.
+@zenuxs/engine build: src/tools/read.ts(27,32): error TS2339: Property 'isDirectory' does not exist on type 'Promise<Stats | null>'.
+@zenuxs/engine build: src/tools/shell.ts(86,15): error TS6133: 'output' is declared but its value is never read.
+@zenuxs/engine build: src/tools/skill.ts(1,31): error TS6196: 'ToolExecutionContext' is declared but never used.
+@zenuxs/engine build: src/tools/skill.ts(28,40): error TS2339: Property 'skillsDir' does not exist on type '{ sessionId: string; messageId: string; toolCallId: string; agent: string; abort: boolean; metadata?: Record<string, unknown> | undefined; }'.
+@zenuxs/engine build: src/tools/todowrite.ts(1,31): error TS6196: 'ToolExecutionContext' is declared but never used.
+@zenuxs/engine build: src/tools/webfetch.ts(1,31): error TS6196: 'ToolExecutionContext' is declared but never used.
+@zenuxs/engine build: src/tools/websearch.ts(1,31): error TS6196: 'ToolExecutionContext' is declared but never used.
+@zenuxs/engine build: src/tools/write.ts(1,31): error TS6196: 'ToolExecutionContext' is declared but never used.
+@zenuxs/engine build: src/tools/write.ts(17,23): error TS6133: 'ctx' is declared but its value is never read.
+@zenuxs/engine build: Exited with code 2
+@zenuxs/plugin-sdk build: src/index.ts(25,14): error TS2323: Cannot redeclare exported variable 'Plugin'.
+@zenuxs/plugin-sdk build: src/index.ts(78,20): error TS4073: Parameter 'plugin' of public method from exported class has or is using private name 'Plugin'.
+@zenuxs/plugin-sdk build: src/index.ts(86,22): error TS4055: Return type of public method from exported class has or is using private name 'Plugin'.
+@zenuxs/plugin-sdk build: src/index.ts(90,11): error TS4055: Return type of public method from exported class has or is using private name 'Plugin'.
+@zenuxs/plugin-sdk build: src/index.ts(116,57): error TS4060: Return type of exported function has or is using private name 'Plugin'.
+@zenuxs/plugin-sdk build: src/index.ts(120,8): error TS2323: Cannot redeclare exported variable 'Plugin'.
+@zenuxs/plugin-sdk build: src/index.ts(120,8): error TS2440: Import declaration conflicts with local declaration of 'Plugin'.
+@zenuxs/plugin-sdk build: Exited with code 1
+@zenuxs/studio build: src/api/index.ts(1,10): error TS2303: Circular definition of import alias 'Studio'.
+@zenuxs/studio build: src/api/index.ts(1,18): error TS2303: Circular definition of import alias 'StudioConfig'.
+@zenuxs/studio build: src/index.ts(14,14): error TS2323: Cannot redeclare exported variable 'Studio'.
+@zenuxs/studio build: src/index.ts(71,48): error TS2307: Cannot find module '@zenuxs/providers' or its corresponding type declarations.
+@zenuxs/studio build: src/index.ts(72,62): error TS7006: Parameter 'p' implicitly has an 'any' type.
+@zenuxs/studio build: src/index.ts(82,35): error TS2769: No overload matches this call.
+@zenuxs/studio build:   Overload 1 of 2, '(requestListener?: RequestListener<typeof IncomingMessage, typeof ServerResponse> | undefined): Server<typeof IncomingMessage, typeof ServerResponse>', gave the following error.
+@zenuxs/studio build:     Argument of type '(request: Request, Env?: unknown, executionCtx?: ExecutionContext | undefined) => Response | Promise<Response>' is not assignable to parameter of type 'RequestListener<typeof IncomingMessage, typeof ServerResponse>'.
+@zenuxs/studio build:       Types of parameters 'request' and 'req' are incompatible.
+@zenuxs/studio build:         Type 'IncomingMessage' is missing the following properties from type 'Request': cache, credentials, destination, integrity, and 15 more.
+@zenuxs/studio build:   Overload 2 of 2, '(options: ServerOptions<typeof IncomingMessage, typeof ServerResponse>, requestListener?: RequestListener<typeof IncomingMessage, typeof ServerResponse> | undefined): Server<...>', gave the following error.
+@zenuxs/studio build:     Type '(request: Request, Env?: unknown, executionCtx?: ExecutionContext | undefined) => Response | Promise<Response>' has no properties in common with type 'ServerOptions<typeof IncomingMessage, typeof ServerResponse>'.
+@zenuxs/studio build: src/index.ts(103,8): error TS2323: Cannot redeclare exported variable 'Studio'.
+@zenuxs/studio build: src/index.ts(103,8): error TS2440: Import declaration conflicts with local declaration of 'Studio'.
+@zenuxs/studio build: Exited with code 2
+@cline/llms build: Exited with code 0
+@cline/agents build: Exited with code 0
+@cline/core build: Exited with code 0
+=== EXIT: 2 ===

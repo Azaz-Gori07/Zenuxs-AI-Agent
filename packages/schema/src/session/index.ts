@@ -19,7 +19,7 @@ export const SessionEventSchema = z.object({
     "session_completed",
     "session_aborted",
   ]),
-  payload: z.record(z.unknown()),
+  payload: z.record(z.string(), z.unknown()),
   timestamp: z.date(),
 })
 
@@ -47,7 +47,7 @@ export const SessionSchema = z.object({
   providerId: z.string(),
   agentId: z.string(),
   mode: z.string(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 })
 
 export type Session = z.infer<typeof SessionSchema>

@@ -15,7 +15,7 @@ export type AgentID = z.infer<typeof AgentIDSchema>
 export const ToolResultSchema = z.object({
   title: z.string(),
   output: z.string(),
-  metadata: z.record(z.unknown()),
+  metadata: z.record(z.string(), z.unknown()),
   attachments: z
     .array(
       z.object({
@@ -40,7 +40,7 @@ export const MessagePartSchema = z.discriminatedUnion("type", [
     tool_use: z.object({
       id: ToolCallIDSchema,
       name: z.string(),
-      input: z.record(z.unknown()),
+      input: z.record(z.string(), z.unknown()),
     }),
   }),
   z.object({
@@ -60,7 +60,7 @@ export const MessageSchema = z.object({
   role: MessageRoleSchema,
   parts: z.array(MessagePartSchema),
   createdAt: z.date(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 })
 
 export type Message = z.infer<typeof MessageSchema>

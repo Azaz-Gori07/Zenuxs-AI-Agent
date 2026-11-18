@@ -17,7 +17,7 @@ export type PermissionRuleset = z.infer<typeof PermissionRulesetSchema>
 export const PermissionRequestSchema = z.object({
   permission: z.string(),
   pattern: z.string(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
   always: z.array(z.string()).optional(),
 })
 

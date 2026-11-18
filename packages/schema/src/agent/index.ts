@@ -64,7 +64,7 @@ export const AgentEventSchema = z.object({
     "session_complete",
     "usage",
   ]),
-  data: z.record(z.unknown()),
+  data: z.record(z.string(), z.unknown()),
   timestamp: z.date(),
 })
 
