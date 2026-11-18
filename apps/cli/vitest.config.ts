@@ -54,7 +54,7 @@ export default defineConfig({
 		exclude: ["src/**/*.e2e.test.ts", "src/tests/**"],
 		// Default 5s is tight on CI: each test uses `resetModules()` + dynamic `import("./main")`
 		// (large graph). Cold transforms occasionally exceed 5s on shared runners.
-		testTimeout: 15_000,
+		testTimeout: 30_000,
 		pool: "forks",
 		maxWorkers: 1,
 		fileParallelism: false,

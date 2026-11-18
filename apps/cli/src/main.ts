@@ -1,7 +1,10 @@
 import { fstatSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename } from "node:path";
-import { resolveProviderConfig as coreResolveProviderConfig } from "@cline/core";
+import {
+	createUserInstructionConfigService,
+	resolveProviderConfig as coreResolveProviderConfig,
+} from "@cline/core";
 import type { ToolPolicy } from "@cline/core";
 
 import { registerDisposable, profiler } from "@cline/shared";
@@ -69,13 +72,11 @@ async function createProviderSettingsManager() {
 }
 
 async function loadCliRuntimeModules() {
-	const [coreServer, prompt, runAgentModule] = await Promise.all([
-		import("@cline/core"),
+	const [prompt, runAgentModule] = await Promise.all([
 		import("./runtime/prompt"),
 		import("./runtime/run-agent"),
 	]);
 	return {
-		coreServer,
 		resolveSystemPrompt: prompt.resolveSystemPrompt,
 		runAgent: runAgentModule.runAgent,
 	};
@@ -1024,12 +1025,7 @@ export async function runCli(): Promise<void> {
 	const loadModulesPromise = loadCliRuntimeModules();
 	const providerSettingsManager = await providerSettingsManagerPromise;
 	profiler.end(providerSettingsManagerId);
-	const {
-		coreServer,
-		coreServer: { createUserInstructionConfigService },
-		resolveSystemPrompt,
-		runAgent,
-	} = await loadModulesPromise;
+	const { resolveSystemPrompt, runAgent } = await loadModulesPromise;
 	profiler.end(loadModulesId);
 
 	const userInstructionService = createUserInstructionConfigService({
