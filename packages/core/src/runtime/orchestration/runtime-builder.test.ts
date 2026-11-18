@@ -315,7 +315,7 @@ Use the review guidance.`,
 		});
 
 		const names = runtime.tools.map((tool) => tool.name);
-		expect(names).toContain("editor");
+		expect(names).toContain("edit");
 		expect(names).not.toContain("apply_patch");
 	});
 
@@ -354,16 +354,16 @@ Use the review guidance.`,
 		const runtime = await new DefaultRuntimeBuilder().build({
 			config: makeBaseConfig({
 				toolPolicies: {
-					run_commands: { enabled: false },
-					read_files: { enabled: false },
+					bash: { enabled: false },
+					read: { enabled: false },
 				},
 			}),
 		});
 
 		const names = runtime.tools.map((tool) => tool.name);
-		expect(names).not.toContain("run_commands");
-		expect(names).not.toContain("read_files");
-		expect(names).toContain("search_codebase");
+		expect(names).not.toContain("bash");
+		expect(names).not.toContain("read");
+		expect(names).toContain("grep");
 	});
 
 	it("omits tools disabled by global settings from the advertised runtime tool list", async () => {
@@ -372,7 +372,7 @@ Use the review guidance.`,
 		process.env.CLINE_GLOBAL_SETTINGS_PATH = settingsPath;
 		writeFileSync(
 			settingsPath,
-			JSON.stringify({ disabledTools: ["search_codebase"] }, null, 2),
+			JSON.stringify({ disabledTools: ["grep"] }, null, 2),
 			"utf8",
 		);
 
@@ -381,8 +381,8 @@ Use the review guidance.`,
 		});
 
 		const names = runtime.tools.map((tool) => tool.name);
-		expect(names).not.toContain("search_codebase");
-		expect(names).toContain("read_files");
+		expect(names).not.toContain("grep");
+		expect(names).toContain("read");
 	});
 
 	it("adds spawn tool when enabled", async () => {

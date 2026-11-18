@@ -558,7 +558,7 @@ describe("createAgentTeamsTools runtime behavior", () => {
 		expect(spawnTeammate).toHaveBeenCalledWith(
 			expect.objectContaining({
 				config: expect.objectContaining({
-					systemPrompt: expect.stringContaining('"hint": "app"'),
+					systemPrompt: expect.stringContaining('"app"'),
 				}),
 			}),
 		);

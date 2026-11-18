@@ -29,6 +29,7 @@ const DARWIN_LIBRARY = [
 
 const DARWIN_ROOT = ["/.DocumentRevisions-V100", "/.Spotlight-V100", "/.Trashes", "/.fseventsd"];
 const WIN32_HOME = ["AppData", "Downloads", "Desktop", "Documents", "Pictures", "Music", "Videos", "OneDrive"];
+const LINUX_HOME = ["Desktop", "Documents", "Downloads", "Pictures", "Music", "Videos", "Templates", "Public"];
 
 
 /**
@@ -37,6 +38,7 @@ const WIN32_HOME = ["AppData", "Downloads", "Desktop", "Documents", "Pictures", 
 export function getProtectedNames(): Set<string> {
 	if (process.platform === "darwin") return new Set(DARWIN_HOME);
 	if (process.platform === "win32") return new Set(WIN32_HOME);
+	if (process.platform === "linux") return new Set(LINUX_HOME);
 	return new Set();
 }
 
@@ -54,6 +56,9 @@ export function getProtectedPaths(): string[] {
 	}
 	if (process.platform === "win32") {
 		return WIN32_HOME.map((name) => path.join(home, name));
+	}
+	if (process.platform === "linux") {
+		return LINUX_HOME.map((name) => path.join(home, name));
 	}
 	return [];
 }

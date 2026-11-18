@@ -58,7 +58,7 @@ describe("SubprocessSandbox runtime resolution", () => {
 		expect(
 			buildSubprocessSandboxCommand(["-e", "console.log('ok')"], {
 				execPath: "/usr/local/bin/cline",
-				env: { CLINE_BUILD_ENV: "production" },
+				env: { ZENUXS_BUILD_ENV: "production" },
 				name: "plugin-sandbox",
 			}),
 		).toEqual(["node", "-e", "console.log('ok')"]);
@@ -68,7 +68,7 @@ describe("SubprocessSandbox runtime resolution", () => {
 		expect(
 			buildSubprocessSandboxCommand(["bootstrap.js"], {
 				execPath: "/usr/local/bin/cline",
-				env: { CLINE_BUILD_ENV: "development" },
+				env: { ZENUXS_BUILD_ENV: "development" },
 				name: "plugin-sandbox",
 			}),
 		).toEqual([

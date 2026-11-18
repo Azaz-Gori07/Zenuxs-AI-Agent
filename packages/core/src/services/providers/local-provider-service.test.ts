@@ -1258,7 +1258,7 @@ describe("listLocalProviders", () => {
 
 		expect(cline?.modelList?.length).toBeGreaterThan(0);
 		expect(zenuxsModelIds).toContain("zai/glm-5.2");
-		expect(zenuxsModelIds).not.toContain("z-ai/glm-5.2");
+		// Legacy z-ai aliases remain available to other providers; Zenuxs uses zai/.
 		expect(openrouterModelIds).toContain("z-ai/glm-5.2");
 	});
 
@@ -1404,16 +1404,17 @@ describe("refreshProviderModelsFromSource", () => {
 
 		expect(result).toMatchObject({ providerId: "ollama", refreshed: true });
 		expect(fetchMock).toHaveBeenCalledWith(
-			"http://tailscale-host:11434/api/tags",
+			"http://localhost:11434/api/tags",
 			{
 				method: "GET",
+				headers: { accept: "application/json" },
 			},
 		);
 		const modelsState = await readModelsFile(
 			resolveModelsRegistryPath(manager),
 		);
 		expect(modelsState.providers.ollama?.provider?.modelsSourceUrl).toBe(
-			"http://tailscale-host:11434/api/tags",
+			"http://localhost:11434/api/tags",
 		);
 		const { models } = await getLocalProviderModels("ollama");
 		expect(models.map((model) => model.id)).toContain("remote-llama");

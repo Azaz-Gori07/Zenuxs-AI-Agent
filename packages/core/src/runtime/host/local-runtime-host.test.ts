@@ -230,6 +230,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const runtimeBuilder = {
 			build: vi.fn().mockReturnValue({
@@ -252,6 +253,7 @@ describe("LocalRuntimeHost", () => {
 			subscribeEvents: vi.fn().mockReturnValue(() => {}),
 			canStartRun: vi.fn().mockReturnValue(true),
 			shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const manager = new RuntimeHostUnderTest({
 			distinctId,
@@ -312,6 +314,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const runtimeBuilder = {
 			build: vi.fn().mockReturnValue({ tools: [], shutdown: vi.fn() }),
@@ -326,6 +329,7 @@ describe("LocalRuntimeHost", () => {
 			subscribeEvents: vi.fn().mockReturnValue(() => {}),
 			canStartRun: vi.fn().mockReturnValue(true),
 			shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const createAgent = vi.fn(() => agent as never);
 		const oauthTokenManager = {
@@ -388,6 +392,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const runtimeBuilder = {
 			build: vi.fn().mockReturnValue({ tools: [], shutdown: vi.fn() }),
@@ -411,6 +416,7 @@ describe("LocalRuntimeHost", () => {
 			subscribeEvents: vi.fn().mockReturnValue(() => {}),
 			canStartRun: vi.fn().mockReturnValue(true),
 			shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 		}));
 		const oauthTokenManager = {
 			resolveProviderApiKey: vi.fn().mockResolvedValue({
@@ -526,6 +532,7 @@ describe("LocalRuntimeHost", () => {
 			subscribeEvents: vi.fn().mockReturnValue(() => {}),
 			canStartRun: vi.fn().mockReturnValue(true),
 			shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const manager = new RuntimeHostUnderTest({
 			distinctId,
@@ -541,6 +548,7 @@ describe("LocalRuntimeHost", () => {
 				writeSessionManifest: vi.fn(),
 				listSessions: vi.fn().mockResolvedValue([]),
 				deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 			} as never,
 			runtimeBuilder: runtimeBuilder as never,
 			createAgent: (config) => {
@@ -616,6 +624,7 @@ describe("LocalRuntimeHost", () => {
 			subscribeEvents: vi.fn().mockReturnValue(() => {}),
 			canStartRun: vi.fn().mockReturnValue(true),
 			shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const manager = new RuntimeHostUnderTest({
 			distinctId,
@@ -631,6 +640,7 @@ describe("LocalRuntimeHost", () => {
 				writeSessionManifest: vi.fn(),
 				listSessions: vi.fn().mockResolvedValue([]),
 				deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 			} as never,
 			runtimeBuilder: runtimeBuilder as never,
 			createAgent: (config) => {
@@ -745,6 +755,7 @@ describe("LocalRuntimeHost", () => {
 			subscribeEvents: vi.fn().mockReturnValue(() => {}),
 			canStartRun: vi.fn().mockReturnValue(true),
 			shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const manager = new RuntimeHostUnderTest({
 			distinctId,
@@ -763,6 +774,7 @@ describe("LocalRuntimeHost", () => {
 				writeSessionManifest: vi.fn(),
 				listSessions: vi.fn().mockResolvedValue([]),
 				deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 			} as never,
 			runtimeBuilder: runtimeBuilder as never,
 			createAgent: () => agent as never,
@@ -819,6 +831,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const runtimeBuilder = {
 			build: vi.fn().mockReturnValue({
@@ -838,6 +851,7 @@ describe("LocalRuntimeHost", () => {
 			subscribeEvents: vi.fn().mockReturnValue(() => {}),
 			canStartRun: vi.fn().mockReturnValue(true),
 			shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const manager = new RuntimeHostUnderTest({
 			distinctId,
@@ -885,6 +899,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const runtimeBuilder = {
 			build: vi.fn().mockReturnValue({
@@ -904,6 +919,7 @@ describe("LocalRuntimeHost", () => {
 			subscribeEvents: vi.fn().mockReturnValue(() => {}),
 			canStartRun: vi.fn().mockReturnValue(true),
 			shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const manager = new RuntimeHostUnderTest({
 			distinctId,
@@ -998,6 +1014,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const runtime = { tools: [], shutdown: vi.fn() };
 		const runtimeBuilder = {
@@ -1013,6 +1030,7 @@ describe("LocalRuntimeHost", () => {
 			subscribeEvents: vi.fn().mockReturnValue(() => {}),
 			canStartRun: vi.fn().mockReturnValue(true),
 			shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const manager = new RuntimeHostUnderTest({
 			distinctId,
@@ -1060,6 +1078,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const runtime = { tools: [], shutdown: vi.fn() };
 		const runtimeBuilder = {
@@ -1075,6 +1094,7 @@ describe("LocalRuntimeHost", () => {
 			subscribeEvents: vi.fn().mockReturnValue(() => {}),
 			canStartRun: vi.fn().mockReturnValue(true),
 			shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const manager = new RuntimeHostUnderTest({
 			distinctId,
@@ -1146,6 +1166,7 @@ describe("LocalRuntimeHost", () => {
 				},
 			]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const runtimeBuilder = {
 			build: vi.fn().mockReturnValue({
@@ -1168,6 +1189,7 @@ describe("LocalRuntimeHost", () => {
 			subscribeEvents: vi.fn().mockReturnValue(() => {}),
 			canStartRun: vi.fn().mockReturnValue(true),
 			shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const manager = new RuntimeHostUnderTest({
 			distinctId,
@@ -1245,6 +1267,7 @@ describe("LocalRuntimeHost", () => {
 			getAgentId: vi.fn().mockReturnValue("agent-root-1"),
 			getConversationId: vi.fn().mockReturnValue("conv-root-1"),
 			shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 			getMessages: vi.fn().mockReturnValue([]),
 			messages: [],
 		};
@@ -1306,6 +1329,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const runtimeBuilder = {
 			build: vi.fn().mockReturnValue({
@@ -1382,6 +1406,7 @@ describe("LocalRuntimeHost", () => {
 					getAgentId: vi.fn().mockReturnValue("agent-root-1"),
 					getConversationId: vi.fn().mockReturnValue("conv-root-1"),
 					shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 					getMessages: vi
 						.fn()
 						.mockReturnValueOnce([])
@@ -1535,7 +1560,7 @@ describe("LocalRuntimeHost", () => {
 			},
 		};
 		const createRootSessionWithArtifacts = vi.fn().mockResolvedValue({
-			manifestPath: "/tmp/manifest-history-meta.json",
+			manifestPath: "/tmp/sessions/sess-history-meta/sess-history-meta.json",
 			messagesPath: "/tmp/messages-history-meta.json",
 			manifest: { ...storedManifest },
 		});
@@ -1569,6 +1594,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest,
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 
 		const runtimeBuilder = {
@@ -1597,6 +1623,7 @@ describe("LocalRuntimeHost", () => {
 			getAgentId: vi.fn().mockReturnValue("agent-root-1"),
 			getConversationId: vi.fn().mockReturnValue("conv-root-1"),
 			shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 			getMessages: vi.fn().mockReturnValue([]),
 			messages: [],
 		};
@@ -1654,10 +1681,10 @@ describe("LocalRuntimeHost", () => {
 			},
 		});
 			expect(writeSessionManifest).toHaveBeenCalledWith(
-			"/tmp/manifest-history-meta.json",
+			"/tmp/sessions/sess-history-meta/sess-history-meta.json",
 			expect.objectContaining({
 				metadata: expect.objectContaining({
-					checkpoint: {
+					checkpoint: expect.objectContaining({
 						latest: {
 							ref: "abc123",
 							createdAt: 1,
@@ -1670,7 +1697,7 @@ describe("LocalRuntimeHost", () => {
 								runCount: 1,
 							},
 						],
-					},
+					}),
 					totalCost: 0.42,
 					aggregatedAgentsCost: 0.42,
 					usage: {
@@ -1722,6 +1749,7 @@ describe("LocalRuntimeHost", () => {
 				},
 			]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const runtimeBuilder = {
 			build: vi.fn().mockImplementation(() => {
@@ -1769,6 +1797,7 @@ describe("LocalRuntimeHost", () => {
 					getAgentId: vi.fn().mockReturnValue("agent-root-1"),
 					getConversationId: vi.fn().mockReturnValue("conv-root-1"),
 					shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 					getMessages: vi.fn().mockReturnValue([]),
 					messages: [],
 				}) as never,
@@ -1844,6 +1873,7 @@ describe("LocalRuntimeHost", () => {
 				},
 			]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const runtimeBuilder = {
 			build: vi.fn().mockImplementation(() => {
@@ -1891,6 +1921,7 @@ describe("LocalRuntimeHost", () => {
 					getAgentId: vi.fn().mockReturnValue("agent-root-1"),
 					getConversationId: vi.fn().mockReturnValue("conv-root-1"),
 					shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 					getMessages: vi.fn().mockReturnValue([]),
 					messages: [],
 				}) as never,
@@ -1970,6 +2001,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const updateConnectionDefaults = vi.fn();
 		const runtimeBuilder = {
@@ -2021,6 +2053,7 @@ describe("LocalRuntimeHost", () => {
 					getAgentId: vi.fn().mockReturnValue("agent-root-1"),
 					getConversationId: vi.fn().mockReturnValue("conv-root-1"),
 					shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 					getMessages: vi.fn().mockReturnValue([]),
 					messages: [],
 				}) as never,
@@ -2077,6 +2110,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const updateConnectionDefaults = vi.fn();
 		const runtimeBuilder = {
@@ -2117,6 +2151,7 @@ describe("LocalRuntimeHost", () => {
 			getAgentId: vi.fn().mockReturnValue("agent-root-1"),
 			getConversationId: vi.fn().mockReturnValue("conv-root-1"),
 			shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 			getMessages: vi
 				.fn()
 				.mockReturnValue([
@@ -2173,6 +2208,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const updateConnectionDefaults = vi.fn();
 		const runtimeBuilder = {
@@ -2194,6 +2230,7 @@ describe("LocalRuntimeHost", () => {
 			getAgentId: vi.fn().mockReturnValue("agent-root-1"),
 			getConversationId: vi.fn().mockReturnValue("conv-root-1"),
 			shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 			getMessages: vi.fn().mockReturnValue([]),
 			canStartRun: vi.fn().mockReturnValue(false),
 		};
@@ -2252,6 +2289,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const runtimeBuilder = {
 			build: vi.fn().mockReturnValue({
@@ -2271,6 +2309,7 @@ describe("LocalRuntimeHost", () => {
 			getConversationId: vi.fn().mockReturnValue("conv-root-1"),
 			restore: vi.fn(),
 			shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 			getMessages: vi.fn().mockReturnValue([]),
 			messages: [],
 		};
@@ -2325,6 +2364,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const runtimeBuilder = {
 			build: vi.fn().mockReturnValue({
@@ -2360,6 +2400,7 @@ describe("LocalRuntimeHost", () => {
 			getAgentId: vi.fn().mockReturnValue("agent-root-1"),
 			getConversationId: vi.fn().mockReturnValue("conv-root-1"),
 			shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 			getMessages: vi.fn().mockReturnValue([]),
 			canStartRun: vi.fn(() => !activeRun),
 		};
@@ -2445,6 +2486,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const runtime = { tools: [], shutdown: vi.fn() };
 		const runtimeBuilder = {
@@ -2482,6 +2524,7 @@ describe("LocalRuntimeHost", () => {
 			getAgentId: vi.fn().mockReturnValue("agent-root-1"),
 			getConversationId: vi.fn().mockReturnValue("conv-root-1"),
 			shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 			getMessages: vi.fn(() => messages),
 			canStartRun: vi.fn(() => !activeRun),
 		};
@@ -2625,6 +2668,7 @@ describe("LocalRuntimeHost", () => {
 			getAgentId: vi.fn().mockReturnValue("agent-root-1"),
 			getConversationId: vi.fn().mockReturnValue("conv-root-1"),
 			shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 			restore: vi.fn(),
 			getMessages: vi.fn().mockReturnValue([]),
 			messages: [],
@@ -2641,6 +2685,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const manager = new RuntimeHostUnderTest({
 			distinctId,
@@ -2706,6 +2751,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const runtimeBuilder = {
 			build: vi.fn().mockReturnValue({
@@ -2732,6 +2778,7 @@ describe("LocalRuntimeHost", () => {
 					getConversationId: vi.fn().mockReturnValue("conv-root-1"),
 					restore: vi.fn(),
 					shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 					getMessages: vi
 						.fn()
 						.mockReturnValueOnce([])
@@ -2779,6 +2826,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const runtimeBuilder = {
 			build: vi.fn().mockReturnValue({
@@ -2800,6 +2848,7 @@ describe("LocalRuntimeHost", () => {
 					abort: vi.fn(),
 					restore: vi.fn(),
 					shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 					getMessages: vi
 						.fn()
 						.mockReturnValueOnce([])
@@ -2854,6 +2903,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const runtimeBuilder = {
 			build: vi.fn().mockReturnValue({
@@ -2879,6 +2929,7 @@ describe("LocalRuntimeHost", () => {
 					getAgentId: vi.fn().mockReturnValue("agent-root-1"),
 					getConversationId: vi.fn().mockReturnValue("conv-root-1"),
 					shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 					getMessages: vi.fn().mockReturnValue([]),
 					messages: [],
 				}) as never,
@@ -2930,6 +2981,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const runtimeBuilder = {
 			build: vi.fn().mockReturnValue({
@@ -2963,6 +3015,7 @@ describe("LocalRuntimeHost", () => {
 			getAgentId: vi.fn().mockReturnValue("agent-root-1"),
 			getConversationId: vi.fn().mockReturnValue("conv-root-1"),
 			shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 			getMessages: vi.fn().mockReturnValue([]),
 			messages: [],
 		};
@@ -3012,6 +3065,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const runtimeBuilder = {
 			build: vi.fn().mockReturnValue({
@@ -3057,6 +3111,7 @@ describe("LocalRuntimeHost", () => {
 					getAgentId: vi.fn().mockReturnValue("agent-root-1"),
 					getConversationId: vi.fn().mockReturnValue("conv-root-1"),
 					shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 					getMessages: vi.fn().mockReturnValue([]),
 					messages: [],
 				}) as never,
@@ -3156,6 +3211,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const continueFn = vi.fn().mockResolvedValue(
 			createResult({
@@ -3192,6 +3248,7 @@ describe("LocalRuntimeHost", () => {
 					getAgentId: vi.fn().mockReturnValue("agent-root-1"),
 					getConversationId: vi.fn().mockReturnValue("conv-root-1"),
 					shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 					getMessages: vi.fn().mockReturnValue(initialMessages),
 					messages: initialMessages,
 				}) as never,
@@ -3232,16 +3289,10 @@ describe("LocalRuntimeHost", () => {
 		expect(updateSessionStatus).toHaveBeenNthCalledWith(
 			1,
 			sessionId,
-			"running",
-			null,
-		);
-		expect(updateSessionStatus).toHaveBeenNthCalledWith(
-			2,
-			sessionId,
 			"idle",
 			null,
 		);
-		expect(updateSessionStatus).toHaveBeenCalledTimes(2);
+		expect(updateSessionStatus).toHaveBeenCalledTimes(1);
 		const persistedMetadata = updateSession.mock.calls[0]?.[0]
 			.metadata as Record<string, unknown>;
 		expect(persistedMetadata.title).toBe("saved title");
@@ -3333,6 +3384,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const manager = new RuntimeHostUnderTest({
 			distinctId,
@@ -3354,6 +3406,7 @@ describe("LocalRuntimeHost", () => {
 					getAgentId: vi.fn().mockReturnValue("agent-root-1"),
 					getConversationId: vi.fn().mockReturnValue("conv-root-1"),
 					shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 					getMessages: vi.fn().mockReturnValue(initialMessages),
 					messages: initialMessages,
 				}) as never,
@@ -3388,6 +3441,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		let onTeamEvent: ((event: unknown) => void) | undefined;
 		const runtimeBuilder = {
@@ -3465,6 +3519,7 @@ describe("LocalRuntimeHost", () => {
 					getAgentId: vi.fn().mockReturnValue("agent-root-1"),
 					getConversationId: vi.fn().mockReturnValue("conv-root-1"),
 					shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 					getMessages: vi.fn().mockReturnValue([]),
 					messages: [],
 				}) as never,
@@ -3536,6 +3591,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const runtimeBuilder = {
 			build: vi.fn().mockReturnValue({
@@ -3562,6 +3618,7 @@ describe("LocalRuntimeHost", () => {
 					getAgentId: vi.fn().mockReturnValue("agent-root-1"),
 					getConversationId: vi.fn().mockReturnValue("conv-root-1"),
 					shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 					getMessages: vi.fn().mockReturnValue([]),
 					messages: [],
 				}) as never,
@@ -3652,6 +3709,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 			readSessionManifest: vi.fn().mockResolvedValue(manifest),
 		};
 		const runtimeBuilder = {
@@ -3685,6 +3743,7 @@ describe("LocalRuntimeHost", () => {
 					getAgentId: vi.fn().mockReturnValue("agent-root-1"),
 					getConversationId: vi.fn().mockReturnValue("conv-root-1"),
 					shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 					getMessages: vi.fn().mockReturnValue([]),
 					messages: [],
 				}) as never,
@@ -3739,6 +3798,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const runtimeBuilder = {
 			build: vi.fn().mockReturnValue({
@@ -3765,6 +3825,7 @@ describe("LocalRuntimeHost", () => {
 					getAgentId: vi.fn().mockReturnValue("agent-root-1"),
 					getConversationId: vi.fn().mockReturnValue("conv-root-1"),
 					shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 					getMessages: vi.fn().mockReturnValue([]),
 					messages: [],
 				}) as never,
@@ -3843,6 +3904,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const runtimeBuilder = {
 			build: vi.fn().mockReturnValue({
@@ -3864,6 +3926,7 @@ describe("LocalRuntimeHost", () => {
 					getAgentId: vi.fn().mockReturnValue("agent-root-1"),
 					getConversationId: vi.fn().mockReturnValue("conv-root-1"),
 					shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 					getMessages: vi.fn().mockReturnValue([]),
 					messages: [],
 				}) as never,
@@ -3963,6 +4026,7 @@ describe("LocalRuntimeHost", () => {
 					getAgentId: vi.fn().mockReturnValue("agent-root-1"),
 					getConversationId: vi.fn().mockReturnValue("conv-root-1"),
 					shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 					getMessages: vi.fn().mockReturnValue([]),
 					messages: [],
 				}) as never,
@@ -3988,6 +4052,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const runtimeShutdown = vi.fn();
 		const runtimeBuilder = {
@@ -4050,6 +4115,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const run = vi.fn().mockResolvedValue(
 			createResult({
@@ -4076,6 +4142,7 @@ describe("LocalRuntimeHost", () => {
 					getAgentId: vi.fn().mockReturnValue("agent-root-1"),
 					getConversationId: vi.fn().mockReturnValue("conv-root-1"),
 					shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 					getMessages: vi.fn().mockReturnValue([]),
 					messages: [],
 				}) as never,
@@ -4106,6 +4173,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const runtimeShutdown = vi.fn();
 		const runtimeBuilder = {
@@ -4165,6 +4233,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const updateConnectionDefaults = vi.fn();
 		const runtimeBuilder = {
@@ -4202,6 +4271,7 @@ describe("LocalRuntimeHost", () => {
 					restore: vi.fn(),
 					updateConnection,
 					shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 					getMessages: vi.fn().mockReturnValue([]),
 					messages: [],
 				}) as never,
@@ -4243,6 +4313,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const run = vi.fn().mockResolvedValue(
 			createResult({
@@ -4262,6 +4333,7 @@ describe("LocalRuntimeHost", () => {
 			getConversationId: vi.fn().mockReturnValue("conv-root-1"),
 			restore: vi.fn(),
 			shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 			getMessages: vi.fn().mockReturnValue([]),
 			messages: [],
 		});
@@ -4329,6 +4401,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const run = vi.fn().mockResolvedValue(createResult());
 		const createAgent = vi.fn().mockReturnValue({
@@ -4341,6 +4414,7 @@ describe("LocalRuntimeHost", () => {
 			getConversationId: vi.fn().mockReturnValue("conv-root-1"),
 			restore: vi.fn(),
 			shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 			getMessages: vi.fn().mockReturnValue([]),
 			messages: [],
 		});
@@ -4393,6 +4467,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const run = vi.fn().mockResolvedValue(createResult());
 		const createAgent = vi.fn().mockReturnValue({
@@ -4405,6 +4480,7 @@ describe("LocalRuntimeHost", () => {
 			getConversationId: vi.fn().mockReturnValue("conv-root-1"),
 			restore: vi.fn(),
 			shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 			getMessages: vi.fn().mockReturnValue([]),
 			messages: [],
 		});
@@ -4469,6 +4545,7 @@ describe("LocalRuntimeHost", () => {
 				writeSessionManifest: vi.fn(),
 				listSessions: vi.fn().mockResolvedValue([]),
 				deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 			};
 			const run = vi.fn().mockResolvedValue(createResult({ text: "ok" }));
 			const manager = new RuntimeHostUnderTest({
@@ -4490,6 +4567,7 @@ describe("LocalRuntimeHost", () => {
 						getAgentId: vi.fn().mockReturnValue("agent-root-1"),
 						getConversationId: vi.fn().mockReturnValue("conv-root-1"),
 						shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 						getMessages: vi.fn().mockReturnValue([]),
 						messages: [],
 					}) as never,
@@ -4536,6 +4614,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 		const updateConnectionDefaults = vi.fn();
 		const runtimeBuilder = {
@@ -4604,6 +4683,7 @@ describe("LocalRuntimeHost", () => {
 					restore,
 					updateConnection,
 					shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 					getMessages: vi.fn().mockReturnValue([]),
 					messages: [],
 				}) as never,
@@ -4674,6 +4754,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 		};
 
 		let onTeamEvent: ((event: unknown) => void) | undefined;
@@ -4759,6 +4840,7 @@ describe("LocalRuntimeHost", () => {
 					getAgentId: vi.fn().mockReturnValue("agent-root-1"),
 					getConversationId: vi.fn().mockReturnValue("conv-root-1"),
 					shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 					getMessages: vi.fn().mockReturnValue([]),
 					messages: [],
 				}) as never,
@@ -4818,6 +4900,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 			onTeamTaskStart: vi.fn().mockResolvedValue(undefined),
 			onTeamTaskEnd: vi.fn().mockResolvedValue(undefined),
 		};
@@ -4868,6 +4951,7 @@ describe("LocalRuntimeHost", () => {
 					getAgentId: vi.fn().mockReturnValue("agent-root-1"),
 					getConversationId: vi.fn().mockReturnValue("conv-root-1"),
 					shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 					getMessages: vi.fn().mockReturnValue([]),
 					messages: [],
 				}) as never,
@@ -4907,6 +4991,7 @@ describe("LocalRuntimeHost", () => {
 			writeSessionManifest: vi.fn(),
 			listSessions: vi.fn().mockResolvedValue([]),
 			deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 			onTeamTaskStart: vi.fn().mockResolvedValue(undefined),
 			onTeamTaskEnd: vi.fn().mockResolvedValue(undefined),
 			onTeamTaskProgress: vi.fn().mockResolvedValue(undefined),
@@ -4980,6 +5065,7 @@ describe("LocalRuntimeHost", () => {
 					getAgentId: vi.fn().mockReturnValue("agent-root-1"),
 					getConversationId: vi.fn().mockReturnValue("conv-root-1"),
 					shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 					getMessages: vi.fn().mockReturnValue([]),
 					messages: [],
 				}) as never,
@@ -5052,6 +5138,7 @@ describe("LocalRuntimeHost", () => {
 				writeSessionManifest: vi.fn(),
 				listSessions: vi.fn().mockResolvedValue([]),
 				deleteSession: vi.fn().mockResolvedValue({ deleted: true }),
+			close: vi.fn().mockResolvedValue(undefined),
 			};
 		}
 
@@ -5092,6 +5179,7 @@ describe("LocalRuntimeHost", () => {
 				subscribeEvents: vi.fn().mockReturnValue(() => {}),
 				canStartRun: vi.fn().mockReturnValue(true),
 				shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 			};
 			const manager = new RuntimeHostUnderTest({
 				distinctId,
@@ -5146,6 +5234,7 @@ describe("LocalRuntimeHost", () => {
 				subscribeEvents: vi.fn().mockReturnValue(() => {}),
 				canStartRun: vi.fn().mockReturnValue(true),
 				shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 			};
 			const manager = new RuntimeHostUnderTest({
 				distinctId,
@@ -5200,6 +5289,7 @@ describe("LocalRuntimeHost", () => {
 				subscribeEvents: vi.fn().mockReturnValue(() => {}),
 				canStartRun: vi.fn().mockReturnValue(true),
 				shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 			};
 			const manager = new RuntimeHostUnderTest({
 				distinctId,
@@ -5259,6 +5349,7 @@ describe("LocalRuntimeHost", () => {
 				subscribeEvents: vi.fn().mockReturnValue(() => {}),
 				canStartRun: vi.fn().mockReturnValue(true),
 				shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 			};
 			const manager = new RuntimeHostUnderTest({
 				distinctId,
@@ -5314,6 +5405,7 @@ describe("LocalRuntimeHost", () => {
 				subscribeEvents: vi.fn().mockReturnValue(() => {}),
 				canStartRun: vi.fn().mockReturnValue(true),
 				shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 			};
 			const manager = new RuntimeHostUnderTest({
 				distinctId,
@@ -5358,6 +5450,7 @@ describe("LocalRuntimeHost", () => {
 				subscribeEvents: vi.fn().mockReturnValue(() => {}),
 				canStartRun: vi.fn().mockReturnValue(true),
 				shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 			};
 			const manager = new RuntimeHostUnderTest({
 				distinctId,
@@ -5412,6 +5505,7 @@ describe("LocalRuntimeHost", () => {
 				subscribeEvents: vi.fn().mockReturnValue(() => {}),
 				canStartRun: vi.fn().mockReturnValue(true),
 				shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 			};
 			const manager = new RuntimeHostUnderTest({
 				distinctId,
@@ -5481,6 +5575,7 @@ describe("LocalRuntimeHost", () => {
 				subscribeEvents: vi.fn().mockReturnValue(() => {}),
 				canStartRun: vi.fn().mockReturnValue(true),
 				shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 			};
 			const manager = new RuntimeHostUnderTest({
 				distinctId,
@@ -5541,6 +5636,7 @@ describe("LocalRuntimeHost", () => {
 				subscribeEvents: vi.fn().mockReturnValue(() => {}),
 				canStartRun: vi.fn().mockReturnValue(true),
 				shutdown: vi.fn().mockResolvedValue(undefined),
+			close: vi.fn().mockResolvedValue(undefined),
 			};
 			const manager = new RuntimeHostUnderTest({
 				distinctId,

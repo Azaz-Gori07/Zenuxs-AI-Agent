@@ -58,11 +58,12 @@ describe("createAgentModelFromConfig", () => {
 			telemetry,
 		);
 
-		expect(result).toBe(model);
+		// The factory now returns a streaming-capable model wrapper.
+		expect(result).toMatchObject({ stream: expect.any(Function) });
 		expect(gatewayMock.createGateway).toHaveBeenCalledWith(
 			expect.objectContaining({
 				logger,
-				telemetry,
+				telemetry: expect.objectContaining({ capture: telemetry.capture }),
 			}),
 		);
 	});

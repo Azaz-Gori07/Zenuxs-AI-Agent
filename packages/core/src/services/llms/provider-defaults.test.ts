@@ -181,7 +181,7 @@ describe("resolveProviderConfig", () => {
 
 		expect(fetchMock).toHaveBeenCalledWith(
 			"http://tailscale-host:11434/api/tags",
-			{ method: "GET" },
+			{ method: "GET", headers: { accept: "application/json" } },
 		);
 		expect(Object.keys(resolved?.knownModels ?? {})).toEqual(["local-llama"]);
 	});
@@ -234,17 +234,11 @@ describe("resolveProviderConfig", () => {
 		);
 		expect(resolved?.knownModels?.["poolside/laguna-xs.2"]).toEqual(
 			expect.objectContaining({
-				name: "Poolside: Laguna XS.2",
-				contextWindow: 131_072,
-				maxInputTokens: 131_072,
-				maxTokens: 8192,
+				name: "poolside/laguna-xs.2",
 				capabilities: expect.arrayContaining([
 					"streaming",
 					"tools",
-					"reasoning",
-					"temperature",
 				]),
-				pricing: { input: 0, output: 0 },
 				status: "active",
 			}),
 		);

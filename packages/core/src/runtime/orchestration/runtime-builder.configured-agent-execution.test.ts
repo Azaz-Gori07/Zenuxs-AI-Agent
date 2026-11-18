@@ -231,7 +231,6 @@ Write a concise commit message.`,
 			}),
 		);
 		expect(delegatedConfig?.tools.map((tool) => tool.name).sort()).toEqual([
-			"run_commands",
 			"skills",
 		]);
 

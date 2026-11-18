@@ -107,8 +107,8 @@ describe("buildMessageModelInfo", () => {
 // ---------------------------------------------------------------------------
 
 describe("resolveToolExecution", () => {
-	it("returns undefined when unset", () => {
-		expect(resolveToolExecution(undefined)).toBeUndefined();
+	it("defaults to parallel when unset", () => {
+		expect(resolveToolExecution(undefined)).toBe("parallel");
 	});
 
 	it("returns 'sequential' for 1", () => {

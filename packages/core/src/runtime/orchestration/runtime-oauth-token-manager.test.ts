@@ -29,6 +29,28 @@ vi.mock("../../auth/oca", () => ({
 	getValidOcaCredentials,
 }));
 
+// The registry captures the zenuxs auth helper at module init; mock the
+// registry entry point as well so the refresh path stays deterministic.
+vi.mock("../../auth/provider-auth-registry", async (importOriginal) => {
+	const actual = await importOriginal<typeof import("../../auth/provider-auth-registry")>();
+	return {
+		...actual,
+		getProviderAuthHandler: (providerId: string) => {
+			const handler = actual.getProviderAuthHandler(providerId);
+			if (!handler || providerId !== "cline-pass") return handler;
+			return {
+				...handler,
+				refresh: (input: any) =>
+					getValidZenuxsCredentials(
+						input.credentials,
+						{ apiBaseUrl: input.settings?.baseUrl, telemetry: input.telemetry },
+						{ forceRefresh: input.forceRefresh },
+					),
+			};
+		},
+	};
+});
+
 describe("RuntimeOAuthTokenManager", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();

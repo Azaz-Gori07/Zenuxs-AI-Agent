@@ -192,7 +192,7 @@ function createBuiltinToolsList(
 		enableWebFetch: false,
 		enableEditor: false,
 		enableApplyPatch: effectiveConfig.enableApplyPatch,
-		enableSkills: !!skillsExecutor,
+		enableSkills: !!skillsExecutor && effectiveConfig.enableSkills !== false,
 		enableAskQuestion: effectiveConfig.enableAskQuestion,
 		enableSubmitAndExit: effectiveConfig.enableSubmitAndExit,
 		executors: {
