@@ -1,0 +1,6 @@
+=== COMMAND: headless --mode build with fake provider ===
+=== TIMESTAMP: 2026-11-18T18:00:08Z ===
+=== SHA: 4246db487a7d14b69ace109eceec01502184b61a ===
+{"ts":"2026-11-18T18:00:10.766Z","type":"agent_event","event":{"type":"done","reason":"completed","text":"Slow response completed.","iterations":1,"usage":{"inputTokens":0,"outputTokens":0,"totalCost":0}}}
+{"ts":"2026-11-18T18:00:10.771Z","type":"run_result","finishReason":"completed","iterations":1,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":1678,"text":"Slow response completed.","model":{"id":"fake-model","provider":"openai-compatible"}}
+=== EXIT: 0 ===

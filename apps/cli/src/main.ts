@@ -950,6 +950,13 @@ export async function runCli(): Promise<void> {
 		},
 	};
 
+	// Headless yolo runs have no completion client. A text-only answer must be
+	// allowed to finish the run instead of looping until maxIterations while
+	// waiting for a submit_and_exit call.
+	if (args.mode === "yolo") {
+		toolPolicies.submit_and_exit = { enabled: false };
+	}
+
 	if (args.outputMode === "json" && (args.interactive || !args.prompt)) {
 		writeErr(
 			"JSON output mode requires a prompt argument or piped stdin (interactive mode is unsupported)",

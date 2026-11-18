@@ -24,6 +24,10 @@ export function addRootOptions(cmd: Command): Command {
 	return (
 		cmd
 			.option("-p, --plan", "Run in plan mode")
+			.option(
+				"--mode <mode>",
+				"Agent mode: act, plan, build, edit, guarded, yolo, ask, debug",
+			)
 			.option("--json", "Output messages as JSON instead of styled text")
 			.option(
 				"--auto-approve <boolean>",
@@ -135,7 +139,7 @@ export function commanderToParsedArgs(program: Command): ParsedArgs {
 		verbose: !!opts.verbose,
 		interactive: !!opts.tui,
 		outputMode: opts.json ? "json" : "text",
-		mode: opts.plan ? "plan" : opts.yolo ? "yolo" : opts.zen ? "zen" : "act",
+		mode: opts.mode ?? (opts.plan ? "plan" : opts.yolo ? "yolo" : opts.zen ? "zen" : "act"),
 		sandbox: !!opts.dataDir,
 		acpMode: !!opts.acp,
 		thinking: false,

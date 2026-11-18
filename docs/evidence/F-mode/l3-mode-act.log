@@ -1,0 +1,6 @@
+=== COMMAND: headless --mode act with fake provider ===
+=== TIMESTAMP: 2026-11-18T18:00:03Z ===
+=== SHA: 4246db487a7d14b69ace109eceec01502184b61a ===
+{"ts":"2026-11-18T18:00:04.419Z","type":"agent_event","event":{"type":"done","reason":"completed","text":"Hello from the deterministic fake provider.","iterations":1,"usage":{"inputTokens":0,"outputTokens":0,"totalCost":0}}}
+{"ts":"2026-11-18T18:00:04.423Z","type":"run_result","finishReason":"completed","iterations":1,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":70,"text":"Hello from the deterministic fake provider.","model":{"id":"fake-model","provider":"openai-compatible"}}
+=== EXIT: 0 ===
