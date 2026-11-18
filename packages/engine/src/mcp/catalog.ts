@@ -132,4 +132,3 @@ export function callTool(
   )
 }
 
-export * as McpCatalog from "./catalog"

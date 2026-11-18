@@ -182,5 +182,3 @@ export class AgentRuntime {
     return this.abortControllers.get(sessionId)!.signal
   }
 }
-
-export * as Agent from "."

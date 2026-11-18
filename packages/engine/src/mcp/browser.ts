@@ -22,4 +22,3 @@ export class McpBrowser {
   }
 }
 
-export * as McpBrowser from "./browser"

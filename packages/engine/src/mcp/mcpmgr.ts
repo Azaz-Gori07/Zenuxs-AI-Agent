@@ -616,4 +616,3 @@ export class McpManager {
   }
 }
 
-export * as McpManager from "./mcpmgr"

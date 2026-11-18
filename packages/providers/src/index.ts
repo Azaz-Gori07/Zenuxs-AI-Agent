@@ -30,5 +30,3 @@ export class ProviderManager {
 }
 
 export const providerManager = new ProviderManager()
-
-export * as Provider from "."

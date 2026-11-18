@@ -178,4 +178,3 @@ export function createStreamEvent(
   } as StreamEvent
 }
 
-export * as StreamEvents from "."

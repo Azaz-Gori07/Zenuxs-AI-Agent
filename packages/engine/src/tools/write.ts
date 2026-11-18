@@ -31,5 +31,3 @@ export const handler: ToolHandler = {
     }
   },
 }
-
-export * as Write from "."

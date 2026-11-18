@@ -125,4 +125,3 @@ export class ContextEpoch {
   }
 }
 
-export * as ContextEpoch from "."

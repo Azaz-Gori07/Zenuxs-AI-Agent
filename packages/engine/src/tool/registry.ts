@@ -170,4 +170,3 @@ export class ToolRegistry {
   }
 }
 
-export * as Tool from "."

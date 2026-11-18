@@ -51,4 +51,3 @@ export const ProviderRouteSchema = z.object({
 
 export type ProviderRoute = z.infer<typeof ProviderRouteSchema>
 
-export * as Provider from "."

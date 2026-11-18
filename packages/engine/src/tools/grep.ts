@@ -40,5 +40,3 @@ export const handler: ToolHandler = {
     }
   },
 }
-
-export * as Grep from "."

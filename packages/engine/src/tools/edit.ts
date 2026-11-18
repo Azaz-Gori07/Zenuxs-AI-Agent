@@ -53,5 +53,3 @@ export const handler: ToolHandler = {
     }
   },
 }
-
-export * as Edit from "."

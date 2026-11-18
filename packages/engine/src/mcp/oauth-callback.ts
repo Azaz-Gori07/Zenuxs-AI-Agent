@@ -173,4 +173,3 @@ h1{color:#333;font-size:1.5rem}</style></head>
 <body><div class="card"><h1>${message}</h1></div></body></html>`
 }
 
-export * as McpOAuthCallback from "./oauth-callback"

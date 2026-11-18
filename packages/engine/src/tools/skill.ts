@@ -69,4 +69,3 @@ export const handler: ToolHandler = {
   },
 }
 
-export * as Skill from "."

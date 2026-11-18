@@ -186,4 +186,3 @@ export class CompactionEngine {
   }
 }
 
-export * as Compaction from "."

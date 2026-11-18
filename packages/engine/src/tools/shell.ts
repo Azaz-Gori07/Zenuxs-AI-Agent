@@ -124,4 +124,3 @@ export const handler: ToolHandler = {
   },
 }
 
-export * as Shell from "."

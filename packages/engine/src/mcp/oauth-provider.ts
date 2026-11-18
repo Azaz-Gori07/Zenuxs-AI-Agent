@@ -199,4 +199,3 @@ export function parseRedirectUri(redirectUri?: string): { port: number; path: st
   }
 }
 
-export * as McpOAuthProvider from "./oauth-provider"

@@ -156,4 +156,3 @@ export const handler: ToolHandler = {
   },
 }
 
-export * as WebFetch from "."

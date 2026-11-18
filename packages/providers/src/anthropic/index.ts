@@ -14,5 +14,3 @@ export const anthropicProvider: ProviderHandler = {
     }
   },
 }
-
-export * as Anthropic from "."

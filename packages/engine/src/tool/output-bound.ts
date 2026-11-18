@@ -54,4 +54,3 @@ export const toolRegistry: { maxOutputLength: number; maxLineCount: number } = {
   maxLineCount: DEFAULTS.maxLineCount,
 }
 
-export * as Bound from "."

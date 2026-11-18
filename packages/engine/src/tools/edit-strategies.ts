@@ -278,5 +278,3 @@ export function findBestStrategy(content: string, op: EditOperation): { strategy
   }
   return { strategy: EDIT_STRATEGIES[0]!, result: { success: false, matchCount: 0, error: "No strategy could match" } }
 }
-
-export * as EditStrategies from "."

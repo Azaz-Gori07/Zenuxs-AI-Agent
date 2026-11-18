@@ -29,5 +29,3 @@ export const handler: ToolHandler = {
     }
   },
 }
-
-export * as WebSearch from "."

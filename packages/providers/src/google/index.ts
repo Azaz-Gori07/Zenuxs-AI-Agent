@@ -14,5 +14,3 @@ export const googleProvider: ProviderHandler = {
     }
   },
 }
-
-export * as Google from "."

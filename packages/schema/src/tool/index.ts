@@ -60,4 +60,3 @@ export const ToolExecutionResultSchema = z.object({
 
 export type ToolExecutionResult = z.infer<typeof ToolExecutionResultSchema>
 
-export * as Tool from "."

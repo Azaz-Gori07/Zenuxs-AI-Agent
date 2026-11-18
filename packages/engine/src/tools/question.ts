@@ -92,4 +92,3 @@ export const handler: ToolHandler = {
   },
 }
 
-export * as Question from "."

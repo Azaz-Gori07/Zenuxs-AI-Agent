@@ -49,4 +49,3 @@ export const PermissionContextSchema = z.object({
 
 export type PermissionContext = z.infer<typeof PermissionContextSchema>
 
-export * as Permission from "."

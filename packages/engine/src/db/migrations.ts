@@ -266,4 +266,3 @@ export const CORE_MIGRATIONS: Migration[] = [
   },
 ]
 
-export * as Migrations from "."

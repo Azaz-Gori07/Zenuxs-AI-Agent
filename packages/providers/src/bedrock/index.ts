@@ -14,5 +14,3 @@ export const bedrockProvider: ProviderHandler = {
     }
   },
 }
-
-export * as Bedrock from "."

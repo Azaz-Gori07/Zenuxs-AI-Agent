@@ -120,5 +120,3 @@ export class LSPManager {
     this.clients.clear()
   }
 }
-
-export * as LSP from "."

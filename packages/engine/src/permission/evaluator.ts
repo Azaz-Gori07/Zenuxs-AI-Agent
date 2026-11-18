@@ -60,5 +60,3 @@ export class PermissionEvaluator {
     return Array.from(merged.values())
   }
 }
-
-export * as Permission from "."

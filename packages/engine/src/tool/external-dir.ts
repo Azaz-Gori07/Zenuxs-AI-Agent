@@ -92,4 +92,3 @@ export class ExternalDirectoryChecker {
   }
 }
 
-export * as ExternalDir from "."

@@ -99,5 +99,3 @@ export class Studio {
     })
   }
 }
-
-export * as Studio from "."

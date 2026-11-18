@@ -14,5 +14,3 @@ export const openaiProvider: ProviderHandler = {
     }
   },
 }
-
-export * as OpenAI from "."

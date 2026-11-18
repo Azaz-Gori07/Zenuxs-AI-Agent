@@ -116,5 +116,3 @@ export const pluginRegistry = new PluginRegistry()
 export function createPlugin(manifest: PluginManifest): Plugin {
   return new Plugin(manifest)
 }
-
-export * as Plugin from "."

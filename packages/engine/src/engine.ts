@@ -42,5 +42,3 @@ export class ZenuxsEngine {
     return new ZenuxsEngine({ config })
   }
 }
-
-export * as Engine from "."

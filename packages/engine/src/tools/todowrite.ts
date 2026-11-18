@@ -62,4 +62,3 @@ export const handler: ToolHandler = {
   },
 }
 
-export * as TodoWrite from "."

@@ -178,4 +178,3 @@ export class McpAuthStore {
   }
 }
 
-export * as McpAuthStore from "./auth-store"

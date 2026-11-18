@@ -84,4 +84,3 @@ export const handler: ToolHandler = {
   },
 }
 
-export * as ApplyPatch from "."

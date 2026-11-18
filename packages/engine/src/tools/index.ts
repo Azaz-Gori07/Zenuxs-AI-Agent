@@ -32,4 +32,3 @@ export function buildCoreTools(): RegisteredTool[] {
 
 export { EDIT_STRATEGIES, findBestStrategy, type EditOperation } from "./edit-strategies"
 
-export * as Tools from "."

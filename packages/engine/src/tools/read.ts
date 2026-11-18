@@ -44,5 +44,3 @@ export const handler: ToolHandler = {
     }
   },
 }
-
-export * as Read from "."

@@ -32,5 +32,3 @@ export const handler: ToolHandler = {
     }
   },
 }
-
-export * as Glob from "."
