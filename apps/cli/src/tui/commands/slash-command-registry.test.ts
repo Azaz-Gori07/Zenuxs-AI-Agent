@@ -99,7 +99,7 @@ describe("slash command registry", () => {
 				"settings",
 				"mcp",
 				"account",
-				"model",
+				"models",
 				"skills",
 				"quit",
 			]),
@@ -113,7 +113,7 @@ describe("slash command registry", () => {
 		expect(resolveSlashCommand(registry, "quit")).toMatchObject({
 			source: "tui",
 			execution: "local",
-			description: "Exit Cline",
+			description: "Exit Zenuxs",
 			visible: true,
 		});
 		expect(

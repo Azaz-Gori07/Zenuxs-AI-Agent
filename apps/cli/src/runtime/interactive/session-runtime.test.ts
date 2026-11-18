@@ -368,7 +368,10 @@ describe("createInteractiveSessionRuntime", () => {
 	it("waits for missing-session recovery before cleanup disposes the manager", async () => {
 		const manager = makeManager();
 		const recoveryRead = deferred<Message[]>();
+		// First read happens during ensureReady's early sync; the second read is
+		// the missing-session recovery the test wants to hold open.
 		manager.readMessages
+			.mockResolvedValueOnce([])
 			.mockImplementationOnce(() => recoveryRead.promise)
 			.mockResolvedValue([]);
 		manager.get.mockResolvedValue(undefined);

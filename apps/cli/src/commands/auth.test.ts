@@ -79,7 +79,7 @@ describe("saveOAuthProviderSettings", () => {
 					accessToken: "workos:new-access",
 				}),
 			}),
-			{ tokenSource: "oauth" },
+			{ tokenSource: "oauth", setLastUsed: false },
 		);
 	});
 });

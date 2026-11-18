@@ -182,7 +182,7 @@ describe("createZenuxsAccountService", () => {
 		await expect(
 			createZenuxsAccountService({ config: makeConfig() }),
 		).rejects.toThrow(
-			"Zenuxs account requires re-authentication. Run cline auth cline.",
+			"Zenuxs AI session expired. Please re-authenticate by running: zenuxs auth -p zenuxs",
 		);
 	});
 });

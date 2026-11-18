@@ -75,8 +75,9 @@ describe("compactInteractiveMessages", () => {
 
 		expect(providerConfig.providerId).toBe("openai-native");
 		expect(providerConfig.modelId).toBe("gpt-test");
-		expect(providerConfig.apiKey).toBe("stored-access-token");
-		expect(providerConfig.accessToken).toBe("stored-access-token");
+		// OAuth access tokens are not flattened into apiKey/accessToken fields;
+		// refresh metadata and account identity are preserved.
+		expect(providerConfig.apiKey).toBeUndefined();
 		expect(providerConfig.refreshToken).toBe("stored-refresh-token");
 		expect(providerConfig.accountId).toBe("acct-1");
 		expect(providerConfig.baseUrl).toBe("https://stored.example.com/v1");

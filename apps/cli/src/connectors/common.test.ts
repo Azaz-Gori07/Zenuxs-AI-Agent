@@ -67,7 +67,7 @@ describe("spawnDetachedConnector", () => {
 				"./apps/cli/src/index.ts",
 				[],
 				repoRoot,
-				{ CLINE_BUILD_ENV: "development" },
+				{ ZENUXS_BUILD_ENV: "development" },
 			),
 		).toEqual({
 			launcher: "/usr/local/bin/node",

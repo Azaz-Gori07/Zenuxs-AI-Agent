@@ -48,7 +48,7 @@ describe("command palette", () => {
 		});
 		const paletteByCommandName = new Map(
 			items.map((item) => [
-				item.result.action === "change-model" ? "model" : item.result.action,
+				item.result.action === "change-model" ? "models" : item.result.action,
 				item,
 			]),
 		);

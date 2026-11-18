@@ -5,6 +5,9 @@ export type CommandPaletteAction =
 	| "account"
 	| "mcp"
 	| "plugins"
+	| "connect"
+	| "logout"
+	| "cleardata"
 	| "compact"
 	| "skills"
 	| "fork"
@@ -70,6 +73,27 @@ const ACTION_ITEMS: Array<{
 		shortcut: "Opt+G",
 		description: "Open plugin settings",
 		keywords: ["plugins", "extensions", "settings"],
+	},
+	{
+		action: "connect",
+		label: "Connect Provider",
+		shortcut: "Opt+N",
+		description: "Connect or manage external providers",
+		keywords: ["connect", "provider", "channel"],
+	},
+	{
+		action: "logout",
+		label: "Log Out",
+		shortcut: "Opt+L",
+		description: "Sign out of the current account",
+		keywords: ["logout", "signout", "account"],
+	},
+	{
+		action: "cleardata",
+		label: "Clear Local Data",
+		shortcut: "Opt+D",
+		description: "Clear local Zenuxs data and caches",
+		keywords: ["clear", "data", "reset"],
 	},
 	{
 		action: "account",
