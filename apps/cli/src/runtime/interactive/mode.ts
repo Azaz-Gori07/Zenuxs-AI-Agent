@@ -63,5 +63,5 @@ export async function applyInteractiveModeConfig(input: {
 		zenuxsAuthToken: resolveZenuxsToken(),
 	});
 	// Apply mode-specific behavior to config
-	input.config.toolExecution = behavior.executionStrategy as Config["toolExecution"];
+	input.config.execution = behavior.executionStrategy as Config["execution"];
 }

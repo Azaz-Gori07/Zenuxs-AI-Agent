@@ -17,7 +17,6 @@ import {
 	checkCodexCliInstalled,
 	isOpenAICodexCliProvider,
 } from "@cline/core";
-import { getCliFeatureFlagsService } from "../../../utils/feature-flags";
 import { getPersistedProviderApiKey } from "../../../utils/provider-auth";
 import { listLocalProviders } from "../../../utils/provider-catalog";
 import { getCliTelemetryService } from "../../../utils/telemetry";

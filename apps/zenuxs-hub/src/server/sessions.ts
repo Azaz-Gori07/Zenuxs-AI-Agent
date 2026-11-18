@@ -23,12 +23,14 @@ import { broadcastHubState, hubStatePayload } from "./state-payloads";
 import type { BrowserPeer, SessionContext } from "./types";
 import { asNumber, asString } from "./utils";
 
+type ClineCoreStartInput = { config: { reasoningEffort?: "low" | "high" | "medium" | "xhigh"; thinking?: boolean } }
+
 function toRuntimeReasoningOptions(
 	reasonLevel?: WebviewReasonLevel,
 ): Pick<ClineCoreStartInput["config"], "reasoningEffort" | "thinking"> {
 	if (reasonLevel === undefined) return {};
 	if (reasonLevel === "none") return { thinking: false };
-	return { thinking: true, reasoningEffort: reasonLevel };
+	return { thinking: true, reasoningEffort: reasonLevel as "low" | "high" | "medium" | "xhigh" };
 }
 
 function asWebviewReasonLevel(value: unknown): WebviewReasonLevel | undefined {
@@ -298,8 +300,8 @@ export async function sendMessage(
 		return;
 	}
 	const selectedSession = ctx.sessions.get(peer.selectedSessionId);
-	const requestedProvider = config?.provider ?? config?.providerId;
-	const requestedModel = config?.model ?? config?.modelId;
+	const requestedProvider = config?.provider;
+	const requestedModel = config?.model;
 	const providerChanged =
 		Boolean(requestedProvider) && requestedProvider !== selectedSession?.provider;
 	const modelChanged =

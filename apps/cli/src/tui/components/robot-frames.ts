@@ -59,7 +59,6 @@ function decodeRunLengthColors(
 function decodeLogoFrames(logo: LogoFrames): CroppedFrame[] {
 	const rows = logo.logo;
 	const height = rows.length;
-	const width = Math.max(...rows.map((r) => r.length));
 	const colors: Record<string, string> = {};
 	for (let y = 0; y < height; y++) {
 		for (let x = 0; x < rows[y].length; x++) {

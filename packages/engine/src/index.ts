@@ -1,4 +1,5 @@
 export { ZenuxsEngine, type EngineConfig, type EngineOptions } from "./engine"
+export { MigrationEngine, CORE_MIGRATIONS, type Migration } from "./db/migrations"
 export { SessionOrchestrator, type OrchestratorOptions, type StartSessionInput, type SendInput, type OrchestratorStatus } from "./session/orchestrator"
 export { EventStore, InMemoryEventStorage, type EventStoreOptions, type EventStorage } from "./store/event-store"
 export { SessionManager, InMemoryStore, SqliteSessionStore, type SessionManagerOptions, type SessionStore, type SqliteSessionStoreOptions } from "./session"

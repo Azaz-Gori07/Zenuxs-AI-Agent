@@ -101,7 +101,9 @@
 	"devDependencies": {
 		"@cline/core": "workspace:*",
 		"@cline/shared": "workspace:*",
+		"@zenuxs/engine": "workspace:*",
 		"@microsoft/tui-test": "^0.0.2",
+		"@types/node": "^24.13.2",
 		"@types/react": "19.2.14",
 		"vitest": "^4.0.18",
 		"@types/bun": "^1.3.10"

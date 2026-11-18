@@ -86,7 +86,7 @@ export function ChatView(props: {
 	return (
 		<box flexDirection="column" width="100%" height="100%">
 			<ChatMessageList
-				ref={props.transcriptScrollRef}
+				ref={props.transcriptScrollRef as never}
 				entries={session.entries}
 				isStreaming={session.isStreaming}
 				uiMode={session.uiMode}

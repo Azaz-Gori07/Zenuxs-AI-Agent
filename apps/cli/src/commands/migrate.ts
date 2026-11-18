@@ -15,7 +15,7 @@ export async function runMigrateCommand(options: MigrateOptions): Promise<number
 
   try {
     const { MigrationEngine, CORE_MIGRATIONS } = await import("@zenuxs/engine")
-    const { Database } = await import("node:sqlite")
+    const { DatabaseSync: Database } = await import("node:sqlite")
     const engine = new MigrationEngine()
     const db = new Database(dbPath)
     engine.addAll(CORE_MIGRATIONS)

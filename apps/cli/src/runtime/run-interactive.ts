@@ -266,7 +266,7 @@ export async function runInteractive(
 				exitSummary = await sessionRuntime.cleanup();
 			} finally {
 				await pluginChatCommandHostPromise?.catch(() => []);
-				await pluginChatCommandHostShutdown?.catch(() => {
+				await pluginChatCommandHostShutdown?.().catch(() => {
 					// Best effort cleanup for plugin command discovery sandbox.
 				});
 				pluginChatCommandHostShutdown = undefined;

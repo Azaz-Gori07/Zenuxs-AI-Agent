@@ -271,7 +271,7 @@ export function wrapFetchWithRetry(
 
 			try {
 				const requestInput = input instanceof Request ? input.clone() : input;
-				const response = await delegate(requestInput, { ...init, signal });
+				const response = await delegate(requestInput as Request, { ...init, signal });
 				clearTimeout(timeoutId);
 
 				if (response.status >= 500 || retryableStatus(response.status)) {

@@ -411,7 +411,7 @@ export async function runAgent(
 		if (activeSessionId) {
 			sessionManager.readMessages(activeSessionId).then((messages) => {
 				console.warn(`[zenuxs] run-agent: ${messages.length} messages for session ${activeSessionId}`);
-				syncSessionConversation(activeSessionId, messages, config.workspaceRoot || config.cwd).catch(() => {});
+				syncSessionConversation(activeSessionId!, messages, config.workspaceRoot || config.cwd || process.cwd()).catch(() => {});
 			}).catch(() => {
 				console.warn("[zenuxs] run-agent: readMessages failed");
 			});

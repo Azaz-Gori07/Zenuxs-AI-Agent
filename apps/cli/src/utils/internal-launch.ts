@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import { isAbsolute, resolve as resolvePath } from "node:path";
-import { augmentNodeCommandForDebug, type ClineDebugRole } from "@cline/shared";
+import { augmentNodeCommandForDebug, type ZenuxsDebugRole as ClineDebugRole } from "@cline/shared";
 
 export interface ResolveCliLaunchSpecOptions {
 	execPath?: string;

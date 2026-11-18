@@ -1,0 +1,5 @@
+=== COMMAND: bun run --cwd apps/cli typecheck ===
+=== TIMESTAMP: 2026-11-18T14:36:48Z ===
+=== SHA: ef21305e475d872a2ae17a6a84b018b48c6875ea ===
+$ tsc --noEmit
+=== EXIT: 0 ===

@@ -282,7 +282,7 @@ export async function getOrCreateSessionId<
 			} catch { /* best-effort */ }
 			await syncSessionToZenuxsCode(token, sessionId, {
 				status: "running",
-				title: (input.startRequest as Record<string, unknown>).systemPrompt as string || "CLI session",
+				title: (input.startRequest as unknown as Record<string, unknown>).systemPrompt as string || "CLI session",
 				provider: input.startRequest.provider,
 				model: input.startRequest.model,
 				workspaceRoot: input.startRequest.workspaceRoot,

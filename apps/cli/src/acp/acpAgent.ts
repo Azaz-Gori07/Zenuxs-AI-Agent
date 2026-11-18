@@ -274,7 +274,7 @@ export class AcpAgent implements Agent {
 		if (!session) {
 			throw new Error(`unknown session: ${params.sessionId}`);
 		}
-		session.currentMode = params.modeId;
+		session.currentMode = params.modeId as "act" | "plan";
 		sendCurrentModeUpdate(this.conn, params.sessionId, params.modeId);
 		return {};
 	}

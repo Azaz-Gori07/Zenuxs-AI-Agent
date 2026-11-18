@@ -64,7 +64,7 @@ export async function syncSessionConversation(
 			console.warn(`[zenuxs-sync] response body: ${body}`);
 			return existingConversationId;
 		}
-		const data = await res.json();
+		const data = await res.json() as { conversation?: { _id?: string; id?: string } };
 		return data.conversation?._id || data.conversation?.id || existingConversationId;
 	} catch (err) {
 		console.warn("[zenuxs-sync] sync error:", err);
@@ -83,8 +83,8 @@ export async function checkPendingMessages(
 			headers: headers(token),
 		});
 		if (!res.ok) return [];
-		const data = await res.json();
-		return (data.pendingMessages || []).filter((m: any) => !m.delivered);
+		const data = await res.json() as { pendingMessages?: Array<{ _id: string; content: string; delivered?: boolean }> };
+		return (data.pendingMessages || []).filter((m) => !m.delivered);
 	} catch { return []; }
 }
 
