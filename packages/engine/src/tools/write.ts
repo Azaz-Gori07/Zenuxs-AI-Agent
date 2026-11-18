@@ -1,4 +1,4 @@
-import type { ToolDefinition, ToolExecutionContext, ToolExecutionResult } from "@zenuxs/schema"
+import type { ToolDefinition, ToolExecutionResult } from "@zenuxs/schema"
 import type { ToolHandler } from "../tool/registry"
 
 export const definition: ToolDefinition = {
@@ -14,7 +14,7 @@ export const definition: ToolDefinition = {
 }
 
 export const handler: ToolHandler = {
-  async execute(args, ctx): Promise<ToolExecutionResult> {
+  async execute(args, _ctx): Promise<ToolExecutionResult> {
     const { path, content } = args as { path: string; content: string }
     try {
       const fs = await import("node:fs/promises")

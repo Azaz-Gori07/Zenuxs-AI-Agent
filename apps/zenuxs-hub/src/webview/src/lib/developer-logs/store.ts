@@ -10,9 +10,6 @@ export type DeveloperLog = WebviewDeveloperLog;
 export type DeveloperLogLevel = WebviewDeveloperLogLevel;
 export type DeveloperLogCategory = WebviewDeveloperLogCategory;
 
-export { LogLevel, LogCategory } from "@cline/core";
-export type { LogEntry } from "@cline/core";
-
 /** Soft cap on entries held in the browser to stay memory safe. */
 const MAX_CLIENT_ENTRIES = 200_000;
 /** Flush incoming entries to React at most this often (batched rendering). */

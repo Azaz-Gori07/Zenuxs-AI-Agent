@@ -1,4 +1,4 @@
-import type { ToolDefinition, ToolExecutionContext, ToolExecutionResult } from "@zenuxs/schema"
+import type { ToolDefinition, ToolExecutionResult } from "@zenuxs/schema"
 import type { ToolHandler } from "../tool/registry"
 import { boundToolOutput } from "../tool/output-bound"
 
@@ -26,7 +26,7 @@ export const definition: ToolDefinition = {
 }
 
 export const handler: ToolHandler = {
-  async execute(args, ctx): Promise<ToolExecutionResult> {
+  async execute(args, _ctx): Promise<ToolExecutionResult> {
     const { path, operations, dryRun } = args as { path: string; operations: PatchOperation[]; dryRun?: boolean }
     try {
       const fs = await import("node:fs/promises")
@@ -36,6 +36,7 @@ export const handler: ToolHandler = {
 
       for (let i = 0; i < operations.length; i++) {
         const op = operations[i]
+        if (!op) continue
         const idx = content.indexOf(op.oldText)
         if (idx === -1) {
           applied.push({ operation: i + 1, success: false, error: "oldText not found in file" })

@@ -12,8 +12,8 @@ import {
 } from "@modelcontextprotocol/sdk/types.js"
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js"
 import { spawn } from "node:child_process"
-import { McpAuthStore, type McpAuthEntry } from "./auth-store"
-import { McpOAuthProvider, McpOAuthPendingProvider, McpOAuthCallback, parseRedirectUri } from "./oauth-provider"
+import { McpAuthStore } from "./auth-store"
+import { McpOAuthProvider, McpOAuthPendingProvider } from "./oauth-provider"
 import * as McpOAuthCallback from "./oauth-callback"
 import { McpBrowser } from "./browser"
 import * as McpCatalog from "./catalog"
@@ -120,7 +120,7 @@ export class McpManager {
     if (!oauthDisabled) {
       authProvider = new McpOAuthProvider(
         name,
-        config.url,
+        url.toString(),
         {
           clientId: oauthConfig?.clientId,
           clientSecret: oauthConfig?.clientSecret,
@@ -153,7 +153,7 @@ export class McpManager {
     const timeout = config.timeout ?? DEFAULT_TIMEOUT
     let lastStatus: McpStatus | undefined
 
-    for (const { name: transportName, transport } of transports) {
+    for (const { name: _transportName, transport } of transports) {
       try {
         const client = await this.connectTransport(transport, timeout)
         const tools = await McpCatalog.listTools(client, timeout)
@@ -191,8 +191,8 @@ export class McpManager {
       args,
       cwd: config.cwd ?? this.dataDir,
       env: {
-        ...process.env,
-        ...config.environment,
+        ...(Object.fromEntries(Object.entries(process.env).filter(([, v]) => v !== undefined)) as Record<string, string>),
+        ...(Object.fromEntries(Object.entries(config.environment ?? {}).filter(([, v]) => v !== undefined && v !== null)) as Record<string, string>),
       },
     })
 
@@ -231,7 +231,7 @@ export class McpManager {
       transport,
       tools,
       instructions: client.getInstructions()?.trim(),
-      childPid: pid,
+      childPid: pid ?? undefined,
     }
     this.servers.set(name, state)
     this.watchClient(name, state)
@@ -539,7 +539,7 @@ export class McpManager {
     this.pendingOAuthTransports.clear()
 
     await Promise.all(
-      clientList.map(async ({ name: _name, client, transport, childPid }) => {
+      clientList.map(async ({ name: _name, client, transport: _transport, childPid }) => {
         if (childPid !== undefined) {
           try {
             const descendants = await this.findDescendants(childPid)

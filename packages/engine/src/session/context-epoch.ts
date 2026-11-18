@@ -117,7 +117,8 @@ export class ContextEpoch {
 
   updateLastEpoch(summary: string): void {
     if (this.epochs.length > 0) {
-      const last = this.epochs[this.epochs.length - 1]
+      const last = this.epochs.at(-1)
+      if (!last) return
       last.summary = summary
       last.tokenCount = this.estimateTokens(summary)
       last.createdAt = new Date()

@@ -11,9 +11,12 @@ export interface ToolHandler {
   execute(args: Record<string, unknown>, ctx: ToolExecutionContext): Promise<ToolExecutionResult>
 }
 
-export interface RegisteredTool {
+export interface ToolRegistration {
   definition: ToolDefinition
   handler: ToolHandler
+}
+
+export interface RegisteredTool extends ToolRegistration {
   /** Unique identity for stale-call detection. Changes on every register(). */
   readonly identity: number
 }
@@ -38,7 +41,6 @@ export interface ToolRegistryOptions {
 export class ToolRegistry {
   private tools = new Map<string, RegisteredTool>()
   private scopes = new Map<string, Set<string>>()
-  private permissionActions = new Map<string, string>()
   readonly permissions: PermissionEvaluator
 
   constructor(options: ToolRegistryOptions) {

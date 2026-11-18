@@ -164,6 +164,11 @@ export class StreamEmitter {
   get pending(): number {
     return this.buffer.length
   }
+
+  close(): void {
+    this.buffer.length = 0
+    this.handlers.clear()
+  }
 }
 
 export function createStreamEvent(

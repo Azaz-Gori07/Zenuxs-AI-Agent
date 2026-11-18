@@ -1,0 +1,4 @@
+=== COMMAND: bun run build ===
+=== TIMESTAMP: 2026-11-18T14:32:37Z ===
+=== SHA: dcd64a87fbc1e11321462731693c7e49f1f3d2ba ===
+=== EXIT: 0 (see build-green.log for full transcript) ===

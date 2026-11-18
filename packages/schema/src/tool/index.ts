@@ -36,6 +36,7 @@ export const ToolExecutionContextSchema = z.object({
   toolCallId: ToolCallIDSchema,
   agent: z.string(),
   abort: z.boolean().default(false),
+  skillsDir: z.string().optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
 })
 

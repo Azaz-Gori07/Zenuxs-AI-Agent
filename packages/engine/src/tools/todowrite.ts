@@ -1,4 +1,4 @@
-import type { ToolDefinition, ToolExecutionContext, ToolExecutionResult } from "@zenuxs/schema"
+import type { ToolDefinition, ToolExecutionResult } from "@zenuxs/schema"
 import type { ToolHandler } from "../tool/registry"
 
 export interface TodoItem {

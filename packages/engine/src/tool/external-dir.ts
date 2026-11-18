@@ -15,7 +15,7 @@ const DEFAULT_CONFIG: Required<Pick<ExternalDirConfig, "defaultAction">> = {
 export class ExternalDirectoryChecker {
   private config: ExternalDirConfig
 
-  constructor(config: ExternalDirConfig = {}) {
+  constructor(config: Partial<ExternalDirConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config }
   }
 

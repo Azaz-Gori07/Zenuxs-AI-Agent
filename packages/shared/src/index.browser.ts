@@ -1,5 +1,11 @@
 export * from "./agent";
 export * from "./agents";
+export {
+	augmentNodeCommandForDebug,
+	profiler,
+	withResolvedZenuxsBuildEnv,
+} from "./browser-stubs";
+export { disposeAll, registerDisposable, type Disposable } from "./dispose";
 export type {
 	ConnectorAuthorizationDecision,
 	ConnectorAuthorizationRequest,

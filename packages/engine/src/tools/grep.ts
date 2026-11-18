@@ -1,4 +1,4 @@
-import type { ToolDefinition, ToolExecutionContext, ToolExecutionResult } from "@zenuxs/schema"
+import type { ToolDefinition, ToolExecutionResult } from "@zenuxs/schema"
 import type { ToolHandler } from "../tool/registry"
 
 export const definition: ToolDefinition = {
@@ -16,7 +16,7 @@ export const definition: ToolDefinition = {
 }
 
 export const handler: ToolHandler = {
-  async execute(args, ctx): Promise<ToolExecutionResult> {
+  async execute(args, _ctx): Promise<ToolExecutionResult> {
     const { pattern, path, include, maxResults } = args as { pattern: string; path?: string; include?: string; maxResults?: number }
     try {
       const child = await import("node:child_process")
@@ -24,7 +24,7 @@ export const handler: ToolHandler = {
       if (include) rgArgs.push("--glob", include)
       rgArgs.push(pattern, path ?? ".")
       return await new Promise((resolve) => {
-        child.exec(`rg ${rgArgs.map((a) => `"${a}"`).join(" ")}`, { maxBuffer: 1024 * 1024 }, (error, stdout) => {
+        child.exec(`rg ${rgArgs.map((a) => `"${a}"`).join(" ")}`, { maxBuffer: 1024 * 1024 }, (_error, stdout) => {
           const lines = stdout.split("\n").filter(Boolean)
           const limit = maxResults ?? 100
           const output = lines.slice(0, limit).join("\n")

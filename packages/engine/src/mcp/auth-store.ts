@@ -43,7 +43,7 @@ export class McpAuthStore {
       const fs = await import("node:fs/promises")
       const content = await fs.readFile(this.filePath, "utf-8")
       const parsed = JSON.parse(content)
-      this.data = EntrySchema.shape.record(z.string(), EntrySchema).parse(parsed)
+      this.data = z.record(z.string(), EntrySchema).parse(parsed)
     } catch {
       this.data = {}
     }

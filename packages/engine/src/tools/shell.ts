@@ -83,7 +83,6 @@ export const handler: ToolHandler = {
 
       child.on("error", (err) => {
         clearTimeout(timer)
-        const output = stderr || err.message
         resolve(boundToolOutput({
           title: `Shell: ${command.substring(0, 60)}${command.length > 60 ? "..." : ""}`,
           output: `Failed to spawn process: ${err.message}\n${stderr}`,

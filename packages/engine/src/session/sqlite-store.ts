@@ -18,15 +18,15 @@ export class SqliteSessionStore implements SessionStore {
 
   private async init(dbPath?: string): Promise<void> {
     const path = dbPath ?? ":memory:"
-    const { default: Database } = await import("bun:sqlite").catch(() => {
+    const bunSqlite = await import("bun:sqlite").catch(() => {
       if (this.verbose) console.log("bun:sqlite not available, trying node:sqlite")
       return null
     })
-    if (Database) {
-      this.db = new Database(path)
+    if (bunSqlite?.Database) {
+      this.db = new bunSqlite.Database(path)
     } else {
-      const { default: NodeSqlite } = await import("node:sqlite")
-      this.db = new NodeSqlite(path)
+      const { DatabaseSync } = await import("node:sqlite")
+      this.db = new DatabaseSync(path)
     }
     this.db.exec("PRAGMA journal_mode = WAL")
     this.db.exec("PRAGMA synchronous = NORMAL")

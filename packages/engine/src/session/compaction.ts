@@ -164,11 +164,11 @@ export class CompactionEngine {
       `- Estimated tokens: ${totalTokens}`,
     ]
 
-    if (userMessages.length > 0) {
-      const lastUser = userMessages[userMessages.length - 1]
+    const lastUser = userMessages.at(-1)
+    if (lastUser) {
       const lastUserText = lastUser.parts
-        .filter((p): p is { type: "text"; text: string } => p.type === "text")
-        .map((p) => p.text.substring(0, 200))
+        .filter((p) => p.type === "text")
+        .map((p) => (p.type === "text" ? String(p.text ?? "").substring(0, 200) : ""))
         .join(" ")
       parts.push(`- Last user request: ${lastUserText}`)
     }

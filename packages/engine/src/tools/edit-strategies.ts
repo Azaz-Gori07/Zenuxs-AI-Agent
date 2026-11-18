@@ -13,14 +13,14 @@ export interface StrategyResult {
 function levenshtein(a: string, b: string): number {
   const m = a.length, n = b.length
   const dp: number[][] = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0))
-  for (let i = 0; i <= m; i++) dp[i][0] = i
-  for (let j = 0; j <= n; j++) dp[0][j] = j
+  for (let i = 0; i <= m; i++) dp[i]![0] = i
+  for (let j = 0; j <= n; j++) dp[0]![j] = j
   for (let i = 1; i <= m; i++) {
     for (let j = 1; j <= n; j++) {
-      dp[i][j] = a[i - 1] === b[j - 1] ? dp[i - 1][j - 1] : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1])
+      dp[i]![j] = a[i - 1] === b[j - 1] ? dp[i - 1]![j - 1]! : 1 + Math.min(dp[i - 1]![j]!, dp[i]![j - 1]!, dp[i - 1]![j - 1]!)
     }
   }
-  return dp[m][n]
+  return dp[m]![n]!
 }
 
 function similarity(a: string, b: string): number {
@@ -49,7 +49,7 @@ export class LineTrimmedStrategy {
     for (let i = 0; i <= contentLines.length - oldLines.length; i++) {
       let match = true
       for (let j = 0; j < oldLines.length; j++) {
-        if (contentLines[i + j].trim() !== oldLines[j]) { match = false; break }
+        if ((contentLines[i + j] ?? "").trim() !== oldLines[j]) { match = false; break }
       }
       if (match) return { success: true, matchCount: 1 }
     }
@@ -61,7 +61,7 @@ export class LineTrimmedStrategy {
     for (let i = 0; i <= contentLines.length - oldLines.length; i++) {
       let match = true
       for (let j = 0; j < oldLines.length; j++) {
-        if (contentLines[i + j].trim() !== oldLines[j]) { match = false; break }
+        if ((contentLines[i + j] ?? "").trim() !== oldLines[j]) { match = false; break }
       }
       if (match) {
         const before = contentLines.slice(0, i).join("\n")
@@ -82,13 +82,13 @@ export class BlockAnchorStrategy {
     const oldLines = op.oldText.split("\n")
     const contentLines = content.split("\n")
     if (oldLines.length < 2) return { success: false, matchCount: 0, error: "BlockAnchor requires at least 2 lines" }
-    const anchorStart = oldLines[0].trim()
-    const anchorEnd = oldLines[oldLines.length - 1].trim()
+    const anchorStart = oldLines[0]!.trim()
+    const anchorEnd = oldLines[oldLines.length - 1]!.trim()
 
     for (let i = 0; i < contentLines.length; i++) {
-      if (similarity(contentLines[i].trim(), anchorStart) >= this.similarityThreshold) {
+      if (similarity((contentLines[i] ?? "").trim(), anchorStart) >= this.similarityThreshold) {
         const endIdx = i + oldLines.length - 1
-        if (endIdx < contentLines.length && similarity(contentLines[endIdx].trim(), anchorEnd) >= this.similarityThreshold) {
+        if (endIdx < contentLines.length && similarity((contentLines[endIdx] ?? "").trim(), anchorEnd) >= this.similarityThreshold) {
           const block = contentLines.slice(i, endIdx + 1).join("\n")
           if (similarity(block.trim(), op.oldText.trim()) >= this.similarityThreshold) {
             return { success: true, matchCount: 1 }
@@ -102,13 +102,13 @@ export class BlockAnchorStrategy {
     const oldLines = op.oldText.split("\n")
     const contentLines = content.split("\n")
     if (oldLines.length < 2) return content
-    const anchorStart = oldLines[0].trim()
-    const anchorEnd = oldLines[oldLines.length - 1].trim()
+    const anchorStart = oldLines[0]!.trim()
+    const anchorEnd = oldLines[oldLines.length - 1]!.trim()
 
     for (let i = 0; i < contentLines.length; i++) {
-      if (similarity(contentLines[i].trim(), anchorStart) >= this.similarityThreshold) {
+      if (similarity((contentLines[i] ?? "").trim(), anchorStart) >= this.similarityThreshold) {
         const endIdx = i + oldLines.length - 1
-        if (endIdx < contentLines.length && similarity(contentLines[endIdx].trim(), anchorEnd) >= this.similarityThreshold) {
+        if (endIdx < contentLines.length && similarity((contentLines[endIdx] ?? "").trim(), anchorEnd) >= this.similarityThreshold) {
           const before = contentLines.slice(0, i).join("\n")
           const after = contentLines.slice(endIdx + 1).join("\n")
           return [before, op.newText, after].filter(Boolean).join("\n")
@@ -144,12 +144,12 @@ export class IndentationFlexibleStrategy {
     const oldLines = op.oldText.split("\n")
     const contentLines = content.split("\n")
     if (oldLines.length < 2) return { success: false, matchCount: 0, error: "Requires at least 2 lines" }
-    const targetFirst = oldLines[0].trim()
-    const targetLast = oldLines[oldLines.length - 1].trim()
+    const targetFirst = oldLines[0]!.trim()
+    const targetLast = oldLines[oldLines.length - 1]!.trim()
 
     for (let i = 0; i < contentLines.length; i++) {
-      if (contentLines[i].trim() === targetFirst && i + oldLines.length - 1 < contentLines.length) {
-        if (contentLines[i + oldLines.length - 1].trim() === targetLast) {
+      if ((contentLines[i] ?? "").trim() === targetFirst && i + oldLines.length - 1 < contentLines.length) {
+        if ((contentLines[i + oldLines.length - 1] ?? "").trim() === targetLast) {
           return { success: true, matchCount: 1 }
         }
       }
@@ -159,12 +159,12 @@ export class IndentationFlexibleStrategy {
   execute(content: string, op: EditOperation): string {
     const oldLines = op.oldText.split("\n")
     const contentLines = content.split("\n")
-    const targetFirst = oldLines[0].trim()
-    const targetLast = oldLines[oldLines.length - 1].trim()
+    const targetFirst = oldLines[0]!.trim()
+    const targetLast = oldLines[oldLines.length - 1]!.trim()
 
     for (let i = 0; i < contentLines.length; i++) {
-      if (contentLines[i].trim() === targetFirst && i + oldLines.length - 1 < contentLines.length) {
-        if (contentLines[i + oldLines.length - 1].trim() === targetLast) {
+      if ((contentLines[i] ?? "").trim() === targetFirst && i + oldLines.length - 1 < contentLines.length) {
+        if ((contentLines[i + oldLines.length - 1] ?? "").trim() === targetLast) {
           const before = contentLines.slice(0, i).join("\n")
           const after = contentLines.slice(i + oldLines.length).join("\n")
           return [before, op.newText, after].filter(Boolean).join("\n")
@@ -178,12 +178,14 @@ export class IndentationFlexibleStrategy {
 export class EscapeNormalizedStrategy {
   name = "escapeNormalized"
   apply(content: string, op: EditOperation): StrategyResult {
-    const normalize = (s: string) => s.replace(/\\([nrt'"\\])/g, (_, c) => ({ n: "\n", r: "\r", t: "\t", "'": "'", '"': '"', "\\": "\\" })[c] ?? _)
+    const escapes: Record<string, string> = { n: "\n", r: "\r", t: "\t", "'": "'", '"': '"', "\\": "\\" }
+    const normalize = (s: string) => s.replace(/\\([nrt'"\\])/g, (match, c: string) => escapes[c] ?? match)
     if (normalize(content).includes(normalize(op.oldText))) return { success: true, matchCount: 1 }
     return { success: false, matchCount: 0, error: "Escape-normalized match not found" }
   }
   execute(content: string, op: EditOperation): string {
-    const normalize = (s: string) => s.replace(/\\([nrt'"\\])/g, (_, c) => ({ n: "\n", r: "\r", t: "\t", "'": "'", '"': '"', "\\": "\\" })[c] ?? _)
+    const escapes: Record<string, string> = { n: "\n", r: "\r", t: "\t", "'": "'", '"': '"', "\\": "\\" }
+    const normalize = (s: string) => s.replace(/\\([nrt'"\\])/g, (match, c: string) => escapes[c] ?? match)
     const normalizedContent = normalize(content)
     const target = normalize(op.oldText)
     const idx = normalizedContent.indexOf(target)
@@ -213,14 +215,14 @@ export class ContextAwareStrategy {
     const oldLines = op.oldText.split("\n")
     const contentLines = content.split("\n")
     if (oldLines.length < 3) return { success: false, matchCount: 0, error: "ContextAware requires at least 3 lines" }
-    const contextStart = oldLines[0].trim()
-    const contextEnd = oldLines[oldLines.length - 1].trim()
+    const contextStart = oldLines[0]!.trim()
+    const contextEnd = oldLines[oldLines.length - 1]!.trim()
     const targetBlock = oldLines.slice(1, -1).join("\n").trim()
 
     for (let i = 1; i < contentLines.length - 1; i++) {
-      if (contentLines[i - 1].trim() === contextStart) {
+      if ((contentLines[i - 1] ?? "").trim() === contextStart) {
         const endIdx = i + (oldLines.length - 2)
-        if (endIdx < contentLines.length && contentLines[endIdx].trim() === contextEnd) {
+        if (endIdx < contentLines.length && (contentLines[endIdx] ?? "").trim() === contextEnd) {
           const block = contentLines.slice(i, endIdx).join("\n").trim()
           if (block === targetBlock) return { success: true, matchCount: 1 }
         }
@@ -232,11 +234,11 @@ export class ContextAwareStrategy {
     const oldLines = op.oldText.split("\n")
     const contentLines = content.split("\n")
     if (oldLines.length < 3) return content
-    const contextStart = oldLines[0].trim()
-    const contextEnd = oldLines[oldLines.length - 1].trim()
+    const contextStart = oldLines[0]!.trim()
+    const contextEnd = oldLines[oldLines.length - 1]!.trim()
 
     for (let i = 1; i < contentLines.length - 1; i++) {
-      if (contentLines[i - 1].trim() === contextStart && contentLines[i + oldLines.length - 2].trim() === contextEnd) {
+      if ((contentLines[i - 1] ?? "").trim() === contextStart && (contentLines[i + oldLines.length - 2] ?? "").trim() === contextEnd) {
         const before = contentLines.slice(0, i - 1).join("\n")
         const after = contentLines.slice(i + oldLines.length - 1).join("\n")
         return [before, op.newText, after].filter(Boolean).join("\n")

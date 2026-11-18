@@ -1,4 +1,4 @@
-import type { ToolDefinition, ToolExecutionContext, ToolExecutionResult } from "@zenuxs/schema"
+import type { ToolDefinition, ToolExecutionResult } from "@zenuxs/schema"
 import type { ToolHandler } from "../tool/registry"
 
 export const definition: ToolDefinition = {
@@ -15,17 +15,18 @@ export const definition: ToolDefinition = {
 }
 
 export const handler: ToolHandler = {
-  async execute(args, ctx): Promise<ToolExecutionResult> {
+  async execute(args, _ctx): Promise<ToolExecutionResult> {
     const { path, offset, limit } = args as { path: string; offset?: number; limit?: number }
     try {
       const fs = await import("node:fs/promises")
       const stat = await fs.stat(path)
       if (stat.isDirectory()) {
         const entries = await fs.readdir(path)
-        const output = entries.map((e: string) => {
-          const childStat = fs.stat(`${path}/${e}`).catch(() => null)
+        const marked = await Promise.all(entries.map(async (e: string) => {
+          const childStat = await fs.stat(`${path}/${e}`).catch(() => null)
           return `${childStat?.isDirectory() ? "[DIR]" : "[FILE]"} ${e}`
-        }).join("\n")
+        }))
+        const output = marked.join("\n")
         return { title: `Directory: ${path}`, output, metadata: { path, entries: entries.length } }
       }
       const content = await fs.readFile(path, "utf-8")

@@ -1,4 +1,4 @@
-import type { RegisteredTool } from "../tool/registry"
+import type { ToolRegistration } from "../tool/registry"
 import * as ReadTool from "./read"
 import * as WriteTool from "./write"
 import * as EditTool from "./edit"
@@ -12,8 +12,8 @@ import * as TodoWriteTool from "./todowrite"
 import * as SkillTool from "./skill"
 import * as ApplyPatchTool from "./apply-patch"
 
-export function buildCoreTools(): RegisteredTool[] {
-  const tools: RegisteredTool[] = [
+export function buildCoreTools(): ToolRegistration[] {
+  const tools: ToolRegistration[] = [
     { definition: ReadTool.definition, handler: ReadTool.handler },
     { definition: WriteTool.definition, handler: WriteTool.handler },
     { definition: EditTool.definition, handler: EditTool.handler },

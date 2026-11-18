@@ -2,7 +2,7 @@ import type { Session, Message, SessionEvent } from "@zenuxs/schema"
 import type { AgentRuntime } from "../agent/runtime"
 import type { ToolRegistry } from "../tool/registry"
 import { SessionManager, type SessionStore } from "./manager"
-import { StreamEmitter, type StreamEvent, type StreamEventHandler, createStreamEvent } from "../stream/events"
+import { StreamEmitter, type StreamEvent, type StreamEventHandler } from "../stream/events"
 
 export interface OrchestratorOptions {
   agent: AgentRuntime
