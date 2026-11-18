@@ -1,0 +1,47 @@
+=== COMMAND: bun run --cwd apps/cli typecheck ===
+=== TIMESTAMP: 2026-11-18T13:54:28Z ===
+=== SHA: 816c9a79eada1707c1236eff611f78b2a35f0cda ===
+$ tsc --noEmit
+src/acp/acpAgent.ts(277,3): error TS2322: Type 'string' is not assignable to type '"act" | "plan"'.
+src/commands/migrate.ts(17,63): error TS2307: Cannot find module '@zenuxs/engine' or its corresponding type declarations.
+src/commands/migrate.ts(18,39): error TS2307: Cannot find module 'node:sqlite' or its corresponding type declarations.
+src/connectors/session-runtime.ts(285,13): error TS2352: Conversion of type 'ChatStartSessionRequest' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Index signature for type 'string' is missing in type 'ChatStartSessionRequest'.
+src/runtime/interactive/mode.ts(66,15): error TS2551: Property 'toolExecution' does not exist on type 'Config'. Did you mean 'execution'?
+src/runtime/interactive/mode.ts(66,68): error TS2339: Property 'toolExecution' does not exist on type 'Config'.
+src/runtime/run-agent.ts(414,29): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/runtime/run-interactive.ts(269,42): error TS2339: Property 'catch' does not exist on type '() => Promise<void>'.
+src/tui/components/robot-frames.ts(62,8): error TS6133: 'width' is declared but its value is never read.
+src/tui/views/chat-view.tsx(89,5): error TS2322: Type 'React.Ref<import("/home/azaz/Projects/Zenuxs-AI-Agent/apps/cli/src/tui/components/chat-message-list").TranscriptScrollHandle> | undefined' is not assignable to type 'import("/home/azaz/Projects/Zenuxs-AI-Agent/node_modules/.bun/@types+react@19.2.14/node_modules/@types/react/index").Ref<import("/home/azaz/Projects/Zenuxs-AI-Agent/apps/cli/src/tui/components/chat-message-list").TranscriptScrollHandle> | undefined'.
+  Type '(instance: TranscriptScrollHandle | null) => void | (() => VoidOrUndefinedOnly)' is not assignable to type 'Ref<TranscriptScrollHandle> | undefined'.
+    Type '(instance: import("/home/azaz/Projects/Zenuxs-AI-Agent/apps/cli/src/tui/components/chat-message-list").TranscriptScrollHandle | null) => void | (() => VoidOrUndefinedOnly)' is not assignable to type '(instance: import("/home/azaz/Projects/Zenuxs-AI-Agent/apps/cli/src/tui/components/chat-message-list").TranscriptScrollHandle | null) => void | (() => VoidOrUndefinedOnly)'. Two different types with this name exist, but they are unrelated.
+      Type 'void | (() => VoidOrUndefinedOnly)' is not assignable to type 'void | (() => VoidOrUndefinedOnly)'. Two different types with this name exist, but they are unrelated.
+        Type '() => VoidOrUndefinedOnly' is not assignable to type 'void | (() => VoidOrUndefinedOnly)'.
+          Type '() => VoidOrUndefinedOnly' is not assignable to type '() => VoidOrUndefinedOnly'. Two different types with this name exist, but they are unrelated.
+            Type 'VoidOrUndefinedOnly' is not assignable to type 'VoidOrUndefinedOnly'. Two different types with this name exist, but they are unrelated.
+              Type '{ [UNDEFINED_VOID_ONLY]: never; }' is not assignable to type 'VoidOrUndefinedOnly'.
+src/tui/views/onboarding/controller.ts(20,1): error TS6133: 'getCliFeatureFlagsService' is declared but its value is never read.
+src/utils/conversation-sync.ts(68,10): error TS18046: 'data' is of type 'unknown'.
+src/utils/conversation-sync.ts(68,36): error TS18046: 'data' is of type 'unknown'.
+src/utils/conversation-sync.ts(87,11): error TS18046: 'data' is of type 'unknown'.
+src/utils/internal-launch.ts(3,43): error TS2305: Module '"@cline/shared"' has no exported member 'ClineDebugRole'.
+../zenuxs-hub/src/server/sessions.ts(28,9): error TS2304: Cannot find name 'ClineCoreStartInput'.
+../zenuxs-hub/src/server/sessions.ts(29,33): error TS2739: Type '{}' is missing the following properties from type 'Pick<ClineCoreStartInput, "thinking" | "reasoningEffort">': thinking, reasoningEffort
+../zenuxs-hub/src/server/sessions.ts(30,30): error TS2741: Property 'reasoningEffort' is missing in type '{ thinking: boolean; }' but required in type 'Pick<ClineCoreStartInput, "thinking" | "reasoningEffort">'.
+../zenuxs-hub/src/server/sessions.ts(301,56): error TS2551: Property 'providerId' does not exist on type 'WebviewConfig'. Did you mean 'provider'?
+../zenuxs-hub/src/server/sessions.ts(302,50): error TS2551: Property 'modelId' does not exist on type 'WebviewConfig'. Did you mean 'model'?
+../../packages/llms/src/providers/http.ts(274,37): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(input: string | URL | Request, init?: RequestInit | undefined): Promise<Response>', gave the following error.
+    Argument of type 'string | URL | import("/home/azaz/Projects/Zenuxs-AI-Agent/node_modules/.bun/undici-types@6.21.0/node_modules/undici-types/fetch").Request' is not assignable to parameter of type 'string | URL | Request'.
+      Type 'Request' is not assignable to type 'string | URL | Request'.
+        Type 'import("/home/azaz/Projects/Zenuxs-AI-Agent/node_modules/.bun/undici-types@6.21.0/node_modules/undici-types/fetch").Request' is not assignable to type 'Request'.
+          Types of property 'headers' are incompatible.
+            Type 'Headers' is missing the following properties from type 'BunHeadersOverride': toJSON, count, getAll
+  Overload 2 of 2, '(input: string | URL | Request, init?: BunFetchRequestInit | undefined): Promise<Response>', gave the following error.
+    Argument of type 'string | URL | import("/home/azaz/Projects/Zenuxs-AI-Agent/node_modules/.bun/undici-types@6.21.0/node_modules/undici-types/fetch").Request' is not assignable to parameter of type 'string | URL | Request'.
+      Type 'Request' is not assignable to type 'string | URL | Request'.
+        Type 'import("/home/azaz/Projects/Zenuxs-AI-Agent/node_modules/.bun/undici-types@6.21.0/node_modules/undici-types/fetch").Request' is not assignable to type 'Request'.
+          Types of property 'headers' are incompatible.
+            Type 'Headers' is missing the following properties from type 'BunHeadersOverride': toJSON, count, getAll
+=== EXIT: 2 ===

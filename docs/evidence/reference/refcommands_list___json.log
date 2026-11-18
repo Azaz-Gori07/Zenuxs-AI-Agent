@@ -1,0 +1,67 @@
+=== COMMAND: node zcode.cjs commands list --json ===
+=== TIMESTAMP: 2026-11-18T14:02:15Z ===
+{
+  "commands": [
+    {
+      "allowedTools": [],
+      "description": "Start the Android emulator development loop.",
+      "disableNonInteractive": false,
+      "frontmatterKeys": [
+        "description",
+        "argument-hint",
+        "skills"
+      ],
+      "name": "android-dev",
+      "path": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/android-emulator/0.1.0/commands/android-dev.md",
+      "rootPath": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/android-emulator/0.1.0/commands",
+      "scope": "system",
+      "skills": [
+        "android-dev"
+      ],
+      "source": "plugin",
+      "argumentHint": "[goal or issue description]"
+    },
+    {
+      "allowedTools": [],
+      "description": "Start the iOS simulator development loop.",
+      "disableNonInteractive": false,
+      "frontmatterKeys": [
+        "description",
+        "argument-hint",
+        "skills"
+      ],
+      "name": "ios-dev",
+      "path": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/ios-simulator/0.1.0/commands/ios-dev.md",
+      "rootPath": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/ios-simulator/0.1.0/commands",
+      "scope": "system",
+      "skills": [
+        "ios-dev"
+      ],
+      "source": "plugin",
+      "argumentHint": "[goal or issue description]"
+    },
+    {
+      "allowedTools": [],
+      "description": "Select and restore a legacy ZCode session.",
+      "disableNonInteractive": false,
+      "frontmatterKeys": [
+        "description",
+        "argument-hint",
+        "skills"
+      ],
+      "name": "restore-legacy-sessions",
+      "path": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/restore-legacy-sessions/0.1.0/commands/restore-legacy-sessions.md",
+      "rootPath": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/restore-legacy-sessions/0.1.0/commands",
+      "scope": "system",
+      "skills": [
+        "restore-legacy-sessions"
+      ],
+      "source": "plugin",
+      "argumentHint": "[agent/workspace/session filters]"
+    }
+  ],
+  "cwd": "/tmp",
+  "diagnostics": [],
+  "totalDiscovered": 3
+}
+=== EXIT: 0 ===

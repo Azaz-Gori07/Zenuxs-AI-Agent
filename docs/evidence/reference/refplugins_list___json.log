@@ -1,0 +1,318 @@
+=== COMMAND: node zcode.cjs plugins list --json ===
+=== TIMESTAMP: 2026-11-18T14:02:18Z ===
+[
+  {
+    "commandRootCount": 0,
+    "dataPath": "/home/azaz/.zcode/cli/plugins/data/visualize@zcode-plugins-official",
+    "enabled": true,
+    "id": "visualize@zcode-plugins-official",
+    "manifestPath": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/visualize/0.1.0/.zcode-plugin/plugin.json",
+    "marketplace": "zcode-plugins-official",
+    "declaredMcpServerNames": [],
+    "mcpServerNames": [],
+    "hookDetails": [],
+    "name": "visualize",
+    "rootPath": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/visualize/0.1.0",
+    "skillCount": 1,
+    "skillRootCount": 1,
+    "source": "official",
+    "diagnostics": [],
+    "description": "Create interactive explanations, charts and design previews in ZCode conversations.",
+    "version": "0.1.0"
+  },
+  {
+    "commandRootCount": 0,
+    "dataPath": "/home/azaz/.zcode/cli/plugins/data/node-repl-host@zcode-plugins-official",
+    "enabled": true,
+    "id": "node-repl-host@zcode-plugins-official",
+    "manifestPath": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/node-repl-host/0.6.1/.zcode-plugin/plugin.json",
+    "marketplace": "zcode-plugins-official",
+    "declaredMcpServerNames": [],
+    "mcpServerNames": [],
+    "hookDetails": [],
+    "name": "node-repl-host",
+    "rootPath": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/node-repl-host/0.6.1",
+    "skillCount": 0,
+    "skillRootCount": 0,
+    "source": "official",
+    "diagnostics": [],
+    "description": "Shared node_repl runtime host for ZCode official capabilities. Not user-facing: it carries no skill and appears in no marketplace listing; Browser Use and Computer Use enable it and contribute their own skills, docs and runtime assets.",
+    "version": "0.6.1"
+  },
+  {
+    "commandRootCount": 1,
+    "dataPath": "/home/azaz/.zcode/cli/plugins/data/android-emulator@zcode-plugins-official",
+    "enabled": true,
+    "id": "android-emulator@zcode-plugins-official",
+    "manifestPath": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/android-emulator/0.1.0/.zcode-plugin/plugin.json",
+    "marketplace": "zcode-plugins-official",
+    "declaredMcpServerNames": [
+      "android-emulator"
+    ],
+    "mcpServerNames": [
+      "plugin:android-emulator:android-emulator"
+    ],
+    "hookDetails": [],
+    "name": "android-emulator",
+    "rootPath": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/android-emulator/0.1.0",
+    "skillCount": 1,
+    "skillRootCount": 1,
+    "source": "official",
+    "diagnostics": [],
+    "description": "Provides Android development workflows and emulator automation for ZCode.",
+    "version": "0.1.0"
+  },
+  {
+    "commandRootCount": 0,
+    "dataPath": "/home/azaz/.zcode/cli/plugins/data/browser-use@zcode-plugins-official",
+    "enabled": true,
+    "id": "browser-use@zcode-plugins-official",
+    "manifestPath": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/browser-use/0.5.1/.zcode-plugin/plugin.json",
+    "marketplace": "zcode-plugins-official",
+    "declaredMcpServerNames": [],
+    "mcpServerNames": [],
+    "hookDetails": [],
+    "name": "browser-use",
+    "rootPath": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/browser-use/0.5.1",
+    "skillCount": 2,
+    "skillRootCount": 1,
+    "source": "official",
+    "diagnostics": [],
+    "description": "Built-in browser automation runtime and guidance for Desktop IAB and explicitly enabled CLI-managed headless CDP: open, navigate, inspect, click, type, screenshot, record workspace WebM videos, and verify web pages and local dev targets.",
+    "version": "0.5.1"
+  },
+  {
+    "commandRootCount": 0,
+    "dataPath": "/home/azaz/.zcode/cli/plugins/data/documents@zcode-plugins-official",
+    "enabled": true,
+    "id": "documents@zcode-plugins-official",
+    "manifestPath": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/documents/0.2.0/.zcode-plugin/plugin.json",
+    "marketplace": "zcode-plugins-official",
+    "declaredMcpServerNames": [
+      "documents"
+    ],
+    "mcpServerNames": [
+      "plugin:documents:documents"
+    ],
+    "hookDetails": [],
+    "name": "documents",
+    "rootPath": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/documents/0.2.0",
+    "skillCount": 2,
+    "skillRootCount": 1,
+    "source": "official",
+    "diagnostics": [],
+    "description": "DOCX document production skills and a Word viewer panel, published as an official ZCode plugin.",
+    "version": "0.2.0"
+  },
+  {
+    "commandRootCount": 0,
+    "dataPath": "/home/azaz/.zcode/cli/plugins/data/pdf@zcode-plugins-official",
+    "enabled": true,
+    "id": "pdf@zcode-plugins-official",
+    "manifestPath": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/pdf/0.2.1/.zcode-plugin/plugin.json",
+    "marketplace": "zcode-plugins-official",
+    "declaredMcpServerNames": [
+      "pdf"
+    ],
+    "mcpServerNames": [
+      "plugin:pdf:pdf"
+    ],
+    "hookDetails": [],
+    "name": "pdf",
+    "rootPath": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/pdf/0.2.1",
+    "skillCount": 2,
+    "skillRootCount": 1,
+    "source": "official",
+    "diagnostics": [],
+    "description": "PDF production skills and a PDF viewer panel, published as an official ZCode plugin.",
+    "version": "0.2.1"
+  },
+  {
+    "commandRootCount": 0,
+    "dataPath": "/home/azaz/.zcode/cli/plugins/data/presentations@zcode-plugins-official",
+    "enabled": true,
+    "id": "presentations@zcode-plugins-official",
+    "manifestPath": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/presentations/0.2.0/.zcode-plugin/plugin.json",
+    "marketplace": "zcode-plugins-official",
+    "declaredMcpServerNames": [
+      "presentations"
+    ],
+    "mcpServerNames": [
+      "plugin:presentations:presentations"
+    ],
+    "hookDetails": [],
+    "name": "presentations",
+    "rootPath": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/presentations/0.2.0",
+    "skillCount": 2,
+    "skillRootCount": 1,
+    "source": "official",
+    "diagnostics": [],
+    "description": "PPTX presentation production skills and a PowerPoint viewer panel, published as an official ZCode plugin.",
+    "version": "0.2.0"
+  },
+  {
+    "commandRootCount": 0,
+    "dataPath": "/home/azaz/.zcode/cli/plugins/data/spreadsheets@zcode-plugins-official",
+    "enabled": true,
+    "id": "spreadsheets@zcode-plugins-official",
+    "manifestPath": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/spreadsheets/0.2.0/.zcode-plugin/plugin.json",
+    "marketplace": "zcode-plugins-official",
+    "declaredMcpServerNames": [
+      "spreadsheets"
+    ],
+    "mcpServerNames": [
+      "plugin:spreadsheets:spreadsheets"
+    ],
+    "hookDetails": [],
+    "name": "spreadsheets",
+    "rootPath": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/spreadsheets/0.2.0",
+    "skillCount": 2,
+    "skillRootCount": 1,
+    "source": "official",
+    "diagnostics": [],
+    "description": "XLSX spreadsheet production skills and an Excel viewer panel, published as an official ZCode plugin.",
+    "version": "0.2.0"
+  },
+  {
+    "commandRootCount": 0,
+    "dataPath": "/home/azaz/.zcode/cli/plugins/data/image-search@zcode-plugins-official",
+    "enabled": true,
+    "id": "image-search@zcode-plugins-official",
+    "manifestPath": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/image-search/0.1.1/.zcode-plugin/plugin.json",
+    "marketplace": "zcode-plugins-official",
+    "declaredMcpServerNames": [
+      "image_search"
+    ],
+    "mcpServerNames": [
+      "plugin:image-search:image_search"
+    ],
+    "hookDetails": [],
+    "name": "image-search",
+    "rootPath": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/image-search/0.1.1",
+    "skillCount": 0,
+    "skillRootCount": 0,
+    "source": "official",
+    "diagnostics": [],
+    "description": "Official ZCode image search MCP server for finding illustrations and reference images.",
+    "version": "0.1.1"
+  },
+  {
+    "commandRootCount": 1,
+    "dataPath": "/home/azaz/.zcode/cli/plugins/data/ios-simulator@zcode-plugins-official",
+    "enabled": true,
+    "id": "ios-simulator@zcode-plugins-official",
+    "manifestPath": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/ios-simulator/0.1.0/.zcode-plugin/plugin.json",
+    "marketplace": "zcode-plugins-official",
+    "declaredMcpServerNames": [
+      "ios-simulator"
+    ],
+    "mcpServerNames": [
+      "plugin:ios-simulator:ios-simulator"
+    ],
+    "hookDetails": [],
+    "name": "ios-simulator",
+    "rootPath": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/ios-simulator/0.1.0",
+    "skillCount": 1,
+    "skillRootCount": 1,
+    "source": "official",
+    "diagnostics": [],
+    "description": "Provides iOS development workflows and simulator automation for ZCode.",
+    "version": "0.1.0"
+  },
+  {
+    "commandRootCount": 1,
+    "dataPath": "/home/azaz/.zcode/cli/plugins/data/restore-legacy-sessions@zcode-plugins-official",
+    "enabled": true,
+    "id": "restore-legacy-sessions@zcode-plugins-official",
+    "manifestPath": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/restore-legacy-sessions/0.1.0/.zcode-plugin/plugin.json",
+    "marketplace": "zcode-plugins-official",
+    "declaredMcpServerNames": [],
+    "mcpServerNames": [],
+    "hookDetails": [],
+    "name": "restore-legacy-sessions",
+    "rootPath": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/restore-legacy-sessions/0.1.0",
+    "skillCount": 1,
+    "skillRootCount": 1,
+    "source": "official",
+    "diagnostics": [],
+    "description": "Select and restore legacy ACP-era ZCode sessions into the new ZCode task and session store.",
+    "version": "0.1.0"
+  },
+  {
+    "commandRootCount": 0,
+    "dataPath": "/home/azaz/.zcode/cli/plugins/data/plugin-creator@zcode-plugins-official",
+    "enabled": true,
+    "id": "plugin-creator@zcode-plugins-official",
+    "manifestPath": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/plugin-creator/0.1.1/.zcode-plugin/plugin.json",
+    "marketplace": "zcode-plugins-official",
+    "declaredMcpServerNames": [],
+    "mcpServerNames": [],
+    "hookDetails": [],
+    "name": "plugin-creator",
+    "rootPath": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/plugin-creator/0.1.1",
+    "skillCount": 1,
+    "skillRootCount": 1,
+    "source": "official",
+    "diagnostics": [],
+    "description": "Develop and validate ZCode plugins through a local dev marketplace, installation, trials and updates.",
+    "version": "0.1.1"
+  },
+  {
+    "commandRootCount": 0,
+    "dataPath": "/home/azaz/.zcode/cli/plugins/data/skill-creator@zcode-plugins-official",
+    "enabled": true,
+    "id": "skill-creator@zcode-plugins-official",
+    "manifestPath": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/skill-creator/0.1.0/.zcode-plugin/plugin.json",
+    "marketplace": "zcode-plugins-official",
+    "declaredMcpServerNames": [],
+    "mcpServerNames": [],
+    "hookDetails": [],
+    "name": "skill-creator",
+    "rootPath": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/skill-creator/0.1.0",
+    "skillCount": 1,
+    "skillRootCount": 1,
+    "source": "official",
+    "diagnostics": [],
+    "description": "Create, edit, and iterate local ZCode skills.",
+    "version": "0.1.0"
+  },
+  {
+    "commandRootCount": 0,
+    "dataPath": "/home/azaz/.zcode/cli/plugins/data/zcode-guide@zcode-plugins-official",
+    "enabled": true,
+    "id": "zcode-guide@zcode-plugins-official",
+    "manifestPath": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/zcode-guide/0.3.0/.zcode-plugin/plugin.json",
+    "marketplace": "zcode-plugins-official",
+    "declaredMcpServerNames": [],
+    "mcpServerNames": [],
+    "hookDetails": [],
+    "name": "zcode-guide",
+    "rootPath": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/zcode-guide/0.3.0",
+    "skillCount": 6,
+    "skillRootCount": 1,
+    "source": "official",
+    "diagnostics": [],
+    "description": "ZCode usage and self-diagnosis guide: teaches agents and users how to configure MCP servers, commands, skills, hooks, and plugins, and how to locate and fix configuration problems for each.",
+    "version": "0.3.0"
+  },
+  {
+    "commandRootCount": 0,
+    "dataPath": "/home/azaz/.zcode/cli/plugins/data/computer-use@zcode-plugins-official",
+    "enabled": true,
+    "id": "computer-use@zcode-plugins-official",
+    "manifestPath": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/computer-use/0.6.5/.zcode-plugin/plugin.json",
+    "marketplace": "zcode-plugins-official",
+    "declaredMcpServerNames": [],
+    "mcpServerNames": [],
+    "hookDetails": [],
+    "name": "computer-use",
+    "rootPath": "/home/azaz/.zcode/cli/plugins/cache/zcode-plugins-official/computer-use/0.6.5",
+    "skillCount": 1,
+    "skillRootCount": 1,
+    "source": "official",
+    "diagnostics": [],
+    "description": "Computer Use: automate desktop apps with mouse, keyboard, and UI element control.",
+    "version": "0.6.5"
+  }
+]
+=== EXIT: 0 ===

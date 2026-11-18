@@ -1,0 +1,23 @@
+=== COMMAND: node zcode.cjs doctor --json ===
+=== TIMESTAMP: 2026-11-18T14:02:14Z ===
+{
+  "cli": {
+    "name": "zcode",
+    "processName": "zcode-cli",
+    "version": "0.17.0"
+  },
+  "runtime": {
+    "arch": "x64",
+    "cwd": "/tmp",
+    "execPath": "/usr/bin/node",
+    "node": "v24.22.1",
+    "platform": "linux",
+    "processTitle": "zcode-cli",
+    "sea": false
+  },
+  "packaging": {
+    "default": "node-bundle",
+    "sea": "optional"
+  }
+}
+=== EXIT: 0 ===

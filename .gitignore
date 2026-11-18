@@ -12,6 +12,8 @@ build/
 *.log
 logs/
 **/logs/
+# Verification evidence is intentionally committed (mission R2)
+!docs/evidence/**/*.log
 
 # Local env files
 .env
