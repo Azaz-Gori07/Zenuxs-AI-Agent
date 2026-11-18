@@ -220,7 +220,8 @@ function formatGrepResult(
 	for (const match of matches) {
 		if (totalMatches >= maxResults) break;
 		const existing = files.get(match.file) ?? [];
-		existing.push(`  ${match.line}:${match.column}: ${match.context.join(" | ").slice(0, 200)}`);
+		const detail = match.context.length > 0 ? match.context.join(" | ") : match.match;
+		existing.push(`  ${match.line}:${match.column}: ${detail.slice(0, 200)}`);
 		files.set(match.file, existing);
 		totalMatches++;
 	}

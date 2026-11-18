@@ -393,7 +393,7 @@ describe("ensureDetachedHubServer", () => {
 			const pending = expect(
 				ensureDetachedHubServer("/workspace"),
 			).rejects.toThrow(
-				"An incompatible Cline Hub is already running at ws://127.0.0.1:25463/hub and could not be retired automatically.",
+				"An incompatible Zenuxs Hub is already running at ws://127.0.0.1:25463/hub and could not be retired automatically.",
 			);
 			await vi.runAllTimersAsync();
 
@@ -462,7 +462,7 @@ describe("ensureDetachedHubServer", () => {
 
 		const { ensureDetachedHubServer } = await import(".");
 		await expect(ensureDetachedHubServer("/workspace")).rejects.toThrow(
-			"A compatible Cline Hub is already running at ws://127.0.0.1:25463/hub, but its discovery record is missing or unreadable.",
+			"A compatible Zenuxs Hub is already running at ws://127.0.0.1:25463/hub, but its discovery record is missing or unreadable.",
 		);
 		expect(spawn).not.toHaveBeenCalled();
 	});

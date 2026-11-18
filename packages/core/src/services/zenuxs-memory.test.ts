@@ -1,4 +1,4 @@
-import { describe, expect, it, mock } from "bun:test";
+import { describe, expect, it, vi } from "vitest";
 import { fetchZenuxsMemory } from "./zenuxs-memory";
 import { createRemoteConversation, addRemoteMessages } from "./zenuxs-conversation-sync";
 
@@ -11,7 +11,7 @@ describe("ZenuxsMemory & Conversation Sync", () => {
 
 	it("handles 401 response from memory endpoint gracefully with warning", async () => {
 		const originalFetch = globalThis.fetch;
-		globalThis.fetch = mock(async () => {
+		globalThis.fetch = vi.fn(async () => {
 			return new Response("Unauthorized token", {
 				status: 401,
 				statusText: "Unauthorized",
@@ -35,7 +35,7 @@ describe("ZenuxsMemory & Conversation Sync", () => {
 
 	it("handles 401 on conversation creation gracefully", async () => {
 		const originalFetch = globalThis.fetch;
-		globalThis.fetch = mock(async () => {
+		globalThis.fetch = vi.fn(async () => {
 			return new Response("Unauthorized", {
 				status: 401,
 				headers: { "x-request-id": "req-999" },

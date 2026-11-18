@@ -246,6 +246,12 @@ function parseRipgrepOutput(
 			const lineNumber = data.line_number;
 			const context = pendingContext.get(lineNumber) ?? [];
 			pendingContext.delete(lineNumber);
+			// The JSON match event carries the full line in data.lines.text;
+			// preserve it so callers can show line context even with contextLines 0.
+			const fullLine = data.lines?.text ?? data.line?.text;
+			if (typeof fullLine === "string" && fullLine.trim()) {
+				context.unshift(fullLine.trimEnd());
+			}
 
 			matches.push({
 				file: normalizeRelativePath(data.path.text, cwd),

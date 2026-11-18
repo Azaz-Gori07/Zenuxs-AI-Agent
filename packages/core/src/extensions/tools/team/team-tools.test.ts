@@ -509,7 +509,7 @@ describe("createAgentTeamsTools runtime behavior", () => {
 		);
 	});
 
-	it("injects workspace metadata into cline teammate system prompt", async () => {
+	it("injects workspace metadata into zenuxs teammate system prompt", async () => {
 		const spawnTeammate = vi.fn();
 		const runtime = {
 			getMemberRole: vi.fn(() => "lead"),

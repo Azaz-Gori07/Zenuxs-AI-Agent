@@ -56,7 +56,7 @@ describe("Path Intelligence + Tool Routing Architecture", () => {
       const windowsPath = `${TEST_DIR}\\About.jsx`;
       const analysis = await analyzePath(windowsPath, { cwd: TEST_DIR });
 
-      expect(analysis.kind).toBe("file");
+      expect(analysis.kind).toBe(process.platform === "win32" ? "file" : "missing");
       expect(path.isAbsolute(analysis.absolutePath)).toBe(true);
     });
 

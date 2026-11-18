@@ -58,7 +58,7 @@ async function resolveFilePath(
 	return await assertPathSafe(resolved, cwd);
 }
 
-function countOccurrences(content: string, needle: string): number {
+export function countOccurrences(content: string, needle: string): number {
 	if (needle.length === 0) return 0;
 	let count = 0;
 	let pos = 0;
@@ -69,7 +69,7 @@ function countOccurrences(content: string, needle: string): number {
 	return count;
 }
 
-function createLineDiff(
+export function createLineDiff(
 	oldContent: string,
 	newContent: string,
 	maxLines: number,
