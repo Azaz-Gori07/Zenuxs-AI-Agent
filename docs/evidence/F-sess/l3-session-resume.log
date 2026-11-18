@@ -1,0 +1,6 @@
+=== COMMAND: headless resume with --id 1795025200196_7shq5 ===
+=== TIMESTAMP: 2026-11-18T18:11:08Z ===
+=== SHA: d29fd5fa7683748acb6432b1b70cfe9af5acee08 ===
+{"ts":"2026-11-18T18:11:08.879Z","type":"agent_event","event":{"type":"done","reason":"completed","text":"Mode check OK.","iterations":1,"usage":{"inputTokens":0,"outputTokens":0,"totalCost":0}}}
+{"ts":"2026-11-18T18:11:08.882Z","type":"run_result","finishReason":"completed","iterations":1,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":63,"text":"Mode check OK.","model":{"id":"fake-model","provider":"openai-compatible"}}
+=== EXIT: 0 ===

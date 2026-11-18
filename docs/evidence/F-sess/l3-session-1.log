@@ -1,0 +1,7 @@
+=== COMMAND: headless session create, then history list, then --id resume ===
+=== TIMESTAMP: 2026-11-18T18:06:39Z ===
+=== SHA: d29fd5fa7683748acb6432b1b70cfe9af5acee08 ===
+{"ts":"2026-11-18T18:06:40.308Z","type":"run_result","finishReason":"completed","iterations":1,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":55,"text":"Mode check OK.","model":{"id":"fake-model","provider":"openai-compatible"}}
+--- history ---
+Terminated                 ZENUXS_PROVIDER_SETTINGS_PATH=/tmp/zenuxs-l3/providers.json CLINE_DATA_DIR=/tmp/zenuxs-l3/sess timeout 30 bun apps/cli/src/index.ts history list 2>&1 | head -15
+=== EXIT: 143 ===

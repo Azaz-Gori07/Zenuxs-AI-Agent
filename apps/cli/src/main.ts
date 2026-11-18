@@ -888,11 +888,8 @@ export async function runCli(): Promise<void> {
 		}
 		resumeSessionId = sessionId;
 		process.env.CLINE_HOOK_AGENT_RESUME = "1";
-		args = {
-			...args,
-			interactive: true,
-			prompt: undefined,
-		};
+		// A direct `--id` can be used with a prompt (or piped stdin) for headless
+		// resume. Keep the caller's mode; only the history picker forces the TUI.
 	} else {
 		delete process.env.CLINE_HOOK_AGENT_RESUME;
 	}
