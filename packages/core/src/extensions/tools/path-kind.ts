@@ -25,6 +25,18 @@ export async function resolvePathInfo(
   const initialPath = resolveToolPath(cwd, targetPath);
   const absolutePath = resolveExistingFilePath(initialPath) ?? initialPath;
 
+  // Workspace boundary: filesystem tools must not silently escape the active
+  // workspace. Explicitly opt in via the environment when a caller truly needs
+  // cross-workspace access (e.g. tooling that manages other checkouts).
+  if (process.env.ZENUXS_ALLOW_OUTSIDE_WORKSPACE !== "1") {
+    const relative = path.relative(cwd, absolutePath);
+    if (relative.startsWith("..") || path.isAbsolute(relative)) {
+      throw new Error(
+        `Path is outside the workspace: ${targetPath} (workspace: ${cwd})`,
+      );
+    }
+  }
+
   try {
     const stats = await fs.stat(absolutePath);
     const kind: ExistingPathKind = stats.isFile()
