@@ -7,6 +7,7 @@ import {
 	type UserInstructionConfigService,
 	AutoApprovalService,
 } from "@cline/core";
+import { toCompactionJsonEvent } from "../utils/events";
 import type { ConsecutiveMistakeLimitContext } from "@cline/shared";
 import { createSessionId } from "@cline/shared";
 import { logCliError } from "../logging/errors";
@@ -213,6 +214,14 @@ export async function runAgent(
 			event.error.message.trim()
 		) {
 			displayedErrorMessages.add(event.error.message.trim());
+		}
+		const compactionEvent = toCompactionJsonEvent(event);
+		if (compactionEvent) {
+			if (config.outputMode === "json") {
+				emitJsonLine("stdout", compactionEvent);
+			} else {
+				writeln(`${c.dim}[status]${c.reset} ${compactionEvent.message}`);
+			}
 		}
 		handleEvent(event, config);
 	};

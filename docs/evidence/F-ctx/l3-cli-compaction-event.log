@@ -1,0 +1,9 @@
+=== COMMAND: real CLI two-turn large-history compaction with JSON event output ===
+=== TIMESTAMP: 2026-11-19T09:04:09Z ===
+=== SHA: 2310f529d931726d2b2095fd329cde227214425c ===
+SESSION_ID=1795079031459_vgwr4
+{"ts":"2026-11-19T09:03:51.565Z","type":"compaction","reason":"auto_compaction","message":"auto-compacting"}
+{"ts":"2026-11-19T09:03:51.678Z","type":"run_result","finishReason":"completed","iterations":1,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":127,"text":"Mode check OK.","model":{"id":"fake-model","provider":"openai-compatible"}}
+{"ts":"2026-11-19T09:03:53.204Z","type":"compaction","reason":"auto_compaction","message":"auto-compacting"}
+{"ts":"2026-11-19T09:03:53.314Z","type":"run_result","finishReason":"completed","iterations":1,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":127,"text":"Mode check OK.","model":{"id":"fake-model","provider":"openai-compatible"}}
+=== EXIT: 0 ===

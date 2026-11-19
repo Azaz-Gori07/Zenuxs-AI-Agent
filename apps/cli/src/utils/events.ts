@@ -300,3 +300,15 @@ export function handleTeamEvent(event: TeamEvent): void {
 			break;
 	}
 }
+
+/** Map a core compaction notice to a CLI JSON event. */
+export function toCompactionJsonEvent(event: AgentEvent):
+  | { type: "compaction"; reason: string; message: string }
+  | undefined {
+  if (event.type !== "notice" || event.reason !== "auto_compaction") return undefined;
+  return {
+    type: "compaction",
+    reason: event.reason,
+    message: resolveStatusNoticeLabel(event) ?? "compacting",
+  };
+}
