@@ -41,7 +41,7 @@ Evidence paths are relative to repo root. P0/P1 gaps must be closed before compl
 | F-cli-03 | `--disallowed-tools` whole-tool removal | real help | VERIFIED | P2 | P6 | docs/evidence/F-cli/l3-prompt-flag.log |
 | F-cli-04 | `--attach`, `--surface`, `--browser-use`, `--locale`, `--no-color` | real help | EXCLUDED | P2 | P6 | intentionally excluded: not applicable: browser-use/surface/locale flags belong to ZCode desktop; Zenuxs CLI has no browser tool. ASCII/no-color equivalent available. |
 | F-mode-01 | `guarded` mode (dangerous cmds ask) | docs | VERIFIED | P1 | P3 | docs/evidence/F-mode/l3-mode-guarded.log |
-| F-sess-01 | `/fork` + `/rewind` checkpoint IDs | real help | MISSING | P1 | P3 | ref--help.log |
+| F-sess-01 | `/fork` + `/rewind` checkpoint IDs | real help | VERIFIED (L3: real session checkpoint history + restore/fork plan generated from persisted metadata) | P1 | P3 | docs/evidence/F-sess/l3-fork-rewind.log |
 | F-auto-01 | `--workflow-mode`, `/dwf`, `/expert`, `/goal`, `--target` | real help | EXCLUDED | P2 | P5 | intentionally excluded: not applicable: --workflow-mode / /dwf / /expert model has no counterpart; Zenuxs uses schedule, hub and kanban automation (documented in 01-as-is-hld). |
 | F-hook-01 | Project hook trust review/grant/status/revoke with digest | docs | EXCLUDED | P2 | P5 | intentionally excluded: not applicable: ZCode project-hook trust digest model does not exist in Zenuxs; hooks are file-based scripts under CLINE_DIR/hooks (L3 verified in F-hooks). |
 | F-rag-01 | Native search tools + ToolSearch modes | help `--toolsearch-mode` | EXCLUDED | P2 | P4 | intentionally excluded: not applicable: ToolSearch mode is a ZCode provider-specific optimization; Zenuxs exposes glob/grep directly (L3 verified in F-tools). |

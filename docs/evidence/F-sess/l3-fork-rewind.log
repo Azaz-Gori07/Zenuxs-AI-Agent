@@ -1,0 +1,8 @@
+=== COMMAND: real CLI run + shipped restore-plan API against its session ===
+=== TIMESTAMP: 2026-11-19T07:14:43Z ===
+=== SHA: a7fade4da3fca595e7f5d44f42a01452df7d9aba ===
+SESSION_ID=1795072417968_avgec
+{"sessionId":"1795072417968_avgec","checkpointCount":1,"plan":{"checkpoint":{"ref":"35e87e74a7e62a9037000bbd54bfbc6d6475cd19","createdAt":1795072418088,"runCount":1,"kind":"stash"},"cwd":"/home/azaz/Projects/Zenuxs-AI-Agent/tests/fixtures/l3/project","messages":[{"id":"msg_mwn7rqbg_1","role":"user","content":[{"type":"text","text":"<user_input mode=\"act\">diag3</user_input>"}],"ts":1795072418044}]}}
+=== git checkpoint ref ===
+refs/zenuxs/checkpoints/1795072417968_avgec/1 35e87e7
+=== EXIT: 0 ===
