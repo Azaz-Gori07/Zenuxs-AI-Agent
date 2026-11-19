@@ -20,3 +20,9 @@
 ## 2026-11-19 — VS Code Extension Development Host GUI
 - **Condition**: `code` CLI is present (snap) but no DISPLAY/Wayland GUI session is confirmed; @vscode/test-electron is not yet installed.
 - **Next action**: Install @vscode/test-electron, attempt headless/Xvfb launch; if no display can be created, record exact error and mark webview GUI scenarios PARTIAL (not VERIFIED).
+
+## 2026-11-19 — Live provider quota blocks CLI L3 runs (resume run)
+- **Endpoint check PASSED**: `GET /v1/models` returned 12 models; tiny completions with `deepseek-v4.1-flash-free`, `mimo-v2.6-flash-free`, `big-pickle`, `hy4-flash-free`, `beam-free` all returned valid `PONG`/`LIVE_OK` responses.
+- **Announced model unavailable**: `glm-5.3-flash-free` is not in `/v1/models`; tiny completion returned `model_deprecated` ("retired upstream").
+- **CLI-shaped live requests fail**: captured response body is `{"error":{"message":"Free usage limit reached. Free models work in OpenCode ... subscribe to OpenCode Go ...","type":"FreeUsageLimitError","code":429}}`. Evidence: docs/evidence/live/l3-headless-live-*.log (exit 124/1), /tmp/live-captured-response.txt.
+- **Decision**: live L3/dogfooding scenarios are BLOCKED by per-model free quota; fake provider used for deterministic verification. Live checks are not counted as VERIFIED. Retry after quota reset is required for live-only rows.
