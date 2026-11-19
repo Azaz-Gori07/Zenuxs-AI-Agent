@@ -1,0 +1,94 @@
+=== COMMAND: real CLI vs fake-provider chaos scenario 'malformed' ===
+=== TIMESTAMP: 2026-11-19T05:52:17Z ===
+=== SHA: c23ba4b564b5dc3e7fd0131fae7d9af035a52a88 ===
+=== SCENARIO: tests/fixtures/l3/scenarios/malformed.json ===
+
+=================== AUTHENTICATION DECISION [SESSION_START] ===================
+Selected Provider:            openai-compatible
+Resolved Provider:            openai-compatible
+Provider Metadata:            {"provider":"openai-compatible","apiKey":"fake-key","model":"fake-model","protocol":"openai-chat","client":"openai-compatible","baseUrl":"http://127.0.0.1:4317/v1"}
+Authentication Type:          API Key
+Selected Strategy:            ApiKeyStrategy
+Reason Strategy Was Selected: Provider is not registered in providerAuthHandlers (API Key)
+API Key Exists:               YES
+OAuth Credentials Exist:      NO
+Entered OAuth Pipeline:        NO
+Entered ApiKey Pipeline:       YES
+Retry Invoked:                NO
+AuthenticationManager Invoked: NO
+Request Headers Built:        Authorization: Bearer ****
+========================================================================
+
+
+=================== AUTHENTICATION DECISION [SYNC_CREDENTIALS] ===================
+Selected Provider:            openai-compatible
+Resolved Provider:            openai-compatible
+Provider Metadata:            {"provider":"openai-compatible","apiKey":"fake-key","model":"fake-model","protocol":"openai-chat","client":"openai-compatible","baseUrl":"http://127.0.0.1:4317/v1"}
+Authentication Type:          API Key
+Selected Strategy:            ApiKeyStrategy
+Reason Strategy Was Selected: Provider is not registered in providerAuthHandlers (API Key)
+API Key Exists:               YES
+OAuth Credentials Exist:      NO
+Entered OAuth Pipeline:        NO
+Entered ApiKey Pipeline:       YES
+Retry Invoked:                NO
+AuthenticationManager Invoked: NO
+Request Headers Built:        Authorization: Bearer ****
+========================================================================
+
+
+=================== AUTHENTICATION DECISION [RUN_START] ===================
+Selected Provider:            openai-compatible
+Resolved Provider:            openai-compatible
+Provider Metadata:            {"provider":"openai-compatible","apiKey":"fake-key","model":"fake-model","protocol":"openai-chat","client":"openai-compatible","baseUrl":"http://127.0.0.1:4317/v1"}
+Authentication Type:          API Key
+Selected Strategy:            ApiKeyStrategy
+Reason Strategy Was Selected: Provider is not registered in providerAuthHandlers (API Key)
+API Key Exists:               YES
+OAuth Credentials Exist:      NO
+Entered OAuth Pipeline:        NO
+Entered ApiKey Pipeline:       YES
+Retry Invoked:                NO
+AuthenticationManager Invoked: NO
+Request Headers Built:        Authorization: Bearer ****
+========================================================================
+
+{"ts":"2026-11-19T05:52:18.813Z","type":"hook_event","hookEventName":"agent_start","agentId":"agent_1795067538789_czwqsj","taskId":"conv_1795067538798_85fjscb","parentAgentId":null}
+{"ts":"2026-11-19T05:52:18.815Z","type":"agent_event","event":{"type":"iteration_start","iteration":1}}
+AI SDK Warning System: To turn off warning logging, set the AI_SDK_LOG_WARNINGS global to false.
+AI SDK Warning (openai-compatible.chat / fake-model): The 'openai-compatible' key in providerOptions is deprecated. Use 'openaiCompatible' instead.
+{"ts":"2026-11-19T05:52:18.926Z","type":"agent_event","event":{"type":"usage","inputTokens":0,"outputTokens":0,"totalInputTokens":0,"totalOutputTokens":0,"totalCost":0}}
+{"ts":"2026-11-19T05:52:18.931Z","type":"agent_event","event":{"type":"content_start","contentType":"tool","toolName":"read","toolCallId":"call_bad_1","input":{}}}
+{"ts":"2026-11-19T05:52:18.933Z","type":"agent_event","event":{"type":"content_end","contentType":"tool","toolName":"read","toolCallId":"call_bad_1","output":{"error":"Tool call read emitted invalid JSON arguments: Tool call arguments could not be parsed as JSON. Ensure the outer tool payload is valid JSON and escape embedded quotes/newlines inside string fields."},"error":"{\"error\":\"Tool call read emitted invalid JSON arguments: Tool call arguments could not be parsed as JSON. Ensure the outer tool payload is valid JSON and escape embedded quotes/newlines inside string fields.\"}","durationMs":1}}
+{"ts":"2026-11-19T05:52:18.933Z","type":"agent_event","event":{"type":"iteration_end","iteration":1,"hadToolCalls":true,"toolCallCount":1}}
+{"ts":"2026-11-19T05:52:18.934Z","type":"agent_event","event":{"type":"error","error":{"name":"Error","message":"1 tool call(s) failed: [read] {\"error\":\"Tool call read emitted invalid JSON arguments: Tool call arguments could not be parsed as JSON. Ensure the outer tool payload is valid JSON and escape embedded quotes/newlines inside string fields.\"}","stack":"Error: 1 tool call(s) failed: [read] {\"error\":\"Tool call read emitted invalid JSON arguments: Tool call arguments could not be parsed as JSON. Ensure the outer tool payload is valid JSON and escape embedded quotes/newlines inside string fields.\"}\n    at record (/home/azaz/Projects/Zenuxs-AI-Agent/packages/core/src/runtime/safety/mistake-tracker.ts:94:15)\n    at <anonymous> (/home/azaz/Projects/Zenuxs-AI-Agent/packages/core/src/runtime/orchestration/session-runtime-orchestrator.ts:1448:46)"},"recoverable":true,"iteration":1}}
+{"ts":"2026-11-19T05:52:18.935Z","type":"agent_event","event":{"type":"iteration_start","iteration":2}}
+{"ts":"2026-11-19T05:52:18.947Z","type":"agent_event","event":{"type":"content_start","contentType":"text","text":"Recovered","accumulated":"Recovered"}}
+{"ts":"2026-11-19T05:52:18.947Z","type":"agent_event","event":{"type":"content_start","contentType":"text","text":" after ma","accumulated":"Recovered after ma"}}
+{"ts":"2026-11-19T05:52:18.947Z","type":"agent_event","event":{"type":"content_start","contentType":"text","text":"lformed t","accumulated":"Recovered after malformed t"}}
+{"ts":"2026-11-19T05:52:18.947Z","type":"agent_event","event":{"type":"content_start","contentType":"text","text":"ool JSON.","accumulated":"Recovered after malformed tool JSON."}}
+AI SDK Warning (openai-compatible.chat / fake-model): The 'openai-compatible' key in providerOptions is deprecated. Use 'openaiCompatible' instead.
+{"ts":"2026-11-19T05:52:18.948Z","type":"agent_event","event":{"type":"usage","inputTokens":0,"outputTokens":0,"totalInputTokens":0,"totalOutputTokens":0,"totalCost":0}}
+{"ts":"2026-11-19T05:52:18.949Z","type":"agent_event","event":{"type":"content_end","contentType":"text","text":"Recovered after malformed tool JSON."}}
+{"ts":"2026-11-19T05:52:18.950Z","type":"agent_event","event":{"type":"iteration_end","iteration":2,"hadToolCalls":false,"toolCallCount":0}}
+{"ts":"2026-11-19T05:52:18.952Z","type":"hook_event","hookEventName":"agent_end","agentId":"agent_1795067538789_czwqsj","taskId":"conv_1795067538798_85fjscb","parentAgentId":null}
+{"ts":"2026-11-19T05:52:18.952Z","type":"agent_event","event":{"type":"done","reason":"completed","text":"Recovered after malformed tool JSON.","iterations":2,"usage":{"inputTokens":0,"outputTokens":0,"totalCost":0}}}
+
+=================== AUTHENTICATION DECISION [RUN_SUCCESS] ===================
+Selected Provider:            openai-compatible
+Resolved Provider:            openai-compatible
+Provider Metadata:            {"provider":"openai-compatible","apiKey":"fake-key","model":"fake-model","protocol":"openai-chat","client":"openai-compatible","baseUrl":"http://127.0.0.1:4317/v1"}
+Authentication Type:          API Key
+Selected Strategy:            ApiKeyStrategy
+Reason Strategy Was Selected: Provider is not registered in providerAuthHandlers (API Key)
+API Key Exists:               YES
+OAuth Credentials Exist:      NO
+Entered OAuth Pipeline:        NO
+Entered ApiKey Pipeline:       YES
+Retry Invoked:                NO
+AuthenticationManager Invoked: NO
+Request Headers Built:        Authorization: Bearer ****
+========================================================================
+
+{"ts":"2026-11-19T05:52:18.959Z","type":"run_result","finishReason":"completed","iterations":2,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":150,"text":"Recovered after malformed tool JSON.","model":{"id":"fake-model","provider":"openai-compatible"}}
+=== EXIT: 0 ===

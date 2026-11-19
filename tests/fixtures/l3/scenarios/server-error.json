@@ -1,0 +1,4 @@
+{"name":"server-error","steps":[
+ {"type":"status","status":500,"error":"Server error injected by fake provider"},
+ {"type":"text","content":"Recovered after server error."}
+]}

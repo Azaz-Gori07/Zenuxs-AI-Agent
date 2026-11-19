@@ -1,0 +1,4 @@
+{"name":"malformed","steps":[
+ {"type":"tool","tool_calls":[{"id":"call_bad_1","name":"read","arguments_raw":"{\"path\":","fragments":["{\"path\":"]}]},
+ {"type":"text","content":"Recovered after malformed tool JSON."}
+]}

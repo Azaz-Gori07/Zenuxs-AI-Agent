@@ -1,0 +1,4 @@
+{"name":"cut","steps":[
+ {"type":"text","content":"This stream is cut mid-response before completion.","cutAfterChunks":3,"chunkSize":6},
+ {"type":"text","content":"Recovered after stream cut."}
+]}

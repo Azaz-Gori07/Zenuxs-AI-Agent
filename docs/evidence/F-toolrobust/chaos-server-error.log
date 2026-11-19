@@ -1,0 +1,89 @@
+=== COMMAND: real CLI vs fake-provider chaos scenario 'server-error' ===
+=== TIMESTAMP: 2026-11-19T05:52:14Z ===
+=== SHA: c23ba4b564b5dc3e7fd0131fae7d9af035a52a88 ===
+=== SCENARIO: tests/fixtures/l3/scenarios/server-error.json ===
+
+=================== AUTHENTICATION DECISION [SESSION_START] ===================
+Selected Provider:            openai-compatible
+Resolved Provider:            openai-compatible
+Provider Metadata:            {"provider":"openai-compatible","apiKey":"fake-key","model":"fake-model","protocol":"openai-chat","client":"openai-compatible","baseUrl":"http://127.0.0.1:4317/v1"}
+Authentication Type:          API Key
+Selected Strategy:            ApiKeyStrategy
+Reason Strategy Was Selected: Provider is not registered in providerAuthHandlers (API Key)
+API Key Exists:               YES
+OAuth Credentials Exist:      NO
+Entered OAuth Pipeline:        NO
+Entered ApiKey Pipeline:       YES
+Retry Invoked:                NO
+AuthenticationManager Invoked: NO
+Request Headers Built:        Authorization: Bearer ****
+========================================================================
+
+
+=================== AUTHENTICATION DECISION [SYNC_CREDENTIALS] ===================
+Selected Provider:            openai-compatible
+Resolved Provider:            openai-compatible
+Provider Metadata:            {"provider":"openai-compatible","apiKey":"fake-key","model":"fake-model","protocol":"openai-chat","client":"openai-compatible","baseUrl":"http://127.0.0.1:4317/v1"}
+Authentication Type:          API Key
+Selected Strategy:            ApiKeyStrategy
+Reason Strategy Was Selected: Provider is not registered in providerAuthHandlers (API Key)
+API Key Exists:               YES
+OAuth Credentials Exist:      NO
+Entered OAuth Pipeline:        NO
+Entered ApiKey Pipeline:       YES
+Retry Invoked:                NO
+AuthenticationManager Invoked: NO
+Request Headers Built:        Authorization: Bearer ****
+========================================================================
+
+
+=================== AUTHENTICATION DECISION [RUN_START] ===================
+Selected Provider:            openai-compatible
+Resolved Provider:            openai-compatible
+Provider Metadata:            {"provider":"openai-compatible","apiKey":"fake-key","model":"fake-model","protocol":"openai-chat","client":"openai-compatible","baseUrl":"http://127.0.0.1:4317/v1"}
+Authentication Type:          API Key
+Selected Strategy:            ApiKeyStrategy
+Reason Strategy Was Selected: Provider is not registered in providerAuthHandlers (API Key)
+API Key Exists:               YES
+OAuth Credentials Exist:      NO
+Entered OAuth Pipeline:        NO
+Entered ApiKey Pipeline:       YES
+Retry Invoked:                NO
+AuthenticationManager Invoked: NO
+Request Headers Built:        Authorization: Bearer ****
+========================================================================
+
+{"ts":"2026-11-19T05:52:15.604Z","type":"hook_event","hookEventName":"agent_start","agentId":"agent_1795067535574_ixu8ul","taskId":"conv_1795067535587_72oe5iy","parentAgentId":null}
+{"ts":"2026-11-19T05:52:15.607Z","type":"agent_event","event":{"type":"iteration_start","iteration":1}}
+
+[HTTP 500] Request to http://127.0.0.1:4317/v1/chat/completions failed. Retrying in 0.6s (attempt 1/5)...
+{"ts":"2026-11-19T05:52:16.264Z","type":"agent_event","event":{"type":"content_start","contentType":"text","text":"Recovere","accumulated":"Recovere"}}
+{"ts":"2026-11-19T05:52:16.265Z","type":"agent_event","event":{"type":"content_start","contentType":"text","text":"d after ","accumulated":"Recovered after "}}
+{"ts":"2026-11-19T05:52:16.266Z","type":"agent_event","event":{"type":"content_start","contentType":"text","text":"server e","accumulated":"Recovered after server e"}}
+{"ts":"2026-11-19T05:52:16.266Z","type":"agent_event","event":{"type":"content_start","contentType":"text","text":"rror.","accumulated":"Recovered after server error."}}
+AI SDK Warning System: To turn off warning logging, set the AI_SDK_LOG_WARNINGS global to false.
+AI SDK Warning (openai-compatible.chat / fake-model): The 'openai-compatible' key in providerOptions is deprecated. Use 'openaiCompatible' instead.
+{"ts":"2026-11-19T05:52:16.271Z","type":"agent_event","event":{"type":"usage","inputTokens":0,"outputTokens":0,"totalInputTokens":0,"totalOutputTokens":0,"totalCost":0}}
+{"ts":"2026-11-19T05:52:16.274Z","type":"agent_event","event":{"type":"content_end","contentType":"text","text":"Recovered after server error."}}
+{"ts":"2026-11-19T05:52:16.276Z","type":"agent_event","event":{"type":"iteration_end","iteration":1,"hadToolCalls":false,"toolCallCount":0}}
+{"ts":"2026-11-19T05:52:16.278Z","type":"hook_event","hookEventName":"agent_end","agentId":"agent_1795067535574_ixu8ul","taskId":"conv_1795067535587_72oe5iy","parentAgentId":null}
+{"ts":"2026-11-19T05:52:16.278Z","type":"agent_event","event":{"type":"done","reason":"completed","text":"Recovered after server error.","iterations":1,"usage":{"inputTokens":0,"outputTokens":0,"totalCost":0}}}
+
+=================== AUTHENTICATION DECISION [RUN_SUCCESS] ===================
+Selected Provider:            openai-compatible
+Resolved Provider:            openai-compatible
+Provider Metadata:            {"provider":"openai-compatible","apiKey":"fake-key","model":"fake-model","protocol":"openai-chat","client":"openai-compatible","baseUrl":"http://127.0.0.1:4317/v1"}
+Authentication Type:          API Key
+Selected Strategy:            ApiKeyStrategy
+Reason Strategy Was Selected: Provider is not registered in providerAuthHandlers (API Key)
+API Key Exists:               YES
+OAuth Credentials Exist:      NO
+Entered OAuth Pipeline:        NO
+Entered ApiKey Pipeline:       YES
+Retry Invoked:                NO
+AuthenticationManager Invoked: NO
+Request Headers Built:        Authorization: Bearer ****
+========================================================================
+
+{"ts":"2026-11-19T05:52:16.305Z","type":"run_result","finishReason":"completed","iterations":1,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":685,"text":"Recovered after server error.","model":{"id":"fake-model","provider":"openai-compatible"}}
+=== EXIT: 0 ===

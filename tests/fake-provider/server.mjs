@@ -110,6 +110,22 @@ const server = createServer(async (req, res) => {
     }
     res.write(sseChunk(id, model, {}, "stop"))
   }
+  if (step.cutAfterChunks) {
+    // Simulate a network drop mid-stream: some chunks were delivered, but the
+    // socket dies before finish_reason/[DONE]. Clients must fail cleanly.
+    let sent = 0
+    const content = step.content ?? "Partial stream that will be cut off."
+    const size = step.chunkSize ?? 8
+    for (let i = 0; i < content.length && sent < step.cutAfterChunks; i += size, sent++) {
+      res.write(sseChunk(id, model, {
+        role: i === 0 ? "assistant" : undefined,
+        content: content.slice(i, i + size),
+      }))
+    }
+    setTimeout(() => res.socket?.destroy(), 10)
+    return
+  }
+
   res.write("data: [DONE]\n\n")
   res.end()
 })

@@ -35,6 +35,13 @@ import { nanoid } from "nanoid";
 import * as path from "node:path";
 import type { McpServerConfig } from "./mcp/types";
 
+/** Network/5xx failures that are safe to retry within one agent iteration. */
+export function isTransientProviderError(message: string): boolean {
+  return /ECONNRESET|ECONNREFUSED|ETIMEDOUT|EAI_AGAIN|EPIPE|fetch failed|socket connection was closed|429|502|503|504|rate.?limit|overloaded/i.test(
+    message,
+  );
+}
+
 // Local `createUID` helper. The clinee source imports this from
 // `@cline/shared` (see `packages/shared/dist/identifier.ts`), but
 // sdk-re's shared package does not expose it yet. Inlining here keeps
@@ -798,7 +805,7 @@ export class AgentRuntime {
 					iteration: this.state.iteration,
 				});
 
-				const { message, finishReason } = await this.generateAssistantMessage();
+				const { message, finishReason } = await this.generateAssistantMessageWithRetry();
 				finalAssistantMessage = message;
 				this._invalidateSnapshot();
 				this.state.messages.push(message);
@@ -980,6 +987,29 @@ export class AgentRuntime {
 	private async callAfterRunHooks(result: AgentRunResult): Promise<void> {
 		for (const hook of this.hooks.afterRun) {
 			await hook({ snapshot: this.snapshot(), result });
+		}
+	}
+
+	private async generateAssistantMessageWithRetry(): Promise<{
+		message: AgentMessage;
+		finishReason: AgentModelFinishReason;
+	}> {
+		const maxRetries = 2;
+		for (let attempt = 0; ; attempt += 1) {
+			const result = await this.generateAssistantMessage();
+			const errorText =
+				result.finishReason === "error" ? this.state.lastError : undefined;
+			if (!errorText || !isTransientProviderError(errorText) || attempt >= maxRetries) {
+				return result;
+			}
+			this.config.logger?.debug?.("Transient provider error; retrying", {
+				attempt: attempt + 1,
+				maxRetries,
+				error: errorText,
+			});
+			this.state.lastError = undefined;
+			this.throwIfAborted();
+			await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)));
 		}
 	}
 

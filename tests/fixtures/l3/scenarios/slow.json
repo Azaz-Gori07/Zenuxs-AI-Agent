@@ -1,0 +1,4 @@
+{"name":"slow","steps":[
+ {"type":"text","content":" slow chunk stream ", "delayMs":900,"chunkSize":3,"delayPerChunkMs":60},
+ {"type":"text","content":"Second response."}
+]}
