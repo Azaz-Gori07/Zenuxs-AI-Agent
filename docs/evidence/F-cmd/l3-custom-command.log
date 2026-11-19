@@ -1,0 +1,5 @@
+=== COMMAND: plugin install + shipped custom-command loader ===
+=== TIMESTAMP: 2026-11-19T07:17:20Z ===
+=== SHA: 1a692015529ea32c3d1203f7f40106cf9244752b ===
+{"cwd":"/home/azaz/Projects/Zenuxs-AI-Agent/.tmp/cmd-plugin2","customCommands":["e2e"]}
+=== EXIT: 0 ===
