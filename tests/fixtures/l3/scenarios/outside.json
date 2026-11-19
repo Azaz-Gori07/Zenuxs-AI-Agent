@@ -1,0 +1,4 @@
+{"name":"outside","steps":[
+ {"type":"tool","tool_calls":[{"id":"call_write_1","name":"write","arguments":{"filePath":"../OUTSIDE.txt","content":"SHOULD_NOT_WRITE"}}]},
+ {"type":"text","content":"Done."}
+]}

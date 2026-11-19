@@ -1,0 +1,26 @@
+=== COMMAND: bun run build:extension ===
+=== TIMESTAMP: 2026-11-19T05:45:35Z ===
+=== SHA: e9eb0012883383cc29feb998dafe1b2eada7b5bd ===
+$ bun run build:sdk && bun --cwd apps/vscode-extension build
+$ bun --production -F './packages/*' build
+@zenuxs/schema build: Exited with code 0
+@zenuxs/lsp build: Exited with code 0
+@zenuxs/providers build: Exited with code 0
+@cline/shared build: Exited with code 0
+@zenuxs/engine build: Exited with code 0
+@zenuxs/plugin-sdk build: Exited with code 0
+@zenuxs/studio build: Exited with code 0
+@cline/llms build: Exited with code 0
+@cline/agents build: Exited with code 0
+@cline/core build: Exited with code 0
+$ bun run build:webview && bun run build:extension
+$ bun build --production ./src/webview/index.tsx --outfile ./dist/webview.js --target browser --format esm
+Bundled 26 modules in 25ms
+
+  webview.js  0.32 MB  (entry point)
+
+$ bun build ./src/extension.ts --outfile ./dist/extension.js --target node --format esm --external vscode --source-map=external
+Bundled 1199 modules in 399ms
+
+  extension.js  20.27 MB  (entry point)
+=== EXIT: 0 ===

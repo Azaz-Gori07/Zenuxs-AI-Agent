@@ -1,0 +1,16 @@
+=== COMMAND: bun run --cwd packages/engine test ===
+=== TIMESTAMP: 2026-11-19T05:48:07Z ===
+=== SHA: e9eb0012883383cc29feb998dafe1b2eada7b5bd ===
+$ vitest run
+
+ RUN  v4.1.9 /home/azaz/Projects/Zenuxs-AI-Agent/packages/engine
+
+ ✓ src/session/manager.test.ts (4 tests) 8ms
+ ✓ src/engine.test.ts (9 tests) 8ms
+ ✓ src/store/event-store.test.ts (3 tests) 9ms
+
+ Test Files  3 passed (3)
+      Tests  16 passed (16)
+   Start at  11:18:07
+   Duration  341ms (transform 387ms, setup 0ms, import 533ms, tests 25ms, environment 0ms)
+=== EXIT: 0 ===

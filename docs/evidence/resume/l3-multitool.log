@@ -1,0 +1,7 @@
+=== COMMAND: bash -c timeout 45 bun '/home/azaz/Projects/Zenuxs-AI-Agent/apps/cli/src/index.ts' -c '/home/azaz/Projects/Zenuxs-AI-Agent/tests/fixtures/l3/workspace' -P openai-compatible -m fake-model --auto-approve true --json 'Read the file' 2>&1 | grep -E '"type":"(content_end|run_result)"' | head -5 ===
+=== TIMESTAMP: 2026-11-19T05:49:04Z ===
+=== SHA: e9eb0012883383cc29feb998dafe1b2eada7b5bd ===
+{"ts":"2026-11-19T05:49:06.161Z","type":"agent_event","event":{"type":"content_end","contentType":"tool","toolName":"read","toolCallId":"call_read_1","output":{"title":"Read target.txt","output":"/home/azaz/Projects/Zenuxs-AI-Agent/tests/fixtures/l3/workspace/target.txt\n2 of 2 lines\n\nZENUXS_L3_TARGET_CONTENT=42\n","metadata":{"preview":"ZENUXS_L3_TARGET_CONTENT=42\n","truncated":false,"lineStart":1,"lineEnd":2,"totalLines":2}},"durationMs":3}}
+{"ts":"2026-11-19T05:49:06.171Z","type":"agent_event","event":{"type":"content_end","contentType":"text","text":"I read the file successfully."}}
+{"ts":"2026-11-19T05:49:06.182Z","type":"run_result","finishReason":"completed","iterations":2,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":108,"text":"I read the file successfully.","model":{"id":"fake-model","provider":"openai-compatible"}}
+=== EXIT: 0 ===

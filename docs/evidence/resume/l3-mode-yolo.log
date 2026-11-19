@@ -1,0 +1,5 @@
+=== COMMAND: bash -c timeout 45 bun '/home/azaz/Projects/Zenuxs-AI-Agent/apps/cli/src/index.ts' -P openai-compatible -m fake-model --mode yolo --auto-approve true --json 'What mode are you in?' 2>&1 | grep -E '"type":"run_result"' | head -2 ===
+=== TIMESTAMP: 2026-11-19T05:48:20Z ===
+=== SHA: e9eb0012883383cc29feb998dafe1b2eada7b5bd ===
+{"ts":"2026-11-19T05:48:21.180Z","type":"run_result","finishReason":"completed","iterations":1,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":69,"text":"Mode check OK.","model":{"id":"fake-model","provider":"openai-compatible"}}
+=== EXIT: 0 ===

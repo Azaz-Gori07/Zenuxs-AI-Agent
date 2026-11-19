@@ -1,0 +1,47 @@
+=== COMMAND: node scripts/check-matrix.mjs ===
+=== TIMESTAMP: 2026-11-19T05:48:09Z ===
+=== SHA: e9eb0012883383cc29feb998dafe1b2eada7b5bd ===
+{
+  "rows": 37,
+  "verified": 0,
+  "problems": [
+    "F-core: status IMPLEMENTED (L3 streaming + multi-step loop + exit code verified; abort/retry chaos pending) (expected VERIFIED)",
+    "F-prov: status IMPLEMENTED (L3 OpenAI-compatible streaming via fake provider; other providers pending) (expected VERIFIED)",
+    "F-mode: status IMPLEMENTED (all 7 modes accepted and run headlessly; yolo termination bug fixed; mid-session switch pending) (expected VERIFIED)",
+    "F-prompt: status PARTIAL (AGENTS.md exists in target; assembly unverified) (expected VERIFIED)",
+    "F-ctx: status PARTIAL (`packages/core/src/extensions/context` + `packages/engine/src/session/compaction.ts` broken) (expected VERIFIED)",
+    "F-sess: status IMPLEMENTED (L3 persistence + headless resume verified; fork/rewind pending) (expected VERIFIED)",
+    "F-tools: status IMPLEMENTED (L3 read tool execution verified; full tool matrix pending) (expected VERIFIED)",
+    "F-toolrobust: status PARTIAL (expected VERIFIED)",
+    "F-perm: status IMPLEMENTED (L3 workspace boundary denial verified + regression test; rules matrix pending) (expected VERIFIED)",
+    "F-ckpt: status PARTIAL (expected VERIFIED)",
+    "F-rag: status PARTIAL (`packages/agents/.rag-index` exists; unverified) (expected VERIFIED)",
+    "F-mcp: status PARTIAL (CLI `mcp` command exists; broken engine MCP) (expected VERIFIED)",
+    "F-hooks: status IMPLEMENTED (L3 PreToolUse hook executed with JSON payload) (expected VERIFIED)",
+    "F-skills: status PARTIAL (CLI `skill` cmd + core skills; unverified) (expected VERIFIED)",
+    "F-plug: status PARTIAL (CLI `plugin` cmd + plugin-sdk broken) (expected VERIFIED)",
+    "F-cmd: status PARTIAL (TUI slash registry; custom unverified) (expected VERIFIED)",
+    "F-sub: status PARTIAL (debug-agents cmd; unverified) (expected VERIFIED)",
+    "F-auto: status IMPLEMENTED (L3 --output-format stream-json + exit codes verified; schedules pending) (expected VERIFIED)",
+    "F-cli: status IMPLEMENTED (real CLI help/doctor/headless runs verified, --mode flag added) (expected VERIFIED)",
+    "F-tui: status IMPLEMENTED (L3 pty transcript captured; visual scenario matrix pending) (expected VERIFIED)",
+    "F-ext: status IMPLEMENTED (build + .vsix package + clean install verified; webview E2E pending) (expected VERIFIED)",
+    "F-cfg: status IMPLEMENTED (typecheck green; schema validation tests added) (expected VERIFIED)",
+    "F-perf: status PARTIAL (profiler in target; no targets measured) (expected VERIFIED)",
+    "F-pkg: status IMPLEMENTED (root build, typecheck, lint-equivalent, tests, VSIX packaging all green) (expected VERIFIED)",
+    "F-cli-01: status PARTIAL (target uses positional prompt; `-p` = plan) (expected VERIFIED)",
+    "F-cli-02: status MISSING (expected VERIFIED)",
+    "F-cli-03: status MISSING (expected VERIFIED)",
+    "F-cli-04: status MISSING (expected VERIFIED)",
+    "F-mode-01: status MISSING (expected VERIFIED)",
+    "F-sess-01: status MISSING (expected VERIFIED)",
+    "F-auto-01: status MISSING (target has `schedule`/`kanban`/`hub`) (expected VERIFIED)",
+    "F-hook-01: status MISSING (expected VERIFIED)",
+    "F-rag-01: status PARTIAL (expected VERIFIED)",
+    "F-perm-01: status PARTIAL (expected VERIFIED)",
+    "F-plug-01: status PARTIAL (target plugin cmd exists; markets unverified) (expected VERIFIED)",
+    "F-sys-01: status BROKEN (two cores in target) (expected VERIFIED)",
+    "F-sec-01: status BLOCKED check (ZCODE token in env; unused) (expected VERIFIED)"
+  ]
+}
+=== EXIT: 1 ===

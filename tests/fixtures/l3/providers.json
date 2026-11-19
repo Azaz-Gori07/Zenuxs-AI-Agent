@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "lastUsedProvider": "openai-compatible",
+  "providers": {
+    "openai-compatible": {
+      "settings": {
+        "provider": "openai-compatible",
+        "apiKey": "fake-key",
+        "model": "fake-model",
+        "protocol": "openai-chat",
+        "client": "openai-compatible",
+        "baseUrl": "http://127.0.0.1:4317/v1"
+      },
+      "updatedAt": "2026-11-19T05:49:40.364Z",
+      "tokenSource": "manual"
+    }
+  }
+}

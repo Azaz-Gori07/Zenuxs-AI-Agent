@@ -1,0 +1,3 @@
+#!/bin/sh
+cat >> "$CLINE_DIR/hook-events.log"
+printf '\n'

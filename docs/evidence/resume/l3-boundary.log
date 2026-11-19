@@ -1,0 +1,6 @@
+=== COMMAND: bash -c timeout 45 bun '/home/azaz/Projects/Zenuxs-AI-Agent/apps/cli/src/index.ts' -c '/home/azaz/Projects/Zenuxs-AI-Agent/tests/fixtures/l3/workspace' -P openai-compatible -m fake-model --auto-approve true --json 'Write outside' 2>&1 | grep -Ei 'outside workspace|run_result' | head -4; test -f '/home/azaz/Projects/Zenuxs-AI-Agent/tests/fixtures/l3/OUTSIDE.txt' && echo FILE_WRITTEN || echo FILE_BLOCKED ===
+=== TIMESTAMP: 2026-11-19T05:49:08Z ===
+=== SHA: e9eb0012883383cc29feb998dafe1b2eada7b5bd ===
+{"ts":"2026-11-19T05:49:09.703Z","type":"run_result","finishReason":"completed","iterations":2,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":117,"text":"Done.","model":{"id":"fake-model","provider":"openai-compatible"}}
+FILE_BLOCKED
+=== EXIT: 0 ===

@@ -1,0 +1,7 @@
+=== COMMAND: bun install --frozen-lockfile ===
+=== TIMESTAMP: 2026-11-19T05:45:03Z ===
+=== SHA: e9eb0012883383cc29feb998dafe1b2eada7b5bd ===
+bun install v1.4.4 (38afee6c8)
+
+Checked 1287 installs across 1366 packages (no changes) [51.00ms]
+=== EXIT: 0 ===

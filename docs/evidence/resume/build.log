@@ -1,0 +1,17 @@
+=== COMMAND: bun run build ===
+=== TIMESTAMP: 2026-11-19T05:45:03Z ===
+=== SHA: e9eb0012883383cc29feb998dafe1b2eada7b5bd ===
+$ bun run build:sdk && bun -F zenuxs-code build
+$ bun --production -F './packages/*' build
+@zenuxs/schema build: Exited with code 0
+@zenuxs/lsp build: Exited with code 0
+@zenuxs/providers build: Exited with code 0
+@cline/shared build: Exited with code 0
+@zenuxs/engine build: Exited with code 0
+@zenuxs/plugin-sdk build: Exited with code 0
+@zenuxs/studio build: Exited with code 0
+@cline/llms build: Exited with code 0
+@cline/agents build: Exited with code 0
+@cline/core build: Exited with code 0
+zenuxs-code build: Exited with code 0
+=== EXIT: 0 ===

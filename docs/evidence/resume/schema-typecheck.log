@@ -1,0 +1,5 @@
+=== COMMAND: bun run --cwd packages/schema typecheck ===
+=== TIMESTAMP: 2026-11-19T05:45:32Z ===
+=== SHA: e9eb0012883383cc29feb998dafe1b2eada7b5bd ===
+$ tsc --noEmit
+=== EXIT: 0 ===

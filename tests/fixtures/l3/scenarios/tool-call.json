@@ -1,0 +1,4 @@
+{"name":"tool-call","steps":[
+ {"type":"tool","tool_calls":[{"id":"call_read_1","name":"read","arguments":{"path":"target.txt"}}]},
+ {"type":"text","content":"I read the file successfully."}
+]}

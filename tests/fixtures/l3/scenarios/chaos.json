@@ -1,0 +1,7 @@
+{"name":"chaos","steps":[
+ {"type":"text","content":"Normal response before chaos."},
+ {"type":"status","status":429,"error":"Rate limit injected by fake provider"},
+ {"type":"status","status":500,"error":"Server error injected by fake provider"},
+ {"type":"tool","tool_calls":[{"id":"call_bad_1","name":"read","arguments_raw":"{\"path\": \"/tmp/broken\"","fragments":["{\"path\": \"/tmp/broken\""]}]},
+ {"type":"text","content":"Slow response completed.","delayMs":1200,"chunkSize":4,"delayPerChunkMs":10}
+]}

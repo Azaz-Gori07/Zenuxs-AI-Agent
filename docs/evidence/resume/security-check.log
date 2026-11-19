@@ -1,0 +1,26 @@
+=== COMMAND: node scripts/security-check.mjs ===
+=== TIMESTAMP: 2026-11-19T05:48:09Z ===
+=== SHA: e9eb0012883383cc29feb998dafe1b2eada7b5bd ===
+{
+  "problems": [
+    "apps/cli/CHANGELOG.md: matches /Z\\.AI/i",
+    "apps/cli/src/runtime/run-agent.test.ts: matches /app\\.cline\\.bot/i",
+    "apps/cli/src/tui/zenuxs-account.ts: matches /app\\.cline\\.bot/i",
+    "apps/cli/src/utils/zenuxs-pass-errors.test.ts: matches /app\\.cline\\.bot/i",
+    "apps/zenuxs-hub/src/webview/src/components/views/settings/account-view.tsx: matches /app\\.cline\\.bot/i",
+    "packages/core/src/auth/cline.test.ts: matches /api\\.cline\\.bot/i",
+    "packages/core/src/auth/zenuxs.test.ts: matches /api\\.cline\\.bot/i",
+    "packages/core/src/services/llms/provider-defaults.test.ts: matches /Z\\.AI/i",
+    "packages/core/src/services/providers/local-provider-service.test.ts: matches /Z\\.AI/i",
+    "packages/llms/src/catalog/catalog.generated.ts: matches /Z\\.AI/i",
+    "packages/llms/src/providers/builtins.test.ts: matches /Z\\.AI/i",
+    "packages/llms/src/providers/builtins.ts: matches /Z\\.AI/i",
+    "packages/llms/src/providers/gateway.test.ts: matches /Z\\.AI/i",
+    "packages/llms/src/providers/routing/glm-thinking.ts: matches /Z\\.AI/i",
+    "packages/llms/src/providers/routing/provider-options.test.ts: matches /Z\\.AI/i",
+    "packages/shared/src/runtime/zenuxs-environment.ts: matches /app\\.cline\\.bot/i",
+    "packages/shared/src/runtime/zenuxs-environment.ts: matches /api\\.cline\\.bot/i",
+    "scripts/security-check.mjs: matches /ZCODE_OFFICIAL_ENDPOINT_TOKEN/"
+  ]
+}
+=== EXIT: 0 ===
