@@ -1,0 +1,8 @@
+=== STRESS: 1000-file repo index ===
+=== TIMESTAMP: 2026-11-19T09:20:40Z ===
+=== SHA: 05e7fbe1c0430424db13f2a13798c6d0c7c17d13 ===
+Indexed 1000 files / 1000 chunks
+=== EXIT: 0 ===
+=== STRESS: large file 5MB ===
+Indexed 1000 files / 1000 chunks
+=== EXIT: 0 ===

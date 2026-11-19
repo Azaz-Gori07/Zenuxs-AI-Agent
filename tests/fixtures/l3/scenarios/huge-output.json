@@ -1,0 +1,1 @@
+{"name":"huge-output","steps":[{"type":"text","content":"X".repeat(200000),"chunkSize":5000},{"type":"text","content":"done"}]}

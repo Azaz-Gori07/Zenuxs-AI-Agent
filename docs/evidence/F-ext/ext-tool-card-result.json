@@ -1,0 +1,26 @@
+{
+  "timestamp": "2026-11-19T09:08:54.486Z",
+  "scenarios": [
+    {
+      "name": "chat UI mounted",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "tool call card rendered",
+      "ok": true,
+      "detail": [
+        "Read the file",
+        "read file: sample.ts",
+        "read complete in extension.",
+        "Reading sample.ts"
+      ]
+    },
+    {
+      "name": "diagnostics panel reachable",
+      "ok": true,
+      "detail": "Problems"
+    }
+  ],
+  "transcript": "CONTEXT WINDOW\n0 / 128,000\n⏱️\n\nRead the file\n\nZenuxs AI\nread file: sample.ts\nCOMPLETED\nZenuxs AI\n\nFile read complete in extension.\n\nTask Completed\nThe requested task has finished successfully.\n▼\nTask #1 • Task #1\n📖\n✓\nReading sample.ts\n✓\nTask #1 Completed\nFiles Changed\n0\nCommands Executed\n0\nTests Passed\n0\nDuration\n0s\nTokens\n0.0k\nCost\n$0.0000\n✓ Task Completed\nOpenAI / fake-model ▾\n|\nAct ▾\nAttach File Context\n0 / 128,000 | $0.0000"
+}

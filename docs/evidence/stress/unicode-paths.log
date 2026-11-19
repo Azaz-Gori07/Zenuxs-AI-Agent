@@ -1,0 +1,7 @@
+=== STRESS: unicode + CRLF + path with spaces ===
+=== TIMESTAMP: 2026-11-19T09:21:16Z ===
+=== SHA: 05e7fbe1c0430424db13f2a13798c6d0c7c17d13 ===
+{"ts":"2026-11-19T09:21:18.652Z","type":"agent_event","event":{"type":"content_end","contentType":"tool","toolName":"read","toolCallId":"call_read_1","output":{"output":"File not found: /tmp/stress dir/target.txt","isError":true},"durationMs":3}}
+{"ts":"2026-11-19T09:21:18.669Z","type":"agent_event","event":{"type":"content_end","contentType":"text","text":"I read the file successfully."}}
+{"ts":"2026-11-19T09:21:18.682Z","type":"run_result","finishReason":"completed","iterations":2,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":106,"text":"I read the file successfully.","model":{"id":"fake-model","provider":"openai-compatible"}}
+=== EXIT: 0 ===

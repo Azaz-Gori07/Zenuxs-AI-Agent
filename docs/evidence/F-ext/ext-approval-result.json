@@ -1,0 +1,23 @@
+{
+  "timestamp": "2026-11-19T09:09:54.410Z",
+  "scenarios": [
+    {
+      "name": "chat UI mounted",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "approval or diff card rendered",
+      "ok": true,
+      "detail": [
+        "Tool write requests permission."
+      ]
+    },
+    {
+      "name": "diagnostics panel reachable (approval run)",
+      "ok": true,
+      "detail": "Problems"
+    }
+  ],
+  "transcript": "CONTEXT WINDOW\n0 / 128,000\n⏱️\n\nWrite the file\n\n🛡️ Manual Approval Required\nTool write requests permission.\nShow raw arguments\nEdit arguments\nRun once\nAlways allow\nAllow this session\nDeny\nOpenAI / fake-model ▾\n|\nAct ▾\nAttach File Context\n0 / 128,000 | $0.0000"
+}

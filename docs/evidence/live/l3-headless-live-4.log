@@ -1,0 +1,6 @@
+=== COMMAND: real CLI headless task against LIVE provider ===
+=== TIMESTAMP: 2026-11-19T09:15:56Z ===
+=== SHA: 81372d7c15eb779d31e19813b37db76dcd6262b2 ===
+=== MODEL: mimo-v2.6-flash-free (glm model retired upstream) ===
+Terminated                 ZENUXS_PROVIDER_SETTINGS_PATH=/tmp/zenuxs-live/providers.json CLINE_DIR=/tmp/zenuxs-live/live-final CLINE_DATA_DIR=/tmp/zenuxs-live/live-final timeout 90 bun apps/cli/src/index.ts -P openai-compatible -m mimo-v2.6-flash-free --retries 1 --timeout 60 --json "Reply with exactly LIVE_OK and nothing else." 2>&1 | grep -E '"type":"(run_result|content_end|error)"|Rate Limited' | head -6
+=== EXIT: 124 ===

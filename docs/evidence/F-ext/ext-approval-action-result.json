@@ -1,0 +1,29 @@
+{
+  "timestamp": "2026-11-19T09:10:43.430Z",
+  "scenarios": [
+    {
+      "name": "approval prompt present",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "apply via Run once changes file",
+      "ok": true,
+      "detail": {
+        "before": "const answer = 42;\nexport default answer;\n",
+        "after": "const answer = 99;\nexport default answer;\n"
+      }
+    },
+    {
+      "name": "diff/result rendered",
+      "ok": true,
+      "detail": [
+        "Write complete.",
+        "sample.ts",
+        "sample.ts",
+        "Files Changed"
+      ]
+    }
+  ],
+  "transcript": "CONTEXT WINDOW\n0 / 128,000\n⏱️\n\nWrite the file\n\nZenuxs AI\n\nRunning write...Write complete.\n\ntool sample.ts\nTask Completed\nThe requested task has finished successfully.\n▼\nTask #1 • Task #1\n📝\n✓\nWriting sample.ts\n✓\nTask #1 Completed\nFiles Changed\n1\nCommands Executed\n0\nTests Passed\n0\nDuration\n0s\nTokens\n0.0k\nCost\n$0.0000\n▸ View Changes\n✓ Task Completed\nOpenAI / fake-model ▾\n|\nAct ▾\nAttach File Context\n0 / 128,000 | $0.0000"
+}

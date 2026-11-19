@@ -1,0 +1,4 @@
+=== STRESS: Ctrl-C mid-turn + 3 concurrent sessions ===
+=== TIMESTAMP: 2026-11-19T09:21:34Z ===
+=== SHA: 05e7fbe1c0430424db13f2a13798c6d0c7c17d13 ===
+abort result: 0 abort/error lines; process alive: no

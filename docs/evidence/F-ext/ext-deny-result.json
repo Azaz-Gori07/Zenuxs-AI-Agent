@@ -1,0 +1,22 @@
+{
+  "timestamp": "2026-11-19T09:11:17.902Z",
+  "scenarios": [
+    {
+      "name": "chat available",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "second approval prompt",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "deny leaves file unchanged",
+      "ok": true,
+      "detail": {
+        "after": "const answer = 99;\nexport default answer;\n"
+      }
+    }
+  ]
+}

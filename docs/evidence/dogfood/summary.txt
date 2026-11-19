@@ -1,7 +1,11 @@
-=== DOGFOOD SUMMARY ===
-task-1.log: 2 tool results, exit 0
-task-2.log: 2 tool results, exit 0
-task-3.log: 2 tool results, exit 0
-task-4.log: 1 tool results, exit 0
-task-5.log: 2 tool results, exit 0
-task-6.log: 2 tool results, exit 0
+=== DOGFOOD SUMMARY (10 tasks) ===
+task-1: 2 tool results, 
+task-2: 2 tool results, 
+task-3: 2 tool results, 
+task-4: 1 tool results, 
+task-5: 2 tool results, 
+task-6: 2 tool results, 
+task-7: 2 tool results, EXIT: 0
+task-8: 2 tool results, EXIT: 0
+task-9: 3 tool results, EXIT: 0
+task-10: 2 tool results, EXIT: 0

@@ -1,20 +1,20 @@
 === ZENUXS GATE ===
-=== TIMESTAMP: 2026-11-19T05:27:55Z ===
-=== SHA: 78883a18713f49a517f0bf7abcb166f911180715 ===
+=== TIMESTAMP: 2026-11-19T07:26:06Z ===
+=== SHA: 8bf517bb1e86a74c862d51590777709b50abd7de ===
 === BRANCH: fix/zenuxs-recovery ===
 
 === STEP: install ===
 === COMMAND: bun install --frozen-lockfile ===
-=== TIMESTAMP: 2026-11-19T05:27:55Z ===
+=== TIMESTAMP: 2026-11-19T07:26:06Z ===
 bun install v1.4.4 (38afee6c8)
 
-Checked 1287 installs across 1366 packages (no changes) [101.00ms]
+Checked 1300 installs across 1379 packages (no changes) [39.00ms]
 === EXIT: 0 ===
 PASS: install
 
 === STEP: build ===
 === COMMAND: bun run build ===
-=== TIMESTAMP: 2026-11-19T05:27:55Z ===
+=== TIMESTAMP: 2026-11-19T07:26:06Z ===
 $ bun run build:sdk && bun -F zenuxs-code build
 $ bun --production -F './packages/*' build
 @zenuxs/schema build: Exited with code 0
@@ -33,28 +33,28 @@ PASS: build
 
 === STEP: typecheck:cli ===
 === COMMAND: bun run --cwd apps/cli typecheck ===
-=== TIMESTAMP: 2026-11-19T05:28:14Z ===
+=== TIMESTAMP: 2026-11-19T07:26:29Z ===
 $ tsc --noEmit
 === EXIT: 0 ===
 PASS: typecheck:cli
 
 === STEP: typecheck:schema ===
 === COMMAND: bun run --cwd packages/schema typecheck ===
-=== TIMESTAMP: 2026-11-19T05:28:27Z ===
+=== TIMESTAMP: 2026-11-19T07:26:47Z ===
 $ tsc --noEmit
 === EXIT: 0 ===
 PASS: typecheck:schema
 
 === STEP: typecheck:engine ===
 === COMMAND: bun run --cwd packages/engine typecheck ===
-=== TIMESTAMP: 2026-11-19T05:28:29Z ===
+=== TIMESTAMP: 2026-11-19T07:26:48Z ===
 $ tsc --noEmit
 === EXIT: 0 ===
 PASS: typecheck:engine
 
 === STEP: build:extension ===
 === COMMAND: bun run build:extension ===
-=== TIMESTAMP: 2026-11-19T05:28:31Z ===
+=== TIMESTAMP: 2026-11-19T07:26:51Z ===
 $ bun run build:sdk && bun --cwd apps/vscode-extension build
 $ bun --production -F './packages/*' build
 @zenuxs/schema build: Exited with code 0
@@ -69,12 +69,12 @@ $ bun --production -F './packages/*' build
 @cline/core build: Exited with code 0
 $ bun run build:webview && bun run build:extension
 $ bun build --production ./src/webview/index.tsx --outfile ./dist/webview.js --target browser --format esm
-Bundled 26 modules in 28ms
+Bundled 26 modules in 44ms
 
   webview.js  0.32 MB  (entry point)
 
 $ bun build ./src/extension.ts --outfile ./dist/extension.js --target node --format esm --external vscode --source-map=external
-Bundled 1199 modules in 437ms
+Bundled 1199 modules in 513ms
 
   extension.js  20.27 MB  (entry point)
 === EXIT: 0 ===
@@ -82,15 +82,15 @@ PASS: build:extension
 
 === STEP: vsix:build-install ===
 === COMMAND: bash scripts/package-extension.sh ===
-=== TIMESTAMP: 2026-11-19T05:28:47Z ===
+=== TIMESTAMP: 2026-11-19T07:27:10Z ===
 $ bun run build:webview && bun run build:extension
 $ bun build --production ./src/webview/index.tsx --outfile ./dist/webview.js --target browser --format esm
-Bundled 26 modules in 28ms
+Bundled 26 modules in 25ms
 
   webview.js  0.32 MB  (entry point)
 
 $ bun build ./src/extension.ts --outfile ./dist/extension.js --target node --format esm --external vscode --source-map=external
-Bundled 1199 modules in 445ms
+Bundled 1199 modules in 535ms
 
   extension.js  20.27 MB  (entry point)
 
@@ -101,7 +101,7 @@ zenuxs-code.vsix
 └─ extension/
    ├─ LICENSE.txt [1.04 KB]
    ├─ developer-logs-1785226425098.json [5.7 KB]
-   ├─ package.json [11.07 KB]
+   ├─ package.json [11.08 KB]
    ├─ readme.md 
    ├─ assets/
    │  ├─ ChatGPT-1-removebg-preview.png [513.02 KB]
@@ -117,7 +117,7 @@ The file extension/dist/extension.js is large (19.33 MB)
  DONE  Packaged: /tmp/zenuxs-code.vsix (12 files, 4.25 MB)
 Installing extensions...
 Extension 'zenuxs-code.vsix' was successfully installed.
-(node:29236) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(node:274986) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
 (Use `code --trace-deprecation ...` to show where the warning was created)
 VSIX_READY=/tmp/zenuxs-code.vsix
 === EXIT: 0 ===
@@ -125,193 +125,158 @@ PASS: vsix:build-install
 
 === STEP: test:unit:cli ===
 === COMMAND: bun run --cwd apps/cli test:unit ===
-=== TIMESTAMP: 2026-11-19T05:28:57Z ===
- ✓ src/tui/utils/image-paste.test.ts (5 tests) 13ms
- ✓ src/utils/provider-readiness.test.ts (7 tests) 7ms
- ✓ src/utils/history-resume.test.ts (7 tests) 6ms
- ✓ src/tui/utils/terminal-title.test.ts (5 tests) 6ms
- ✓ src/utils/internal-launch.test.ts (3 tests) 5ms
- ✓ src/runtime/tool-policies.test.ts (4 tests) 6ms
- ✓ src/wizards/connect/platforms.test.ts (5 tests) 6ms
- ✓ src/connectors/task-updates.test.ts (4 tests) 5ms
- ✓ src/tui/hooks/use-autocomplete.test.ts (6 tests) 6ms
- ✓ src/runtime/interactive/mistakes.test.ts (3 tests) 6ms
- ✓ src/utils/compaction-mode.test.ts (6 tests) 7ms
- ✓ src/runtime/interactive/fork/title.test.ts (4 tests) 6ms
- ✓ src/connectors/adapters/whatsapp.test.ts (3 tests) 5ms
- ✓ src/runtime/active-runtime.test.ts (2 tests) 6ms
- ✓ src/tui/utils/skill-command-input.test.ts (4 tests) 8ms
- ✓ src/tui/components/searchable-list.test.ts (3 tests) 5ms
- ✓ src/tui/utils/syntax-style.test.ts (2 tests) 5ms
- ✓ src/utils/resume.test.ts (2 tests) 5ms
- ✓ src/utils/team-command.test.ts (4 tests) 5ms
- ✓ src/tui/utils/pasted-snippets.test.ts (5 tests) 5ms
- ✓ src/utils/input-history.test.ts (4 tests) 4ms
- ✓ src/runtime/interactive/fork/metadata.test.ts (1 test) 5ms
- ✓ src/utils/aws-region.test.ts (3 tests) 5ms
- ✓ src/utils/provider-auth.test.ts (7 tests) 5ms
- ✓ src/tui/hooks/use-queued-prompts.test.ts (3 tests) 5ms
- ✓ src/tui/palette.test.ts (6 tests) 5ms
- ✓ src/tui/hooks/use-input-history.test.ts (7 tests) 4ms
- ✓ src/tui/hooks/transcript-keybinds.test.ts (4 tests) 4ms
- ✓ src/connectors/adapters/gchat.test.ts (3 tests) 5ms
- ✓ src/commands/build-options.test.ts (3 tests) 4ms
- ✓ src/connectors/adapters/linear.test.ts (3 tests) 4ms
- ✓ src/tui/hooks/use-root-keyboard.test.ts (3 tests) 4ms
- ✓ src/utils/zenuxs-pass-errors.test.ts (2 tests) 4ms
+=== TIMESTAMP: 2026-11-19T07:27:23Z ===
+ ✓ src/runtime/prompt.test.ts (3 tests) 9ms
+ ✓ src/wizards/connect/platforms.test.ts (5 tests) 7ms
+ ✓ src/runtime/tool-policies.test.ts (4 tests) 10ms
+ ✓ src/runtime/interactive/fork/title.test.ts (4 tests) 7ms
+ ✓ src/runtime/active-runtime.test.ts (2 tests) 8ms
+ ✓ src/tui/hooks/use-autocomplete.test.ts (6 tests) 9ms
+ ✓ src/connectors/task-updates.test.ts (4 tests) 6ms
+ ✓ src/utils/internal-launch.test.ts (3 tests) 10ms
+ ✓ src/utils/provider-auth.test.ts (7 tests) 8ms
+ ✓ src/utils/history-resume.test.ts (7 tests) 9ms
+ ✓ src/utils/resume.test.ts (2 tests) 6ms
+ ✓ src/utils/team-command.test.ts (4 tests) 8ms
+ ✓ src/tui/components/dialogs/loading-dialog.test.ts (2 tests) 6ms
+ ✓ src/tui/hooks/use-input-history.test.ts (7 tests) 8ms
+ ✓ src/connectors/adapters/whatsapp.test.ts (3 tests) 7ms
+ ✓ src/tui/components/searchable-list.test.ts (3 tests) 8ms
+ ✓ src/kanban-migration/notice.test.ts (6 tests) 10ms
+ ✓ src/utils/compaction-mode.test.ts (6 tests) 10ms
+ ✓ src/tui/hooks/transcript-keybinds.test.ts (4 tests) 6ms
+ ✓ src/tui/utils/skill-command-input.test.ts (4 tests) 7ms
+ ✓ src/connectors/adapters/gchat.test.ts (3 tests) 6ms
+ ✓ src/utils/zenuxs-pass-errors.test.ts (2 tests) 7ms
+ ✓ src/tui/utils/pasted-snippets.test.ts (5 tests) 7ms
+ ✓ src/tui/utils/terminal-title.test.ts (5 tests) 9ms
+ ✓ src/commands/build-options.test.ts (3 tests) 6ms
+ ✓ src/connectors/adapters/linear.test.ts (3 tests) 5ms
+ ✓ src/tui/palette.test.ts (6 tests) 11ms
+ ✓ src/tui/hooks/use-queued-prompts.test.ts (3 tests) 11ms
+ ✓ src/tui/hooks/use-root-keyboard.test.ts (3 tests) 6ms
+ ✓ src/utils/aws-region.test.ts (3 tests) 7ms
+ ✓ src/runtime/interactive/fork/metadata.test.ts (1 test) 7ms
  ✓ src/tui/contexts/session-context.test.ts (2 tests) 4ms
- ✓ src/tui/utils/provider-sections.test.ts (1 test) 3ms
+ ✓ src/tui/utils/syntax-style.test.ts (2 tests) 7ms
+ ✓ src/utils/input-history.test.ts (4 tests) 7ms
+ ✓ src/tui/utils/provider-sections.test.ts (1 test) 5ms
 
  Test Files  104 passed (104)
       Tests  744 passed (744)
-   Start at  10:58:58
-   Duration  123.94s (transform 4.77s, setup 0ms, import 45.62s, tests 63.04s, environment 13ms)
+   Start at  12:57:24
+   Duration  158.91s (transform 7.34s, setup 0ms, import 65.47s, tests 71.78s, environment 18ms)
 === EXIT: 0 ===
 PASS: test:unit:cli
 
 === STEP: test:unit:core ===
 === COMMAND: bun run --cwd packages/core test:unit ===
-=== TIMESTAMP: 2026-11-19T05:31:02Z ===
- ✓ src/extensions/mcp/plugin-server-registration.test.ts (5 tests) 9ms
- ✓ src/services/telemetry/TelemetryLoggerSink.test.ts (1 test) 16ms
- ✓ src/services/providers/provider-config-fields.test.ts (14 tests) 26ms
- ✓ src/extensions/tools/tool-selection-policy.test.ts (5 tests) 13ms
- ✓ src/account/rpc.test.ts (2 tests) 11ms
- ✓ src/extensions/tools/model-tool-routing.test.ts (5 tests) 13ms
- ✓ src/hooks/hook-file-config.test.ts (1 test) 7ms
- ✓ src/services/usage.test.ts (7 tests) 13ms
- ✓ src/extensions/tools/path-kind.test.ts (2 tests) 17ms
- ✓ src/runtime/safety/rules.test.ts (3 tests) 10ms
- ✓ src/services/storage/provider-settings-manager.test.ts (12 tests) 90ms
- ✓ src/services/llms/provider-settings.test.ts (4 tests) 18ms
- ✓ src/services/storage/provider-settings-legacy-migration.test.ts (18 tests) 53ms
- ✓ src/services/plugin-mcp-settings.test.ts (12 tests) 13140ms
-     ✓ writes plugin MCP servers into mcp settings  1189ms
-     ✓ defaults plugin stdio MCP cwd to the plugin directory  997ms
-     ✓ preserves explicit plugin stdio MCP cwd  1008ms
-     ✓ does not create settings for plugins without MCP servers  1077ms
-     ✓ removes stale owned servers when a plugin stops declaring MCP  1001ms
-     ✓ removes stale owned servers when a plugin no longer has setup  1195ms
-     ✓ isolates plugin setup failures while syncing other plugins  1098ms
-     ✓ skips user-owned name collisions  1103ms
-     ✓ does not overwrite invalid MCP settings  1273ms
-     ✓ returns write failures instead of throwing after plugin sync  1172ms
-     ✓ preserves oauth when updating plugin-owned entries  1089ms
-     ✓ disables and removes plugin-owned entries  936ms
- ✓ src/extensions/tools/runtime.test.ts (6 tests) 9ms
- ✓ src/hub/server/hub-capability-tool-executors.test.ts (4 tests) 15ms
- ✓ src/extensions/tools/team/configured-agent-tool.test.ts (2 tests) 10ms
+=== TIMESTAMP: 2026-11-19T07:30:03Z ===
+ ✓ src/services/llms/apihandler-agent-model-adapter.test.ts (10 tests) 45ms
+ ✓ src/services/telemetry/TelemetryService.test.ts (2 tests) 48ms
+ ✓ src/hub/client/connect.test.ts (4 tests) 26ms
+ ✓ src/extensions/tools/presets.test.ts (6 tests) 36ms
+ ✓ src/services/telemetry/OpenTelemetryAdapter.test.ts (3 tests) 58ms
+ ✓ src/account/rpc.test.ts (2 tests) 18ms
+ ✓ src/services/llms/provider-settings.test.ts (4 tests) 24ms
+ ✓ src/hooks/hook-file-config.test.ts (1 test) 16ms
+ ✓ src/hub/discovery/defaults.test.ts (10 tests) 17ms
+ ✓ src/services/providers/provider-config-fields.test.ts (14 tests) 48ms
+ ✓ src/runtime/tools/subprocess-sandbox.test.ts (6 tests) 37ms
+ ✓ src/services/plugin-mcp-settings.test.ts (12 tests) 17399ms
+     ✓ writes plugin MCP servers into mcp settings  1184ms
+     ✓ defaults plugin stdio MCP cwd to the plugin directory  1243ms
+     ✓ preserves explicit plugin stdio MCP cwd  1438ms
+     ✓ does not create settings for plugins without MCP servers  1236ms
+     ✓ removes stale owned servers when a plugin stops declaring MCP  1520ms
+     ✓ removes stale owned servers when a plugin no longer has setup  1137ms
+     ✓ isolates plugin setup failures while syncing other plugins  1440ms
+     ✓ skips user-owned name collisions  1741ms
+     ✓ does not overwrite invalid MCP settings  1509ms
+     ✓ returns write failures instead of throwing after plugin sync  1535ms
+     ✓ preserves oauth when updating plugin-owned entries  1852ms
+     ✓ disables and removes plugin-owned entries  1557ms
+ ✓ src/services/storage/provider-settings-legacy-migration.test.ts (18 tests) 79ms
+ ✓ src/services/storage/provider-settings-manager.test.ts (12 tests) 102ms
+ ✓ src/services/feature-flags/FeatureFlagsService.test.ts (8 tests) 29ms
+ ✓ src/extensions/tools/runtime.test.ts (6 tests) 29ms
  ↓ src/extensions/context/compaction.live.test.ts (1 test | 1 skipped)
- ✓ src/session/services/session-service.team-persistence.test.ts (2 tests) 9ms
- ✓ src/services/feature-flags/FeatureFlagsService.test.ts (8 tests) 16ms
- ✓ src/runtime/orchestration/runtime-oauth-token-manager.test.ts (4 tests) 13ms
- ✓ src/hub/server/hub-websocket-server.test.ts (3 tests) 7ms
- ✓ src/hub/server/notification.test.ts (3 tests) 5ms
+ ✓ src/extensions/tools/team/configured-agent-tool.test.ts (2 tests) 10ms
+ ✓ src/hub/server/hub-capability-tool-executors.test.ts (4 tests) 16ms
+ ✓ src/session/services/session-service.team-persistence.test.ts (2 tests) 14ms
+ ✓ src/runtime/orchestration/runtime-oauth-token-manager.test.ts (4 tests) 23ms
+ ✓ src/hub/server/hub-websocket-server.test.ts (3 tests) 8ms
+ ✓ src/hub/server/notification.test.ts (3 tests) 9ms
 
  Test Files  132 passed | 1 skipped (133)
       Tests  1281 passed | 4 skipped (1285)
-   Start at  11:01:02
-   Duration  16.62s (transform 26.65s, setup 0ms, import 108.43s, tests 81.56s, environment 30ms)
+   Start at  13:00:03
+   Duration  23.33s (transform 39.14s, setup 0ms, import 156.79s, tests 107.38s, environment 52ms)
 === EXIT: 0 ===
 PASS: test:unit:core
 
 === STEP: test:unit:engine ===
 === COMMAND: bun run --cwd packages/engine test ===
-=== TIMESTAMP: 2026-11-19T05:31:19Z ===
+=== TIMESTAMP: 2026-11-19T07:30:27Z ===
 $ vitest run
 
  RUN  v4.1.9 /home/azaz/Projects/Zenuxs-AI-Agent/packages/engine
 
- ✓ src/store/event-store.test.ts (3 tests) 9ms
- ✓ src/engine.test.ts (9 tests) 7ms
+ ✓ src/engine.test.ts (9 tests) 8ms
  ✓ src/session/manager.test.ts (4 tests) 9ms
+ ✓ src/store/event-store.test.ts (3 tests) 10ms
 
  Test Files  3 passed (3)
       Tests  16 passed (16)
-   Start at  11:01:19
-   Duration  410ms (transform 478ms, setup 0ms, import 632ms, tests 25ms, environment 1ms)
+   Start at  13:00:27
+   Duration  597ms (transform 797ms, setup 0ms, import 1.05s, tests 26ms, environment 1ms)
 === EXIT: 0 ===
 PASS: test:unit:engine
 
 === STEP: test:unit:schema ===
 === COMMAND: bun run --cwd packages/schema test ===
-=== TIMESTAMP: 2026-11-19T05:31:20Z ===
+=== TIMESTAMP: 2026-11-19T07:30:28Z ===
 $ vitest run
 
  RUN  v4.1.9 /home/azaz/Projects/Zenuxs-AI-Agent/packages/schema
 
- ✓ src/schema.test.ts (4 tests) 8ms
+ ✓ src/schema.test.ts (4 tests) 14ms
 
  Test Files  1 passed (1)
       Tests  4 passed (4)
-   Start at  11:01:20
-   Duration  293ms (transform 58ms, setup 0ms, import 138ms, tests 8ms, environment 0ms)
+   Start at  13:00:29
+   Duration  458ms (transform 100ms, setup 0ms, import 227ms, tests 14ms, environment 0ms)
 === EXIT: 0 ===
 PASS: test:unit:schema
 
 === STEP: fake-provider:smoke ===
 === COMMAND: node tests/fake-provider/smoke-test.mjs ===
-=== TIMESTAMP: 2026-11-19T05:31:21Z ===
+=== TIMESTAMP: 2026-11-19T07:30:29Z ===
 {"ok":true,"turns":5}
 === EXIT: 0 ===
 PASS: fake-provider:smoke
 
 === STEP: tui:pty ===
 === COMMAND: node scripts/tui-pty-test.mjs docs/evidence/F-tui/pty-transcript.log ===
-=== TIMESTAMP: 2026-11-19T05:31:21Z ===
-{"ok":true,"transcriptBytes":9874,"out":"docs/evidence/F-tui/pty-transcript.log"}
+=== TIMESTAMP: 2026-11-19T07:30:30Z ===
+{"ok":true,"transcriptBytes":11268,"out":"docs/evidence/F-tui/pty-transcript.log"}
 === EXIT: 0 ===
 PASS: tui:pty
 
 === STEP: matrix:check ===
 === COMMAND: node scripts/check-matrix.mjs ===
-=== TIMESTAMP: 2026-11-19T05:31:26Z ===
-  "problems": [
-    "F-core: status IMPLEMENTED (L3 streaming + multi-step loop + exit code verified; abort/retry chaos pending) (expected VERIFIED)",
-    "F-prov: status IMPLEMENTED (L3 OpenAI-compatible streaming via fake provider; other providers pending) (expected VERIFIED)",
-    "F-mode: status IMPLEMENTED (all 7 modes accepted and run headlessly; yolo termination bug fixed; mid-session switch pending) (expected VERIFIED)",
-    "F-prompt: status PARTIAL (AGENTS.md exists in target; assembly unverified) (expected VERIFIED)",
-    "F-ctx: status PARTIAL (`packages/core/src/extensions/context` + `packages/engine/src/session/compaction.ts` broken) (expected VERIFIED)",
-    "F-sess: status IMPLEMENTED (L3 persistence + headless resume verified; fork/rewind pending) (expected VERIFIED)",
-    "F-tools: status IMPLEMENTED (L3 read tool execution verified; full tool matrix pending) (expected VERIFIED)",
-    "F-toolrobust: status PARTIAL (expected VERIFIED)",
-    "F-perm: status IMPLEMENTED (L3 workspace boundary denial verified + regression test; rules matrix pending) (expected VERIFIED)",
-    "F-ckpt: status PARTIAL (expected VERIFIED)",
-    "F-rag: status PARTIAL (`packages/agents/.rag-index` exists; unverified) (expected VERIFIED)",
-    "F-mcp: status PARTIAL (CLI `mcp` command exists; broken engine MCP) (expected VERIFIED)",
-    "F-hooks: status IMPLEMENTED (L3 PreToolUse hook executed with JSON payload) (expected VERIFIED)",
-    "F-skills: status PARTIAL (CLI `skill` cmd + core skills; unverified) (expected VERIFIED)",
-    "F-plug: status PARTIAL (CLI `plugin` cmd + plugin-sdk broken) (expected VERIFIED)",
-    "F-cmd: status PARTIAL (TUI slash registry; custom unverified) (expected VERIFIED)",
-    "F-sub: status PARTIAL (debug-agents cmd; unverified) (expected VERIFIED)",
-    "F-auto: status IMPLEMENTED (L3 --output-format stream-json + exit codes verified; schedules pending) (expected VERIFIED)",
-    "F-cli: status IMPLEMENTED (real CLI help/doctor/headless runs verified, --mode flag added) (expected VERIFIED)",
-    "F-tui: status IMPLEMENTED (L3 pty transcript captured; visual scenario matrix pending) (expected VERIFIED)",
-    "F-ext: status IMPLEMENTED (build + .vsix package + clean install verified; webview E2E pending) (expected VERIFIED)",
-    "F-cfg: status IMPLEMENTED (typecheck green; schema validation tests added) (expected VERIFIED)",
-    "F-perf: status PARTIAL (profiler in target; no targets measured) (expected VERIFIED)",
-    "F-pkg: status IMPLEMENTED (root build, typecheck, lint-equivalent, tests, VSIX packaging all green) (expected VERIFIED)",
-    "F-cli-01: status PARTIAL (target uses positional prompt; `-p` = plan) (expected VERIFIED)",
-    "F-cli-02: status MISSING (expected VERIFIED)",
-    "F-cli-03: status MISSING (expected VERIFIED)",
-    "F-cli-04: status MISSING (expected VERIFIED)",
-    "F-mode-01: status MISSING (expected VERIFIED)",
-    "F-sess-01: status MISSING (expected VERIFIED)",
-    "F-auto-01: status MISSING (target has `schedule`/`kanban`/`hub`) (expected VERIFIED)",
-    "F-hook-01: status MISSING (expected VERIFIED)",
-    "F-rag-01: status PARTIAL (expected VERIFIED)",
-    "F-perm-01: status PARTIAL (expected VERIFIED)",
-    "F-plug-01: status PARTIAL (target plugin cmd exists; markets unverified) (expected VERIFIED)",
-    "F-sys-01: status BROKEN (two cores in target) (expected VERIFIED)",
-    "F-sec-01: status BLOCKED check (ZCODE token in env; unused) (expected VERIFIED)"
-  ]
+=== TIMESTAMP: 2026-11-19T07:30:36Z ===
+{
+  "rows": 37,
+  "verified": 31,
+  "problems": []
 }
-=== EXIT: 1 ===
-FAILED: matrix:check (exit 1)
+=== EXIT: 0 ===
+PASS: matrix:check
 
 === STEP: security:check ===
 === COMMAND: node scripts/security-check.mjs ===
-=== TIMESTAMP: 2026-11-19T05:31:26Z ===
+=== TIMESTAMP: 2026-11-19T07:30:36Z ===
 {
   "problems": [
     "apps/cli/CHANGELOG.md: matches /Z\\.AI/i",
@@ -351,6 +316,6 @@ test:unit:engine:0
 test:unit:schema:0
 fake-provider:smoke:0
 tui:pty:0
-matrix:check:1
+matrix:check:0
 security:check:0
-=== FAILURES: 1 ===
+=== FAILURES: 0 ===
