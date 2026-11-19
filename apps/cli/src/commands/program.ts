@@ -24,6 +24,12 @@ export function addRootOptions(cmd: Command): Command {
 	return (
 		cmd
 			.option("-p, --plan", "Run in plan mode")
+			.option("--prompt <text>", "Prompt text for a single headless run")
+			.option(
+				"--disallowed-tools <names>",
+				"Comma-separated tools to remove for this run",
+			)
+			.option("--attach <path>", "Attach a local file (repeatable)")
 			.option(
 				"--mode <mode>",
 				"Agent mode: act, plan, build, edit, guarded, yolo, ask, debug",
@@ -266,10 +272,13 @@ export function commanderToParsedArgs(program: Command): ParsedArgs {
 	else if (opts.apiKey !== undefined) result.key = opts.apiKey;
 	if (opts.id !== undefined) result.id = opts.id;
 
-	// Positional args → prompt
+	// Positional args → prompt; --prompt takes precedence when supplied.
 	const positional = program.args;
 	if (positional.length > 0) {
 		result.prompt = positional.join(" ");
+	}
+	if (typeof opts.prompt === "string" && opts.prompt.trim()) {
+		result.prompt = opts.prompt.trim();
 	}
 
 	return result;
