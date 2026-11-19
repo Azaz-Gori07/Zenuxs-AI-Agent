@@ -33,3 +33,8 @@ Core suite reports 1281 passed / 4 skipped (133 files). The four skips:
 4. `src/extensions/context/compaction.live.test.ts > live agentic compaction > summarizes oversized arbitrary tool results with a real provider` — gated by `CORE_LIVE_COMPACTION_TESTS=1` (compaction.live.test.ts:23). Justified: BLOCKED — no permitted live provider key in environment (only ZCODE_OFFICIAL_ENDPOINT_TOKEN exists, which mission rules forbid using in target).
 
 No P0 feature has a skipped test.
+
+## Resume-run remaining rows (2026-11-19)
+- F-rag: no in-repo RAG indexer implementation found; only a static `.rag-index` artifact exists. Needs implementation + L3 retrieval verification.
+- F-cmd: project/plugin custom slash command discovery not reachable from CLI; TUI slash registry exists but PTY keystrokes could not be verified. Needs investigation.
+- F-sess-01: checkpoint git refs are created by real runs, but checkpoint history is not persisted in session metadata, so `/fork` and `/rewind` restore plans cannot find them. Needs a fix in checkpoint-hooks/local-runtime-host metadata persistence.

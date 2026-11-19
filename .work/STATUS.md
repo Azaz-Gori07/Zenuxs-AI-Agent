@@ -1,30 +1,39 @@
-# STATUS
+# STATUS — HANDOFF (resume run, 2026-11-19)
 
-**Current phase**: P2–P7 in progress (P0/P1 complete)
-**Current node**: matrix verification backlog (see PENDING.md)
-**Mode**: AUTONOMOUS
-**Completion condition**: NOT MET — gate exits 1 because `matrix:check` requires every non-excluded row VERIFIED with L3 evidence.
+**Completion condition NOT MET.** `scripts/gate.sh` exits 1 solely because
+`matrix:check` reports 3 rows without current L3 evidence. All other 15 gate
+steps pass on the current HEAD.
 
-## Phase status
-- [x] P0 Recon and plan (docs A-F exist, backed by real runs)
-- [x] P1 Green baseline (build, typechecks, unit suites, VSIX, fake provider, PTY harness, gate, CI)
-- [~] P2 Core runtime — L3 streaming + multi-tool loop verified; full provider/tool matrix pending
-- [~] P3 State and safety — session persist/resume, modes, workspace boundary verified; compaction/ckpt pending
-- [ ] P4 Intelligence — prompt/RAG/web/git pending
-- [~] P5 Extensibility — hooks L3 verified; MCP/plugins/skills/subagents/schedules pending
-- [~] P6 CLI/TUI — headless + PTY transcript verified; scenario matrix pending
-- [~] P7 Extension — VSIX build + clean install verified; webview E2E pending
-- [ ] P8 Integration and stress
-- [ ] P9 Parity and polish
+## Current HEAD
+`git rev-parse HEAD` — see git log; branch `fix/zenuxs-recovery`.
 
-## Gate (final run, SHA 7df9dbb~)
-15/16 steps PASS: install, build, typecheck:cli, typecheck:schema, typecheck:engine,
-build:extension, vsix:build-install, test:unit:cli, test:unit:core, test:unit:engine,
-test:unit:schema, fake-provider:smoke, tui:pty, security:check.
-FAIL: matrix:check (feature rows not yet VERIFIED).
+## Gate state
+- PASS: install, build, typecheck:cli/schema/engine, build:extension,
+  vsix:build-install, test:unit:cli (744), test:unit:core (1281/4 skipped),
+  test:unit:engine, test:unit:schema, fake-provider:smoke, tui:pty, security:check.
+- FAIL: matrix:check — 34 of 37 rows VERIFIED, remaining: F-rag, F-cmd, F-sess-01.
 
-## Counters
-- Open P0/P1 defects: 0
-- Open P2 defects: BASE-08 (bin fields), BASE-09 (Cline package naming)
-- Matrix rows with L3 evidence: 12 of 37
-- Evidence dirs: docs/evidence/{P0,P1,F-core,F-tools,F-mode,F-sess,F-perm,F-hooks,F-tui,F-ext,F-auto,F-ctx,F-skills,reference,gate}
+## Work completed in the resume run
+- Full triage (all 37 rows listed in docs/recon/matrix-status-triage.md;
+  skipped tests justified in PENDING.md; secrets audit and prepared (unrun)
+  history-scrub command in docs/recon/secrets-audit.md; all evidence commands
+  re-run on current HEAD in docs/evidence/resume/).
+- F-prov/F-toolrobust chaos: 429/500/malformed/slow/cut streams; added
+  transient-error retry with regression test.
+- F-prompt verified via provider request capture (AGENTS.md marker).
+- Extension E2E: @vscode/test-electron host + Playwright/CDP, 12/12 scenarios
+  passing (streaming chat, session list, mode/model pickers, active-file
+  context, screenshots) with fake provider configured via workspace settings.
+- F-mcp, F-skills, F-sub, F-ckpt, F-plug, F-perf, F-sec verified with L3 evidence.
+- Dogfooding: 6 real CLI tasks with verified file artifacts.
+- Packaging/rebrand: bin fields fixed, NOTICE.md added, user-facing metadata rebranded.
+- Live provider: BLOCKED — env vars absent in this shell (see BLOCKED.md).
+
+## Next node (highest priority)
+1. Fix checkpoint-hooks/local-runtime-host so checkpoint history is persisted in
+   session metadata; then verify `/fork` and `/rewind` (F-sess-01).
+2. Implement/verify an in-repo RAG indexer with retrieval (F-rag).
+3. Investigate custom slash-command discovery from project/plugin markdown (F-cmd).
+4. Run the fresh-context adversarial review, then gate again.
+
+No P0/P1 product defects are open apart from the three unverified rows above.
