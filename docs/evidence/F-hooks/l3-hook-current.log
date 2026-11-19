@@ -1,0 +1,7 @@
+=== COMMAND: headless tool task with PreToolUse hook (in-repo fixtures) ===
+=== TIMESTAMP: 2026-11-19T05:50:39Z ===
+=== SHA: c99003d252a264fd5337d9aa743ba883094c4bac ===
+{"ts":"2026-11-19T05:50:40.966Z","type":"run_result","finishReason":"completed","iterations":2,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":181,"text":"I read the file successfully.","model":{"id":"fake-model","provider":"openai-compatible"}}
+=== hook events ===
+"hookName":"tool_call"
+=== EXIT: 0 ===
