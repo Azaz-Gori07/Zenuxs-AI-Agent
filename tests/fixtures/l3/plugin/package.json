@@ -1,0 +1,7 @@
+{
+  "name": "zenuxs-e2e-fixture",
+  "version": "1.0.0",
+  "cline": {
+    "plugins": [{ "name": "zenuxs-e2e-fixture", "version": "1.0.0" }]
+  }
+}

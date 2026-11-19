@@ -1,0 +1,15 @@
+=== COMMAND: real CLI plugin list ===
+=== TIMESTAMP: 2026-11-19T06:55:11Z ===
+=== SHA: 2f06042fb7667c32d2b4ab29b4b856a4aa65f66c ===
+Usage: zenuxs plugin [options] [command]
+
+Manage Zenuxs Plugins
+
+Options:
+  -h, --help                         display help for command
+
+Commands:
+  install|i [options] <source>       Install a Zenuxs Plugin from an official
+                                     keyword, npm, git, URL, or a local path
+  uninstall|remove [options] <name>  Uninstall a Zenuxs Plugin by name or path
+=== EXIT: 0 ===

@@ -1,0 +1,13 @@
+=== COMMAND: real CLI plugin install from local path (module entry) ===
+=== TIMESTAMP: 2026-11-19T06:58:04Z ===
+=== SHA: 2f06042fb7667c32d2b4ab29b4b856a4aa65f66c ===
+Installed plugin from /home/azaz/Projects/Zenuxs-AI-Agent/tests/fixtures/l3/plugin
+  Path: /home/azaz/Projects/Zenuxs-AI-Agent/.tmp/plug-install3/plugins/_installed/local/plugin-6c93e1200da4
+[31merror:[0m Warning: failed to sync plugin MCP servers for zenuxs-e2e-fixture: Invalid plugin manifest: /home/azaz/Projects/Zenuxs-AI-Agent/.tmp/plug-install3/plugins/_installed/local/plugin-6c93e1200da4/package/index.js
+=== EXIT: 0 ===
+=== COMMAND: real CLI plugin uninstall ===
+=== TIMESTAMP: 2026-11-19T06:58:26Z ===
+=== SHA: 2f06042fb7667c32d2b4ab29b4b856a4aa65f66c ===
+Uninstalled plugin zenuxs-e2e-fixture
+  Removed: /home/azaz/Projects/Zenuxs-AI-Agent/.tmp/plug-install3/plugins/_installed/local/plugin-6c93e1200da4
+=== EXIT: 0 ===

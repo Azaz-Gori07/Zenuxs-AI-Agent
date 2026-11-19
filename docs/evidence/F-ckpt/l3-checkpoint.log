@@ -1,0 +1,9 @@
+=== COMMAND: real CLI run then inspect git checkpoint ref ===
+=== TIMESTAMP: 2026-11-19T06:54:58Z ===
+=== SHA: 2f06042fb7667c32d2b4ab29b4b856a4aa65f66c ===
+SESSION_ID=1795071298604_foo4p
+{"ts":"2026-11-19T06:54:58.804Z","type":"run_result","finishReason":"completed","iterations":1,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":115,"text":"Mode check OK.","model":{"id":"fake-model","provider":"openai-compatible"}}
+=== checkpoint refs for session ===
+refs/zenuxs/checkpoints/1795071298604_foo4p/1 b4fc2f6
+=== manifest checkpoint marker ===
+=== EXIT: 0 ===
