@@ -1,0 +1,70 @@
+{
+  "sha": "b4398593ecb07ce1b4a793e9fc206f6cd2bf1717",
+  "timestamp": "2026-11-19T06:31:44.612Z",
+  "scenarios": [
+    {
+      "name": "open chat view",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "dismiss login screen",
+      "ok": true,
+      "detail": "chat UI reached"
+    },
+    {
+      "name": "chat UI mounted",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "session list visible",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "model picker visible",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "mode picker visible",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "attach-file control visible",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "mode picker opens options",
+      "ok": true,
+      "detail": [
+        "Plan"
+      ]
+    },
+    {
+      "name": "active file context attach",
+      "ok": true,
+      "detail": "CONTEXT WINDOW\n0 / 128,000\nZenuxs AI\n\nRECENT SESSIONS\n\nseed session\nopenai-compatible / fake-model\nOpenAI / fake-model ▾\n|\nAct ▾\nAttach File Context\n0 / 128,000 | $0.0000"
+    },
+    {
+      "name": "user message rendered",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "streamed assistant response",
+      "ok": true,
+      "detail": "CONTEXT WINDOW\n0 / 128,000\n⏱️\n\nHello from E2E\n\nZenuxs AI\n\nMode check OK.\n\nOpenAI / fake-model ▾\n|\nAct ▾\nAttach File Context\n0 / 128,000 | $0.0000"
+    },
+    {
+      "name": "core process observed",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "transcript": "CONTEXT WINDOW\n0 / 128,000\n⏱️\n\nHello from E2E\n\nZenuxs AI\n\nMode check OK.\n\nOpenAI / fake-model ▾\n|\nAct ▾\nAttach File Context\n0 / 128,000 | $0.0000",
+  "coreProcesses": []
+}

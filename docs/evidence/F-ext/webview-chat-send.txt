@@ -1,0 +1,12 @@
+CONTEXT WINDOW
+0 / 200,000
+⏱️
+
+Hello from E2E
+
+Zenuxs AI
+Zenuxs / default ▾
+|
+Act ▾
+Attach File Context
+0 / 200,000 | $0.0000

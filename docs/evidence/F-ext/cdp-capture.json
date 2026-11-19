@@ -1,0 +1,24 @@
+{
+  "timestamp": "2026-11-19T06:18:04.116Z",
+  "cdpPort": "9234",
+  "scenarios": [
+    {
+      "name": "activity bar action present",
+      "ok": true
+    },
+    {
+      "name": "Zenuxs webview frame mounted",
+      "ok": true
+    },
+    {
+      "name": "workbench shows Zenuxs UI",
+      "ok": true,
+      "detail": [
+        "Zenuxs"
+      ]
+    }
+  ],
+  "webviewFrame": "vscode-webview://0pq3kvee8sfqe79vl4bjd91ssjam9k551so1itvic140lppk9khr/index.html?id=20e62170-1589-4d71-95fc-ab4dcdf3aa2c&parentId=1&origin=a3d01829-2e40-40b7-8b43-98062b79e60c&swVersion=6&extensionId=zenuxs.zenuxs-code-vscode&platform=electron&vscode-resource-base-authority=vscode-resource.vscode-cdn.net&parentOrigin=vscode-file%3A%2F%2Fvscode-app&mountId=134c9156-b6e5-4977-85de-731622a43d68&purpose=webviewView",
+  "screenshot": "cdp-workbench.png",
+  "sha": "cbe906e0db9410aea4dc198cb866fa2acc9bb6ca"
+}

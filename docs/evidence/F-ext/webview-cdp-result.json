@@ -1,0 +1,18 @@
+{
+  "startedAt": "2026-11-19T06:06:29.134Z",
+  "scenarios": [],
+  "screenshots": [
+    "vscode-main.png"
+  ],
+  "pages": [
+    {
+      "url": "vscode-file://vscode-app/home/azaz/Projects/Zenuxs-AI-Agent/.vscode-test/vscode-linux-x64-1.147.0/resources/app/out/vs/code/electron-browser/workbench/workbench",
+      "title": ""
+    }
+  ],
+  "webviewFrameUrl": "vscode-file://vscode-app/home/azaz/Projects/Zenuxs-AI-Agent/.vscode-test/vscode-linux-x64-1.147.0/resources/app/out/vs/code/electron-browser/workbench/workbench.html",
+  "bodyTextHead": "File\nEdit\nSelection\nView\nGo\nRun\nTerminal\nHelp\n[Extension Development Host] fixture\nOpen in Agents\nSign In\n2K+\nExplorer\nfixture\nsample.ts\nOutline\nTimeline\nWelcome\nVisual Studio Code\nStart\nNew File...\nOpen File...\nOpen Folder...\nClone Git Repository...\nConnect to...\nRecent\nfigcraft\n~/reference-outside-workspace\nscripts\n~\nopencode-unlimited-proxy\n~/scripts\nzenuxs-desigen\n~/Projects\nrideslov2\n~/Projects\nMore...\nWalkthroughs\nGet started with VS Code\nCustomize your editor, learn the basics, and start ",
+  "hasRoot": 0,
+  "error": "TypeError: webviewFrame.screenshot is not a function\n    at /home/azaz/Projects/Zenuxs-AI-Agent/tests/extension-e2e/webview.cjs:47:26",
+  "finishedAt": "2026-11-19T06:06:29.810Z"
+}

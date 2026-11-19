@@ -1,0 +1,32 @@
+{
+  "startedAt": "2026-11-19T06:04:26.739Z",
+  "checks": [
+    {
+      "name": "extension discovered",
+      "ok": true,
+      "detail": "zenuxs.zenuxs-code-vscode"
+    },
+    {
+      "name": "extension activated",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "name": "commands registered",
+      "ok": true,
+      "detail": "zenuxs.chat,zenuxs.explain,zenuxs.fix,zenuxs.test,zenuxs.refactor,zenuxs.askAboutFile,zenuxs.inlineChat,zenuxs.newSession,zenuxs.stopSession,zenuxs.toggleSettings,zenuxs.toggleHistory,zenuxs.quickAsk,zenuxs.fixDiagnostic,zenuxs.editFile,zenuxs.runTerminalCommand"
+    },
+    {
+      "name": "chat command executed",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "webview visible",
+      "ok": false,
+      "detail": "0"
+    }
+  ],
+  "screenshots": [],
+  "finishedAt": "2026-11-19T06:04:30.957Z"
+}
