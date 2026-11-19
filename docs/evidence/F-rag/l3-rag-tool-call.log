@@ -1,0 +1,7 @@
+=== COMMAND: agent codebase_search tool call on indexed 250-file repo ===
+=== TIMESTAMP: 2026-11-19T08:44:56Z ===
+=== SHA: 9d31833d92987092e2f0abeb5c139d5c736997ba ===
+{"ts":"2026-11-19T08:44:57.885Z","type":"agent_event","event":{"type":"content_end","contentType":"tool","toolName":"codebase_search","toolCallId":"call_rag_1","output":"src/module_173.ts:1-17 (score 5.0674)\nexport const value173 = 173;\n// ordinary filler line\n// ordinary filler line\n// ordinary filler line\n// ordinary filler line\n// ordinary filler line\n// ordinary filler line\n// ordinary filler line\n// ordinary filler line\n// ordinary filler line\n// ordinary filler line\n// ordinary filler line\n// ordinary filler line\n\n// UNIQUE_HAYSTACK_TOKEN_173\nexport function run173() { return value173; }\n","durationMs":2}}
+{"ts":"2026-11-19T08:44:57.899Z","type":"agent_event","event":{"type":"content_end","contentType":"text","text":"RAG tool call complete."}}
+{"ts":"2026-11-19T08:44:57.909Z","type":"run_result","finishReason":"completed","iterations":2,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":91,"text":"RAG tool call complete.","model":{"id":"fake-model","provider":"openai-compatible"}}
+=== EXIT: 0 ===

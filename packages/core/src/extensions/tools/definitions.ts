@@ -4,6 +4,7 @@
  * Factory functions for creating the default tools.
  */
 
+import { createCodebaseSearchTool } from "../rag/rag";
 import {
 	type AgentTool,
 	type AgentToolContext,
@@ -891,6 +892,7 @@ export function createDefaultTools(
 ): AgentTool[] {
 	const {
 		executors,
+		ragIndex,
 		enableReadFiles = true,
 		enableListDirectory = true,
 		enableSearch = true,
@@ -905,6 +907,10 @@ export function createDefaultTools(
 	} = options;
 
 	const tools: AgentTool<never, unknown>[] = [];
+
+	if (ragIndex) {
+		tools.push(createCodebaseSearchTool(ragIndex) as AgentTool<never, unknown>);
+	}
 
 	// Add read_files tool if enabled and executor provided
 	if (enableReadFiles && executors.readFile) {

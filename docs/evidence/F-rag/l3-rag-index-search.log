@@ -1,0 +1,7 @@
+=== COMMAND: real CLI rag index + search on 250-file fixture ===
+=== TIMESTAMP: 2026-11-19T08:44:20Z ===
+=== SHA: 9d31833d92987092e2f0abeb5c139d5c736997ba ===
+Indexed 250 files / 250 chunks
+src/module_173.ts:1-17 (5.0674)
+export const value173 = 173;
+=== EXIT: 0 ===

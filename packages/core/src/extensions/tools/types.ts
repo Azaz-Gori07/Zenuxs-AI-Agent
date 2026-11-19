@@ -4,6 +4,7 @@
  * Type definitions for executors, configuration, and results.
  */
 
+import type { RagIndex } from "../rag/rag";
 import type {
 	AgentToolContext,
 	ImageContent,
@@ -398,4 +399,6 @@ export interface CreateDefaultToolsOptions extends DefaultToolsConfig {
 	 * Only tools with provided executors will be available
 	 */
 	executors: ToolExecutors;
+	/** Optional codebase index; when supplied a codebase_search tool is added. */
+	ragIndex?: RagIndex;
 }

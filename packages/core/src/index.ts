@@ -974,3 +974,19 @@ export type {
 	SessionRef,
 } from "./types/sessions";
 export type { ArtifactStore, SessionStore, TeamStore } from "./types/storage";
+
+// Codebase index (lexical/BM25 retrieval with incremental watcher)
+export {
+  buildRagIndex,
+  chunkLines,
+  collectFiles,
+  createCodebaseSearchTool,
+  loadRagIndex,
+  saveRagIndex,
+  searchRagIndex,
+  watchRagIndex,
+  type RagIndex,
+  type RagSearchResult,
+  type RagWatcher,
+  type CodebaseSearchInput,
+} from "./extensions/rag/rag";

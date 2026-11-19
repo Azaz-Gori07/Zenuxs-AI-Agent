@@ -1,6 +1,7 @@
 import { fstatSync } from "node:fs";
 import { homedir } from "node:os";
-import { basename } from "node:path";
+import { basename, join } from "node:path";
+import { buildRagIndex, loadRagIndex, saveRagIndex, searchRagIndex } from "@cline/core";
 import {
 	createUserInstructionConfigService,
 	resolveProviderConfig as coreResolveProviderConfig,
@@ -137,7 +138,7 @@ export async function runCli(): Promise<void> {
 	const normalizedArgs = normalizeAutoApproveArgs(cliArgs);
 
 	// Subcommand routing via Commander
-	const ctx: { exitCode?: number; resumeSessionId?: string } = {};
+	const ctx: { exitCode?: number; resumeSessionId?: string; ragHandled?: boolean } = {};
 	const io = { writeln, writeErr };
 	const program = createProgram();
 	// Re-enable built-in help/version output for the routing program
@@ -245,6 +246,54 @@ export async function runCli(): Promise<void> {
 		.action(async (_opts: unknown, cmd: Command) => {
 			const realCmd = await createConfigRuntimeCommand(cmd.opts() as { json?: boolean });
 			await realCmd.parseAsync(cmd.args, { from: "user" });
+		});
+
+	const ragCmd = program
+		.command("rag")
+		.description("Index and search the codebase");
+	ragCmd
+		.command("index")
+		.description("Build or refresh the lexical codebase index")
+		.option("--cwd <path>", "Directory to index")
+		.action(async () => {
+			const cmd = ragCmd.commands.find((c) => c.name() === "index");
+			const opts = cmd?.opts<{ cwd?: string }>() ?? {};
+			try {
+				const root = opts.cwd ?? process.cwd();
+				const index = await buildRagIndex({ root });
+				saveRagIndex(index, join(root, ".zenuxs", "rag-index.json"));
+				writeln("Indexed " + Object.keys(index.files).length + " files / " + index.chunks.length + " chunks");
+				ctx.ragHandled = true;
+			} catch (error) {
+				writeErr(error instanceof Error ? error.message : String(error));
+				ctx.exitCode = 1;
+			}
+		});
+	ragCmd
+		.command("search <query>")
+		.description("Search the codebase index")
+		.option("--cwd <path>", "Directory containing the index")
+		.option("--top <n>", "Maximum results")
+		.action(async (query: string) => {
+			const cmd = ragCmd.commands.find((c) => c.name() === "search");
+			const opts = cmd?.opts<{ cwd?: string; top?: string }>() ?? {};
+			try {
+				const root = opts.cwd ?? process.cwd();
+				const index = loadRagIndex(join(root, ".zenuxs", "rag-index.json"));
+				if (!index) {
+					writeErr("No index found. Run `zenuxs rag index` first.");
+					ctx.exitCode = 1;
+					return;
+				}
+				ctx.ragHandled = true;
+				for (const result of searchRagIndex(index, query, Number(opts.top ?? 8))) {
+					writeln(result.path + ":" + result.lineStart + "-" + result.lineEnd + " (" + result.score + ")");
+					writeln((result.snippet.split("\n")[0] ?? ""));
+				}
+			} catch (error) {
+				writeErr(error instanceof Error ? error.message : String(error));
+				ctx.exitCode = 1;
+			}
 		});
 
 	const pluginCmd = program
@@ -844,6 +893,8 @@ export async function runCli(): Promise<void> {
 		});
 		return;
 	}
+
+	if (ctx.ragHandled) return;
 
 	// Default flow: no subcommand matched, or fall-through from config/history.
 	let args = commanderToParsedArgs(program);

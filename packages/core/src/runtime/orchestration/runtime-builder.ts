@@ -6,6 +6,9 @@ import type {
 } from "@cline/shared";
 import { hasRuntimeConfigExtension } from "@cline/shared";
 import { nanoid } from "nanoid";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+import { createCodebaseSearchTool, loadRagIndex } from "../../extensions/rag/rag";
 import { createUserInstructionConfigService } from "../../extensions/config";
 import {
 	createDefaultMcpServerClientFactory,
@@ -137,6 +140,11 @@ function createBuiltinToolsList(
 	executorOverrides?: Partial<ToolExecutors>,
 ): AgentTool[] {
 	const preset = ToolPresets[resolveToolPresetName({ mode })];
+
+	// Expose the semantic search tool whenever a codebase index exists.
+	const ragIndexPath = join(cwd, ".zenuxs", "rag-index.json");
+	const ragIndex = existsSync(ragIndexPath) ? loadRagIndex(ragIndexPath) : undefined;
+	const ragTools = ragIndex ? [createCodebaseSearchTool(ragIndex) as AgentTool] : [];
 	const toolRoutingConfig = resolveToolRoutingConfig(
 		providerId,
 		modelId,
@@ -207,7 +215,7 @@ function createBuiltinToolsList(
 
 	// 3. Merge and filter by policies
 	return filterAvailableTools(
-		[...enhancedTools, ...additionalTools],
+		[...enhancedTools, ...additionalTools, ...ragTools],
 		toolPolicies,
 	);
 }
