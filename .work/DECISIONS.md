@@ -9,7 +9,7 @@
 - Created `fix/zenuxs-recovery` from `main` @ `816c9a7` per R7. All work commits here.
 
 ## 2026-11-18 — config.json
-- Root `config.json` is UTF-16LE encoded and contains Windows user paths (`C:\Users\azazk\...`) plus a large agent config dump. It appears to be accidentally committed personal state, not a legitimate project config. WILL BE FLAGGED. Must verify it contains no secrets; if it does, remove from tracking (do not rewrite history per R7 — add to .gitignore and a removal commit, or redact in a new commit).
+- Root `config.json` is UTF-16LE encoded and contains Windows user paths (`C:\Users\azazk\...`) plus a large agent config dump. It appears to be accidentally committed personal state, not a legitimate project config. Scanned with Python: no API keys or Authorization values; "token" occurrences are prompt text. Decision: untrack it and add to `.gitignore` (no history rewrite per R7), keeping the working-copy file untouched.
 
 ## 2026-11-18 — Delegated recon agents hung; P0 done in primary session
 - **Decision**: Stop all four background recon agents after 12+ minutes of zero progress; perform reference recon directly in the primary session.
