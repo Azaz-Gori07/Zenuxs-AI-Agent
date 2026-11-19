@@ -26,8 +26,8 @@ Note: BASE-01 root cause confirmed — multiple zod copies (3.25.76 and 4.4.3); 
 - BASE-05 FIXED — CLI unit suite: 744 tests, 0 failures (verified by gate run).
 - BASE-06 FIXED — Core unit suite: 1279 passed / 4 skipped, 0 failures (`/tmp/core-unit-5.log`, gate evidence).
 - BASE-07 FIXED — 44 broken self-reexports removed; no remainder in source.
-- BASE-08 OPEN — bin fields still point to source (deferred to packaging phase P9; wrapper published separately).
-- BASE-09 OPEN — package naming/metadata rebrand deferred to P9; functional branding is Zenuxs.
+- BASE-08 FIXED — bin fields now point to dist/index.js; root build emits it; verified by root build + typecheck after change.
+- BASE-09 PARTIAL/FIXED user-facing — CLI author/homepage/bugs/keywords rebranded, NOTICE.md added; internal @cline/* dependency names retained for upstream compatibility (documented in NOTICE.md).
 
 ## New defects found and fixed during P1
 - P1-NEW-01 P1 — grep tool emitted empty matched-line context; fixed in `glob-grep-enhanced.ts` + `ripgrep-search.ts`.
