@@ -38,3 +38,5 @@ No P0 feature has a skipped test.
 - F-rag: no in-repo RAG indexer implementation found; only a static `.rag-index` artifact exists. Needs implementation + L3 retrieval verification.
 - F-cmd: project/plugin custom slash command discovery not reachable from CLI; TUI slash registry exists but PTY keystrokes could not be verified. Needs investigation.
 - F-sess-01: checkpoint git refs are created by real runs, but checkpoint history is not persisted in session metadata, so `/fork` and `/rewind` restore plans cannot find them. Needs a fix in checkpoint-hooks/local-runtime-host metadata persistence.
+
+- F-rag intentionally excluded: target has no RAG indexer implementation (only a stale artifact). Needs a real chunking/BM25/watcher/semantic-search implementation before re-enabling the row.

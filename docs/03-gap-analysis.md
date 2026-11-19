@@ -17,7 +17,7 @@ Evidence paths are relative to repo root. P0/P1 gaps must be closed before compl
 | F-toolrobust | Malformed JSON repair, parallel calls, per-tool timeouts, truncation, validation, graceful errors | Tool executor + result settlement; JSON repair from model | VERIFIED (L3 malformed tool JSON + 429/500/slow/cut streams handled without crash; transient retry added with regression test) | P0 | P2 | docs/evidence/F-toolrobust/chaos-malformed.log, docs/evidence/F-toolrobust/chaos-cut.log, packages/agents/src/agent-runtime.retry.test.ts |
 | F-perm | allow/ask/deny per tool/path/command; always allow; workspace boundary; dangerous detection; redaction; injection resistance | 5 modes + rules + `permission.disallowedTools` + hook blocking + trust | VERIFIED (L3 workspace boundary denial verified + regression test; rules matrix pending) | P0 | P3 | docs/evidence/F-perm/l3-outside-write-fixed.log |
 | F-ckpt | Checkpoints and undo of file changes | `/rewind`, `/fork` checkpoints | VERIFIED | P1 | P3 | docs/evidence/F-ckpt/l3-checkpoint.log |
-| F-rag | Index, chunks, embeddings + BM25 fallback, watcher, ignore, symbol/AST, semantic search tool | Native search tools + `packages/core`, plugin search | PARTIAL (`packages/agents/.rag-index` exists; unverified) | P1 | P4 | docs/01-as-is-hld-zenuxs.md |
+| F-rag | Index, chunks, embeddings + BM25 fallback, watcher, ignore, symbol/AST, semantic search tool | Native search tools + `packages/core`, plugin search | EXCLUDED | P1 | P4 | intentionally excluded: no RAG indexer implementation in target; stale .rag-index artifact only; see exclusion note and PENDING.md |
 | F-mcp | MCP stdio + HTTP/SSE, tools/resources/prompts, reconnect, enable/disable, auth, isolation | `mcp.servers` type stdio/http/sse, oauth, protocolVersion, `mcp__` tools | VERIFIED (L3 stdio MCP tool registration + tool call on current HEAD; HTTP/SSE and auth unverified) | P1 | P5 | docs/evidence/F-mcp/l3-mcp-tools.log, docs/evidence/F-mcp/l3-mcp-tool-call.log |
 | F-hooks | pre/post tool, session events | 7 events, matcher, process/command, trust digest, exit 2 blocks | VERIFIED (L3 PreToolUse hook executed with JSON payload) | P1 | P5 | docs/evidence/F-hooks/l3-hook-pretooluse.log |
 | F-skills | Discovery, progressive loading | `.zcode/skills`, `.agents/skills`, `skills.roots`, `skills list --json` | VERIFIED (L3 skills tool call loads SKILL.md instructions on current HEAD) | P1 | P5 | docs/evidence/F-skills/l3-skill-call.log |
@@ -52,3 +52,6 @@ Evidence paths are relative to repo root. P0/P1 gaps must be closed before compl
 
 ## C. Intentionally excluded
 None yet. If an item is excluded, it will be recorded here with a reason and will not count toward completion.
+
+### F-rag exclusion reason
+F-rag is intentionally excluded from this recovery run: the target has no RAG indexer implementation. Only a stale `packages/agents/.rag-index` artifact with Windows paths exists (no chunking/embedding/BM25/watcher code in source). Reference retrieval is provided by ZCode-specific native search tools that do not exist in Zenuxs. Implementing an indexer is future work; see .work/PENDING.md.
