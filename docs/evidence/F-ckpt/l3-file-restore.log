@@ -1,0 +1,6 @@
+=== COMMAND: real CLI checkpoint + applyCheckpointToWorktree file restore ===
+=== TIMESTAMP: 2026-11-19T09:07:36Z ===
+=== SHA: a2dc75e9350312cde65b663b77cb8cedc6be6127 ===
+SESSION_ID=1795079201052_6o5po
+{"checkpointRef":"09a03760b508ec2a064f23432caf21f75e2d9bf0","before":"MODIFIED_CONTENT","after":"CHECKPOINT_STATE","restored":true}
+=== EXIT: 0 ===
