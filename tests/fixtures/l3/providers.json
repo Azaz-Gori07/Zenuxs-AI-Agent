@@ -11,7 +11,7 @@
         "client": "openai-compatible",
         "baseUrl": "http://127.0.0.1:4317/v1"
       },
-      "updatedAt": "2026-11-19T06:34:21.099Z",
+      "updatedAt": "2026-11-19T09:06:41.027Z",
       "tokenSource": "manual"
     }
   }

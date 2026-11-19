@@ -19,3 +19,13 @@
 ## 2026-11-18 — Reference has no VS Code extension
 - **Decision**: Treat F-ext as a Zenuxs-only surface; verify it against its own contract rather than a reference counterpart.
 - **Why**: Verified no `*vscode*` directories (excluding `.vscode` config) and no `"vscode"` dependency in any reference package.json. Reference UI surfaces are TUI, Electron desktop, web and stdio app-server.
+
+## 2026-11-19 — Gate integrity (resume run)
+- **Gate script changes since creation** (`git diff b658202..HEAD -- scripts/gate.sh`): added two steps only — `vsix:build-install` (packages and installs the .vsix) and `tui:pty` (drives the real TUI in a pseudo-terminal). No step was removed, no threshold lowered, no exit code ignored. Both additions strengthen the gate.
+- **Matrix checker changes** (`git diff b658202..HEAD -- scripts/check-matrix.mjs`): (1) parse status annotations in parentheses so a row like `VERIFIED (L3 ...)` is read as VERIFIED; (2) skip only rows explicitly marked EXCLUDED with the phrase "intentionally excluded" in the evidence cell; (3) added evidence-freshness enforcement: a VERIFIED row fails if the last commit touching its source paths is newer than the last commit touching its evidence. The required status (VERIFIED) and evidence-existence checks were not weakened.
+- **Why**: the previous matrix checker compared the whole annotated status string against "VERIFIED" and therefore mis-reported real rows; the freshness check prevents stale evidence from counting after source changes.
+
+## 2026-11-19 — Live provider model substitution
+- **Decision**: use `mimo-v2.6-flash-free` instead of the announced `glm-5.3-flash-free`.
+- **Why**: `/v1/models` on the live endpoint does not list `glm-5.3-flash-free`; a tiny completion returned `model_deprecated` ("has been retired upstream"). `mimo-v2.6-flash-free` is listed and answered `PONG`. The deepseek model was usable initially but later returned `FreeUsageLimitError` (per-model free quota exhausted).
+- **How to apply**: live scenarios are bounded with timeouts and retries; when a live request fails, replay on the fake provider first, then retry live up to 3 times; classify model-quality failures separately from product defects.
