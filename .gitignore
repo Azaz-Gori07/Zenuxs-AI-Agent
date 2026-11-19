@@ -50,3 +50,6 @@ Thumbs.db
 .cache/
 .tmp/
 tmp/
+
+# Accidentally committed personal config (UTF-16, Windows paths)
+config.json
