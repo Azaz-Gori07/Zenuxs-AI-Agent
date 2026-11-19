@@ -1,30 +1,30 @@
 # STATUS
 
-**Current phase**: P2–P7 feature verification (P1 green baseline complete)
-**Current node**: F-ctx compaction verification
+**Current phase**: P2–P7 in progress (P0/P1 complete)
+**Current node**: matrix verification backlog (see PENDING.md)
 **Mode**: AUTONOMOUS
+**Completion condition**: NOT MET — gate exits 1 because `matrix:check` requires every non-excluded row VERIFIED with L3 evidence.
 
 ## Phase status
 - [x] P0 Recon and plan (docs A-F exist, backed by real runs)
-- [x] P1 Green baseline — build, typecheck, extension build, VSIX build+install, CLI/core/engine/schema unit tests, fake provider, PTY harness, gate + CI all run; gate has 1 remaining failure (matrix check)
-- [ ] P2 Core runtime — streaming + multi-tool L3 verified; provider/tool scope partially verified
-- [ ] P3 State and safety — session persist/resume verified; modes added; compaction/permissions/checkpoints pending
+- [x] P1 Green baseline (build, typechecks, unit suites, VSIX, fake provider, PTY harness, gate, CI)
+- [~] P2 Core runtime — L3 streaming + multi-tool loop verified; full provider/tool matrix pending
+- [~] P3 State and safety — session persist/resume, modes, workspace boundary verified; compaction/ckpt pending
 - [ ] P4 Intelligence — prompt/RAG/web/git pending
-- [ ] P5 Extensibility — hooks L3 verified; MCP/plugins/skills/subagents/automation pending
-- [ ] P6 CLI/TUI — headless L3 + PTY transcript verified; scenario matrix pending
-- [ ] P7 Extension — VSIX build/install verified; webview E2E pending
+- [~] P5 Extensibility — hooks L3 verified; MCP/plugins/skills/subagents/schedules pending
+- [~] P6 CLI/TUI — headless + PTY transcript verified; scenario matrix pending
+- [~] P7 Extension — VSIX build + clean install verified; webview E2E pending
 - [ ] P8 Integration and stress
 - [ ] P9 Parity and polish
 
-## Verification evidence captured
-- L3 headless streaming: docs/evidence/F-core/l3-headless-4.log
-- L3 multi-tool read: docs/evidence/F-tools/l3-multitool-1.log
-- L3 modes (act/plan/build/edit/guarded/yolo): docs/evidence/F-mode/l3-mode-*.log
-- L3 session persist + resume: docs/evidence/F-sess/l3-session-*.log
-- L3 hook execution: docs/evidence/F-hooks/l3-hook-pretooluse.log
-- L3 VSIX build + install: docs/evidence/F-ext/l3-vsix-package-install.log
-- L3 TUI pty transcript: docs/evidence/F-tui/pty-transcript.log
+## Gate (final run, SHA 7df9dbb~)
+15/16 steps PASS: install, build, typecheck:cli, typecheck:schema, typecheck:engine,
+build:extension, vsix:build-install, test:unit:cli, test:unit:core, test:unit:engine,
+test:unit:schema, fake-provider:smoke, tui:pty, security:check.
+FAIL: matrix:check (feature rows not yet VERIFIED).
 
 ## Counters
-- Gate results: 15 of 16 steps PASS; matrix:check FAIL (rows not yet VERIFIED)
-- Open defects: BASE-08, BASE-09 (P2 packaging/rebrand), no open P0/P1
+- Open P0/P1 defects: 0
+- Open P2 defects: BASE-08 (bin fields), BASE-09 (Cline package naming)
+- Matrix rows with L3 evidence: 12 of 37
+- Evidence dirs: docs/evidence/{P0,P1,F-core,F-tools,F-mode,F-sess,F-perm,F-hooks,F-tui,F-ext,F-auto,F-ctx,F-skills,reference,gate}
