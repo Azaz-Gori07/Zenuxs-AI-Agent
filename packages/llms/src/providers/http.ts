@@ -281,10 +281,16 @@ export function wrapFetchWithRetry(
 					}
 
 					const defaultMaxDelay = isRateLimit ? 30000 : maxDelayMs;
-					const delay = parseRetryAfterMs(response.headers) ?? 
-						Math.round(
-							Math.min(baseDelayMs * Math.pow(2, attempt) * (0.8 + Math.random() * 0.4), defaultMaxDelay)
-						);
+					// A hostile or misconfigured endpoint can advertise a huge Retry-After.
+					// Never sleep longer than the configured ceiling, otherwise a single
+					// rate-limit response stalls the CLI for hours.
+					const delay = Math.min(
+						parseRetryAfterMs(response.headers) ??
+							Math.round(
+								baseDelayMs * Math.pow(2, attempt) * (0.8 + Math.random() * 0.4)
+							),
+						defaultMaxDelay,
+					);
 
 					const urlStr = input instanceof Request ? input.url : String(input);
 					const statusText = isRateLimit ? "Rate Limited" : `HTTP ${response.status}`;

@@ -149,3 +149,33 @@ describe("wrapFetchWithRetry", () => {
 		);
 	});
 });
+
+describe("rate-limit delay ceiling", () => {
+  it("caps an absurd Retry-After value instead of sleeping for hours", async () => {
+    let calls = 0;
+    const mockFetch = vi.fn().mockImplementation(async () => {
+      calls++;
+      if (calls === 1) {
+        return new Response("Too Many Requests", {
+          status: 429,
+          headers: { "retry-after": "56699" }, // ~15.7 hours
+        });
+      }
+      return new Response("OK", { status: 200 });
+    });
+    const logger: BasicLogger = { log: vi.fn(), error: vi.fn() };
+    vi.useFakeTimers();
+    const retryingFetch = wrapFetchWithRetry(mockFetch as unknown as typeof fetch, logger, 2);
+    try {
+      const pending = retryingFetch("https://api.example.com/v1/chat");
+      await vi.advanceTimersByTimeAsync(30_000);
+      const response = await pending;
+      expect(response.status).toBe(200);
+      const message = vi.mocked(logger.log).mock.calls[0]?.[0];
+      expect(String(message)).toContain("Retrying in 30.0s");
+      expect(String(message)).not.toContain("56699");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
