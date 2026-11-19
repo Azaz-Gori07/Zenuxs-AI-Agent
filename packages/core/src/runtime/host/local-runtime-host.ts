@@ -1486,8 +1486,10 @@ export class LocalRuntimeHost implements RuntimeHost {
 				metadata,
 			},
 		);
-		if (result?.updated !== true) {
-			// Headless hosts do not always register an `updateSession` callback.
+		if (result?.updated === false) {
+			// Headless hosts can return `updated: false` when no updateSession
+			// callback is registered; persist directly to the manifest so
+			// checkpoint history and other metadata remain restorable.
 			// Persist directly to the manifest so checkpoint history and other
 			// metadata remain available to restore/fork operations.
 			session.artifacts.manifest = {
