@@ -16,7 +16,9 @@ let verified = 0
 
 for (const row of rows) {
   const cells = row.split("|").map((cell) => cell.trim()).filter(Boolean)
-  const [id, , , status, , , evidence] = cells
+  const [id, , , statusCell, , , evidence] = cells
+  // Status cells may carry an annotation in parentheses, e.g. "VERIFIED (L3 ...)".
+  const status = (statusCell ?? "").split("(")[0].trim()
   if (!id || status === "MISSING" && /excluded/i.test(evidence ?? "")) continue
   if (status !== "VERIFIED") {
     problems.push(`${id}: status ${status} (expected VERIFIED)`)
