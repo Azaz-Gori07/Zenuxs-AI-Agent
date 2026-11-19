@@ -1,0 +1,4 @@
+{"name":"mcp-call","steps":[
+ {"type":"tool","tool_calls":[{"id":"call_mcp_1","name":"fixture__echo","arguments":{"text":"MCP_E2E_MARKER"}}]},
+ {"type":"text","content":"MCP tool call completed."}
+]}

@@ -1,0 +1,6 @@
+=== COMMAND: headless --prompt with value + --disallowed-tools ===
+=== TIMESTAMP: 2026-11-19T06:34:20Z ===
+=== SHA: 16c2b5582b511f53b9db6352f4ede51c8e4e802d ===
+[1]+  Exit 1                     node tests/fake-provider/server.mjs tests/fixtures/l3/scenarios/single.json 4317 > /tmp/fp-cli.log 2>&1
+{"ts":"2026-11-19T06:34:21.305Z","type":"run_result","finishReason":"completed","iterations":1,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":94,"text":"Mode check OK.","model":{"id":"fake-model","provider":"openai-compatible"}}
+=== EXIT: 0 ===

@@ -1,0 +1,4 @@
+{"name":"skill-call","steps":[
+ {"type":"tool","tool_calls":[{"id":"call_skill_1","name":"skills","arguments":{"skill":"ui-design"}}]},
+ {"type":"text","content":"Skill loaded."}
+]}

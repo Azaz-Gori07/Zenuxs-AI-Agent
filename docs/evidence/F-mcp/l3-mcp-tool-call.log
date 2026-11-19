@@ -1,0 +1,7 @@
+=== COMMAND: headless MCP tool call ===
+=== TIMESTAMP: 2026-11-19T06:36:04Z ===
+=== SHA: 16c2b5582b511f53b9db6352f4ede51c8e4e802d ===
+{"ts":"2026-11-19T06:36:05.429Z","type":"agent_event","event":{"type":"content_end","contentType":"tool","toolName":"fixture__echo","toolCallId":"call_mcp_1","output":{"content":[{"type":"text","text":"MCP_E2E_MARKER"}]},"durationMs":2}}
+{"ts":"2026-11-19T06:36:05.441Z","type":"agent_event","event":{"type":"content_end","contentType":"text","text":"MCP tool call completed."}}
+{"ts":"2026-11-19T06:36:05.450Z","type":"run_result","finishReason":"completed","iterations":2,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":104,"text":"MCP tool call completed.","model":{"id":"fake-model","provider":"openai-compatible"}}
+=== EXIT: 0 ===

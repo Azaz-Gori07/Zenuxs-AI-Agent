@@ -1,0 +1,8 @@
+=== COMMAND: headless spawn_agent tool call ===
+=== TIMESTAMP: 2026-11-19T06:37:34Z ===
+=== SHA: 16c2b5582b511f53b9db6352f4ede51c8e4e802d ===
+{"ts":"2026-11-19T06:37:35.610Z","type":"agent_event","event":{"type":"content_end","contentType":"text","text":"Subagent result received."}}
+{"ts":"2026-11-19T06:37:35.616Z","type":"agent_event","event":{"type":"content_end","contentType":"tool","toolName":"spawn_agent","toolCallId":"call_sub_1","output":{"text":"Subagent result received.","iterations":1,"finishReason":"completed","usage":{"inputTokens":0,"outputTokens":0}},"durationMs":21}}
+{"ts":"2026-11-19T06:37:35.631Z","type":"agent_event","event":{"type":"content_end","contentType":"text","text":"Subagent result received."}}
+{"ts":"2026-11-19T06:37:35.639Z","type":"run_result","finishReason":"completed","iterations":2,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":148,"text":"Subagent result received.","model":{"id":"fake-model","provider":"openai-compatible"}}
+=== EXIT: 0 ===

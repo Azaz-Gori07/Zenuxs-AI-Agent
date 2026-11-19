@@ -1,0 +1,4 @@
+{"name":"subagent-call","steps":[
+ {"type":"tool","tool_calls":[{"id":"call_sub_1","name":"spawn_agent","arguments":{"systemPrompt":"You are a terse calculator. Return only the number.","task":"What is 6 times 7?"}}]},
+ {"type":"text","content":"Subagent result received."}
+]}

@@ -1,0 +1,8 @@
+=== COMMAND: headless with MCP server configured; inspect provider tools ===
+=== TIMESTAMP: 2026-11-19T06:35:32Z ===
+=== SHA: 16c2b5582b511f53b9db6352f4ede51c8e4e802d ===
+{"ts":"2026-11-19T06:35:35.194Z","type":"run_result","finishReason":"completed","iterations":1,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":124,"text":"Mode check OK.","model":{"id":"fake-model","provider":"openai-compatible"}}
+=== MCP tools in provider request ===
+fixture__echo
+total tools 35
+=== EXIT: 0 ===

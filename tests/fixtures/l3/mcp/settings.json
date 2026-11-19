@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "fixture": {
+      "transport": { "type": "stdio", "command": "node", "args": ["tests/fixtures/l3/mcp/server.mjs"] },
+      "enabled": true
+    }
+  }
+}
