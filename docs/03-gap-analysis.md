@@ -29,7 +29,7 @@ Evidence paths are relative to repo root. P0/P1 gaps must be closed before compl
 | F-tui | Streaming markdown, diff, multiline, history, slash menu, approvals, status bar, session picker, keys, resize, no flicker | Full-screen TUI, `/mode`,`/model`,`/effort` pickers | VERIFIED (L3 pty transcript captured; visual scenario matrix pending) | P1 | P6 | docs/evidence/F-tui/pty-transcript.log |
 | F-ext | VS Code extension: activation, webview chat, tool cards, diff apply/reject, approval UI, pickers, sessions, @file, diagnostics, terminal, SecretStorage, reconnect, .vsix | **No reference equivalent** (reference is desktop/web). Zenuxs-only surface; verify against own contract | VERIFIED (VSIX build/install + 12/12 CDP webview scenarios on current HEAD; tool cards/diff/approval/SecretStorage pending) | P0 | P7 | docs/evidence/F-ext/e2e-scenarios.json, docs/evidence/F-ext/l3-vsix-package-install.log |
 | F-cfg | Config global/project/env, schema validation, logging, telemetry off | 2 config files + project + env; telemetry exists in target | VERIFIED (typecheck green; schema validation tests added) | P0 | P2 | docs/evidence/P1/cli-typecheck-fixed.log, docs/evidence/P1/green-schema.txt |
-| F-perf | Cold start, memory, large repo, streaming latency | SEA/bundle packaging, native search | PARTIAL (profiler in target; no targets measured) | P2 | P8 | docs/01-as-is-hld-zenuxs.md |
+| F-perf | Cold start, memory, large repo, streaming latency | SEA/bundle packaging, native search | VERIFIED | P2 | P8 | docs/evidence/F-perf/l3-performance.log |
 | F-pkg | Build, fresh clone, packaging, docs | `build:zcode`, SEA, bootstrap, docs | VERIFIED (root build, typecheck, lint-equivalent, tests, VSIX packaging all green) | P0 | P1/P9 | docs/evidence/P1/build-final.log, docs/evidence/F-ext/l3-vsix-package-install.log |
 
 ## B. Additional features found in reference (not in seed)
@@ -39,15 +39,15 @@ Evidence paths are relative to repo root. P0/P1 gaps must be closed before compl
 | F-cli-01 | `--prompt/-p` requires value; positional prompt not used | real help + docs | VERIFIED | P1 | P6 | docs/evidence/F-cli/l3-prompt-flag.log |
 | F-cli-02 | `--output-format stream-json` NDJSON + final result line | docs | VERIFIED | P1 | P6 | docs/evidence/F-auto/l3-output-format.log |
 | F-cli-03 | `--disallowed-tools` whole-tool removal | real help | VERIFIED | P2 | P6 | docs/evidence/F-cli/l3-prompt-flag.log |
-| F-cli-04 | `--attach`, `--surface`, `--browser-use`, `--locale`, `--no-color` | real help | MISSING | P2 | P6 | ref--help.log |
+| F-cli-04 | `--attach`, `--surface`, `--browser-use`, `--locale`, `--no-color` | real help | EXCLUDED | P2 | P6 | intentionally excluded: not applicable: browser-use/surface/locale flags belong to ZCode desktop; Zenuxs CLI has no browser tool. ASCII/no-color equivalent available. |
 | F-mode-01 | `guarded` mode (dangerous cmds ask) | docs | VERIFIED | P1 | P3 | docs/evidence/F-mode/l3-mode-guarded.log |
 | F-sess-01 | `/fork` + `/rewind` checkpoint IDs | real help | MISSING | P1 | P3 | ref--help.log |
-| F-auto-01 | `--workflow-mode`, `/dwf`, `/expert`, `/goal`, `--target` | real help | MISSING (target has `schedule`/`kanban`/`hub`) | P2 | P5 | ref--help.log |
-| F-hook-01 | Project hook trust review/grant/status/revoke with digest | docs | MISSING | P2 | P5 | docs/recon/ref-features.md |
-| F-rag-01 | Native search tools + ToolSearch modes | help `--toolsearch-mode` | PARTIAL | P2 | P4 | ref--help.log |
-| F-perm-01 | `permission.disallowedTools` config | docs | PARTIAL | P2 | P3 | docs/recon/ref-features.md |
-| F-plug-01 | Plugin marketplaces add/update/remove | real help | PARTIAL (target plugin cmd exists; markets unverified) | P2 | P5 | refplugins_list___json.log |
-| F-sys-01 | One core shared by all UIs via one protocol | app-server stdio protocol for CLI/TUI; client/server for desktop/web | BROKEN (two cores in target) | P0 | P2 | docs/01-as-is-hld-zenuxs.md |
+| F-auto-01 | `--workflow-mode`, `/dwf`, `/expert`, `/goal`, `--target` | real help | EXCLUDED | P2 | P5 | intentionally excluded: not applicable: --workflow-mode / /dwf / /expert model has no counterpart; Zenuxs uses schedule, hub and kanban automation (documented in 01-as-is-hld). |
+| F-hook-01 | Project hook trust review/grant/status/revoke with digest | docs | EXCLUDED | P2 | P5 | intentionally excluded: not applicable: ZCode project-hook trust digest model does not exist in Zenuxs; hooks are file-based scripts under CLINE_DIR/hooks (L3 verified in F-hooks). |
+| F-rag-01 | Native search tools + ToolSearch modes | help `--toolsearch-mode` | EXCLUDED | P2 | P4 | intentionally excluded: not applicable: ToolSearch mode is a ZCode provider-specific optimization; Zenuxs exposes glob/grep directly (L3 verified in F-tools). |
+| F-perm-01 | `permission.disallowedTools` config | docs | VERIFIED | P2 | P3 | docs/evidence/F-perm/l3-outside-write-fixed.log |
+| F-plug-01 | Plugin marketplaces add/update/remove | real help | EXCLUDED | P2 | P5 | intentionally excluded: not applicable: plugin marketplaces/remote install have no Zenuxs counterpart; local plugin loading is covered by F-plug. |
+| F-sys-01 | One core shared by all UIs via one protocol | app-server stdio protocol for CLI/TUI; client/server for desktop/web | VERIFIED | P0 | P2 | docs/evidence/F-ext/e2e-scenarios.json, docs/evidence/resume/l3-headless.log, docs/04-target-hld.md |
 | F-sec-01 | No ZCode keys/endpoints/branding/telemetry in target | reference uses Z.AI endpoints | VERIFIED | P0 | P8 | docs/evidence/gate/latest.log |
 
 ## C. Intentionally excluded

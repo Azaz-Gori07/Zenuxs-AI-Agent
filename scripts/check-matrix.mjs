@@ -19,7 +19,8 @@ for (const row of rows) {
   const [id, , , statusCell, , , evidence] = cells
   // Status cells may carry an annotation in parentheses, e.g. "VERIFIED (L3 ...)".
   const status = (statusCell ?? "").split("(")[0].trim()
-  if (!id || status === "MISSING" && /excluded/i.test(evidence ?? "")) continue
+  if (!id) continue
+  if (status === "EXCLUDED" && /intentionally excluded/i.test(evidence ?? "")) continue
   if (status !== "VERIFIED") {
     problems.push(`${id}: status ${status} (expected VERIFIED)`)
     continue

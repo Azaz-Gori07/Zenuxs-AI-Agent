@@ -1,0 +1,18 @@
+=== COMMAND: cold-start and memory measurement (current HEAD) ===
+=== TIMESTAMP: 2026-11-19T06:52:03Z ===
+=== SHA: 3c74d1f9330aad220856527d5fad45c50d9ece0d ===
+--- help cold start (3 runs) ---
+elapsed=0.88 maxrss_kb=170788
+elapsed=0.90 maxrss_kb=171452
+elapsed=0.86 maxrss_kb=171444
+--- headless task with fake provider ---
+AI SDK Warning (openai-compatible.chat / fake-model): The 'openai-compatible' key in providerOptions is deprecated. Use 'openaiCompatible' instead.
+elapsed=1.23 maxrss_kb=202320
+--- gate test suite wall time (from gate log) ---
+   Start at  12:20:53
+   Duration  18.36s (transform 28.12s, setup 0ms, import 122.24s, tests 86.82s, environment 43ms)
+   Start at  12:21:12
+   Duration  411ms (transform 524ms, setup 0ms, import 683ms, tests 28ms, environment 0ms)
+   Start at  12:21:13
+   Duration  324ms (transform 66ms, setup 0ms, import 150ms, tests 9ms, environment 0ms)
+=== EXIT: 0 ===
