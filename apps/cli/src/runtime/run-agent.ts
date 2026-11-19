@@ -141,6 +141,8 @@ export async function runAgent(
 	options?: {
 		clineApiBaseUrl?: string;
 		clineProviderSettings?: ProviderSettings;
+		/** Resume an existing session, preserving its id and message history. */
+		resumeSessionId?: string;
 	},
 ): Promise<void> {
 	// A clean one-shot run should not inherit a stale nonzero process exit code
@@ -225,7 +227,12 @@ export async function runAgent(
 		}
 		handleEvent(event, config);
 	};
-	const plannedSessionId = createSessionId();
+	const plannedSessionId = options?.resumeSessionId?.trim() || createSessionId();
+	const resumedMessages = options?.resumeSessionId
+		? await sessionManager
+				.readMessages(plannedSessionId)
+				.catch(() => [])
+		: [];
 	const unsubscribe = subscribeToAgentEvents(sessionManager, onAgentEvent, {
 		sessionId: plannedSessionId,
 	});
@@ -309,6 +316,7 @@ export async function runAgent(
 				) => resolveMistakeLimitDecision(config, context),
 			},
 			prompt: userInput,
+			initialMessages: resumedMessages.length > 0 ? resumedMessages : undefined,
 			userImages: userImages.length > 0 ? userImages : undefined,
 			userFiles: userFiles.length > 0 ? userFiles : undefined,
 			interactive: false,
