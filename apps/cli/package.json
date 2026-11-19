@@ -13,7 +13,6 @@
 		"directory": "apps/cli"
 	},
 	"keywords": [
-		"cline",
 		"claude",
 		"dev",
 		"mcp",
@@ -25,19 +24,20 @@
 		"sonnet",
 		"ai",
 		"llama",
-		"cli"
+		"cli",
+		"zenuxs"
 	],
 	"author": {
-		"name": "Cline Bot Inc."
+		"name": "Zenuxs"
 	},
 	"license": "Apache-2.0",
-	"homepage": "https://cline.bot",
+	"homepage": "https://zenuxs.ai",
 	"bugs": {
-		"url": "https://github.com/cline/cline/issues"
+		"url": "https://github.com/Azaz-Gori07/Zenuxs-AI-Agent/issues"
 	},
 	"bin": {
-		"zenuxs-code": "src/index.ts",
-		"zenuxs": "src/index.ts"
+		"zenuxs-code": "dist/index.js",
+		"zenuxs": "dist/index.js"
 	},
 	"engines": {
 		"node": ">=22"

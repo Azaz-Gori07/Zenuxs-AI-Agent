@@ -20,8 +20,8 @@
       "name": "zenuxs-code",
       "version": "3.0.29",
       "bin": {
-        "zenuxs-code": "src/index.ts",
-        "zenuxs": "src/index.ts",
+        "zenuxs-code": "dist/index.js",
+        "zenuxs": "dist/index.js",
       },
       "dependencies": {
         "@agentclientprotocol/sdk": "^0.16.1",
