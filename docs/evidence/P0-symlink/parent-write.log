@@ -1,0 +1,9 @@
+=== CASE parent-write: write {"filePath":"escape/owned.txt","content":"OWNED"} ===
+=== SHA: 80653580115beff80efc587f5865395a2508fc58 ===
+{"ts":"2026-11-19T10:12:12.438Z","type":"agent_event","event":{"type":"content_end","contentType":"tool","toolName":"write","toolCallId":"call_1","output":{"error":"EEXIST: file already exists, mkdir '/tmp/sym-parent-write/escape'"},"error":"{\"error\":\"EEXIST: file already exists, mkdir '/tmp/sym-parent-write/escape'\"}","durationMs":5}}
+{"ts":"2026-11-19T10:12:12.453Z","type":"agent_event","event":{"type":"content_end","contentType":"text","text":"done"}}
+=== outside dir listing ===
+total 4
+drwxrwxr-x   2 azaz azaz    60 Nov 19 15:42 .
+drwxrwxrwt 673 root root 19060 Nov 19 15:42 ..
+-rw-rw-r--   1 azaz azaz    20 Nov 19 15:42 secret.txt

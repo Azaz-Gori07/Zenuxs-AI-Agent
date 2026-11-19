@@ -1,0 +1,5 @@
+=== CASE dotdot-read: read {"path":"../symout-dotdot/secret.txt"} ===
+=== SHA: 80653580115beff80efc587f5865395a2508fc58 ===
+{"ts":"2026-11-19T10:11:49.863Z","type":"agent_event","event":{"type":"content_end","contentType":"tool","toolName":"read","toolCallId":"call_1","output":{"error":"Path is outside the workspace: /tmp/symout-dotdot/secret.txt (workspace: /tmp/sym-dotdot-read)"},"error":"{\"error\":\"Path is outside the workspace: /tmp/symout-dotdot/secret.txt (workspace: /tmp/sym-dotdot-read)\"}","durationMs":5}}
+{"ts":"2026-11-19T10:11:49.884Z","type":"agent_event","event":{"type":"content_end","contentType":"text","text":"done"}}
+=== outside files modified? ===

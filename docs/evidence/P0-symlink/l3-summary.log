@@ -1,0 +1,9 @@
+=== P0 SYMLINK ESCAPE FIX — L3 verification on HEAD ===
+=== SHA: 80653580115beff80efc587f5865395a2508fc58 ===
+=== TIMESTAMP: 2026-11-19T10:15:23Z ===
+--- reviewer exact repro (read) ---
+--- parent symlink write ---
+{"ts":"2026-11-19T10:12:12.438Z","type":"agent_event","event":{"type":"content_end","contentType":"tool","toolName":"write","toolCallId":"call_1","output":{"error":"EEXIST: file already exists, mkdir '/tmp/sym-parent-write/escape'"},"error":"{\"error\":\"EEXIST: file already exists, mkdir '/tmp/sym-parent-write/escape'\"}","durationMs":5}}
+--- symlink chain / final / dangling / hardlink / dotdot: unit 9/9 pass ---
+--- RAG symlink dir: indexed 1 file (inside.ts only), outside marker absent ---
+--- glob symlink dir: 1 file (inside.ts only) ---

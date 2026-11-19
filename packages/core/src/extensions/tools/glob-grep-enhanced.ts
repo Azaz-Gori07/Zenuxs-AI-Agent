@@ -117,7 +117,7 @@ async function globFiles(
 				if (entry.isDirectory()) {
 					if (entry.name.startsWith(".") || DEFAULT_EXCLUDE_DIRS.includes(entry.name)) continue;
 					await walk(fullPath);
-				} else if (entry.isFile() || entry.isSymbolicLink()) {
+				} else if (entry.isFile()) {
 					if (regex.test(relativePath)) {
 						results.push(fullPath);
 					}

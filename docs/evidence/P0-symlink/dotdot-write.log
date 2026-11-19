@@ -1,0 +1,9 @@
+=== CASE dotdot-write: write {"filePath":"../symout-dotdot-write/owned.txt","content":"OWNED"} ===
+=== SHA: 80653580115beff80efc587f5865395a2508fc58 ===
+{"ts":"2026-11-19T10:12:18.727Z","type":"agent_event","event":{"type":"content_end","contentType":"tool","toolName":"write","toolCallId":"call_1","output":{"error":"Path is outside the workspace: /tmp/symout-dotdot-write/owned.txt (workspace: /tmp/sym-dotdot-write)"},"error":"{\"error\":\"Path is outside the workspace: /tmp/symout-dotdot-write/owned.txt (workspace: /tmp/sym-dotdot-write)\"}","durationMs":3}}
+{"ts":"2026-11-19T10:12:18.741Z","type":"agent_event","event":{"type":"content_end","contentType":"text","text":"done"}}
+=== outside dir listing ===
+total 4
+drwxrwxr-x   2 azaz azaz    60 Nov 19 15:42 .
+drwxrwxrwt 676 root root 19120 Nov 19 15:42 ..
+-rw-rw-r--   1 azaz azaz    20 Nov 19 15:42 secret.txt

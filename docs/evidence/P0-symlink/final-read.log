@@ -1,0 +1,9 @@
+=== CASE final-read: read {"path":"link.txt"} ===
+=== SHA: 80653580115beff80efc587f5865395a2508fc58 ===
+{"ts":"2026-11-19T10:12:10.403Z","type":"agent_event","event":{"type":"content_end","contentType":"tool","toolName":"read","toolCallId":"call_1","output":{"error":"Symlink paths are not allowed for filesystem tools: /tmp/sym-final-read/link.txt"},"error":"{\"error\":\"Symlink paths are not allowed for filesystem tools: /tmp/sym-final-read/link.txt\"}","durationMs":3}}
+{"ts":"2026-11-19T10:12:10.416Z","type":"agent_event","event":{"type":"content_end","contentType":"text","text":"done"}}
+=== outside dir listing ===
+total 4
+drwxrwxr-x   2 azaz azaz    60 Nov 19 15:42 .
+drwxrwxrwt 673 root root 19060 Nov 19 15:42 ..
+-rw-rw-r--   1 azaz azaz    18 Nov 19 15:42 secret.txt

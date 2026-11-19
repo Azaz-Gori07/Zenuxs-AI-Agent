@@ -2,6 +2,7 @@ import * as fs from "fs/promises";
 import * as path from "path";
 import type { Stats } from "fs";
 import { resolveExistingFilePath } from "@cline/shared/storage";
+import { assertSafePath, type SafePathOptions } from "./path-safety";
 
 export type ExistingPathKind = "file" | "directory" | "other";
 
@@ -21,21 +22,16 @@ export function resolveToolPath(cwd: string, targetPath: string): string {
 export async function resolvePathInfo(
   cwd: string,
   targetPath: string,
+  options: SafePathOptions = {},
 ): Promise<ResolvedPathInfo> {
   const initialPath = resolveToolPath(cwd, targetPath);
-  const absolutePath = resolveExistingFilePath(initialPath) ?? initialPath;
+  const existingPath = resolveExistingFilePath(initialPath) ?? initialPath;
 
-  // Workspace boundary: filesystem tools must not silently escape the active
-  // workspace. Explicitly opt in via the environment when a caller truly needs
-  // cross-workspace access (e.g. tooling that manages other checkouts).
-  if (process.env.ZENUXS_ALLOW_OUTSIDE_WORKSPACE !== "1") {
-    const relative = path.relative(cwd, absolutePath);
-    if (relative.startsWith("..") || path.isAbsolute(relative)) {
-      throw new Error(
-        `Path is outside the workspace: ${targetPath} (workspace: ${cwd})`,
-      );
-    }
-  }
+  // Resolve symlinks and enforce the workspace boundary before returning any
+  // path for I/O. The returned absolutePath is the real path, so a symlink
+  // swapped in after this check cannot redirect the operation.
+  const safe = await assertSafePath(cwd, existingPath, options);
+  const absolutePath = safe.realPath;
 
   try {
     const stats = await fs.stat(absolutePath);
