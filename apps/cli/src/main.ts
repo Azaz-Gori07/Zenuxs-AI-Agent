@@ -1216,7 +1216,10 @@ export async function runCli(): Promise<void> {
 				maxConsecutiveMistakes: args.retries ?? 3,
 			},
 			checkpoint: CLI_DEFAULT_CHECKPOINT_CONFIG,
-			compaction: buildCliCompactionConfig(args.compactionMode),
+			compaction: buildCliCompactionConfig(args.compactionMode, {
+				thresholdRatio: args.compactionThreshold,
+				reserveTokens: args.compactionReserveTokens,
+			}),
 			timeoutSeconds: args.timeoutSeconds,
 			sandbox: sandboxEnabled,
 			sandboxDataDir,

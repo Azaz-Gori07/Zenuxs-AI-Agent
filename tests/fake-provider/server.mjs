@@ -54,6 +54,13 @@ const server = createServer(async (req, res) => {
   let request
   try {
     request = JSON.parse(body)
+    if (process.env.FAKE_PROVIDER_REQUEST_LOG) {
+      const { appendFileSync } = await import("node:fs")
+      appendFileSync(
+        process.env.FAKE_PROVIDER_REQUEST_LOG,
+        `${JSON.stringify({ turn, body: request })}\n`,
+      )
+    }
   } catch {
     res.writeHead(400, { "content-type": "application/json" })
     res.end(JSON.stringify({ error: { message: "invalid request JSON" } }))

@@ -79,6 +79,8 @@ export interface ParsedArgs {
 	reasoningEffort?: CliReasoningEffort;
 	invalidThinkingLevel?: string;
 	compactionMode?: CliCompactionMode;
+	compactionThreshold?: number;
+	compactionReserveTokens?: number;
 	invalidCompactionMode?: string;
 	invalidAutoApprove?: string;
 	sandbox: boolean;

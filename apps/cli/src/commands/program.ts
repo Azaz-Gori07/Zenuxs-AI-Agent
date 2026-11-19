@@ -28,6 +28,14 @@ export function addRootOptions(cmd: Command): Command {
 				"--mode <mode>",
 				"Agent mode: act, plan, build, edit, guarded, yolo, ask, debug",
 			)
+			.option(
+				"--compaction-threshold <ratio>",
+				"Compaction threshold ratio (0-1), e.g. 0.01 to force compaction",
+			)
+			.option(
+				"--compaction-reserve <tokens>",
+				"Tokens reserved for output when deciding compaction",
+			)
 			.option("--json", "Output messages as JSON instead of styled text")
 			.option(
 				"--output-format <format>",
@@ -217,6 +225,19 @@ export function commanderToParsedArgs(program: Command): ParsedArgs {
 			result.compactionMode = compactionMode;
 		} else if (mode) {
 			result.invalidCompactionMode = mode;
+		}
+	}
+
+	if (opts.compactionThreshold !== undefined) {
+		const ratio = Number(opts.compactionThreshold);
+		if (Number.isFinite(ratio) && ratio >= 0 && ratio <= 1) {
+			result.compactionThreshold = ratio;
+		}
+	}
+	if (opts.compactionReserve !== undefined) {
+		const tokens = Number.parseInt(String(opts.compactionReserve), 10);
+		if (Number.isFinite(tokens) && tokens >= 0) {
+			result.compactionReserveTokens = tokens;
 		}
 	}
 

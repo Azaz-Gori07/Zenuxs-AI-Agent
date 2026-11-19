@@ -32,11 +32,21 @@ export function parseCliCompactionMode(
 
 export function buildCliCompactionConfig(
 	mode: CliCompactionMode | undefined = DEFAULT_CLI_COMPACTION_MODE,
+	options?: { thresholdRatio?: number; reserveTokens?: number },
 ): NonNullable<Config["compaction"]> {
 	if (mode === "off") {
 		return { enabled: false };
 	}
-	return { enabled: true, strategy: mode };
+	return {
+		enabled: true,
+		strategy: mode,
+		...(options?.thresholdRatio !== undefined
+			? { thresholdRatio: options.thresholdRatio }
+			: {}),
+		...(options?.reserveTokens !== undefined
+			? { reserveTokens: options.reserveTokens }
+			: {}),
+	};
 }
 
 export function getCliCompactionMode(config: Config): CliCompactionMode {

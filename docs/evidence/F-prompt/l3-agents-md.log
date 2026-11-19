@@ -1,0 +1,7 @@
+=== COMMAND: verify AGENTS.md reaches provider request ===
+=== TIMESTAMP: 2026-11-19T05:56:33Z ===
+=== SHA: cbe906e0db9410aea4dc198cb866fa2acc9bb6ca ===
+{"ts":"2026-11-19T05:56:35.018Z","type":"run_result","finishReason":"completed","iterations":1,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":123,"text":"Mode check OK.","model":{"id":"fake-model","provider":"openai-compatible"}}
+=== markers found in provider request ===
+MARKER_ZENUXS_AGENTS_PROJECT_FILE_7F3A
+=== EXIT: 0 ===

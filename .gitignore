@@ -53,3 +53,6 @@ tmp/
 
 # Accidentally committed personal config (UTF-16, Windows paths)
 config.json
+
+# VS Code E2E downloaded runtime
+.vscode-test/
