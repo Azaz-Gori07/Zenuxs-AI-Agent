@@ -1,0 +1,7 @@
+=== COMMAND: bun tests/fixtures/l3/compaction-check.mjs (multi-turn) ===
+=== TIMESTAMP: 2026-11-19T07:01:20Z ===
+=== SHA: 4bcb85a1fd5f5e688f4ae88c9e81d5a5397a89e8 ===
+DEBUG Context compaction diagnostics {"mode":"auto","strategy":"basic","iteration":1,"providerId":"openai-compatible","modelId":"fake-model","inputTokens":13394,"maxInputTokens":200000,"triggerTokens":2000,"thresholdRatio":0.01,"shouldCompact":true,"requestLimited":false,"messageCount":4,"apiMessageCount":4,"apiMessagesJsonChars":40183,"toolResultCount":0,"toolResultSerializedChars":0,"maxToolResultSerializedChars":0}
+DEBUG Performed basic compaction {"messagesBefore":4,"messagesAfter":3,"messagesRemoved":1,"tokensBefore":13394,"tokensAfter":9382,"targetTokens":2000,"maxInputTokens":200000}
+{"compacted":true,"before":4,"after":3}
+=== EXIT: 0 ===
