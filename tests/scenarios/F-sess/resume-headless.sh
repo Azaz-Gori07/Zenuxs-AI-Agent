@@ -7,8 +7,8 @@ cd "$ROOT" || exit 1
 export PATH="$HOME/.bun/bin:$PATH"
 PORT="${RESUME_PORT:-4331}"
 DATA="${RESUME_DATA:-/tmp/zenuxs-resume-regression}"
-rm -rf "$DATA"
-E=(env ZENUXS_PROVIDER_SETTINGS_PATH=/tmp/review-providers.json CLINE_DIR="$DATA" CLINE_DATA_DIR="$DATA")
+rm -rf "$DATA/sessions"
+E=(env ZENUXS_PROVIDER_SETTINGS_PATH="${ZENUXS_PROVIDER_SETTINGS_PATH:-/tmp/review-providers.json}" ZENUXS_PROVIDER_BASE_URL="${ZENUXS_PROVIDER_BASE_URL:-}" CLINE_DIR="$DATA" CLINE_DATA_DIR="$DATA")
 "${E[@]}" timeout 45 bun apps/cli/src/index.ts -P openai-compatible -m fake-model --json "first turn" > "$DATA-1.log" 2>&1
 SID=$(ls "$DATA/sessions" 2>/dev/null | head -1)
 [ -n "$SID" ] || { echo "FAIL: no session"; exit 1; }

@@ -1,0 +1,21 @@
+=== LIVE ENDPOINT MODEL PROBE ===
+=== TIMESTAMP: 2026-11-20T05:46:01Z ===
+=== SHA: a9210ffa400bfdbf40de02fdb8c8108016e85302 ===
+--- /v1/models ---
+big-pickle
+mimo-v2.6-flash-free
+deepseek-v4.1-flash-free
+longcat-2.5-free
+iceman-free
+beam-free
+flint-40b-free
+nemotron-3.5-super-vl-free
+nemotron-3.5-lightning-free
+hy4-flash-free
+tidepool-alpha-free
+--- tiny CLI-shaped completion per model ---
+deepseek-v4.1-flash-free => {"error":{"message":"Free usage limit reached. Free models work in OpenCode (https://opencode.ai); subscribe to OpenCode Go to keep going: https://opencode.ai/go","type":"FreeUsageLimitError","code":4
+mimo-v2.6-flash-free => {"error":{"message":"Free usage limit reached. Free models work in OpenCode (https://opencode.ai); subscribe to OpenCode Go to keep going: https://opencode.ai/go","type":"FreeUsageLimitError","code":4
+big-pickle => {"id":"chatcmpl-84d50a1f311e5b101b5f714a","object":"chat.completion","created":1795153564,"model":"big-pickle","choices":[{"index":0,"message":{"role":"assistant","content":"OK","reasoning_content":"W
+beam-free => {"id":"chatcmpl-21e735d6423ef45e8e2dde04","object":"chat.completion","created":1795153565,"model":"beam-free","choices":[{"index":0,"message":{"role":"assistant","content":"OK","reasoning_content":"Th
+hy4-flash-free => {"id":"chatcmpl-24a3c9e614bf4db7050eee71","object":"chat.completion","created":1795153567,"model":"hy4-flash-free","choices":[{"index":0,"message":{"role":"assistant","content":"OK","reasoning_content

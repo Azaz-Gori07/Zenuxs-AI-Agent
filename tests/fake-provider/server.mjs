@@ -67,6 +67,12 @@ const server = createServer(async (req, res) => {
     return
   }
 
+  // Fail-closed evidence support: record that a request actually reached the
+  // fake provider, so a scenario cannot pass by hitting a real endpoint.
+  if (process.env.FAKE_PROVIDER_COUNT_FILE) {
+    const { appendFileSync } = await import("node:fs")
+    appendFileSync(process.env.FAKE_PROVIDER_COUNT_FILE, JSON.stringify({ turn, model: request.model, at: new Date().toISOString() }) + "\n")
+  }
   const step = steps[Math.min(turn, steps.length - 1)] ?? steps[0]
   turn += 1
   const id = `fake-${turn}`

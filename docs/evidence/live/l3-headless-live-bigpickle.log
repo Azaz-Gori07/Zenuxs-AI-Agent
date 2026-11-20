@@ -1,0 +1,5 @@
+=== LIVE CLI-SHAPED REQUEST WITH WORKING MODEL ===
+=== SHA: a9210ffa400bfdbf40de02fdb8c8108016e85302 ===
+=== TIMESTAMP: 2026-11-20T05:46:23Z ===
+Terminated                 ZENUXS_PROVIDER_SETTINGS_PATH=/tmp/live-big/providers.json ZENUXS_PROVIDER_BASE_URL=http://127.0.0.1:20129/v1 CLINE_DIR=/tmp/live-big/data CLINE_DATA_DIR=/tmp/live-big/data timeout 90 bun apps/cli/src/index.ts -P openai-compatible -m big-pickle -k public --retries 1 --timeout 60 --json "Reply with exactly LIVE_OK" 2>&1 | grep -E '"type":"(run_result|content_end|error)"|FreeUsageLimitError' | head -5
+=== EXIT: 124 ===

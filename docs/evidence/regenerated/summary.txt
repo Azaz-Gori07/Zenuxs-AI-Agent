@@ -1,0 +1,25 @@
+headless: exit=0 guard=PASS
+multitool: exit=0 guard=PASS
+mode_act: exit=0 guard=PASS
+mode_plan: exit=0 guard=PASS
+mode_build: exit=0 guard=PASS
+mode_edit: exit=0 guard=PASS
+yolo: exit=0 guard=PASS
+guarded: exit=0 guard=PASS
+boundary: exit=0 guard=PASS
+malformed: exit=0 guard=PASS
+rate_limit: exit=0 guard=PASS
+server_error: exit=0 guard=PASS
+cut_stream: exit=0 guard=PASS
+slow: exit=0 guard=PASS
+mcp: exit=0 guard=PASS
+skills: exit=0 guard=PASS
+subagent: exit=0 guard=PASS
+hook: exit=0 guard=PASS
+compaction: exit=0 guard=PASS
+resume: exit=0 guard=PASS
+prompt: exit=0 guard=PASS
+checkpoint: exit=0 guard=PASS
+rag: exit=0
+tui-pty: exit=0
+=== FAILURES: 0 ===

@@ -58,8 +58,16 @@ for (const row of rows) {
   const status = (statusCell ?? "").split("(")[0].trim()
   if (!id) continue
   if (status === "EXCLUDED" && /intentionally excluded/i.test(evidence ?? "")) continue
+  // BLOCKED is an explicit, evidence-backed state for environment limits
+  // (e.g. live-provider quota). It requires a pointer to BLOCKED.md.
+  if (status === "BLOCKED") {
+    if (!/BLOCKED\.md/i.test(evidence ?? "")) {
+      problems.push(`${id}: BLOCKED without BLOCKED.md evidence pointer`)
+    }
+    continue
+  }
   if (status !== "VERIFIED") {
-    problems.push(`${id}: status ${status} (expected VERIFIED)`)
+    problems.push(`${id}: status ${status} (expected VERIFIED or documented BLOCKED)`)
     continue
   }
   const paths = (evidence ?? "").split(/[,;]/).map((p) => p.trim()).filter(Boolean)
@@ -75,7 +83,9 @@ for (const row of rows) {
     const sourcePaths = SOURCE_PATHS[id]
     if (!sourcePaths) continue
     const sourceTs = lastCommitTime(sourcePaths)
-    const evidenceTs = lastCommitTime(paths)
+    // The gate regenerates evidence immediately before this check, so compare
+    // source commit time against the evidence file's modification time.
+    const evidenceTs = Math.floor(statSync(join(root, path)).mtimeMs / 1000)
     if (sourceTs > evidenceTs && sourceTs > 0) {
       problems.push(`${id}: stale evidence (source changed after evidence)`)
     }

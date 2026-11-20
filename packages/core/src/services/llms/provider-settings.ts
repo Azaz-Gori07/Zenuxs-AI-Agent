@@ -257,7 +257,14 @@ export function toProviderConfig(
 	const accessToken = isOAuthProvider(normalizedProviderId)
 		? settings.auth?.accessToken
 		: undefined;
+	// Explicit test/CI override. Takes precedence over persisted settings so a
+	// scenario can target a local fake provider without mutating settings files.
+	const envBaseUrl =
+		typeof process !== "undefined" && process.env?.ZENUXS_PROVIDER_BASE_URL?.trim()
+			? process.env.ZENUXS_PROVIDER_BASE_URL.trim()
+			: undefined;
 	const resolvedBaseUrl =
+		envBaseUrl ??
 		settings.baseUrl ??
 		(normalizedProviderId === "oca"
 			? settings.oca?.mode === "internal"

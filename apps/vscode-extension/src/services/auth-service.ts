@@ -60,6 +60,24 @@ export class AuthService {
 		this._globalState = globalState;
 	}
 
+	private static secretKey(providerId: string): string {
+		return `zenuxs.auth.${providerId}.accessToken`;
+	}
+
+	/** Store an access token in VS Code SecretStorage (never in plain files/logs). */
+	async storeCredential(providerId: string, token: string): Promise<void> {
+		await this._secretStorage?.store(AuthService.secretKey(providerId), token);
+	}
+
+	/** Read a stored credential; falls back to undefined when unavailable. */
+	async readCredential(providerId: string): Promise<string | undefined> {
+		return this._secretStorage?.get(AuthService.secretKey(providerId));
+	}
+
+	async deleteCredential(providerId: string): Promise<void> {
+		await this._secretStorage?.delete(AuthService.secretKey(providerId));
+	}
+
 	get authenticated(): boolean {
 		return this._authenticated;
 	}
@@ -114,6 +132,7 @@ export class AuthService {
 				return;
 			}
 
+			await this.storeCredential(storageId, credentials.access);
 			this._authInfo = {
 				accessToken: credentials.access,
 				refreshToken: credentials.refresh,
@@ -136,6 +155,7 @@ export class AuthService {
 		try {
 			const providerToClear = targetProviderId || this._authInfo?.provider;
 			if (providerToClear) {
+				await this.deleteCredential(providerToClear);
 				const handler = getProviderAuthHandler(providerToClear);
 				const storageId = handler?.storageProviderId ?? providerToClear;
 				const psm = new ProviderSettingsManager();

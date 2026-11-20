@@ -70,6 +70,7 @@ vi.mock("../utils/approval", () => ({
 vi.mock("../utils/events", () => ({
 	handleEvent: vi.fn(),
 	handleTeamEvent: vi.fn(),
+	toCompactionJsonEvent: vi.fn(() => undefined),
 }));
 
 vi.mock("../utils/hooks", () => ({

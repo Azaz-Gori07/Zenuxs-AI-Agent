@@ -1,6 +1,19 @@
 # FAILURES (defects, severity P0-P3)
 
-## Status: ZERO open P0/P1 defects
+## Status: OPEN defects exist (see below)
+
+### OPEN-SETTINGS-01 (P1) — provider-settings rewrite drops `baseUrl`
+Observed: after a headless CLI run, the file at `ZENUXS_PROVIDER_SETTINGS_PATH` is
+rewritten with only `{provider, apiKey, model}`; `baseUrl`, `protocol` and `client`
+disappear. Repro: write a settings JSON with `baseUrl` pointing to a local fake
+provider, run `zenuxs -P openai-compatible ...`, then read the file. Evidence:
+`docs/evidence/regenerated/headless.log` (real request went to the default OpenAI
+endpoint with the fake key) and `/tmp/regen-providers.json` at review time.
+Root cause was not localized to a single function (migration + selection persistence
+both touch the file), so it is PENDING rather than fixed. Workaround used for
+verification: explicit `ZENUXS_PROVIDER_BASE_URL` override added to `toProviderConfig`.
+No matrix row may be VERIFIED on the strength of a settings-file `baseUrl` alone.
+
 
 All baseline defects BASE-01 … BASE-09 and new defects P1-NEW-01 … P1-NEW-04
 were fixed and verified by the gate (16/16 steps, exit 0). Historical details:
@@ -28,3 +41,12 @@ Defects found and fixed during the resume run:
 - Matrix checker could not parse annotated statuses: fixed (threshold unchanged).
 
 No open P0/P1 items remain.
+
+### OPEN-P2-EXT-01 — Extension reconnect after core kill untested
+SecretStorage is now implemented (`AuthService.storeCredential/readCredential/deleteCredential`) with a passing unit check at `tests/scenarios/F-ext/secret-storage.test.mjs`, but the .vsix webview scenario "reconnect after the core process is killed" has no L3 evidence. F-ext remains PARTIAL.
+
+### OPEN-P2-CLI-03/04 — CLI flag gaps
+`--disallowed-tools` is accepted but not applied to tool policies; `--attach`, `--no-color`, `--locale` are partially implemented. Rows remain PARTIAL.
+
+### OPEN-P2-AUTO/HOOK/PLUG — reference features not implemented
+F-auto-01 (workflow-mode/dwf/expert/goal), F-hook-01 (hook trust digest), F-plug-01 (plugin marketplaces) are MISSING in the target; recorded honestly rather than excluded.
