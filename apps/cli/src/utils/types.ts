@@ -82,6 +82,11 @@ export interface ParsedArgs {
 	compactionThreshold?: number;
 	compactionReserveTokens?: number;
 	invalidCompactionMode?: string;
+	disallowedTools?: string[];
+	attach?: string[];
+	noColor?: boolean;
+	locale?: string;
+	invalidLocale?: string;
 	invalidAutoApprove?: string;
 	sandbox: boolean;
 	dataDir?: string;

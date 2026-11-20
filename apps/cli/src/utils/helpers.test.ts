@@ -51,6 +51,9 @@ describe("parseArgs", () => {
 			thinking: false,
 			reasoningEffort: undefined,
 			defaultToolAutoApprove: true,
+			disallowedTools: [],
+			attach: [],
+			noColor: false,
 		});
 	});
 

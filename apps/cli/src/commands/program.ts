@@ -17,6 +17,25 @@ function normalizeAutoApproveValue(
 	return String(value);
 }
 
+/** Split tool specs into bare tool names; `Bash(git *)` disables all of Bash. */
+function parseDisallowedTools(value: unknown): string[] {
+	const values = Array.isArray(value) ? value : [value];
+	const names: string[] = [];
+	for (const entry of values) {
+		if (typeof entry !== "string") continue;
+		const cleaned = entry.replace(/\([^)]*\)/g, " ");
+		for (const token of cleaned.split(/[\s,]+/)) {
+			const name = token.trim();
+			if (name && !names.includes(name)) names.push(name);
+		}
+	}
+	return names;
+}
+
+function collectAttach(value: string, previous: string[] | undefined): string[] {
+	return [...(previous ?? []), value];
+}
+
 /**
  * Add the shared root-level options to any command.
  */
@@ -27,9 +46,20 @@ export function addRootOptions(cmd: Command): Command {
 			.option("--prompt <text>", "Prompt text for a single headless run")
 			.option(
 				"--disallowed-tools <names>",
-				"Comma-separated tools to remove for this run",
+				"Comma-separated tools to remove for this run (e.g. Bash(git *) removes all of Bash)",
 			)
-			.option("--attach <path>", "Attach a local file (repeatable)")
+			.option(
+				"--disallowedTools <names>",
+				"Alias for --disallowed-tools",
+			)
+			.option(
+				"--attach <path>",
+				"Attach a local file to the prompt (repeatable)",
+				collectAttach,
+				[],
+			)
+			.option("--no-color", "Disable ANSI colors in text output")
+			.option("--locale <locale>", "Output locale: en-US, zh-CN, or auto")
 			.option(
 				"--mode <mode>",
 				"Agent mode: act, plan, build, edit, guarded, yolo, ask, debug",
@@ -171,6 +201,9 @@ export function commanderToParsedArgs(program: Command): ParsedArgs {
 		reasoningEffort: undefined,
 		defaultToolAutoApprove: true,
 		id: opts.id,
+		disallowedTools: parseDisallowedTools(opts.disallowedTools),
+		attach: Array.isArray(opts.attach) ? opts.attach : [],
+		noColor: opts.color === false || Boolean(process.env.NO_COLOR),
 	};
 
 	// Approval: last-wins semantics
@@ -244,6 +277,15 @@ export function commanderToParsedArgs(program: Command): ParsedArgs {
 		const tokens = Number.parseInt(String(opts.compactionReserve), 10);
 		if (Number.isFinite(tokens) && tokens >= 0) {
 			result.compactionReserveTokens = tokens;
+		}
+	}
+
+	if (opts.locale !== undefined) {
+		const locale = String(opts.locale).trim();
+		if (locale === "en-US" || locale === "zh-CN" || locale === "auto") {
+			result.locale = locale;
+		} else if (locale) {
+			result.invalidLocale = locale;
 		}
 	}
 

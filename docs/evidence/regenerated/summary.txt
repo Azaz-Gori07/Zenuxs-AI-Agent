@@ -21,5 +21,6 @@ resume: exit=0 guard=PASS
 prompt: exit=0 guard=PASS
 checkpoint: exit=0 guard=PASS
 rag: exit=0
+cli-flags: exit=0 guard=PASS
 tui-pty: exit=0
 === FAILURES: 0 ===

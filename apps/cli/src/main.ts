@@ -20,6 +20,7 @@ import {
 	getPreferredKanbanInstaller,
 } from "./commands/update";
 import { CLI_DEFAULT_CHECKPOINT_CONFIG } from "./runtime/defaults";
+import { resolveAttachmentMentions } from "./utils/attachments";
 import {
 	buildCliCompactionConfig,
 	CLI_COMPACTION_MODE_EXPECTED_TEXT,
@@ -34,9 +35,11 @@ import {
 	normalizeAutoApproveArgs,
 	resolveWorkspaceRoot,
 } from "./utils/helpers";
+import { setLocale } from "./utils/locale";
 import {
 	c,
 	installStreamErrorGuards,
+	setColorEnabled,
 	setCurrentOutputMode,
 	writeErr,
 	writeln,
@@ -148,6 +151,12 @@ export async function runCli(): Promise<void> {
 	});
 	// Default action handles non-subcommand args (e.g. prompt text)
 	program.action(() => {});
+	// Apply output flags before any subcommand action runs (doctor --json, etc.).
+	program.hook("preAction", () => {
+		const opts = program.opts() as { color?: boolean; locale?: string };
+		setColorEnabled(opts.color !== false && !process.env.NO_COLOR);
+		setLocale(opts.locale);
+	});
 
 	// Auth subcommand: defines its own options so commander parses them
 	// directly. The short flags -p/-m intentionally shadow the root's -p (plan)
@@ -898,6 +907,8 @@ export async function runCli(): Promise<void> {
 
 	// Default flow: no subcommand matched, or fall-through from config/history.
 	let args = commanderToParsedArgs(program);
+	setColorEnabled(!args.noColor);
+	setLocale(args.locale);
 	if (program.args.length > 1) {
 		writeErr(
 			`Unknown command or extra arguments: ${program.args.join(" ")}\nPrompt text with spaces must be quoted as a single argument, for example: cline "fix the tests". Use "cline --help" to see available commands and flags.`,
@@ -985,6 +996,13 @@ export async function runCli(): Promise<void> {
 			`${c.dim}[warn] ignoring invalid --retries value "${args.invalidRetries}" (expected integer >= 1)${c.reset}`,
 		);
 	}
+	if (args.invalidLocale) {
+		writeErr(
+			`invalid locale "${args.invalidLocale}" (expected "en-US", "zh-CN", or "auto")`,
+		);
+		process.exitCode = 1;
+		return;
+	}
 	if (args.hooksDir?.trim()) {
 		process.env.CLINE_HOOKS_DIR = args.hooksDir.trim();
 	}
@@ -997,6 +1015,9 @@ export async function runCli(): Promise<void> {
 			autoApprove: effectiveToolAutoApprove,
 		},
 	};
+	for (const toolName of args.disallowedTools ?? []) {
+		toolPolicies[toolName] = { enabled: false };
+	}
 
 	// Headless yolo runs have no completion client. A text-only answer must be
 	// allowed to finish the run instead of looping until maxIterations while
@@ -1058,6 +1079,19 @@ export async function runCli(): Promise<void> {
 
 	const cwd = args.cwd ?? process.cwd();
 	const workspaceRoot = resolveWorkspaceRoot(cwd);
+	let attachmentMentions: string[] = [];
+	try {
+		attachmentMentions = resolveAttachmentMentions(args.attach, cwd);
+	} catch (error) {
+		writeErr(error instanceof Error ? error.message : String(error));
+		process.exitCode = 1;
+		return;
+	}
+	const withAttachments = (prompt: string | undefined): string | undefined => {
+		if (!attachmentMentions.length) return prompt;
+		const suffix = `\n\n${attachmentMentions.join(" ")}`;
+		return prompt ? `${prompt}${suffix}` : attachmentMentions.join(" ");
+	};
 	// Sandbox mode is enabled implicitly whenever --data-dir is provided, or
 	// when CLINE_SANDBOX=1 is set in the environment (in which case the data
 	// dir falls back to $CLINE_SANDBOX_DATA_DIR or /tmp/cline-sandbox).
@@ -1362,9 +1396,10 @@ export async function runCli(): Promise<void> {
 			const pipedInput = Buffer.concat(chunks).toString("utf-8").trim();
 
 			if (pipedInput) {
-				const prompt = args.prompt
-					? `${args.prompt}\n\n${pipedInput}`
-					: pipedInput;
+				const prompt =
+					withAttachments(
+						args.prompt ? `${args.prompt}\n\n${pipedInput}` : pipedInput,
+					) ?? pipedInput;
 				const rewrittenTeamPrompt = rewriteTeamPrompt(prompt);
 				if (rewrittenTeamPrompt.kind === "usage") {
 					writeln(TEAM_COMMAND_USAGE);
@@ -1426,7 +1461,7 @@ export async function runCli(): Promise<void> {
 				}
 			}
 			await runInteractive(config, userInstructionService, resumeSessionId, {
-				initialPrompt: args.prompt,
+				initialPrompt: withAttachments(args.prompt),
 				clineApiBaseUrl: initialClineProviderSettings?.baseUrl,
 				clineProviderSettings: initialClineProviderSettings,
 				initialView,
@@ -1443,9 +1478,11 @@ export async function runCli(): Promise<void> {
 			return;
 		}
 		const effectivePrompt =
-			rewrittenTeamPrompt.kind === "rewritten"
-				? rewrittenTeamPrompt.prompt
-				: args.prompt;
+			withAttachments(
+				rewrittenTeamPrompt.kind === "rewritten"
+					? rewrittenTeamPrompt.prompt
+					: args.prompt,
+			) ?? args.prompt;
 
 		// Zen mode: dispatch the task to the background hub and exit. The CLI
 		// does not stay connected to stream output; completion is delivered via

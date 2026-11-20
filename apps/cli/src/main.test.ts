@@ -1,4 +1,5 @@
 import { fstatSync } from "node:fs";
+import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { CliMigrationNotice } from "./kanban-migration/notice";
 
@@ -456,6 +457,123 @@ describe("runCli lightweight command dispatch", () => {
 			expect.any(Object),
 			expect.anything(),
 		);
+	});
+
+	it("applies --disallowed-tools to runtime tool policies", async () => {
+		forcePromptModeInput();
+		process.argv = [
+			"bun",
+			"src/index.ts",
+			"--disallowed-tools",
+			"AskUserQuestion,Task",
+			"do something",
+		];
+
+		const { runCli } = await import("./main");
+
+		await expect(runCli()).resolves.toBeUndefined();
+		expect(runtimeMocks.runAgent).toHaveBeenCalledWith(
+			expect.any(String),
+			expect.objectContaining({
+				toolPolicies: expect.objectContaining({
+					AskUserQuestion: { enabled: false },
+					Task: { enabled: false },
+				}),
+			}),
+			expect.anything(),
+		);
+	});
+
+	it("accepts --disallowedTools alias and strips command patterns", async () => {
+		forcePromptModeInput();
+		process.argv = [
+			"bun",
+			"src/index.ts",
+			"--disallowedTools",
+			"Bash(git *) Read",
+			"do something",
+		];
+
+		const { runCli } = await import("./main");
+
+		await expect(runCli()).resolves.toBeUndefined();
+		expect(runtimeMocks.runAgent).toHaveBeenCalledWith(
+			expect.any(String),
+			expect.objectContaining({
+				toolPolicies: expect.objectContaining({
+					Bash: { enabled: false },
+					Read: { enabled: false },
+				}),
+			}),
+			expect.anything(),
+		);
+	});
+
+	it("appends repeatable --attach paths as prompt mentions", async () => {
+		forcePromptModeInput();
+		const first = join(process.cwd(), "package.json");
+		const second = join(process.cwd(), "README.md");
+		process.argv = [
+			"bun",
+			"src/index.ts",
+			"--attach",
+			first,
+			"--attach",
+			second,
+			"describe files",
+		];
+
+		const { runCli } = await import("./main");
+
+		await expect(runCli()).resolves.toBeUndefined();
+		const prompt = runtimeMocks.runAgent.mock.calls[0]?.[0] as string;
+		expect(prompt).toContain(`@"${first}"`);
+		expect(prompt).toContain(`@"${second}"`);
+	});
+
+	it("rejects --attach paths that do not exist", async () => {
+		const consoleError = vi
+			.spyOn(console, "error")
+			.mockImplementation(() => undefined);
+		forcePromptModeInput();
+		process.argv = [
+			"bun",
+			"src/index.ts",
+			"--attach",
+			"does-not-exist.txt",
+			"prompt",
+		];
+
+		const { runCli } = await import("./main");
+
+		await expect(runCli()).resolves.toBeUndefined();
+		expect(process.exitCode).toBe(1);
+		expect(consoleError).toHaveBeenCalled();
+		expect(runtimeMocks.runAgent).not.toHaveBeenCalled();
+	});
+
+	it("rejects an invalid --locale and emits no ANSI codes with --no-color", async () => {
+		const consoleError = vi
+			.spyOn(console, "error")
+			.mockImplementation(() => undefined);
+		forcePromptModeInput();
+		process.argv = [
+			"bun",
+			"src/index.ts",
+			"--no-color",
+			"--locale",
+			"fr-FR",
+			"prompt",
+		];
+
+		const { runCli } = await import("./main");
+
+		await expect(runCli()).resolves.toBeUndefined();
+		expect(process.exitCode).toBe(1);
+		const rendered = consoleError.mock.calls.map((call) => call.join(" ")).join("\n");
+		expect(rendered).toContain("invalid locale");
+		expect(rendered).not.toContain("\x1b[");
+		expect(runtimeMocks.runAgent).not.toHaveBeenCalled();
 	});
 
 	it("rejects unknown root flags before loading runtime modules", async () => {

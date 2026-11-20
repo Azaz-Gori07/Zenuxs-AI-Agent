@@ -29,3 +29,8 @@
 - **Decision**: use `mimo-v2.6-flash-free` instead of the announced `glm-5.3-flash-free`.
 - **Why**: `/v1/models` on the live endpoint does not list `glm-5.3-flash-free`; a tiny completion returned `model_deprecated` ("has been retired upstream"). `mimo-v2.6-flash-free` is listed and answered `PONG`. The deepseek model was usable initially but later returned `FreeUsageLimitError` (per-model free quota exhausted).
 - **How to apply**: live scenarios are bounded with timeouts and retries; when a live request fails, replay on the fake provider first, then retry live up to 3 times; classify model-quality failures separately from product defects.
+
+## 2026-11-20 — Continuation from HEAD 49f8f42 (single writer, clean-room)
+- **Decision**: Work proceeds in the user's fixed order (settings root fix already committed at 49f8f42 and verified by `provider-settings-roundtrip.test.ts`: 2/2 pass). I am the only code writer; read-only exploration is delegated to subagents. New features F-hook-01/F-plug-01/F-auto-01 are built clean-room: reference is studied for behavior only (behavior specs recorded in `docs/recon/clean-room-specs.md`), with original module names/structure, no copied code/UI/branding.
+- **Why**: the user explicitly ordered the work and forbade mid-run decisions; a single writer avoids the collision hazard documented in the orchestration skill.
+- **How to apply**: log each new decision here. Do not claim completion until gate is green, no MISSING/PARTIAL rows, the independent reviewer on final HEAD has zero P0/P1, and blocked live rows have evidence + `scripts/verify-live.sh`.

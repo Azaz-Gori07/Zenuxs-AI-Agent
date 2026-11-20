@@ -1,12 +1,13 @@
 import { registerDisposable } from "@cline/shared";
 import { nowIso } from "./helpers";
+import { getLocale } from "./locale";
 import type { ActiveCliSession, CliOutputMode } from "./types";
 
 // =============================================================================
 // ANSI Colors (no dependencies for speed)
 // =============================================================================
 
-export const c = {
+const ANSI_COLORS = {
 	reset: "\x1b[0m",
 	dim: "\x1b[2m",
 	bold: "\x1b[1m",
@@ -16,6 +17,22 @@ export const c = {
 	red: "\x1b[31m",
 	gray: "\x1b[90m",
 };
+
+export const c = { ...ANSI_COLORS };
+
+let colorEnabled = true;
+
+/** `--no-color` (and NO_COLOR) replace every ANSI code with an empty string. */
+export function setColorEnabled(enabled: boolean): void {
+	colorEnabled = enabled;
+	for (const key of Object.keys(ANSI_COLORS) as Array<keyof typeof ANSI_COLORS>) {
+		c[key] = enabled ? ANSI_COLORS[key] : "";
+	}
+}
+
+export function isColorEnabled(): boolean {
+	return colorEnabled;
+}
 
 // =============================================================================
 // Shared mutable state for output
@@ -213,7 +230,7 @@ export function formatCreditBalance(value: number, decimalPlaces = 2): string {
 	if (!Number.isFinite(value)) {
 		return "$0.00";
 	}
-	return `$${value.toLocaleString("en-US", {
+	return `$${value.toLocaleString(getLocale(), {
 		minimumFractionDigits: decimalPlaces,
 		maximumFractionDigits: decimalPlaces,
 	})}`;

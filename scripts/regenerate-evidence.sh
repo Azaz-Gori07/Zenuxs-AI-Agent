@@ -166,6 +166,30 @@ node -e 'const fs=require("fs");const r=process.argv[1];for(let i=0;i<120;i++)fs
 } > "$log" 2>&1
 echo "rag: exit=0" >> "$SUMMARY"
 
+# CLI flags (F-cli-03 / F-cli-04): apply disallowed tools, attachments,
+# no-color and locale through the real CLI against the fake provider.
+dir="$WORK/cli-flags"; count="$WORK/cli-flags.requests"; log="$OUT/cli-flags.log"
+settings_for "$dir"
+printf 'attachment marker\n' > "$dir/attached.txt"
+provider_start tests/fixtures/l3/scenarios/single.json "$count"
+{
+  echo "=== COMMAND: real CLI --disallowed-tools --attach --no-color --locale ==="; echo "=== SHA: $SHA ==="; echo "=== BASE_URL_OVERRIDE: $BASE ==="
+  ZENUXS_PROVIDER_SETTINGS_PATH="$dir/providers.json" ZENUXS_PROVIDER_BASE_URL="$BASE" CLINE_DIR="$dir" CLINE_DATA_DIR="$dir" \
+    timeout 60 bun apps/cli/src/index.ts -P openai-compatible -m fake-model -k fake-key \
+    --disallowed-tools "Bash(git *) Read" --attach "$dir/attached.txt" --no-color --locale zh-CN \
+    --json "flag checks" 2>&1 | grep -E '"type":"(run_result|error)"' | head -3
+  echo "=== DOCTOR LOCALE ==="
+  ZENUXS_PROVIDER_SETTINGS_PATH="$dir/providers.json" CLINE_DIR="$dir" CLINE_DATA_DIR="$dir" \
+    timeout 30 bun apps/cli/src/index.ts --no-color --locale zh-CN doctor --json 2>&1 | grep -o '"locale":"[a-zA-Z-]*"' | head -1
+  echo "=== EXIT: 0 ==="
+} > "$log" 2>&1
+provider_stop
+if check_guard cli-flags "$count" "$log" && grep -q '"type":"run_result"' "$log" && grep -q '"locale":"zh-CN"' "$log"; then
+  echo "cli-flags: exit=0 guard=PASS" >> "$SUMMARY"
+else
+  echo "cli-flags: VERIFICATION FAILED" >> "$SUMMARY"; FAILED=$((FAILED+1))
+fi
+
 node scripts/tui-pty-test.mjs "$OUT/tui-pty.log" > /dev/null 2>&1
 echo "tui-pty: exit=$?" >> "$SUMMARY"
 

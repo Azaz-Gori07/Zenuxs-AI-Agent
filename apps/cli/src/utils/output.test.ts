@@ -1,9 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+	c,
 	formatCreditBalance,
 	installStreamErrorGuards,
+	isColorEnabled,
 	normalizeCreditBalance,
 	prepareTerminalForPostTuiOutput,
+	setColorEnabled,
 	setCurrentOutputMode,
 } from "./output";
 
@@ -108,5 +111,22 @@ describe("prepareTerminalForPostTuiOutput", () => {
 		prepareTerminalForPostTuiOutput();
 
 		expect(writeSpy).not.toHaveBeenCalled();
+	});
+});
+
+describe("setColorEnabled", () => {
+	afterEach(() => setColorEnabled(true));
+
+	it("removes every ANSI code when disabled", () => {
+		setColorEnabled(false);
+		expect(isColorEnabled()).toBe(false);
+		expect(Object.values(c).every((value) => value === "")).toBe(true);
+	});
+
+	it("restores ANSI codes when re-enabled", () => {
+		setColorEnabled(false);
+		setColorEnabled(true);
+		expect(isColorEnabled()).toBe(true);
+		expect(c.reset).toBe("\x1b[0m");
 	});
 });

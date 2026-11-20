@@ -1,5 +1,5 @@
 === COMMAND: RAG index + search ===
-=== SHA: db74ce78d16b242c6548ec160fea30b06a625419 ===
+=== SHA: 49f8f427d8761de1346216f3711c7a1a83917f46 ===
 Indexed 120 files / 120 chunks
 src/f77.ts:1-13 (4.2429)
 export const v77=77;

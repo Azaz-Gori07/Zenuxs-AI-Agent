@@ -20,6 +20,7 @@ import {
 	listActiveConnectors,
 } from "../connectors/status";
 import { getCliBuildInfo } from "../utils/common";
+import { getLocale, type CliLocale } from "../utils/locale";
 import { c, writeln } from "../utils/output";
 import { stopAllConnectors } from "./connect";
 
@@ -49,6 +50,7 @@ type SpawnedProcessRecord = {
 
 type DoctorStatus = {
 	cwd: string;
+	locale: CliLocale;
 	hubUrl?: string;
 	hubHealthy: boolean;
 	hubPid?: number;
@@ -337,6 +339,7 @@ async function collectDoctorStatus(cwd: string): Promise<DoctorStatus> {
 	];
 	return {
 		cwd,
+		locale: getLocale(),
 		hubUrl: current?.url,
 		hubHealthy: !!health?.url,
 		hubPid: current?.pid,

@@ -1,7 +1,7 @@
 === COMMAND: prompt assembly L3 ===
-=== SHA: db74ce78d16b242c6548ec160fea30b06a625419 ===
+=== SHA: 49f8f427d8761de1346216f3711c7a1a83917f46 ===
 === BASE_URL_OVERRIDE: http://127.0.0.1:4344/v1 ===
-{"ts":"2026-11-20T06:01:50.594Z","type":"run_result","finishReason":"completed","iterations":1,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":39,"text":"Mode check OK.","model":{"id":"fake-model","provider":"openai-compatible"}}
+{"ts":"2026-11-20T13:53:26.417Z","type":"run_result","finishReason":"completed","iterations":1,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":39,"text":"Mode check OK.","model":{"id":"fake-model","provider":"openai-compatible"}}
 AGENTS.md marker present in provider request
 === EXIT: 0 ===
 guard: fakeRequests=1, no external host

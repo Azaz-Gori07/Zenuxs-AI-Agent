@@ -1,0 +1,214 @@
+{
+  "sha": "49f8f427d8761de1346216f3711c7a1a83917f46",
+  "timestamp": "2026-11-20T13:59:13.751Z",
+  "checks": [
+    {
+      "name": "open chat view",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "chat webview mounted",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "baseline turn completed",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "core disposed (reset_done)",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "core re-initialized after kill",
+      "ok": true,
+      "detail": "init count 0 -> 1"
+    },
+    {
+      "name": "turn completed after reconnect",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "fresh session after reconnect",
+      "ok": true,
+      "detail": "1795183171039_7c492"
+    },
+    {
+      "name": "fake provider served both phases",
+      "ok": true,
+      "detail": {
+        "turn": 2,
+        "lastStep": null
+      }
+    }
+  ],
+  "phases": {
+    "baseline": {
+      "sessionIds": [
+        "1795183167280_j2jx4"
+      ],
+      "turnDone": 2
+    },
+    "afterKill": {
+      "resetDone": 1,
+      "coreInstancesDisposed": true
+    },
+    "reconnected": {
+      "sessionIds": [
+        "1795183171039_7c492"
+      ],
+      "turnDone": 2
+    }
+  },
+  "error": null,
+  "ready": {
+    "active": true,
+    "commands": [
+      "zenuxs.chat",
+      "zenuxs.explain",
+      "zenuxs.fix",
+      "zenuxs.test",
+      "zenuxs.refactor",
+      "zenuxs.askAboutFile",
+      "zenuxs.inlineChat",
+      "zenuxs.newSession",
+      "zenuxs.stopSession",
+      "zenuxs.toggleSettings",
+      "zenuxs.toggleHistory",
+      "zenuxs.quickAsk",
+      "zenuxs.fixDiagnostic",
+      "zenuxs.editFile",
+      "zenuxs.runTerminalCommand"
+    ],
+    "at": "2026-11-20T13:59:20.345Z"
+  },
+  "fakeProviderState": {
+    "turn": 2,
+    "lastStep": null
+  },
+  "transcript": [
+    {
+      "t": "session_started",
+      "sessionId": "1795183167280_j2jx4"
+    },
+    {
+      "t": "checkpoint_list",
+      "sessionId": "1795183167280_j2jx4"
+    },
+    {
+      "t": "status",
+      "text": "running"
+    },
+    {
+      "t": "assistant_delta",
+      "text": "Mode"
+    },
+    {
+      "t": "assistant_delta",
+      "text": " che"
+    },
+    {
+      "t": "assistant_delta",
+      "text": "ck O"
+    },
+    {
+      "t": "assistant_delta",
+      "text": "K."
+    },
+    {
+      "t": "usage"
+    },
+    {
+      "t": "status",
+      "text": "Tokens: 0 in / 0 out"
+    },
+    {
+      "t": "turn_done"
+    },
+    {
+      "t": "status",
+      "text": "idle"
+    },
+    {
+      "t": "turn_done"
+    },
+    {
+      "t": "status",
+      "text": "Stopping..."
+    },
+    {
+      "t": "status",
+      "text": "Cancelling active processes..."
+    },
+    {
+      "t": "status",
+      "text": "Task Cancelled"
+    },
+    {
+      "t": "turn_done"
+    },
+    {
+      "t": "reset_done"
+    },
+    {
+      "t": "initial_data"
+    },
+    {
+      "t": "logs_stream",
+      "text": "[INFO] Extension core runtime initialized {\"backendMode\":\"local\"}"
+    },
+    {
+      "t": "initial_data"
+    },
+    {
+      "t": "session_started",
+      "sessionId": "1795183171039_7c492"
+    },
+    {
+      "t": "checkpoint_list",
+      "sessionId": "1795183171039_7c492"
+    },
+    {
+      "t": "status",
+      "text": "running"
+    },
+    {
+      "t": "assistant_delta",
+      "text": "Mode"
+    },
+    {
+      "t": "assistant_delta",
+      "text": " che"
+    },
+    {
+      "t": "assistant_delta",
+      "text": "ck O"
+    },
+    {
+      "t": "assistant_delta",
+      "text": "K."
+    },
+    {
+      "t": "usage"
+    },
+    {
+      "t": "status",
+      "text": "Tokens: 0 in / 0 out"
+    },
+    {
+      "t": "turn_done"
+    },
+    {
+      "t": "status",
+      "text": "idle"
+    },
+    {
+      "t": "turn_done"
+    }
+  ],
+  "webviewText": "CONTEXT WINDOW\n0 / 128,000\n⏱️\n\nReconnect after core kill\n\nZenuxs AI\n\nMode check OK.\n\nOpenAI / fake-model ▾\n|\nAct ▾\nAttach File Context\n0 / 128,000 | $0.0000"
+}
