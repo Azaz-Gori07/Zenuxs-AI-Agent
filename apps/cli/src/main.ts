@@ -1379,7 +1379,9 @@ export async function runCli(): Promise<void> {
 					await runZen(pipedEffectivePrompt, config, userInstructionService);
 					return;
 				}
-				await runAgent(pipedEffectivePrompt, config, userInstructionService, { resumeSessionId });
+				await (resumeSessionId
+					? runAgent(pipedEffectivePrompt, config, userInstructionService, { resumeSessionId })
+					: runAgent(pipedEffectivePrompt, config, userInstructionService));
 				return;
 			}
 		}
@@ -1456,7 +1458,9 @@ export async function runCli(): Promise<void> {
 		}
 
 		const _runAgentSpan = profiler.start("cli.runAgent", "agent");
-		await runAgent(effectivePrompt, config, userInstructionService, { resumeSessionId });
+		await (resumeSessionId
+			? runAgent(effectivePrompt, config, userInstructionService, { resumeSessionId })
+			: runAgent(effectivePrompt, config, userInstructionService));
 		profiler.end(_runAgentSpan);
 		// Exit once agent is done in non-interactive mode
 		return;

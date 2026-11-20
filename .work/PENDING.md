@@ -12,3 +12,11 @@ Gate is green (16/16). The following are documented P2/P3 follow-ups, not blocke
 - Multi-provider live normalization (Anthropic/Gemini/OpenRouter/Ollama): fake-provider only; live: BLOCKED (no endpoint).
 
 No P0/P1 feature is pending.
+
+## 2026-11-20 recovery run — remaining work
+- F-ext: extension reconnect after core kill has no L3 evidence (SecretStorage store/get/delete now implemented and unit-tested).
+- F-cli-03: `--disallowed-tools` accepted but not applied to tool policies.
+- F-cli-04: `--attach`, `--no-color`, `--locale` partially implemented.
+- F-auto-01, F-hook-01, F-plug-01: reference features not implemented in target (workflow-mode/dwf/expert, hook trust digest, plugin marketplaces).
+- OPEN-SETTINGS-01 (P1): provider settings rewrite drops `baseUrl`; evidence uses explicit `ZENUXS_PROVIDER_BASE_URL` override instead.
+- Live provider: deepseek/mimo models returned FreeUsageLimitError 429; big-pickle/beam/hy4 answered tiny completions but full CLI-shaped runs still timed out — F-prov/F-toolrobust remain BLOCKED, never VERIFIED.

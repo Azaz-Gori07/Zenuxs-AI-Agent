@@ -1,20 +1,20 @@
 === ZENUXS GATE ===
-=== TIMESTAMP: 2026-11-19T09:53:44Z ===
-=== SHA: 80653580115beff80efc587f5865395a2508fc58 ===
+=== TIMESTAMP: 2026-11-20T05:48:44Z ===
+=== SHA: 408607baf72fc5a32d480b64d6c8da849f840390 ===
 === BRANCH: fix/zenuxs-recovery ===
 
 === STEP: install ===
 === COMMAND: bun install --frozen-lockfile ===
-=== TIMESTAMP: 2026-11-19T09:53:44Z ===
+=== TIMESTAMP: 2026-11-20T05:48:44Z ===
 bun install v1.4.4 (38afee6c8)
 
-Checked 1300 installs across 1379 packages (no changes) [108.00ms]
+Checked 1300 installs across 1379 packages (no changes) [534.00ms]
 === EXIT: 0 ===
 PASS: install
 
 === STEP: build ===
 === COMMAND: bun run build ===
-=== TIMESTAMP: 2026-11-19T09:53:44Z ===
+=== TIMESTAMP: 2026-11-20T05:48:44Z ===
 $ bun run build:sdk && bun -F zenuxs-code build
 $ bun --production -F './packages/*' build
 @zenuxs/schema build: Exited with code 0
@@ -33,28 +33,28 @@ PASS: build
 
 === STEP: typecheck:cli ===
 === COMMAND: bun run --cwd apps/cli typecheck ===
-=== TIMESTAMP: 2026-11-19T09:54:02Z ===
+=== TIMESTAMP: 2026-11-20T05:48:59Z ===
 $ tsc --noEmit
 === EXIT: 0 ===
 PASS: typecheck:cli
 
 === STEP: typecheck:schema ===
 === COMMAND: bun run --cwd packages/schema typecheck ===
-=== TIMESTAMP: 2026-11-19T09:54:15Z ===
+=== TIMESTAMP: 2026-11-20T05:49:10Z ===
 $ tsc --noEmit
 === EXIT: 0 ===
 PASS: typecheck:schema
 
 === STEP: typecheck:engine ===
 === COMMAND: bun run --cwd packages/engine typecheck ===
-=== TIMESTAMP: 2026-11-19T09:54:16Z ===
+=== TIMESTAMP: 2026-11-20T05:49:11Z ===
 $ tsc --noEmit
 === EXIT: 0 ===
 PASS: typecheck:engine
 
 === STEP: build:extension ===
 === COMMAND: bun run build:extension ===
-=== TIMESTAMP: 2026-11-19T09:54:18Z ===
+=== TIMESTAMP: 2026-11-20T05:49:13Z ===
 $ bun run build:sdk && bun --cwd apps/vscode-extension build
 $ bun --production -F './packages/*' build
 @zenuxs/schema build: Exited with code 0
@@ -69,12 +69,12 @@ $ bun --production -F './packages/*' build
 @cline/core build: Exited with code 0
 $ bun run build:webview && bun run build:extension
 $ bun build --production ./src/webview/index.tsx --outfile ./dist/webview.js --target browser --format esm
-Bundled 26 modules in 27ms
+Bundled 26 modules in 18ms
 
   webview.js  0.32 MB  (entry point)
 
 $ bun build ./src/extension.ts --outfile ./dist/extension.js --target node --format esm --external vscode --source-map=external
-Bundled 1199 modules in 400ms
+Bundled 1199 modules in 331ms
 
   extension.js  20.27 MB  (entry point)
 === EXIT: 0 ===
@@ -82,15 +82,15 @@ PASS: build:extension
 
 === STEP: vsix:build-install ===
 === COMMAND: bash scripts/package-extension.sh ===
-=== TIMESTAMP: 2026-11-19T09:54:33Z ===
+=== TIMESTAMP: 2026-11-20T05:49:25Z ===
 $ bun run build:webview && bun run build:extension
 $ bun build --production ./src/webview/index.tsx --outfile ./dist/webview.js --target browser --format esm
-Bundled 26 modules in 24ms
+Bundled 26 modules in 18ms
 
   webview.js  0.32 MB  (entry point)
 
 $ bun build ./src/extension.ts --outfile ./dist/extension.js --target node --format esm --external vscode --source-map=external
-Bundled 1199 modules in 407ms
+Bundled 1199 modules in 338ms
 
   extension.js  20.27 MB  (entry point)
 
@@ -109,15 +109,15 @@ zenuxs-code.vsix
    │  ├─ ChatGPT-2.png [97.48 KB]
    │  └─ ChatGPT-3.png [53.61 KB]
    └─ dist/
-      ├─ extension.js [19.33 MB]
+      ├─ extension.js [19.34 MB]
       └─ webview.js [311.47 KB]
 
-The file extension/dist/extension.js is large (19.33 MB)
+The file extension/dist/extension.js is large (19.34 MB)
 
  DONE  Packaged: /tmp/zenuxs-code.vsix (12 files, 4.25 MB)
 Installing extensions...
 Extension 'zenuxs-code.vsix' was successfully installed.
-(node:427138) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(node:87961) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
 (Use `code --trace-deprecation ...` to show where the warning was created)
 VSIX_READY=/tmp/zenuxs-code.vsix
 === EXIT: 0 ===
@@ -125,45 +125,45 @@ PASS: vsix:build-install
 
 === STEP: test:unit:cli ===
 === COMMAND: bun run --cwd apps/cli test:unit ===
-=== TIMESTAMP: 2026-11-19T09:54:45Z ===
- ✓ src/utils/resume.test.ts (2 tests) 5ms
- ✓ src/tui/hooks/use-root-keyboard.test.ts (3 tests) 4ms
- ✓ src/tui/hooks/transcript-keybinds.test.ts (4 tests) 5ms
- ✓ src/tui/utils/provider-sections.test.ts (1 test) 3ms
- ✓ src/utils/events.compaction.test.ts (3 tests) 4ms
- ✓ src/connectors/adapters/linear.test.ts (3 tests) 4ms
- ✓ src/tui/contexts/session-context.test.ts (2 tests) 3ms
+=== TIMESTAMP: 2026-11-20T05:49:36Z ===
++     "thinking": false,
++     "timeoutSeconds": undefined,
++     "toolPolicies": {
++       "*": {
++         "autoApprove": true,
++       },
++     },
++     "verbose": false,
++     "workspaceRoot": "/home/azaz/Projects/Zenuxs-AI-Agent",
+    },
+-   Anything,
++   {
++     "start": [Function Mock],
++     "stop": [Function Mock],
++   },
++   {
++     "resumeSessionId": undefined,
++   },
+  ]
 
-⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
 
- FAIL  src/runtime/run-agent.test.ts > runAgent > zeros Cline free model costs in JSON results and agent events
-Error: [vitest] No "toCompactionJsonEvent" export is defined on the "../utils/events" mock. Did you forget to return it from "vi.mock"?
-If you need to partially mock a module, you can use "importOriginal" helper inside:
+Number of calls: 1
 
-vi.mock(import("../utils/events"), async (importOriginal) => {
-  const actual = await importOriginal()
-  return {
-    ...actual,
-    // your mocked methods
-  }
-})
+ ❯ src/main.test.ts:1372:33
+    1370|   expect(mockState.runAgentCalls).toBe(1);
+    1371|   expect(authMocks.ensureOAuthProviderApiKey).not.toHaveBeenCalled();
+    1372|   expect(runtimeMocks.runAgent).toHaveBeenCalledWith(
+       |                                 ^
+    1373|    "hello",
+    1374|    expect.objectContaining({
 
- ❯ Object.onAgentEvent [as listener] src/runtime/run-agent.ts:218:27
-    216|    displayedErrorMessages.add(event.error.message.trim());
-    217|   }
-    218|   const compactionEvent = toCompactionJsonEvent(event);
-       |                           ^
-    219|   if (compactionEvent) {
-    220|    if (config.outputMode === "json") {
- ❯ src/runtime/run-agent.test.ts:1060:22
-
-⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/16]⎯
 
 
  Test Files  1 failed | 104 passed (105)
-      Tests  1 failed | 746 passed (747)
-   Start at  15:24:46
-   Duration  192.33s (transform 7.21s, setup 0ms, import 73.76s, tests 91.18s, environment 22ms)
+      Tests  16 failed | 731 passed (747)
+   Start at  11:19:36
+   Duration  123.47s (transform 3.23s, setup 0ms, import 33.29s, tests 78.59s, environment 9ms)
 
 error: script "test:unit" exited with code 1
 === EXIT: 1 ===
@@ -171,129 +171,142 @@ FAILED: test:unit:cli (exit 1)
 
 === STEP: test:unit:core ===
 === COMMAND: bun run --cwd packages/core test:unit ===
-=== TIMESTAMP: 2026-11-19T09:57:58Z ===
- ✓ src/auth/bounded-ttl-cache.test.ts (4 tests) 10ms
- ✓ src/runtime/safety/rules.test.ts (3 tests) 8ms
- ✓ src/services/providers/provider-config-fields.test.ts (14 tests) 26ms
- ✓ src/runtime/turn-queue/pending-prompt-service.test.ts (6 tests) 34ms
- ✓ src/account/rpc.test.ts (2 tests) 19ms
- ✓ src/services/usage.test.ts (7 tests) 12ms
- ✓ src/hooks/hook-file-config.test.ts (1 test) 7ms
- ✓ src/extensions/rag/rag.test.ts (5 tests) 59ms
- ✓ src/hub/discovery/defaults.test.ts (10 tests) 14ms
- ✓ src/services/storage/provider-settings-manager.test.ts (12 tests) 81ms
- ✓ src/runtime/config/agent-message-codec.test.ts (4 tests) 16ms
- ✓ src/services/plugin-mcp-settings.test.ts (12 tests) 13195ms
-     ✓ writes plugin MCP servers into mcp settings  1405ms
-     ✓ defaults plugin stdio MCP cwd to the plugin directory  920ms
-     ✓ preserves explicit plugin stdio MCP cwd  986ms
-     ✓ does not create settings for plugins without MCP servers  918ms
-     ✓ removes stale owned servers when a plugin stops declaring MCP  1105ms
-     ✓ removes stale owned servers when a plugin no longer has setup  1383ms
-     ✓ isolates plugin setup failures while syncing other plugins  1346ms
-     ✓ skips user-owned name collisions  1044ms
-     ✓ does not overwrite invalid MCP settings  1064ms
-     ✓ returns write failures instead of throwing after plugin sync  1076ms
-     ✓ preserves oauth when updating plugin-owned entries  927ms
-     ✓ disables and removes plugin-owned entries  1013ms
- ✓ src/services/storage/provider-settings-legacy-migration.test.ts (18 tests) 79ms
- ✓ src/extensions/tools/runtime.test.ts (6 tests) 41ms
- ✓ src/services/llms/provider-settings.test.ts (4 tests) 22ms
- ✓ src/hub/server/hub-capability-tool-executors.test.ts (4 tests) 11ms
- ✓ src/session/services/session-service.team-persistence.test.ts (2 tests) 8ms
+=== TIMESTAMP: 2026-11-20T05:51:39Z ===
+ ✓ src/extensions/tools/runtime.test.ts (6 tests) 36ms
+ ✓ src/runtime/config/agent-message-codec.test.ts (4 tests) 10ms
+ ✓ src/services/telemetry/TelemetryLoggerSink.test.ts (1 test) 11ms
+ ✓ src/services/usage.test.ts (7 tests) 19ms
+ ✓ src/runtime/tools/subprocess-sandbox.test.ts (6 tests) 20ms
+ ✓ src/hub/discovery/defaults.test.ts (10 tests) 9ms
+ ✓ src/extensions/tools/tool-selection-policy.test.ts (5 tests) 17ms
+ ✓ src/extensions/tools/model-tool-routing.test.ts (5 tests) 11ms
+ ✓ src/services/storage/provider-settings-legacy-migration.test.ts (18 tests) 80ms
+ ✓ src/auth/bounded-ttl-cache.test.ts (4 tests) 18ms
+ ✓ src/runtime/safety/rules.test.ts (3 tests) 29ms
+ ✓ src/services/plugin-mcp-settings.test.ts (12 tests) 11844ms
+     ✓ writes plugin MCP servers into mcp settings  1077ms
+     ✓ defaults plugin stdio MCP cwd to the plugin directory  881ms
+     ✓ preserves explicit plugin stdio MCP cwd  964ms
+     ✓ does not create settings for plugins without MCP servers  838ms
+     ✓ removes stale owned servers when a plugin stops declaring MCP  809ms
+     ✓ removes stale owned servers when a plugin no longer has setup  877ms
+     ✓ isolates plugin setup failures while syncing other plugins  1167ms
+     ✓ skips user-owned name collisions  1076ms
+     ✓ does not overwrite invalid MCP settings  1030ms
+     ✓ returns write failures instead of throwing after plugin sync  1103ms
+     ✓ preserves oauth when updating plugin-owned entries  943ms
+     ✓ disables and removes plugin-owned entries  1078ms
+ ✓ src/services/providers/provider-config-fields.test.ts (14 tests) 19ms
+ ✓ src/services/llms/provider-settings.test.ts (4 tests) 19ms
+ ✓ src/hooks/hook-file-config.test.ts (1 test) 5ms
+ ✓ src/hub/server/hub-capability-tool-executors.test.ts (4 tests) 8ms
+ ✓ src/session/services/session-service.team-persistence.test.ts (2 tests) 7ms
  ↓ src/extensions/context/compaction.live.test.ts (1 test | 1 skipped)
- ✓ src/extensions/tools/team/configured-agent-tool.test.ts (2 tests) 7ms
- ✓ src/services/feature-flags/FeatureFlagsService.test.ts (8 tests) 15ms
- ✓ src/runtime/orchestration/runtime-oauth-token-manager.test.ts (4 tests) 14ms
- ✓ src/hub/server/notification.test.ts (3 tests) 5ms
- ✓ src/hub/server/hub-websocket-server.test.ts (3 tests) 6ms
+ ✓ src/extensions/tools/team/configured-agent-tool.test.ts (2 tests) 6ms
+ ✓ src/runtime/orchestration/runtime-oauth-token-manager.test.ts (4 tests) 10ms
+ ✓ src/services/feature-flags/FeatureFlagsService.test.ts (8 tests) 11ms
+ ✓ src/hub/server/notification.test.ts (3 tests) 3ms
+ ✓ src/hub/server/hub-websocket-server.test.ts (3 tests) 4ms
 
- Test Files  133 passed | 1 skipped (134)
-      Tests  1286 passed | 4 skipped (1290)
-   Start at  15:27:59
-   Duration  17.32s (transform 26.56s, setup 0ms, import 108.57s, tests 91.34s, environment 33ms)
+ Test Files  134 passed | 1 skipped (135)
+      Tests  1295 passed | 4 skipped (1299)
+   Start at  11:21:40
+   Duration  15.39s (transform 23.30s, setup 0ms, import 100.62s, tests 74.30s, environment 27ms)
 === EXIT: 0 ===
 PASS: test:unit:core
 
 === STEP: test:unit:engine ===
 === COMMAND: bun run --cwd packages/engine test ===
-=== TIMESTAMP: 2026-11-19T09:58:16Z ===
+=== TIMESTAMP: 2026-11-20T05:51:55Z ===
 $ vitest run
 
  RUN  v4.1.9 /home/azaz/Projects/Zenuxs-AI-Agent/packages/engine
 
- ✓ src/engine.test.ts (9 tests) 8ms
- ✓ src/store/event-store.test.ts (3 tests) 9ms
- ✓ src/session/manager.test.ts (4 tests) 9ms
+ ✓ src/session/manager.test.ts (4 tests) 21ms
+ ✓ src/engine.test.ts (9 tests) 20ms
+ ✓ src/store/event-store.test.ts (3 tests) 21ms
 
  Test Files  3 passed (3)
       Tests  16 passed (16)
-   Start at  15:28:16
-   Duration  373ms (transform 454ms, setup 0ms, import 608ms, tests 26ms, environment 0ms)
+   Start at  11:21:55
+   Duration  300ms (transform 301ms, setup 0ms, import 411ms, tests 63ms, environment 0ms)
 === EXIT: 0 ===
 PASS: test:unit:engine
 
 === STEP: test:unit:schema ===
 === COMMAND: bun run --cwd packages/schema test ===
-=== TIMESTAMP: 2026-11-19T09:58:17Z ===
+=== TIMESTAMP: 2026-11-20T05:51:56Z ===
 $ vitest run
 
  RUN  v4.1.9 /home/azaz/Projects/Zenuxs-AI-Agent/packages/schema
 
- ✓ src/schema.test.ts (4 tests) 8ms
+ ✓ src/schema.test.ts (4 tests) 6ms
 
  Test Files  1 passed (1)
       Tests  4 passed (4)
-   Start at  15:28:17
-   Duration  294ms (transform 62ms, setup 0ms, import 138ms, tests 8ms, environment 0ms)
+   Start at  11:21:56
+   Duration  236ms (transform 43ms, setup 0ms, import 123ms, tests 6ms, environment 0ms)
 === EXIT: 0 ===
 PASS: test:unit:schema
 
 === STEP: fake-provider:smoke ===
 === COMMAND: node tests/fake-provider/smoke-test.mjs ===
-=== TIMESTAMP: 2026-11-19T09:58:18Z ===
+=== TIMESTAMP: 2026-11-20T05:51:56Z ===
 {"ok":true,"turns":5}
 === EXIT: 0 ===
 PASS: fake-provider:smoke
 
+=== STEP: evidence:regenerate ===
+=== COMMAND: bash scripts/regenerate-evidence.sh ===
+=== TIMESTAMP: 2026-11-20T05:51:57Z ===
+headless: exit=0 guard=PASS
+multitool: exit=0 guard=PASS
+mode_act: exit=0 guard=PASS
+mode_plan: exit=0 guard=PASS
+mode_build: exit=0 guard=PASS
+mode_edit: exit=0 guard=PASS
+yolo: exit=0 guard=PASS
+guarded: exit=0 guard=PASS
+boundary: exit=0 guard=PASS
+malformed: exit=0 guard=PASS
+rate_limit: exit=0 guard=PASS
+server_error: exit=0 guard=PASS
+cut_stream: exit=0 guard=PASS
+slow: exit=0 guard=PASS
+mcp: exit=0 guard=PASS
+skills: exit=0 guard=PASS
+subagent: exit=0 guard=PASS
+hook: exit=0 guard=PASS
+compaction: exit=0 guard=PASS
+resume: exit=0 guard=PASS
+prompt: exit=0 guard=PASS
+checkpoint: exit=0 guard=PASS
+rag: exit=0
+tui-pty: exit=0
+=== FAILURES: 0 ===
+=== EXIT: 0 ===
+PASS: evidence:regenerate
+
 === STEP: tui:pty ===
 === COMMAND: node scripts/tui-pty-test.mjs docs/evidence/F-tui/pty-transcript.log ===
-=== TIMESTAMP: 2026-11-19T09:58:18Z ===
-{"ok":true,"transcriptBytes":9,"out":"docs/evidence/F-tui/pty-transcript.log"}
+=== TIMESTAMP: 2026-11-20T05:52:47Z ===
+{"ok":true,"transcriptBytes":9874,"out":"docs/evidence/F-tui/pty-transcript.log"}
 === EXIT: 0 ===
 PASS: tui:pty
 
 === STEP: matrix:check ===
 === COMMAND: node scripts/check-matrix.mjs ===
-=== TIMESTAMP: 2026-11-19T09:58:23Z ===
+=== TIMESTAMP: 2026-11-20T05:52:52Z ===
 {
   "rows": 37,
-  "verified": 26,
+  "verified": 29,
   "problems": [
-    "F-core: stale evidence (source changed after evidence)",
-    "F-core: stale evidence (source changed after evidence)",
-    "F-prov: status PARTIAL (expected VERIFIED)",
-    "F-mode: stale evidence (source changed after evidence)",
-    "F-mode: stale evidence (source changed after evidence)",
-    "F-ctx: status PARTIAL (expected VERIFIED)",
-    "F-tools: stale evidence (source changed after evidence)",
-    "F-toolrobust: status PARTIAL (expected VERIFIED)",
-    "F-perm: stale evidence (source changed after evidence)",
-    "F-ckpt: status PARTIAL (expected VERIFIED)",
-    "F-rag: status MISSING (expected VERIFIED)",
-    "F-auto: stale evidence (source changed after evidence)",
-    "F-cli: stale evidence (source changed after evidence)",
-    "F-cli: stale evidence (source changed after evidence)",
-    "F-ext: status PARTIAL (expected VERIFIED)",
-    "F-cfg: stale evidence (source changed after evidence)",
-    "F-cfg: stale evidence (source changed after evidence)",
-    "F-pkg: stale evidence (source changed after evidence)",
-    "F-pkg: stale evidence (source changed after evidence)",
-    "F-cli-04: status PARTIAL (expected VERIFIED)",
-    "F-auto-01: status MISSING (expected VERIFIED)",
-    "F-hook-01: status MISSING (expected VERIFIED)",
-    "F-rag-01: status MISSING (expected VERIFIED)",
-    "F-plug-01: status MISSING (expected VERIFIED)"
+    "F-ext: status PARTIAL (expected VERIFIED or documented BLOCKED)",
+    "F-cli-03: status PARTIAL (expected VERIFIED or documented BLOCKED)",
+    "F-cli-04: status PARTIAL (expected VERIFIED or documented BLOCKED)",
+    "F-auto-01: status MISSING (expected VERIFIED or documented BLOCKED)",
+    "F-hook-01: status MISSING (expected VERIFIED or documented BLOCKED)",
+    "F-plug-01: status MISSING (expected VERIFIED or documented BLOCKED)"
   ]
 }
 === EXIT: 1 ===
@@ -301,7 +314,7 @@ FAILED: matrix:check (exit 1)
 
 === STEP: security:check ===
 === COMMAND: node scripts/security-check.mjs ===
-=== TIMESTAMP: 2026-11-19T09:58:24Z ===
+=== TIMESTAMP: 2026-11-20T05:52:52Z ===
 {
   "problems": [
     "apps/cli/CHANGELOG.md: matches /Z\\.AI/i",
@@ -340,6 +353,7 @@ test:unit:core:0
 test:unit:engine:0
 test:unit:schema:0
 fake-provider:smoke:0
+evidence:regenerate:0
 tui:pty:0
 matrix:check:1
 security:check:0
