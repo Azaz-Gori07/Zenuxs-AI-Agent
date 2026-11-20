@@ -19,6 +19,9 @@ import {
 	autoUpdateOnStartup,
 	getPreferredKanbanInstaller,
 } from "./commands/update";
+import { createFlowCommand } from "./commands/flow";
+import { createHooksGovernanceCommand } from "./commands/hooks-governance";
+import { createPluginsExchangeCommand } from "./commands/plugins-exchange";
 import { CLI_DEFAULT_CHECKPOINT_CONFIG } from "./runtime/defaults";
 import { resolveAttachmentMentions } from "./utils/attachments";
 import {
@@ -156,6 +159,17 @@ export async function runCli(): Promise<void> {
 		const opts = program.opts() as { color?: boolean; locale?: string };
 		setColorEnabled(opts.color !== false && !process.env.NO_COLOR);
 		setLocale(opts.locale);
+	});
+	// These subcommands are terminal: do not fall through to the prompt flow.
+	program.hook("postAction", (_command, actionCommand) => {
+		let current: typeof actionCommand | undefined = actionCommand;
+		while (current) {
+			if (["hooks", "plugins", "flow"].includes(current.name())) {
+				ctx.exitCode = process.exitCode ?? 0;
+				return;
+			}
+			current = current.parent;
+		}
 	});
 
 	// Auth subcommand: defines its own options so commander parses them
@@ -847,6 +861,11 @@ export async function runCli(): Promise<void> {
 			const { runDebugAgentsCommand } = await import("./commands/debug-agents")
 			ctx.exitCode = await runDebugAgentsCommand({ directory: opts.directory })
 		})
+
+	// Clean-room trust/plugin/automation commands.
+	program.addCommand(createHooksGovernanceCommand(io));
+	program.addCommand(createPluginsExchangeCommand(io));
+	program.addCommand(createFlowCommand(io));
 
 	try {
 		await program.parseAsync(normalizedArgs, { from: "user" });

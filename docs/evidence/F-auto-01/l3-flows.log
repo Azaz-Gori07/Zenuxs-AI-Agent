@@ -1,0 +1,28 @@
+=== TIMESTAMP: 2026-11-20T14:15:08Z ===
+=== SHA: ab506878f9f94270fa06807ecbd16db14386092d ===
+=== COMMAND: flow run --file /tmp/zenuxs-governance-ab506878f9f94270fa06807ecbd16db14386092d/flow-denied.json --workspace /tmp/zenuxs-governance-ab506878f9f94270fa06807ecbd16db14386092d/ws ===
+{"type":"flow_started","runId":"1795184122839_0u5yqw"}
+{"type":"step_result","runId":"1795184122839_0u5yqw","stepId":"hook","status":"failed","result":"hook step denied","reason":"revoked: grant was revoked"}
+{"type":"flow_failed","runId":"1795184122839_0u5yqw"}
+{"type":"flow_record","record":{"runId":"1795184122839_0u5yqw","flowId":"denied","status":"failed","steps":{"hook":{"status":"failed","result":"hook step denied","reason":"revoked: grant was revoked"}},"startedAt":"2026-11-20T14:15:22.839Z","finishedAt":"2026-11-20T14:15:22.841Z"}}
+=== EXIT: 1 ===
+PASS: flow cannot bypass hook revocation
+=== COMMAND: flow run --file /tmp/zenuxs-governance-ab506878f9f94270fa06807ecbd16db14386092d/flow.json --workspace /tmp/zenuxs-governance-ab506878f9f94270fa06807ecbd16db14386092d/ws ===
+{"type":"flow_started","runId":"1795184147863_sgvpk2"}
+{"type":"step_result","runId":"1795184147863_sgvpk2","stepId":"hook","status":"completed","result":"hook exit=0"}
+{"type":"step_result","runId":"1795184147863_sgvpk2","stepId":"plugin","status":"completed","result":"plugin hello@community-market enabled"}
+{"type":"step_result","runId":"1795184147863_sgvpk2","stepId":"agent","status":"completed","result":"Mode check OK."}
+{"type":"flow_completed","runId":"1795184147863_sgvpk2"}
+{"type":"flow_record","record":{"runId":"1795184147863_sgvpk2","flowId":"demo","status":"completed","steps":{"hook":{"status":"completed","result":"hook exit=0"},"plugin":{"status":"completed","result":"plugin hello@community-market enabled"},"agent":{"status":"completed","result":"Mode check OK."}},"startedAt":"2026-11-20T14:15:47.863Z","finishedAt":"2026-11-20T14:15:51.353Z"}}
+=== EXIT: 0 ===
+PASS: flow completed with hook, plugin and agent steps
+=== COMMAND: flow run --file /tmp/zenuxs-governance-ab506878f9f94270fa06807ecbd16db14386092d/flow.json --workspace /tmp/zenuxs-governance-ab506878f9f94270fa06807ecbd16db14386092d/ws --resume 1795184147863_sgvpk2 ===
+{"type":"flow_started","runId":"1795184147863_sgvpk2"}
+{"type":"step_result","runId":"1795184147863_sgvpk2","stepId":"hook","status":"completed","result":"reused-from-journal"}
+{"type":"step_result","runId":"1795184147863_sgvpk2","stepId":"plugin","status":"completed","result":"reused-from-journal"}
+{"type":"step_result","runId":"1795184147863_sgvpk2","stepId":"agent","status":"completed","result":"reused-from-journal"}
+{"type":"flow_completed","runId":"1795184147863_sgvpk2"}
+{"type":"flow_record","record":{"runId":"1795184147863_sgvpk2","flowId":"demo","status":"completed","steps":{"hook":{"status":"completed","result":"hook exit=0"},"plugin":{"status":"completed","result":"plugin hello@community-market enabled"},"agent":{"status":"completed","result":"Mode check OK."}},"startedAt":"2026-11-20T14:15:47.863Z","finishedAt":"2026-11-20T14:15:53.754Z"}}
+=== EXIT: 0 ===
+PASS: resume reuses completed steps
+=== FAILURES: 0 ===

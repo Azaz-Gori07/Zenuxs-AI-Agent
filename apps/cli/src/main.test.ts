@@ -526,7 +526,10 @@ describe("runCli lightweight command dispatch", () => {
 		const { runCli } = await import("./main");
 
 		await expect(runCli()).resolves.toBeUndefined();
-		const prompt = runtimeMocks.runAgent.mock.calls[0]?.[0] as string;
+		const call = runtimeMocks.runAgent.mock.calls[0] as unknown as
+			| string[]
+			| undefined;
+		const prompt = call?.[0] ?? "";
 		expect(prompt).toContain(`@"${first}"`);
 		expect(prompt).toContain(`@"${second}"`);
 	});

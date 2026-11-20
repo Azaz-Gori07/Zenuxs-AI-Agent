@@ -990,3 +990,48 @@ export {
   type RagWatcher,
   type CodebaseSearchInput,
 } from "./extensions/rag/rag";
+
+// Clean-room hook governance, plugin exchange and flow automation
+export {
+  HOOK_EVENTS,
+  hookDigest,
+  parseHookDeclarations,
+  HookDeclarationError,
+} from "./governance/hooks/hook-declaration";
+export type { HookDeclaration, HookEvent } from "./governance/hooks/hook-declaration";
+export {
+  HookTrustStore,
+  HookTrustStoreError,
+} from "./governance/hooks/hook-trust-store";
+export type {
+  HookPolicy,
+  HookTrustData,
+  HookTrustEntry,
+} from "./governance/hooks/hook-trust-store";
+export { HookGovernance } from "./governance/hooks/hook-governance";
+export type {
+  HookAuthorization,
+  HookExecutionResult,
+  HookReviewItem,
+  HookTrustState,
+} from "./governance/hooks/hook-governance";
+export {
+  PluginExchange,
+  PluginExchangeError,
+  RESERVED_OFFICIAL_MARKETS,
+} from "./extensions/plugin-exchange/plugin-exchange";
+export type {
+  AvailablePlugin,
+  InstalledPlugin,
+  MarketplaceDescriptor,
+  MarketplaceSource,
+  PluginManifest,
+  PluginValidation,
+} from "./extensions/plugin-exchange/plugin-exchange";
+export { FlowRunner, FlowError } from "./automation/flows/flow-runner";
+export type {
+  FlowDefinition,
+  FlowEvent,
+  FlowRunRecord,
+  FlowStep,
+} from "./automation/flows/flow-runner";
