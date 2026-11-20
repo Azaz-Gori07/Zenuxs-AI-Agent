@@ -2,17 +2,19 @@
 
 ## Status: OPEN defects exist (see below)
 
-### OPEN-SETTINGS-01 (P1) — provider-settings rewrite drops `baseUrl`
+### RESOLVED-SETTINGS-01 (P1) — provider-settings rewrite dropped unknown fields
 Observed: after a headless CLI run, the file at `ZENUXS_PROVIDER_SETTINGS_PATH` is
 rewritten with only `{provider, apiKey, model}`; `baseUrl`, `protocol` and `client`
 disappear. Repro: write a settings JSON with `baseUrl` pointing to a local fake
 provider, run `zenuxs -P openai-compatible ...`, then read the file. Evidence:
 `docs/evidence/regenerated/headless.log` (real request went to the default OpenAI
 endpoint with the fake key) and `/tmp/regen-providers.json` at review time.
-Root cause was not localized to a single function (migration + selection persistence
-both touch the file), so it is PENDING rather than fixed. Workaround used for
-verification: explicit `ZENUXS_PROVIDER_BASE_URL` override added to `toProviderConfig`.
-No matrix row may be VERIFIED on the strength of a settings-file `baseUrl` alone.
+Root cause: Zod `.strip()` removed unknown fields; `baseUrl` itself was already
+preserved. Fixed by merging raw on-disk settings into every write and adding
+`migrateUnknownFields()` for existing files; `baseUrl` and unknown fields survive a
+round-trip. Regression tests: `packages/core/src/services/storage/provider-settings-roundtrip.test.ts`.
+L3 evidence: `docs/evidence/F-cfg/l3-settings-roundtrip.log`. The
+`ZENUXS_PROVIDER_BASE_URL` override remains as an explicit feature, not a workaround.
 
 
 All baseline defects BASE-01 … BASE-09 and new defects P1-NEW-01 … P1-NEW-04

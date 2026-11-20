@@ -26,6 +26,53 @@ import {
 } from "../providers/local-provider-registry";
 import { migrateLegacyProviderSettings } from "./provider-settings-legacy-migration";
 
+type RawState = { providers?: Record<string, { settings?: Record<string, unknown> }> };
+
+/** Read the on-disk state without schema stripping, to preserve unknown fields. */
+function readRawSettings(filePath: string): RawState {
+  try {
+    const raw = JSON.parse(readFileSync(filePath, "utf8")) as RawState;
+    return raw && typeof raw === "object" ? raw : {};
+  } catch {
+    return {};
+  }
+}
+
+function mergePreservingUnknown(
+  normalized: StoredProviderSettings,
+  raw: RawState,
+): StoredProviderSettings {
+  const providers = { ...normalized.providers };
+  for (const [id, entry] of Object.entries(providers)) {
+    const rawSettings = raw.providers?.[id]?.settings;
+    if (rawSettings) {
+      (entry as { settings: Record<string, unknown> }).settings = {
+        ...rawSettings,
+        ...(entry.settings as Record<string, unknown>),
+      };
+    }
+  }
+  return { ...normalized, providers };
+}
+
+export function migrateUnknownFields(filePath: string): number {
+  const raw = readRawSettings(filePath);
+  let parsed: StoredProviderSettings;
+  try {
+    parsed = StoredProviderSettingsSchema.parse(raw);
+  } catch {
+    return 0;
+  }
+  const original = JSON.stringify(parsed);
+  const merged = mergePreservingUnknown(JSON.parse(original) as StoredProviderSettings, raw);
+  const changed = JSON.stringify(merged) !== original;
+  if (changed) {
+    mkdirSync(dirname(filePath), { recursive: true, mode: 0o700 });
+    writeFileSync(filePath, JSON.stringify(merged, null, 2) + "\n", "utf8");
+  }
+  return changed ? 1 : 0;
+}
+
 function nowIso(): string {
 	return new Date().toISOString();
 }
@@ -77,6 +124,11 @@ export class ProviderSettingsManager {
 		// pre-existing installations are also protected (best-effort; no-op on Windows).
 		if (existsSync(this.filePath)) {
 			try {
+				migrateUnknownFields(this.filePath);
+			} catch {
+				// Best-effort migration; invalid files are handled by read().
+			}
+			try {
 				chmodSync(this.filePath, 0o600);
 			} catch {
 				// Ignore — Windows does not support POSIX chmod.
@@ -109,7 +161,10 @@ export class ProviderSettingsManager {
 	}
 
 	write(state: StoredProviderSettings): void {
-		const normalized = StoredProviderSettingsSchema.parse(state);
+		const normalized = mergePreservingUnknown(
+			StoredProviderSettingsSchema.parse(state),
+			readRawSettings(this.filePath),
+		);
 		const dir = dirname(this.filePath);
 		if (!existsSync(dir)) {
 			mkdirSync(dir, { recursive: true, mode: 0o700 });
@@ -144,7 +199,10 @@ export class ProviderSettingsManager {
 			providers: {
 				...previous.providers,
 				[providerId]: {
-					settings: validatedSettings,
+					settings: {
+						...(previousEntry?.settings ?? {}),
+						...validatedSettings,
+					},
 					updatedAt: nowIso(),
 					tokenSource,
 					favorites: previousEntry?.favorites,
