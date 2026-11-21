@@ -2,29 +2,29 @@
 ✔ Validated version: 1.147.0
 ✔ Found existing install in /home/azaz/Projects/Zenuxs-AI-Agent/.vscode-test/vscode-linux-x64-1.147.0
 
-DevTools listening on ws://127.0.0.1:9242/devtools/browser/53de60a7-3077-482b-8da0-a762dcc6cdd8
+DevTools listening on ws://127.0.0.1:9242/devtools/browser/4b47caec-6bac-42f4-8d63-3512675f754d
 Warning: 'remote-debugging-port' is not in the list of known options, but still passed to Electron/Chromium.
-[90m[main 2026-11-21T06:29:21.410Z][0m [node-compile-cache] main: packaged cache enabled (status: enabled, configured: /home/azaz/Projects/Zenuxs-AI-Agent/.vscode-test/vscode-linux-x64-1.147.0/resources/app/node-compile-cache/main, active: /home/azaz/Projects/Zenuxs-AI-Agent/.vscode-test/vscode-linux-x64-1.147.0/resources/app/node-compile-cache/main/v24.22.1-x64-d4bb394e)
-[90m[main 2026-11-21T06:29:21.429Z][0m StorageMainService: creating application shared storage
-[90m[main 2026-11-21T06:29:21.511Z][0m [shared storage] Creating shared storage database at ':memory:' (wasCreated: true)
-[90m[main 2026-11-21T06:29:21.512Z][0m [shared storage] Initializing fallback application storage (path: in-memory)
-[90m[main 2026-11-21T06:29:21.536Z][0m [shared storage] Fallback application storage initialized with 3 items
-[90m[main 2026-11-21T06:29:21.536Z][0m update#setState disabled
-[90m[main 2026-11-21T06:29:21.536Z][0m update#ctor - updates are disabled by the environment
-[224509:1121/115922.004374:ERROR:ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc:249] '--ozone-platform=wayland' is not compatible with Vulkan. Consider switching to '--ozone-platform=x11' or disabling Vulkan
+[90m[main 2026-11-21T06:41:33.524Z][0m [node-compile-cache] main: packaged cache enabled (status: enabled, configured: /home/azaz/Projects/Zenuxs-AI-Agent/.vscode-test/vscode-linux-x64-1.147.0/resources/app/node-compile-cache/main, active: /home/azaz/Projects/Zenuxs-AI-Agent/.vscode-test/vscode-linux-x64-1.147.0/resources/app/node-compile-cache/main/v24.22.1-x64-d4bb394e)
+[90m[main 2026-11-21T06:41:33.555Z][0m StorageMainService: creating application shared storage
+[90m[main 2026-11-21T06:41:33.671Z][0m [shared storage] Creating shared storage database at ':memory:' (wasCreated: true)
+[90m[main 2026-11-21T06:41:33.671Z][0m [shared storage] Initializing fallback application storage (path: in-memory)
+[90m[main 2026-11-21T06:41:33.687Z][0m [shared storage] Fallback application storage initialized with 3 items
+[90m[main 2026-11-21T06:41:33.687Z][0m update#setState disabled
+[90m[main 2026-11-21T06:41:33.688Z][0m update#ctor - updates are disabled by the environment
+[254287:1121/121133.931077:ERROR:ui/ozone/platform/wayland/gpu/wayland_surface_factory.cc:249] '--ozone-platform=wayland' is not compatible with Vulkan. Consider switching to '--ozone-platform=x11' or disabling Vulkan
 Via 'product.json#extensionEnabledApiProposals' extension 'ms-vscode.remote-repositories' wants API proposal 'timeline' but that proposal DOES NOT EXIST. Likely, the proposal has been finalized (check 'vscode.d.ts') or was abandoned.
 Via 'product.json#extensionEnabledApiProposals' extension 'github.vscode-pull-request-github' wants API proposal 'agentsWindowActivation' but that proposal DOES NOT EXIST. Likely, the proposal has been finalized (check 'vscode.d.ts') or was abandoned.
 Via 'product.json#extensionEnabledApiProposals' extension 'github.remotehub' wants API proposal 'timeline' but that proposal DOES NOT EXIST. Likely, the proposal has been finalized (check 'vscode.d.ts') or was abandoned.
 [RemoteAgentHost] Reconciling: desired=[], current=[]
 [AgentHost:renderer] Acquiring MessagePort to agent host...
-[90m[main 2026-11-21T06:29:22.672Z][0m AgentHostProcessManager: agent host started
+[90m[main 2026-11-21T06:41:34.757Z][0m AgentHostProcessManager: agent host started
 [ChatModelSelection] event=no-model-at-toolbar-build surface="workbench" sessionKey=undefined conversationKey=undefined modelTarget=undefined storageKey="chat.currentLanguageModel.panel" widgetViewKind="view"
 [AgentHost:renderer] MessagePort acquired, creating client...
 [AgentPluginRepositoryService] Both old and new agent-plugins directories exist; skipping directory migration
-Started local extension host with pid 224727.
-[RemoteAgentHostProtocol] Sending initialize: address=local clientId=1cbe3c2e-6540-401c-b0a2-ca3f607badef requestId=1
-[RemoteAgentHostProtocol] Initialized: address=local clientId=1cbe3c2e-6540-401c-b0a2-ca3f607badef durationMs=573
-[AgentHost:renderer] Protocol connection established; clientId=1cbe3c2e-6540-401c-b0a2-ca3f607badef
+Started local extension host with pid 254507.
+[RemoteAgentHostProtocol] Sending initialize: address=local clientId=b759601b-2e57-4093-a8b5-8527458ab2f1 requestId=1
+[RemoteAgentHostProtocol] Initialized: address=local clientId=b759601b-2e57-4093-a8b5-8527458ab2f1 durationMs=629
+[AgentHost:renderer] Protocol connection established; clientId=b759601b-2e57-4093-a8b5-8527458ab2f1
 Loading development extension at /home/azaz/Projects/Zenuxs-AI-Agent/apps/vscode-extension
 Extension 'github.copilot-chat' appears in product.json but enables LESS API proposals than the extension wants.
 package.json (LOSES): agentSessionsWorkspace
@@ -167,7 +167,7 @@ chatInputNotification
 speech
 DELTA: structuralDiff
 Proceeding with EXTRA proposals (structuralDiff) because extension is in development mode. Still, this EXTENSION WILL BE BROKEN unless product.json is updated.
-(node:224727) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(node:254507) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
 (Use `exe --trace-deprecation ...` to show where the warning was created)
 [AuthService] Restore error: TypeError: Cannot read properties of undefined (reading 'auth')
 	at createCredentialsFromSettings (file:///home/azaz/Projects/Zenuxs-AI-Agent/apps/vscode-extension/dist/extension.js:428410:28)
@@ -181,29 +181,38 @@ Proceeding with EXTRA proposals (structuralDiff) because extension is in develop
 	at async SS._waitForDepsThenActivate (file:///home/azaz/Projects/Zenuxs-AI-Agent/.vscode-test/vscode-linux-x64-1.147.0/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:168:16020)
 	at async SS._initialize (file:///home/azaz/Projects/Zenuxs-AI-Agent/.vscode-test/vscode-linux-x64-1.147.0/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:168:15387)
 [AccountPolicyGate] apply: state=inactive, reason=undefined, isRestricted=false
-[91m[main 2026-11-21T06:29:25.194Z][0m [AgentHost:stderr] (node:224665) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+[91m[main 2026-11-21T06:41:37.335Z][0m [AgentHost:stderr] (node:254443) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
 (Use `exe --trace-deprecation ...` to show where the warning was created)
 
 [AgentHost] No signed-in session resolved for resource: https://api.github.com
 [AgentHost] No signed-in session resolved for resource: https://api.github.com/repos
 [AgentHost] No signed-in session resolved for resource: https://api.github.com
 [AgentHost] No signed-in session resolved for resource: https://api.github.com/repos
+[ChatModelSelection] event=no-model-at-toolbar-build surface="workbench" sessionKey="agent-host-copilotcli" conversationKey="agent-host-copilotcli:/untitled-e0ccfca7-3c0c-4b8b-9244-fa630f8511e9" modelTarget="agent-host-copilotcli" storageKey="chat.currentLanguageModel.panel.agent-host-copilotcli" widgetViewKind="view"
 [AgentHost] No signed-in session resolved for resource: https://api.github.com
+[ChatModelSelection] event=no-model-at-toolbar-build surface="workbench" sessionKey="agent-host-copilotcli" conversationKey="agent-host-copilotcli:/untitled-e0ccfca7-3c0c-4b8b-9244-fa630f8511e9" modelTarget="agent-host-copilotcli" storageKey="chat.currentLanguageModel.panel.agent-host-copilotcli" widgetViewKind="view"
 [AgentHost] No signed-in session resolved for resource: https://api.github.com/repos
+[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
+[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
+[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
+[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
 [RemoteAgentHost] Reconciling: desired=[], current=[]
-[ChatModelSelection] event=no-model-at-toolbar-build surface="workbench" sessionKey="agent-host-copilotcli" conversationKey="agent-host-copilotcli:/untitled-f6c74b7d-d592-40a7-8aa5-837f69ea6d2f" modelTarget="agent-host-copilotcli" storageKey="chat.currentLanguageModel.panel.agent-host-copilotcli" widgetViewKind="view"
-[ChatModelSelection] event=no-model-at-toolbar-build surface="workbench" sessionKey="agent-host-copilotcli" conversationKey="agent-host-copilotcli:/untitled-f6c74b7d-d592-40a7-8aa5-837f69ea6d2f" modelTarget="agent-host-copilotcli" storageKey="chat.currentLanguageModel.panel.agent-host-copilotcli" widgetViewKind="view"
-[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
-[ChatModelSelection] event=no-model-at-toolbar-build surface="workbench" sessionKey="agent-host-copilotcli" conversationKey="agent-host-copilotcli:/untitled-f6c74b7d-d592-40a7-8aa5-837f69ea6d2f" modelTarget="agent-host-copilotcli" storageKey="chat.currentLanguageModel.panel.agent-host-copilotcli" widgetViewKind="view"
-[ChatModelSelection] event=no-model-at-toolbar-build surface="workbench" sessionKey="agent-host-copilotcli" conversationKey="agent-host-copilotcli:/untitled-f6c74b7d-d592-40a7-8aa5-837f69ea6d2f" modelTarget="agent-host-copilotcli" storageKey="chat.currentLanguageModel.panel.agent-host-copilotcli" widgetViewKind="view"
-[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
-[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
-[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
-[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
-[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
-[ChatModelSelection] event=no-model-at-toolbar-build surface="workbench" sessionKey="agent-host-copilotcli" conversationKey="agent-host-copilotcli:/untitled-f6c74b7d-d592-40a7-8aa5-837f69ea6d2f" modelTarget="agent-host-copilotcli" storageKey="chat.currentLanguageModel.panel.agent-host-copilotcli" widgetViewKind="view"
-[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
+[ChatModelSelection] event=no-model-at-toolbar-build surface="workbench" sessionKey="agent-host-copilotcli" conversationKey="agent-host-copilotcli:/untitled-e0ccfca7-3c0c-4b8b-9244-fa630f8511e9" modelTarget="agent-host-copilotcli" storageKey="chat.currentLanguageModel.panel.agent-host-copilotcli" widgetViewKind="view"
+[ChatModelSelection] event=no-model-at-toolbar-build surface="workbench" sessionKey="agent-host-copilotcli" conversationKey="agent-host-copilotcli:/untitled-e0ccfca7-3c0c-4b8b-9244-fa630f8511e9" modelTarget="agent-host-copilotcli" storageKey="chat.currentLanguageModel.panel.agent-host-copilotcli" widgetViewKind="view"
 Settings Sync: Account status changed from uninitialized to unavailable
+[ChatModelSelection] event=no-model-at-toolbar-build surface="workbench" sessionKey="agent-host-copilotcli" conversationKey="agent-host-copilotcli:/untitled-e0ccfca7-3c0c-4b8b-9244-fa630f8511e9" modelTarget="agent-host-copilotcli" storageKey="chat.currentLanguageModel.panel.agent-host-copilotcli" widgetViewKind="view"
+[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
+[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
+[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
+[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
+[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
+[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
+[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
+[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
+[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
+[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
+[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
+[ChatModelSelection] event=no-model-at-toolbar-build surface="workbench" sessionKey="agent-host-copilotcli" conversationKey="agent-host-copilotcli:/untitled-e0ccfca7-3c0c-4b8b-9244-fa630f8511e9" modelTarget="agent-host-copilotcli" storageKey="chat.currentLanguageModel.panel.agent-host-copilotcli" widgetViewKind="view"
 [AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
 [AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
 [AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
@@ -220,6 +229,7 @@ Settings Sync: Account status changed from uninitialized to unavailable
 [AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
 [AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
 [AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
+[ChatModelSelection] event=no-model-at-toolbar-build surface="workbench" sessionKey="agent-host-copilotcli" conversationKey="agent-host-copilotcli:/untitled-e0ccfca7-3c0c-4b8b-9244-fa630f8511e9" modelTarget="agent-host-copilotcli" storageKey="chat.currentLanguageModel.panel.agent-host-copilotcli" widgetViewKind="view"
 [AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
 [AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
 [AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
@@ -233,10 +243,7 @@ Settings Sync: Account status changed from uninitialized to unavailable
 [AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
 [AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
 [AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
-[ChatModelSelection] event=no-model-at-toolbar-build surface="workbench" sessionKey="agent-host-copilotcli" conversationKey="agent-host-copilotcli:/untitled-f6c74b7d-d592-40a7-8aa5-837f69ea6d2f" modelTarget="agent-host-copilotcli" storageKey="chat.currentLanguageModel.panel.agent-host-copilotcli" widgetViewKind="view"
 [AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
-[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
-[ChatModelSelection] event=no-model-at-toolbar-build surface="workbench" sessionKey="agent-host-copilotcli" conversationKey="agent-host-copilotcli:/untitled-f6c74b7d-d592-40a7-8aa5-837f69ea6d2f" modelTarget="agent-host-copilotcli" storageKey="chat.currentLanguageModel.panel.agent-host-copilotcli" widgetViewKind="view"
 [AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
 [AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
 [AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
@@ -280,16 +287,6 @@ Settings Sync: Account status changed from uninitialized to unavailable
 [AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
 [AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
 [AccountPolicyGate] apply: state=inactive, reason=undefined, isRestricted=false
-[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
-[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
-[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
-[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
-[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
-[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
-[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
-[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
-[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
-[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
 [ZenuxsMemory] Request failed {
   endpoint: 'https://aiapi.zenuxs.in/api/sync/memory',
   httpStatus: 401,
@@ -388,6 +385,20 @@ Request Headers Built:        Authorization: Bearer ****
   failureReason: 'Invalid or expired Bearer token'
 }
 [zenuxs-sync] failed to create remote conversation
+[AgentHost] No signed-in session resolved for resource: https://api.github.com
+[AgentHost] No signed-in session resolved for resource: https://api.github.com
+[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
+[AgentHostCustomizationMarketplace] Unable to load session-bound SDK installation receipts { name: 'Error' }
+[AgentHost] No signed-in session resolved for resource: https://api.github.com/repos
+[AgentHost] No signed-in session resolved for resource: https://api.github.com/repos
+[AgentHost] No signed-in session resolved for resource: https://api.github.com
+[AgentHost] No signed-in session resolved for resource: https://api.github.com
+[AgentHost] No signed-in session resolved for resource: https://api.github.com/repos
+[AgentHost] No signed-in session resolved for resource: https://api.github.com/repos
+[AgentHost] No signed-in session resolved for resource: https://api.github.com
+[AgentHost] No signed-in session resolved for resource: https://api.github.com
+[AgentHost] No signed-in session resolved for resource: https://api.github.com/repos
+[AgentHost] No signed-in session resolved for resource: https://api.github.com/repos
 [ZenuxsMemory] Request failed {
   endpoint: 'https://aiapi.zenuxs.in/api/sync/memory',
   httpStatus: 401,

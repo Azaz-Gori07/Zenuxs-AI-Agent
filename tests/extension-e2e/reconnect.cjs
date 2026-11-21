@@ -196,7 +196,10 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 			reconnectedSessions.join(","),
 		);
 
-		const state = await fetch(`http://127.0.0.1:4317/__state`).then((r) => r.json());
+		const providerPort = process.env.ZENUXS_EXT_PROVIDER_PORT || "4317";
+		const state = await fetch(`http://127.0.0.1:${providerPort}/__state`).then(
+			(r) => r.json(),
+		);
 		result.fakeProviderState = state;
 		add("fake provider served both phases", state.turn >= 2, state);
 		result.transcript = (await messages()).slice(-40);

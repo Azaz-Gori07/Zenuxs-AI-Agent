@@ -6,7 +6,8 @@ import { mkdirSync, writeFileSync } from "node:fs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, "../..");
-const fixture = join(root, "tests/extension-e2e/fixture");
+const fixture =
+	process.env.ZENUXS_EXT_FIXTURE ?? join(root, "tests/extension-e2e/fixture");
 mkdirSync(fixture, { recursive: true });
 writeFileSync(join(fixture, "sample.ts"), "const answer = 42;\nexport default answer;\n");
 

@@ -1,6 +1,6 @@
 {
-  "sha": "d148b4863ec4a2fc6184629d8569335fd4eb8b22",
-  "timestamp": "2026-11-21T06:29:20.399Z",
+  "sha": "0ce1a85e3932936c220a73138c75f79bf880436c",
+  "timestamp": "2026-11-21T06:41:32.986Z",
   "checks": [
     {
       "name": "open chat view",
@@ -35,7 +35,7 @@
     {
       "name": "fresh session after reconnect",
       "ok": true,
-      "detail": "1795242577697_q34yy"
+      "detail": "1795243309804_7m82n"
     },
     {
       "name": "fake provider served both phases",
@@ -49,7 +49,7 @@
   "phases": {
     "baseline": {
       "sessionIds": [
-        "1795242573973_x4ku1"
+        "1795243306574_ajb6c"
       ],
       "turnDone": 2
     },
@@ -59,7 +59,7 @@
     },
     "reconnected": {
       "sessionIds": [
-        "1795242577697_q34yy"
+        "1795243309804_7m82n"
       ],
       "turnDone": 2
     }
@@ -84,7 +84,7 @@
       "zenuxs.editFile",
       "zenuxs.runTerminalCommand"
     ],
-    "at": "2026-11-21T06:29:27.258Z"
+    "at": "2026-11-21T06:41:39.432Z"
   },
   "fakeProviderState": {
     "turn": 2,
@@ -93,11 +93,11 @@
   "transcript": [
     {
       "t": "session_started",
-      "sessionId": "1795242573973_x4ku1"
+      "sessionId": "1795243306574_ajb6c"
     },
     {
       "t": "checkpoint_list",
-      "sessionId": "1795242573973_x4ku1"
+      "sessionId": "1795243306574_ajb6c"
     },
     {
       "t": "status",
@@ -137,13 +137,6 @@
       "t": "turn_done"
     },
     {
-      "t": "initial_data"
-    },
-    {
-      "t": "session_hydrated",
-      "sessionId": "1795242573973_x4ku1"
-    },
-    {
       "t": "status",
       "text": "Stopping..."
     },
@@ -162,6 +155,9 @@
       "t": "reset_done"
     },
     {
+      "t": "initial_data"
+    },
+    {
       "t": "logs_stream",
       "text": "[INFO] Extension core runtime initialized {\"backendMode\":\"local\"}"
     },
@@ -170,11 +166,11 @@
     },
     {
       "t": "session_started",
-      "sessionId": "1795242577697_q34yy"
+      "sessionId": "1795243309804_7m82n"
     },
     {
       "t": "checkpoint_list",
-      "sessionId": "1795242577697_q34yy"
+      "sessionId": "1795243309804_7m82n"
     },
     {
       "t": "status",
