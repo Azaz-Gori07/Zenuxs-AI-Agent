@@ -1,33 +1,33 @@
-=== TIMESTAMP: 2026-11-20T14:15:08Z ===
-=== SHA: ab506878f9f94270fa06807ecbd16db14386092d ===
-=== COMMAND: plugins marketplace add --descriptor /tmp/zenuxs-governance-ab506878f9f94270fa06807ecbd16db14386092d/marketplace.json --id zenuxs-official ===
+=== TIMESTAMP: 2026-11-21T05:14:26Z ===
+=== SHA: c3af7a17b87d8da869c065e84b11b3aaf20d8bcb ===
+=== COMMAND: plugins marketplace add --descriptor /tmp/zenuxs-governance-c3af7a17b87d8da869c065e84b11b3aaf20d8bcb/marketplace.json --id zenuxs-official ===
 [31merror:[0m marketplace id zenuxs-official is reserved for official sources
 === EXIT: 1 ===
 PASS: reserved official id rejected
-=== COMMAND: plugins marketplace add --descriptor /tmp/zenuxs-governance-ab506878f9f94270fa06807ecbd16db14386092d/marketplace.json ===
-{"added":{"id":"community-market","descriptorPath":"/tmp/zenuxs-governance-ab506878f9f94270fa06807ecbd16db14386092d/marketplace.json","publisherType":"community","addedAt":"2026-11-20T14:15:27.710Z"}}
+=== COMMAND: plugins marketplace add --descriptor /tmp/zenuxs-governance-c3af7a17b87d8da869c065e84b11b3aaf20d8bcb/marketplace.json ===
+{"added":{"id":"community-market","descriptorPath":"/tmp/zenuxs-governance-c3af7a17b87d8da869c065e84b11b3aaf20d8bcb/marketplace.json","publisherType":"community","addedAt":"2026-11-21T05:14:33.482Z"}}
 === EXIT: 0 ===
 PASS: community marketplace added
 === COMMAND: plugins available ===
-{"plugins":[{"id":"hello@community-market","name":"hello","marketplace":"community-market","publisherType":"community","version":"1.0.0","path":"/tmp/zenuxs-governance-ab506878f9f94270fa06807ecbd16db14386092d/plugin"}]}
+{"plugins":[{"id":"hello@community-market","name":"hello","marketplace":"community-market","publisherType":"community","version":"1.0.0","path":"/tmp/zenuxs-governance-c3af7a17b87d8da869c065e84b11b3aaf20d8bcb/plugin"}]}
 === EXIT: 0 ===
 PASS: plugin listed as available
 === COMMAND: plugins install --id hello@community-market ===
-{"installed":{"id":"hello@community-market","name":"hello","marketplace":"community-market","version":"1.0.0","path":"/tmp/zenuxs-governance-ab506878f9f94270fa06807ecbd16db14386092d/data/plugin-exchange/cache/community-market/hello/1.0.0","enabled":false,"installedAt":"2026-11-20T14:15:33.020Z"}}
+{"installed":{"id":"hello@community-market","name":"hello","marketplace":"community-market","version":"1.0.0","path":"/tmp/zenuxs-governance-c3af7a17b87d8da869c065e84b11b3aaf20d8bcb/data/plugin-exchange/cache/community-market/hello/1.0.0","enabled":false,"installedAt":"2026-11-21T05:14:34.872Z"}}
 === EXIT: 0 ===
 PASS: installed plugin starts disabled
 === COMMAND: plugins enable --id hello@community-market ===
-{"plugin":{"id":"hello@community-market","name":"hello","marketplace":"community-market","version":"1.0.0","path":"/tmp/zenuxs-governance-ab506878f9f94270fa06807ecbd16db14386092d/data/plugin-exchange/cache/community-market/hello/1.0.0","enabled":true,"installedAt":"2026-11-20T14:15:33.020Z"}}
+{"plugin":{"id":"hello@community-market","name":"hello","marketplace":"community-market","version":"1.0.0","path":"/tmp/zenuxs-governance-c3af7a17b87d8da869c065e84b11b3aaf20d8bcb/data/plugin-exchange/cache/community-market/hello/1.0.0","enabled":true,"installedAt":"2026-11-21T05:14:34.872Z"}}
 === EXIT: 0 ===
 === COMMAND: plugins list ===
-{"plugins":[{"id":"hello@community-market","name":"hello","marketplace":"community-market","version":"1.0.0","path":"/tmp/zenuxs-governance-ab506878f9f94270fa06807ecbd16db14386092d/data/plugin-exchange/cache/community-market/hello/1.0.0","enabled":true,"installedAt":"2026-11-20T14:15:33.020Z"}]}
+{"plugins":[{"id":"hello@community-market","name":"hello","marketplace":"community-market","version":"1.0.0","path":"/tmp/zenuxs-governance-c3af7a17b87d8da869c065e84b11b3aaf20d8bcb/data/plugin-exchange/cache/community-market/hello/1.0.0","enabled":true,"installedAt":"2026-11-21T05:14:34.872Z"}]}
 === EXIT: 0 ===
 PASS: plugin enable is explicit
 === COMMAND: plugins hooks --id hello@community-market ===
-{"pluginId":"hello@community-market","publisherType":"community","hooks":[{"id":"plugin:hello@community-market:0","event":"PreToolUse","type":"process","command":"/bin/true","args":[],"source":"/tmp/zenuxs-governance-ab506878f9f94270fa06807ecbd16db14386092d/data/plugin-exchange/cache/community-market/hello/1.0.0/plugin.json"}]}
+{"pluginId":"hello@community-market","publisherType":"community","hooks":[{"id":"plugin:hello@community-market:0","event":"PreToolUse","type":"process","command":"/bin/true","args":[],"source":"/tmp/zenuxs-governance-c3af7a17b87d8da869c065e84b11b3aaf20d8bcb/data/plugin-exchange/cache/community-market/hello/1.0.0/plugin.json"}]}
 === EXIT: 0 ===
 PASS: community plugin hooks exposed
-=== COMMAND: plugins validate --path /tmp/zenuxs-governance-ab506878f9f94270fa06807ecbd16db14386092d/plugin ===
+=== COMMAND: plugins validate --path /tmp/zenuxs-governance-c3af7a17b87d8da869c065e84b11b3aaf20d8bcb/plugin ===
 {"ok":true,"diagnostics":[]}
 === EXIT: 0 ===
 PASS: validate succeeds without side effects

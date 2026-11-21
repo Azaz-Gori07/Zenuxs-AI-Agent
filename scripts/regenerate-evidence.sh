@@ -119,8 +119,15 @@ settings_for "$dir"
 provider_start tests/fixtures/l3/scenarios/single.json "$count"
 RESUME_DATA="$dir" RESUME_PORT="$PORT" \
   ZENUXS_PROVIDER_SETTINGS_PATH="$dir/providers.json" ZENUXS_PROVIDER_BASE_URL="$BASE" \
-  bash tests/scenarios/F-sess/resume-headless.sh > "$log" 2>&1
+  bash tests/scenarios/F-sess/resume-headless.sh > "$WORK/resume.raw.log" 2>&1
 code=$?; provider_stop
+{
+  echo "=== COMMAND: headless --id resume regression ==="
+  echo "=== SHA: $SHA ==="
+  echo "=== TIMESTAMP: $STAMP ==="
+  cat "$WORK/resume.raw.log"
+  echo "=== EXIT: $code ==="
+} > "$log"
 if check_guard resume "$count" "$log"; then echo "resume: exit=$code guard=PASS" >> "$SUMMARY"; [ "$code" = 0 ] || FAILED=$((FAILED+1)); else echo "resume: guard=FAILED" >> "$SUMMARY"; fi
 
 # Prompt assembly: verify project AGENTS.md marker reaches the provider request
@@ -190,8 +197,22 @@ else
   echo "cli-flags: VERIFICATION FAILED" >> "$SUMMARY"; FAILED=$((FAILED+1))
 fi
 
-node scripts/tui-pty-test.mjs "$OUT/tui-pty.log" > /dev/null 2>&1
-echo "tui-pty: exit=$?" >> "$SUMMARY"
+node scripts/tui-pty-test.mjs "$WORK/tui-pty.raw.log" > /dev/null 2>&1
+PTY_CODE=$?
+{
+  echo "=== COMMAND: node scripts/tui-pty-test.mjs ==="
+  echo "=== SHA: $SHA ==="
+  echo "=== TIMESTAMP: $STAMP ==="
+  head -c 4000 "$WORK/tui-pty.raw.log"
+  echo "=== EXIT: $PTY_CODE ==="
+} > "$OUT/tui-pty.log"
+echo "tui-pty: exit=$PTY_CODE" >> "$SUMMARY"
+[ "$PTY_CODE" -eq 0 ] || FAILED=$((FAILED+1))
+
+# Security + clean-room feature L3 evidence and extension reconnect.
+bash tests/scenarios/F-perm/symlink.sh >> "$SUMMARY" 2>&1 || FAILED=$((FAILED+1))
+bash tests/scenarios/F-governance/evidence.sh >> "$SUMMARY" 2>&1 || FAILED=$((FAILED+1))
+bash tests/scenarios/F-ext/reconnect.sh >> "$SUMMARY" 2>&1 || FAILED=$((FAILED+1))
 
 echo "=== FAILURES: $FAILED ===" >> "$SUMMARY"
 cat "$SUMMARY"

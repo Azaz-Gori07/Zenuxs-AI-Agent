@@ -63,8 +63,13 @@ run_step "test:unit:schema" bun run --cwd packages/schema test
 run_step "fake-provider:smoke" node tests/fake-provider/smoke-test.mjs
 run_step "evidence:regenerate" bash scripts/regenerate-evidence.sh
 run_step "tui:pty" node scripts/tui-pty-test.mjs docs/evidence/F-tui/pty-transcript.log
-run_step "matrix:check" node scripts/check-matrix.mjs
 run_step "security:check" node scripts/security-check.mjs
+
+# Machine-readable gate result used by the evidence-derived matrix. Written
+# before matrix steps so their evidence is not self-referential.
+node -e 'const fs=require("fs");fs.writeFileSync("docs/evidence/gate/status.json",JSON.stringify({sha:process.argv[1],failures:Number(process.argv[2]),timestamp:new Date().toISOString()},null,2)+"\n")' "$(git rev-parse HEAD)" "$FAILURES"
+run_step "matrix:reconcile" node scripts/reconcile-matrix.mjs
+run_step "matrix:check" node scripts/check-matrix.mjs
 
 log ""
 log "=== SUMMARY ==="

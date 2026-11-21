@@ -1,5 +1,5 @@
 === COMMAND: real CLI checkpoint + applyCheckpointToWorktree ===
-=== SHA: 49f8f427d8761de1346216f3711c7a1a83917f46 ===
-sessionId=1795182807997_l6ixf
-{"checkpointRef":"61f12a4f8a6bb6714692c1413feb6523054b9846","before":"MODIFIED_CONTENT","after":"CHECKPOINT_STATE","restored":true}
+=== SHA: c3af7a17b87d8da869c065e84b11b3aaf20d8bcb ===
+sessionId=1795238055118_qfnra
+{"checkpointRef":"c66db29f5949138b86fed4ef409059577a632f97","before":"MODIFIED_CONTENT","after":"CHECKPOINT_STATE","restored":true}
 === EXIT: 0 ===

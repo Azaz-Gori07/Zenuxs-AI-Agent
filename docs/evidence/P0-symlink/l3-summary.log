@@ -1,9 +1,12 @@
 === P0 SYMLINK ESCAPE FIX — L3 verification on HEAD ===
-=== SHA: 80653580115beff80efc587f5865395a2508fc58 ===
-=== TIMESTAMP: 2026-11-19T10:15:23Z ===
---- reviewer exact repro (read) ---
---- parent symlink write ---
-{"ts":"2026-11-19T10:12:12.438Z","type":"agent_event","event":{"type":"content_end","contentType":"tool","toolName":"write","toolCallId":"call_1","output":{"error":"EEXIST: file already exists, mkdir '/tmp/sym-parent-write/escape'"},"error":"{\"error\":\"EEXIST: file already exists, mkdir '/tmp/sym-parent-write/escape'\"}","durationMs":5}}
---- symlink chain / final / dangling / hardlink / dotdot: unit 9/9 pass ---
---- RAG symlink dir: indexed 1 file (inside.ts only), outside marker absent ---
---- glob symlink dir: 1 file (inside.ts only) ---
+=== SHA: c3af7a17b87d8da869c065e84b11b3aaf20d8bcb ===
+=== TIMESTAMP: 2026-11-21T05:14:24Z ===
+=== COMMAND: real CLI write through in-workspace symlink to outside ===
+{"ts":"2026-11-21T05:14:26.092Z","type":"agent_event","event":{"type":"iteration_start","iteration":1}}
+{"ts":"2026-11-21T05:14:26.126Z","type":"agent_event","event":{"type":"usage","inputTokens":0,"outputTokens":0,"totalInputTokens":0,"totalOutputTokens":0,"totalCost":0}}
+{"ts":"2026-11-21T05:14:26.129Z","type":"agent_event","event":{"type":"content_start","contentType":"tool","toolName":"write","toolCallId":"call_symlink_1","input":{"filePath":"escape/leak.txt","content":"SHOULD_NOT_WRITE"}}}
+{"ts":"2026-11-21T05:14:26.131Z","type":"agent_event","event":{"type":"content_end","contentType":"tool","toolName":"write","toolCallId":"call_symlink_1","output":{"error":"Path is outside the workspace: /tmp/zenuxs-symlink-c3af7a17b87d8da869c065e84b11b3aaf20d8bcb/ws/escape/leak.txt (workspace: /tmp/zenuxs-symlink-c3af7a17b87d8da869c065e84b11b3aaf20d8bcb/ws)"},"error":"{\"error\":\"Path is outside the workspace: /tmp/zenuxs-symlink-c3af7a17b87d8da869c065e84b11b3aaf20d8bcb/ws/escape/leak.txt (workspace: /tmp/zenuxs-symlink-c3af7a17b87d8da869c065e84b11b3aaf20d8bcb/ws)\"}","durationMs":2}}
+{"ts":"2026-11-21T05:14:26.132Z","type":"agent_event","event":{"type":"iteration_end","iteration":1,"hadToolCalls":true,"toolCallCount":1}}
+=== EXIT: 0 ===
+PASS: symlink write denied, no outside file
+=== FAILURES: 0 ===

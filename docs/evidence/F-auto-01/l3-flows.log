@@ -1,28 +1,28 @@
-=== TIMESTAMP: 2026-11-20T14:15:08Z ===
-=== SHA: ab506878f9f94270fa06807ecbd16db14386092d ===
-=== COMMAND: flow run --file /tmp/zenuxs-governance-ab506878f9f94270fa06807ecbd16db14386092d/flow-denied.json --workspace /tmp/zenuxs-governance-ab506878f9f94270fa06807ecbd16db14386092d/ws ===
-{"type":"flow_started","runId":"1795184122839_0u5yqw"}
-{"type":"step_result","runId":"1795184122839_0u5yqw","stepId":"hook","status":"failed","result":"hook step denied","reason":"revoked: grant was revoked"}
-{"type":"flow_failed","runId":"1795184122839_0u5yqw"}
-{"type":"flow_record","record":{"runId":"1795184122839_0u5yqw","flowId":"denied","status":"failed","steps":{"hook":{"status":"failed","result":"hook step denied","reason":"revoked: grant was revoked"}},"startedAt":"2026-11-20T14:15:22.839Z","finishedAt":"2026-11-20T14:15:22.841Z"}}
+=== TIMESTAMP: 2026-11-21T05:14:26Z ===
+=== SHA: c3af7a17b87d8da869c065e84b11b3aaf20d8bcb ===
+=== COMMAND: flow run --file /tmp/zenuxs-governance-c3af7a17b87d8da869c065e84b11b3aaf20d8bcb/flow-denied.json --workspace /tmp/zenuxs-governance-c3af7a17b87d8da869c065e84b11b3aaf20d8bcb/ws ===
+{"type":"flow_started","runId":"1795238072104_u5grtn"}
+{"type":"step_result","runId":"1795238072104_u5grtn","stepId":"hook","status":"failed","result":"hook step denied","reason":"revoked: grant was revoked"}
+{"type":"flow_failed","runId":"1795238072104_u5grtn"}
+{"type":"flow_record","record":{"runId":"1795238072104_u5grtn","flowId":"denied","status":"failed","steps":{"hook":{"status":"failed","result":"hook step denied","reason":"revoked: grant was revoked"}},"startedAt":"2026-11-21T05:14:32.104Z","finishedAt":"2026-11-21T05:14:32.105Z"}}
 === EXIT: 1 ===
 PASS: flow cannot bypass hook revocation
-=== COMMAND: flow run --file /tmp/zenuxs-governance-ab506878f9f94270fa06807ecbd16db14386092d/flow.json --workspace /tmp/zenuxs-governance-ab506878f9f94270fa06807ecbd16db14386092d/ws ===
-{"type":"flow_started","runId":"1795184147863_sgvpk2"}
-{"type":"step_result","runId":"1795184147863_sgvpk2","stepId":"hook","status":"completed","result":"hook exit=0"}
-{"type":"step_result","runId":"1795184147863_sgvpk2","stepId":"plugin","status":"completed","result":"plugin hello@community-market enabled"}
-{"type":"step_result","runId":"1795184147863_sgvpk2","stepId":"agent","status":"completed","result":"Mode check OK."}
-{"type":"flow_completed","runId":"1795184147863_sgvpk2"}
-{"type":"flow_record","record":{"runId":"1795184147863_sgvpk2","flowId":"demo","status":"completed","steps":{"hook":{"status":"completed","result":"hook exit=0"},"plugin":{"status":"completed","result":"plugin hello@community-market enabled"},"agent":{"status":"completed","result":"Mode check OK."}},"startedAt":"2026-11-20T14:15:47.863Z","finishedAt":"2026-11-20T14:15:51.353Z"}}
+=== COMMAND: flow run --file /tmp/zenuxs-governance-c3af7a17b87d8da869c065e84b11b3aaf20d8bcb/flow.json --workspace /tmp/zenuxs-governance-c3af7a17b87d8da869c065e84b11b3aaf20d8bcb/ws ===
+{"type":"flow_started","runId":"1795238079064_3j2aey"}
+{"type":"step_result","runId":"1795238079064_3j2aey","stepId":"hook","status":"completed","result":"hook exit=0"}
+{"type":"step_result","runId":"1795238079064_3j2aey","stepId":"plugin","status":"completed","result":"plugin hello@community-market enabled"}
+{"type":"step_result","runId":"1795238079064_3j2aey","stepId":"agent","status":"completed","result":"Mode check OK."}
+{"type":"flow_completed","runId":"1795238079064_3j2aey"}
+{"type":"flow_record","record":{"runId":"1795238079064_3j2aey","flowId":"demo","status":"completed","steps":{"hook":{"status":"completed","result":"hook exit=0"},"plugin":{"status":"completed","result":"plugin hello@community-market enabled"},"agent":{"status":"completed","result":"Mode check OK."}},"startedAt":"2026-11-21T05:14:39.064Z","finishedAt":"2026-11-21T05:14:39.966Z"}}
 === EXIT: 0 ===
 PASS: flow completed with hook, plugin and agent steps
-=== COMMAND: flow run --file /tmp/zenuxs-governance-ab506878f9f94270fa06807ecbd16db14386092d/flow.json --workspace /tmp/zenuxs-governance-ab506878f9f94270fa06807ecbd16db14386092d/ws --resume 1795184147863_sgvpk2 ===
-{"type":"flow_started","runId":"1795184147863_sgvpk2"}
-{"type":"step_result","runId":"1795184147863_sgvpk2","stepId":"hook","status":"completed","result":"reused-from-journal"}
-{"type":"step_result","runId":"1795184147863_sgvpk2","stepId":"plugin","status":"completed","result":"reused-from-journal"}
-{"type":"step_result","runId":"1795184147863_sgvpk2","stepId":"agent","status":"completed","result":"reused-from-journal"}
-{"type":"flow_completed","runId":"1795184147863_sgvpk2"}
-{"type":"flow_record","record":{"runId":"1795184147863_sgvpk2","flowId":"demo","status":"completed","steps":{"hook":{"status":"completed","result":"hook exit=0"},"plugin":{"status":"completed","result":"plugin hello@community-market enabled"},"agent":{"status":"completed","result":"Mode check OK."}},"startedAt":"2026-11-20T14:15:47.863Z","finishedAt":"2026-11-20T14:15:53.754Z"}}
+=== COMMAND: flow run --file /tmp/zenuxs-governance-c3af7a17b87d8da869c065e84b11b3aaf20d8bcb/flow.json --workspace /tmp/zenuxs-governance-c3af7a17b87d8da869c065e84b11b3aaf20d8bcb/ws --resume 1795238079064_3j2aey ===
+{"type":"flow_started","runId":"1795238079064_3j2aey"}
+{"type":"step_result","runId":"1795238079064_3j2aey","stepId":"hook","status":"completed","result":"reused-from-journal"}
+{"type":"step_result","runId":"1795238079064_3j2aey","stepId":"plugin","status":"completed","result":"reused-from-journal"}
+{"type":"step_result","runId":"1795238079064_3j2aey","stepId":"agent","status":"completed","result":"reused-from-journal"}
+{"type":"flow_completed","runId":"1795238079064_3j2aey"}
+{"type":"flow_record","record":{"runId":"1795238079064_3j2aey","flowId":"demo","status":"completed","steps":{"hook":{"status":"completed","result":"hook exit=0"},"plugin":{"status":"completed","result":"plugin hello@community-market enabled"},"agent":{"status":"completed","result":"Mode check OK."}},"startedAt":"2026-11-21T05:14:39.064Z","finishedAt":"2026-11-21T05:14:40.630Z"}}
 === EXIT: 0 ===
 PASS: resume reuses completed steps
 === FAILURES: 0 ===
