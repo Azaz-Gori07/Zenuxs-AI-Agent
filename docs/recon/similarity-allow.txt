@@ -1,0 +1,35 @@
+# File-scoped similarity allowlist (path  # reason).
+# Generic third-party/Cline-upstream UI primitives present in BOTH codebases
+# via a common Apache-2.0 ancestor (see NOTICE.md). Not adapted from ZCode.
+# These are shared component-library shapes, not reference-derived logic.
+apps/zenuxs-hub/src/webview/src/components/ai-elements/agent.tsx  # shared Cline-upstream UI primitive (Apache-2.0), common ancestor, not ZCode-derived
+apps/zenuxs-hub/src/webview/src/components/ai-elements/attachments.tsx  # shared Cline-upstream UI primitive (Apache-2.0), common ancestor, not ZCode-derived
+apps/zenuxs-hub/src/webview/src/components/ai-elements/audio-player.tsx  # shared Cline-upstream UI primitive (Apache-2.0), common ancestor, not ZCode-derived
+apps/zenuxs-hub/src/webview/src/components/ai-elements/chain-of-thought.tsx  # shared Cline-upstream UI primitive (Apache-2.0), common ancestor, not ZCode-derived
+apps/zenuxs-hub/src/webview/src/components/ai-elements/code-block.tsx  # shared Cline-upstream UI primitive (Apache-2.0), common ancestor, not ZCode-derived
+apps/zenuxs-hub/src/webview/src/components/ai-elements/commit.tsx  # shared Cline-upstream UI primitive (Apache-2.0), common ancestor, not ZCode-derived
+apps/zenuxs-hub/src/webview/src/components/ai-elements/confirmation.tsx  # shared Cline-upstream UI primitive (Apache-2.0), common ancestor, not ZCode-derived
+apps/zenuxs-hub/src/webview/src/components/ai-elements/conversation.tsx  # shared Cline-upstream UI primitive (Apache-2.0), common ancestor, not ZCode-derived
+apps/zenuxs-hub/src/webview/src/components/ai-elements/environment-variables.tsx  # shared Cline-upstream UI primitive (Apache-2.0), common ancestor, not ZCode-derived
+apps/zenuxs-hub/src/webview/src/components/ai-elements/file-tree.tsx  # shared Cline-upstream UI primitive (Apache-2.0), common ancestor, not ZCode-derived
+apps/zenuxs-hub/src/webview/src/components/ai-elements/inline-citation.tsx  # shared Cline-upstream UI primitive (Apache-2.0), common ancestor, not ZCode-derived
+apps/zenuxs-hub/src/webview/src/components/ai-elements/jsx-preview.tsx  # shared Cline-upstream UI primitive (Apache-2.0), common ancestor, not ZCode-derived
+apps/zenuxs-hub/src/webview/src/components/ai-elements/message.tsx  # shared Cline-upstream UI primitive (Apache-2.0), common ancestor, not ZCode-derived
+apps/zenuxs-hub/src/webview/src/components/ai-elements/mic-selector.tsx  # shared Cline-upstream UI primitive (Apache-2.0), common ancestor, not ZCode-derived
+apps/zenuxs-hub/src/webview/src/components/ai-elements/model-selector.tsx  # shared Cline-upstream UI primitive (Apache-2.0), common ancestor, not ZCode-derived
+apps/zenuxs-hub/src/webview/src/components/ai-elements/node.tsx  # shared Cline-upstream UI primitive (Apache-2.0), common ancestor, not ZCode-derived
+apps/zenuxs-hub/src/webview/src/components/ai-elements/open-in-chat.tsx  # shared Cline-upstream UI primitive (Apache-2.0), common ancestor, not ZCode-derived
+apps/zenuxs-hub/src/webview/src/components/ai-elements/package-info.tsx  # shared Cline-upstream UI primitive (Apache-2.0), common ancestor, not ZCode-derived
+apps/zenuxs-hub/src/webview/src/components/ai-elements/persona.tsx  # shared Cline-upstream UI primitive (Apache-2.0), common ancestor, not ZCode-derived
+apps/zenuxs-hub/src/webview/src/components/ai-elements/prompt-input.tsx  # shared Cline-upstream UI primitive (Apache-2.0), common ancestor, not ZCode-derived
+apps/zenuxs-hub/src/webview/src/components/ai-elements/schema-display.tsx  # shared Cline-upstream UI primitive (Apache-2.0), common ancestor, not ZCode-derived
+apps/zenuxs-hub/src/webview/src/components/ai-elements/snippet.tsx  # shared Cline-upstream UI primitive (Apache-2.0), common ancestor, not ZCode-derived
+apps/zenuxs-hub/src/webview/src/components/ai-elements/speech-input.tsx  # shared Cline-upstream UI primitive (Apache-2.0), common ancestor, not ZCode-derived
+apps/zenuxs-hub/src/webview/src/components/ai-elements/stack-trace.tsx  # shared Cline-upstream UI primitive (Apache-2.0), common ancestor, not ZCode-derived
+apps/zenuxs-hub/src/webview/src/components/ai-elements/terminal.tsx  # shared Cline-upstream UI primitive (Apache-2.0), common ancestor, not ZCode-derived
+apps/zenuxs-hub/src/webview/src/components/ai-elements/test-results.tsx  # shared Cline-upstream UI primitive (Apache-2.0), common ancestor, not ZCode-derived
+apps/zenuxs-hub/src/webview/src/components/ai-elements/transcription.tsx  # shared Cline-upstream UI primitive (Apache-2.0), common ancestor, not ZCode-derived
+apps/zenuxs-hub/src/webview/src/components/ai-elements/voice-selector.tsx  # shared Cline-upstream UI primitive (Apache-2.0), common ancestor, not ZCode-derived
+apps/zenuxs-hub/src/webview/src/components/ai-elements/web-preview.tsx  # shared Cline-upstream UI primitive (Apache-2.0), common ancestor, not ZCode-derived
+apps/zenuxs-hub/src/webview/src/components/ui/carousel.tsx  # shared Cline-upstream UI primitive (Apache-2.0), common ancestor, not ZCode-derived
+apps/zenuxs-hub/src/webview/src/components/ui/chart.tsx  # shared Cline-upstream UI primitive (Apache-2.0), common ancestor, not ZCode-derived

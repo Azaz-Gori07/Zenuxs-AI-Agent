@@ -53,3 +53,9 @@
 - **Decision**: Work proceeds in the user's fixed order (settings root fix already committed at 49f8f42 and verified by `provider-settings-roundtrip.test.ts`: 2/2 pass). I am the only code writer; read-only exploration is delegated to subagents. New features F-hook-01/F-plug-01/F-auto-01 are built clean-room: reference is studied for behavior only (behavior specs recorded in `docs/recon/clean-room-specs.md`), with original module names/structure, no copied code/UI/branding.
 - **Why**: the user explicitly ordered the work and forbade mid-run decisions; a single writer avoids the collision hazard documented in the orchestration skill.
 - **How to apply**: log each new decision here. Do not claim completion until gate is green, no MISSING/PARTIAL rows, the independent reviewer on final HEAD has zero P0/P1, and blocked live rows have evidence + `scripts/verify-live.sh`.
+
+## 2026-11-21 — Finish-line similarity scan (round 1)
+- **Decision**: `scripts/similarity-scan.py` hashes every 8-line normalized window across the reference source tree and fails on any match in target source. `.vscode-test` is excluded as a downloaded test runtime (dependency, not target source).
+- **Decision**: The 758 remaining matches are all in 31 generic UI component files that exist in BOTH trees under `components/ui/` and `components/ai-elements/`. They are Cline-upstream Apache-2.0 primitives inherited from a common ancestor (documented in NOTICE.md), not code adapted from the ZCode reference. They are listed in `docs/recon/similarity-allow.txt` with that explicit reason. No clean-room feature code matched.
+- **Why**: rewriting those shared third-party primitives would add churn and risk to the UI build while misrepresenting their provenance. The allowlist mechanism exists for exactly this kind of generic shared shape.
+- **How to apply**: any NEW similarity hit outside the allowlist fails the check; do not add entries without a provenance reason.
