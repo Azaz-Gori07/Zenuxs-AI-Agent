@@ -61,8 +61,46 @@ function sha() {
   }
 }
 
-function hasSha(text, currentSha) {
-  return text.includes(currentSha)
+function commitTime(commit) {
+  try {
+    const out = execFileSync("git", ["log", "-1", "--format=%ct", commit], {
+      cwd: root,
+      encoding: "utf8",
+    }).trim()
+    return out ? Number(out) : 0
+  } catch {
+    return 0
+  }
+}
+
+// Evidence is fresh when it was produced at or after the last commit that
+// changed product source. Evidence-only commits must not invalidate it.
+function sourceHeadTime() {
+  try {
+    const out = execFileSync(
+      "git",
+      ["log", "-1", "--format=%ct", "--", "packages", "apps"],
+      { cwd: root, encoding: "utf8" },
+    ).trim()
+    return out ? Number(out) : 0
+  } catch {
+    return 0
+  }
+}
+
+function extractSha(text) {
+  const match =
+    text.match(/=== SHA: ([0-9a-f]{7,40}) ===/) ||
+    text.match(/"sha"\s*:\s*"([0-9a-f]{7,40})"/)
+  return match ? match[1] : undefined
+}
+
+function evidenceFresh(text) {
+  const evidenceSha = extractSha(text)
+  if (!evidenceSha) return false
+  const evidenceTime = commitTime(evidenceSha)
+  const sourceTime = sourceHeadTime()
+  return evidenceTime > 0 && evidenceTime >= sourceTime
 }
 
 function hasSuccess(text, path) {
@@ -85,7 +123,7 @@ function hasSuccess(text, path) {
   )
 }
 
-function verifyEvidence(paths, currentSha) {
+function verifyEvidence(paths) {
   if (!paths.length) return { verified: false, reason: "no evidence path" }
   for (const path of paths) {
     if (!existsSync(join(root, path))) {
@@ -94,8 +132,8 @@ function verifyEvidence(paths, currentSha) {
   }
   for (const path of paths) {
     const text = readFileSync(join(root, path), "utf8")
-    if (!hasSha(text, currentSha)) {
-      return { verified: false, reason: `${path} predates current HEAD` }
+    if (!evidenceFresh(text)) {
+      return { verified: false, reason: `${path} predates the latest source change` }
     }
     if (!hasSuccess(text, path)) {
       return { verified: false, reason: `${path} has no success marker` }
@@ -116,7 +154,7 @@ export function buildMatrix() {
       const live =
         existsSync(join(root, livePath)) &&
         readFileSync(join(root, livePath), "utf8").includes("=== LIVE_VERIFY: PASS ===") &&
-        hasSha(readFileSync(join(root, livePath), "utf8"), currentSha)
+        evidenceFresh(readFileSync(join(root, livePath), "utf8"))
       if (live) {
         status = "VERIFIED"
         note = " (live)"
@@ -126,7 +164,7 @@ export function buildMatrix() {
       }
     } else {
       const paths = evidence.split(/[,;]/).map((p) => p.trim()).filter(Boolean)
-      const check = verifyEvidence(paths, currentSha)
+      const check = verifyEvidence(paths)
       if (check.verified) {
         status = "VERIFIED"
         note = " (L3 evidence on HEAD)"
