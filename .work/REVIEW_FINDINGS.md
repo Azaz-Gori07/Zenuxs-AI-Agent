@@ -1,329 +1,60 @@
-# Independent adversarial review findings (fresh process)
+# Fresh independent adversarial review — findings
 
-Reviewer: fresh-context independent reviewer. I did not write the code under review.
-No product files were modified and no fixes were applied. The prior contents of this
-file were a review of an older HEAD (`8065358`) and are superseded by this one.
-
+## Scope / identity of reviewed artifact
 - **Branch**: `fix/zenuxs-recovery`
-- **SHA reviewed**: `ff041f8f65a5ec353b449d8eef592d1156237f8f`
-  (`chore(evidence): gate-green evidence and matrix on final HEAD`)
-- **HEAD movement note**: during the review an evidence-only commit moved HEAD to
-  `8e25f11` (`chore(status): gate green, independent review pending; refresh evidence`).
-  `git diff --stat ff041f8..8e25f11 -- packages apps scripts` is empty — no product,
-  source or script changes — so every finding below applies equally to `8e25f11`.
-- **Initial tree state**: `git status --short` clean.
-- **Date**: 2026-11-21
+- **SHA reviewed**: `e1e51d36c1921a1d01466b9fb501cca29669fc24` (`e1e51d3 chore(evidence): gate-green evidence on review-fix HEAD`)
+- **Working tree at start**: clean (`git status --short` empty). Running the gate regenerated evidence files in the working tree (uncommitted) — expected; the reviewed, committed artifact is `e1e51d3`.
+- Reviewer did not write product code, did not fix anything, and did **not** set STATUS to COMPLETE.
 
-## Commands I ran myself (not trusting evidence files)
+## Commands run (with results)
+1. `git log -1 --oneline` → `e1e51d3 ...`; `git status --short` → clean; `git branch --show-current` → `fix/zenuxs-recovery`.
+2. `export PATH="$HOME/.bun/bin:$PATH"; bun install --frozen-lockfile; bun run build && bun run build:extension; bash scripts/gate.sh` → **GATE_EXIT=0**, all 17 steps `PASS`, `=== FAILURES: 0 ===`. Steps: install, build, typecheck:cli/schema/engine, build:extension, vsix:build-install, test:unit:cli, test:unit:core, test:unit:engine, test:unit:schema, fake-provider:smoke, evidence:regenerate, tui:pty, security:check, matrix:reconcile, matrix:check.
+3. `node scripts/reconcile-matrix.mjs --check` → exit 0; `{sha:e1e51d3..., rows:37, counts:{VERIFIED:35, BLOCKED:2}}`.
+4. `node scripts/check-matrix.mjs` → exit 0; `problems: []`; SHA `e1e51d3`; 37 rows (35 VERIFIED, F-prov + F-toolrobust BLOCKED).
+5. `node scripts/security-check.mjs` → exit 0, `problems: []`. `node scripts/security-check.test.mjs` → exit 0. Combined `node scripts/security-check.mjs && node scripts/security-check.test.mjs` → exit 0.
+6. Security fail-closed repro (temp `ZENUXS_SECURITY_ROOT`, no product files touched):
+   - leaked `ZCODE_OFFICIAL_ENDPOINT_TOKEN` in `apps/leak.ts` → exit 1 (`matches /ZCODE_OFFICIAL_ENDPOINT_TOKEN/`).
+   - `sk-abcdefghijklmnopqrstuv` in `apps/key.ts` → exit 1 (`matches live API key pattern`).
+   - only `Z.AI api.z.ai` + `foo.cline.bot` in `apps/ok.ts` → exit 0 (prior false positives gone).
+   - tampered copy with `const forbidden = []` → exit 1 (`security-check self-test failed: detection patterns are not active`).
+7. `git grep` over tracked `apps|packages|scripts` for reference markers / key shapes → only the intentional canary at `scripts/security-check.mjs:108`.
+8. `git ls-files -s | awk '$1==120000'` → no tracked symlinks (no stray `escape -> /escape`). `git ls-files config.json` → NOT TRACKED; `.gitignore:55` contains `config.json`.
+9. Runtime `clearFields` check (temp script, `migrateUnknownFields(file, ["weirdFlag"])`) → `changed=1`; `weirdFlag present? false`; unrelated unknown `customThing` preserved; `baseUrl` preserved. (`provider-settings-manager.ts:59`.)
+10. Runtime plugin symlink-confinement check (temp descriptor with `path:"escape"` symlink to an outside dir) → `blocked with error: symlink escapes its root: escape`, `ESCAPED? false`. (`plugin-exchange.ts:86-102`.)
+11. Gate-history integrity: `git diff b658202..HEAD -- scripts/gate.sh` → only steps added (`vsix:build-install`, `tui:pty`, `evidence:regenerate`, `tui:pty`/`security:check`, `matrix:reconcile`), no step removed. `check-matrix.mjs` rewritten but `reconcile-matrix.mjs:buildMatrix()` can emit only VERIFIED/BLOCKED/MISSING, so the removed strict `status!==VERIFIED` check cannot admit BROKEN/PARTIAL/IMPLEMENTED; MISSING/PARTIAL are still rejected and BLOCKED still requires `.work/BLOCKED.md` (`check-matrix.mjs:20-30`). `security-check.mjs` history: introduced `b658202`, hardened in `ab928ec` (added `process.exit(1)`), no threshold lowered since.
 
-```bash
-cd /home/azaz/Projects/Zenuxs-AI-Agent
-git log -1 --oneline && git status --short
-export PATH="$HOME/.bun/bin:$PATH"
-bun install --frozen-lockfile
-bun run build && bun run build:extension
-bash scripts/gate.sh                         # exit 0; 18/18 steps, === FAILURES: 0 ===
-node scripts/reconcile-matrix.mjs --check    # exit 0; 35 VERIFIED, 2 BLOCKED
-node scripts/check-matrix.mjs                 # exit 0; problems: []
-node scripts/security-check.mjs               # exit 0 BUT prints 19 problems
-git diff b658202..HEAD -- scripts/gate.sh scripts/check-matrix.mjs
-git log --diff-filter=D --summary --oneline -- '**/*.test.ts' '**/*.test.mjs'
-bun test packages/core/src/services/storage/provider-settings-{roundtrip,manager,legacy-migration}.test.ts  # 32 pass
-```
+## Prior P1 — CLOSED
+**Prior P1: F-sec-01 VERIFIED was false assurance** — `scripts/security-check.mjs` reported 19 violations but always exited 0, and its patterns produced Z.AI / `*.cline.bot` false positives.
+- Now **FAILS CLOSED**: `scripts/security-check.mjs:116` `if (problems.length > 0) process.exit(1)`. Patterns scoped to unambiguous reference markers (`ZCODE_OFFICIAL_ENDPOINT_TOKEN`, `zcode.cjs`, `zcode.bot`) + live key shapes (`:20-26`); false positives removed (repro 5/6 above).
+- Positive control (`:107-113`) requires exactly 4 detections; a fixed-count canary plus `scripts/security-check.test.mjs:15-41` prove that disabling the patterns makes the checker fail (repro 6).
+- **Gate cannot be toothless**: `scripts/gate.sh:66` runs both checks under `run_step` (which records real exit codes, `:23-42`); `A && B` propagates a non-zero exit; gate then increments FAILURES and `status.json.failures > 0`. Any leakage → security step fails → gate fails. Verified live (gate step `security:check:0`, and direct fail-closed repro 6).
+- **F-sec-01 VERIFIED is now honest**: its evidence is `docs/evidence/gate/status.json`, which after this gate run contains `{sha:e1e51d3..., failures:0}`; `check-matrix.mjs` only accepts it as VERIFIED when the gate (incl. strict security check) is green. Confirmed in the regenerated matrix.
 
-Plus my own new adversarial scenarios (NOT the repo's tests), all against the real
-built CLI with fresh temp data dirs, captured in `/tmp/opencode/revsec{,2,3,4}/results.log`
-and `/tmp/opencode/direct-settings.ts`:
+## Prior P2s — CLOSED
+- **Reserved marketplace self-certification**: `plugin-exchange.ts:192-204` rejects a descriptor claiming `publisherType:"official"` unless `trustedOfficial:true` is passed by a trusted caller. CLI `plugins marketplace add` (`apps/cli/src/commands/plugins-exchange.ts:27`) passes only `(descriptor, id)` — never the option. Regression test `plugin-exchange.test.ts:47-62` asserts rejection and trusted opt-in. (Static + code-path verified.)
+- **Flow steps hardcoding provider/model/key/auto-approve**: `apps/cli/src/commands/flow.ts:27-48` `runAgentStep` spawns the CLI with only `[entry, "--json", prompt]`, `env: process.env`, `cwd: process.cwd()` — no provider/model/key/auto-approve. FlowRunner carries only `prompt` (`flow-runner.ts:9-16, 100-108, 200-210`). A flow cannot switch providers or bypass approval via step data.
 
-- hook trust: pending / stale-after-grant / revoked / corrupt-store / flow-bypass attempts;
-- plugin exchange: reserved-id spoof, lexical vs symlink path escape, validate side effects;
-- flow: untrusted hook, stale hook, disabled plugin, injected `command` field;
-- settings: valid-file round trip (baseUrl/protocol/client/unknown), `clearFields`;
-- CLI: `--no-color`, `--locale` validation, `--disallowed-tools`, `--attach`;
-- secrets/branding: history scan, `.gitignore`, `security-check` output.
+## Prior P3s — CLOSED
+- **`clearFields` unknown-field removal**: `provider-settings-manager.ts:59` excludes any key listed in `clearFields` from raw re-injection; `:222` deletes cleared keys from the merge. Runtime repro 9 confirms an unknown field named in `clearFields` is removed while other unknown fields and `baseUrl` survive.
+- **Plugin path symlink confinement**: `plugin-exchange.ts:86-102` checks lexical `relative` **and** `realpathSync`-resolved relative, throwing on either escape. Runtime repro 10 confirms an escaping symlink is refused.
+- **Stray `escape` symlink**: no tracked symlinks (repro 8); no `escape` path on disk.
 
----
+## Full-surface re-attack (per brief)
+- **Matrix honesty**: `reconcile-matrix.mjs --check` and `check-matrix.mjs` both exit 0 on SHA `e1e51d3`; matrix regenerated by the gate's real-CLI `evidence:regenerate` step with per-case guards (`regenerate-evidence.sh:36-63`); no MISSING/PARTIAL/BROKEN/IMPLEMENTED rows; F-prov/F-toolrobust are BLOCKED with `.work/BLOCKED.md` pointer + `scripts/verify-live.sh` and `verify-live.log` shows `=== LIVE_VERIFY: BLOCKED ===` (no PASS without live evidence). No evidence of hand edits.
+- **Gate integrity in git history**: see repro 11 — no test deleted, no threshold lowered, no failure ignored; `status.json` is written before matrix steps but records all prior step failures (`failures`), so a failed step cannot be masked by matrix evidence.
+- **Hook trust**: `hook-governance.ts:51-95` fails closed on policy `deny`, corrupt store, revoked, stale, and pending; `execute()` (`:151-208`) re-authorizes and never spawns when `runnable=false`. Flow path calls `authorizeHook` then `executeHook` only when runnable (`flow-runner.ts:223-241`) and `execute` re-checks — no bypass via flow. Plugin hooks are declarations only (`plugin-exchange.ts:353-368`) and are never fed to an execution path (`hooksFor` used only by the read-only `plugins hooks` CLI), so community hooks cannot run. Security tests in `hook-governance.test.ts` and the gate's L3 `F-hook-01/l3-governance.log` regenerate successfully.
+- **CLI flags**: L3 `cli-flags.log` regenerated with `--disallowed-tools`, `--attach`, `--no-color`, `--locale zh-CN` and checks `run_result` + `"locale":"zh-CN"` from `doctor --json`; unit test `main.test.ts:558` asserts no `\x1b[` with `--no-color`. All green.
+- **Extension reconnect**: `reconnect.json` (regenerated at HEAD) records `core disposed (reset_done)`, `core re-initialized after kill` (init count 0→1), a fresh session id, and a completed turn after reconnect with the fake provider serving both phases — proves core dispose/recreate, not just UI survival.
+- **Permissions/symlinks**: gate's `F-perm/symlink.sh` scenario and realpath-based boundary checks are exercised in `evidence:regenerate`; no tracked symlink escape.
+- **Secrets/branding**: repro 7/8 — no credential values or reference markers in tracked product files; `config.json` untracked and ignored; no ZCode branding/endpoints in shipped source.
 
-## P1 — F-sec-01 is marked VERIFIED although the "no ZCode endpoints/branding" invariant is violated, and the gate cannot fail on it
+## Findings by severity
 
-`scripts/security-check.mjs:11-18` defines the forbidden patterns (`Z.AI`, `zcode.cjs`,
-`zcode.bot`, `app.cline.bot`, `api.cline.bot`, `ZCODE_OFFICIAL_ENDPOINT_TOKEN`). Running
-`node scripts/security-check.mjs` prints **19 problems** in shipped source, for example:
+### P0 — none
+### P1 — none. **There are ZERO open P0/P1 findings on HEAD `e1e51d3`.**
+### P2 — none
+### P3 — one non-blocking observation (behavior verified correct)
+- **No dedicated regression test locks in `clearFields` removal of an *unknown* field.** The fix at `provider-settings-manager.ts:59` is present and I verified the behavior at runtime (repro 9), and `provider-settings-roundtrip.test.ts` covers unknown-field preservation generally — but no test asserts that naming an unknown field in `clearFields` actually removes it. A future refactor of `mergePreservingUnknown` could silently regress it. This does not affect correctness on the reviewed HEAD and is not a blocker; adding one `it(...)` would close it.
 
-- `packages/shared/src/runtime/zenuxs-environment.ts:19-26` — `appBaseUrl: "https://app.cline.bot"`,
-  `apiBaseUrl: "https://api.cline.bot"`, and a staging `app.cline.bot` URL. This is runtime
-  configuration, not a test fixture.
-- `apps/zenuxs-hub/src/webview/src/components/views/settings/account-view.tsx:401,485,526,559`
-  — user-facing links to `https://app.cline.bot/...`.
-- `apps/cli/src/tui/zenuxs-account.ts:21` — credits URL `https://app.cline.bot/dashboard/account...`.
-- `packages/llms/src/catalog/catalog.generated.ts` — `Z.ai` / `GLM` branding in the model catalog.
-- `apps/cli/CHANGELOG.md`, `apps/cli/src/runtime/run-agent.test.ts`, and several more.
-
-Yet the script ends:
-
-```js
-// scripts/security-check.mjs:70-72
-console.log(JSON.stringify({ problems }, null, 2))
-if (problems.some((p) => keyPattern.test(p))) process.exit(1)
-// Branding/config findings are reported but do not block until cleanup lands.
-process.exit(0)
-```
-
-The only exit-1 condition is a literal `sk-*` key in a *problem string*; branding/endpoint
-findings never fail the step. `scripts/gate.sh:66` runs this step and records `EXIT: 0`,
-so `docs/evidence/gate/status.json` is written with `failures: 0`. The matrix row
-`F-sec-01` (`docs/03-gap-analysis.md:51`, "No ZCode keys/endpoints/branding/telemetry in
-target") is computed VERIFIED from that file (`scripts/reconcile-matrix.mjs:14,51`).
-`node scripts/check-matrix.mjs` therefore reports `F-sec-01: VERIFIED` with `problems: []`.
-
-**Repro**:
-```bash
-node scripts/security-check.mjs          # 19 problems, EXIT 0
-node scripts/check-matrix.mjs            # F-sec-01 VERIFIED, problems []
-grep -n 'app.cline.bot' packages/shared/src/runtime/zenuxs-environment.ts \
-  apps/cli/src/tui/zenuxs-account.ts \
-  apps/zenuxs-hub/src/webview/src/components/views/settings/account-view.tsx
-```
-**Impact**: a P0-priority security row claims VERIFIED on evidence that is structurally
-incapable of detecting the violation. No live credentials or ZCode tokens were found
-in tracked files or history (see "Clean results" below), so this is a false assurance /
-hygiene defect rather than credential exposure. I rate it P1 because it defeats the
-gate's stated security invariant on a P0 row.
-
----
-
-## P2 — Reserved official marketplace IDs can be claimed by any attacker-authored descriptor
-
-`PluginExchange.addMarketplace` (`packages/core/src/extensions/plugin-exchange/plugin-exchange.ts:159-190`)
-trusts the `publisherType` field **from the descriptor file being added**:
-
-```ts
-// :171-176
-if (RESERVED_OFFICIAL_MARKETS.has(id) && descriptor.publisherType !== "official") {
-  throw new PluginExchangeError(`marketplace id ${id} is reserved for official sources`);
-}
-if (descriptor.publisherType === "official" && !RESERVED_OFFICIAL_MARKETS.has(id)) {
-  throw new PluginExchangeError("official marketplaces must use a reserved official id");
-}
-```
-
-Anyone who can write a `marketplace.json` can set `publisherType:"official"` and name
-`zenuxs-official`/`zenuxs-curated`, satisfying both checks. `publisherTypeOf` (`:342-348`)
-then reports that community source as `official`, and `plugins hooks --id` surfaces
-`"publisherType":"official"`.
-
-**Repro** (I ran this against HEAD with `CLINE_DATA_DIR=/tmp/opencode/revsec/data`):
-```bash
-cat > /tmp/opencode/revsec/fakeofficial.json <<'EOF'
-{"name":"zenuxs-official","publisherType":"official","plugins":[{"name":"hello","path":"plugin"}]}
-EOF
-bun apps/cli/src/index.ts plugins marketplace add \
-  --descriptor /tmp/opencode/revsec/fakeofficial.json --id zenuxs-official
-# EXIT 0 -> {"added":{...,"publisherType":"official",...}}
-```
-A genuine community descriptor with the same `--id` is rejected
-(`marketplace id zenuxs-curated is reserved for official sources`), proving the check
-is self-certified. Evidence: `/tmp/opencode/revsec/results.log` section I.
-
-**Impact**: defeats reserved-id protection and mislabels community plugins as official.
-It is **not** a hook-trust bypass in the current code: `publisherType` is only used for
-display (`apps/cli/src/commands/plugins-exchange.ts:108`); plugin hooks are still only
-declarations and are never auto-run. The flow runner gates on `isPluginEnabled`, not on
-publisher type. Hence P2, not P1.
-
----
-
-## P2 — Flow agent steps hardcode a real external endpoint, a fake key, and `--auto-approve true`
-
-`apps/cli/src/commands/flow.ts:22-41` implements `runAgentStep` by spawning the CLI with:
-
-```
--P openai-compatible -m fake-model -k fake-key --auto-approve true --json <prompt>
-```
-
-With no `ZENUXS_PROVIDER_BASE_URL` override, the default for `openai-compatible` is a
-real external endpoint (`platform.openai.com`). The repo's governance L3 evidence only
-works because the harness happens to export `ZENUXS_PROVIDER_BASE_URL` to the fake
-provider.
-
-**Repro** (my scenario G, no fake provider running):
-```bash
-cat > /tmp/opencode/revsec/flow-agent.json <<'EOF'
-{"id":"a","steps":[{"id":"a","kind":"agent","prompt":"hello from flow"}]}
-EOF
-CLINE_DATA_DIR=/tmp/opencode/revsec/data bun apps/cli/src/index.ts \
-  flow run --file /tmp/opencode/revsec/flow-agent.json --workspace /tmp/opencode/revsec/ws
-```
-Observed step result: `"Incorrect API key provided: fake-key. You can find your API key
-at https://platform.openai.com/account/api-keys."` — i.e. the flow sent the prompt to a
-real external provider, ignoring the user's configured provider. Evidence:
-`/tmp/opencode/revsec/results.log` section G.
-
-**Impact**: an untrusted flow definition (e.g. one obtained from a marketplace) can
-cause the user's flow prompt to be sent to a third-party endpoint, and any tool the
-model requests would run with auto-approve enabled. No secret is sent (key is literally
-`fake-key`), so this is an egress/trust-boundary concern rather than credential theft.
-
----
-
-## P3 — `clearFields` cannot remove unknown fields; `mergePreservingUnknown` re-injects them
-
-`ProviderSettingsManager.saveProviderSettings` deletes explicitly cleared keys from
-`merged` (`packages/core/src/services/storage/provider-settings-manager.ts:214`), but
-`write()` (`:176-180`) immediately calls `mergePreservingUnknown()`, which copies every
-unknown raw on-disk field back in (`:56-63`):
-
-```ts
-for (const [key, value] of Object.entries(rawSettings)) {
-  if (!KNOWN_SETTING_KEYS.has(key)) unknown[key] = value;
-}
-(entry as { settings: Record<string, unknown> }).settings = {
-  ...unknown,
-  ...(entry.settings as Record<string, unknown>),
-};
-```
-
-**Repro** (script `/tmp/opencode/direct-settings.ts`, run with `bun`):
-```ts
-writeFileSync(p, JSON.stringify({version:1, lastUsedProvider:"openai-compatible",
-  providers:{"openai-compatible":{settings:{provider:"openai-compatible",apiKey:"K",
-  model:"m",headers:{X:"y"},timeout:5,weirdFlag:true},updatedAt:stamp,tokenSource:"manual"}}}))
-const m = new ProviderSettingsManager({filePath:p});
-m.saveProviderSettings({provider:"openai-compatible",model:"m"},
-  {clearFields:["apiKey","headers","timeout","weirdFlag"]});
-```
-Result file: `apiKey`, `headers`, `timeout` are correctly removed, but `"weirdFlag": true`
-is still present. Known-field clearing works; only unknown fields cannot be cleared.
-
-**Impact**: latent. No current caller passes an unknown field name to `clearFields`
-(`local-provider-service.ts:588-626,836-880` only clears known fields), and the primary
-OPEN-SETTINGS-01 invariant (preserve baseUrl/unknown fields on ordinary writes) **does
-hold** — see "Clean results". I report it because the brief explicitly attacks
-"re-add fields that were explicitly cleared".
-
----
-
-## P3 — Plugin path confinement is lexical only; symlinks are not resolved
-
-`resolveInside` (`packages/core/src/extensions/plugin-exchange/plugin-exchange.ts:80-87`)
-uses `path.resolve()` / `path.relative()` and never `realpathSync()`. A descriptor whose
-`path` is a symlink to a directory outside the marketplace root is accepted.
-
-**Repro** (`/tmp/opencode/revsec3/results.log` section A):
-```bash
-ln -s /tmp/opencode/revsec3/outside /tmp/opencode/revsec3/mkt/link
-cat > /tmp/opencode/revsec3/mkt/marketplace.json <<'EOF'
-{"name":"m","publisherType":"community","plugins":[{"name":"viaLink","path":"link","version":"1.0.0"}]}
-EOF
-CLINE_DATA_DIR=/tmp/opencode/revsec3/data bun apps/cli/src/index.ts \
-  plugins marketplace add --descriptor /tmp/opencode/revsec3/mkt/marketplace.json --id m
-CLINE_DATA_DIR=/tmp/opencode/revsec3/data bun apps/cli/src/index.ts plugins available
-```
-`plugins available` lists `"path":"/tmp/opencode/revsec3/mkt/link"` (the symlink) —
-`resolveInside` did not reject it. `plugins install` then failed incidentally with
-`ENOTDIR` from `cpSync`, not because of a confinement check. No code execution was
-demonstrated. `validate()` (`:292-323`) has the same lexical-only check for
-`commands`/`skills` paths. Defense-in-depth gap only.
-
----
-
-## P3 — Stray tracked symlink `escape -> /escape` at repo root
-
-`git ls-files -s escape` shows a tracked symlink (blob `106bf625…`, added in `408607b`)
-pointing to the absolute path `/escape`, which does not exist on this host. It is not
-referenced by any test (`tests/scenarios/F-perm/symlink.sh` creates its own symlink under
-`/tmp`). Looks like a leftover manual test artifact committed into the repository
-root. Hygiene only; no runtime effect.
-
----
-
-## Clean results (adversarially re-verified; no finding)
-
-- **Gate**: `bash scripts/gate.sh` exit 0. All 18 steps including build, 3 typechecks,
-  VSIX build+install, 4 unit suites, fake-provider smoke, evidence regeneration,
-  TUI PTY, security check, and both matrix steps returned `EXIT: 0`; summary
-  `=== FAILURES: 0 ===`. Evidence `docs/evidence/gate/latest.log`.
-- **Matrix honesty**: `node scripts/reconcile-matrix.mjs --check` exit 0 and
-  `node scripts/check-matrix.mjs` exit 0; 37 rows, 35 VERIFIED, 2 BLOCKED
-  (F-prov, F-toolrobust), **no MISSING/PARTIAL**. `node scripts/check-matrix.mjs`'s
-  problem list is empty. Both blocked rows point to `.work/BLOCKED.md` and
-  `bash scripts/verify-live.sh` in their evidence cell.
-- **Gate/matrix-checker integrity**: `git diff b658202..HEAD -- scripts/gate.sh` shows
-  only additions (`vsix:build-install`, `evidence:regenerate`, `tui:pty`,
-  `matrix:reconcile`); no step removed, no threshold lowered, no exit ignored.
-  `check-matrix.mjs` gained annotated-status parsing, explicit-EXCLUDED handling and
-  evidence-freshness enforcement; the required VERIFIED status and evidence-existence
-  checks remain. No test was deleted on the recovery branch: test-file count 313 at
-  `816c9a7` / `b658202` → 326 at HEAD; the three historical deletions in
-  `--diff-filter=D` (`632aefc`, `9de1fd7`) predate the recovery branch and are ancestors
-  of the base commit.
-- **Gate `status.json` written before matrix steps**: not a masking vector. It is written
-  with the accumulated `FAILURES` of all preceding steps, and the subsequent
-  `matrix:reconcile`/`matrix:check` steps call `run_step`, which increments `FAILURES`
-  on non-zero exit, so the gate still exits 1 for any failed step. I confirmed all
-  step exit codes in the gate log.
-- **Evidence freshness**: at rest on HEAD, committed evidence was stamped `de73ca7`
-  (an earlier commit) rather than `ff041f8`. `reconcile-matrix.mjs:98-104` compares
-  commit timestamps, not SHA equality, so this is accepted by design: no product
-  source changed between `de73ca7` and HEAD (last product-source commit is `c3af7a1`).
-  After my gate run, all generated evidence was refreshed and now stamps `ff041f8`.
-  I re-ran the governance L3 driver `tests/scenarios/F-governance/evidence.sh`
-  indirectly through the gate and confirmed fresh PASS markers.
-- **Representative VERIFIED rows re-run through the real built product** (gate
-  regeneration, all with `=== SHA: ff041f8… ===`, guards PASS):
-  `docs/evidence/regenerated/boundary.log` (outside-write denial with real tool-call
-  error), `docs/evidence/P0-symlink/l3-summary.log` (write through in-workspace
-  symlink denied, no outside file), `docs/evidence/regenerated/compaction.log`,
-  `resume.log`, `checkpoint.log` (`"restored":true`), `cli-flags.log`,
-  `docs/evidence/F-ext/reconnect.json` (all 8 checks ok: `reset_done`,
-  `init count 0 -> 1`, fresh session id, successful turn).
-- **Hook trust (my own scenarios)**: untrusted/pending, stale-after-grant (changed
-  command ⇒ different digest), revoked, and corrupt-trust-store hooks all returned
-  `ran:false` and wrote no marker via `hooks run`. Via `flow run`, an untrusted hook
-  in a fresh data dir, a stale hook, and a revoked hook were all denied by
-  `authorizeHook` before any spawn. `HookGovernance.execute` (`hook-governance.ts:151-159`)
-  has no spawn path before `authorize`.
-- **Community plugin hooks non-runnable**: `plugins hooks` only prints declarations;
-  `hooksFor` (`plugin-exchange.ts:326-340`) returns data, never executes. My marker file
-  stayed absent. A flow plugin step is denied when the plugin is disabled
-  (`flow-runner.ts:212-221`).
-- **Flow trust / journal**: an injected `command` field in a flow definition is ignored
-  (`flow-runner.ts:100-108`), no marker files were created; resume reports
-  `reused-from-journal` for completed steps. Gate's `F-auto-01/l3-flows.log` likewise
-  shows `=== FAILURES: 0 ===`.
-- **OPEN-SETTINGS-01 root fix**: with a valid `updatedAt`, a real CLI run preserved
-  `baseUrl`, `protocol`, `client` and `customUnknown` through the settings rewrite
-  (`/tmp/opencode/revsec4/results.log` section B). The 2/32/… settings suites pass
-  (`provider-settings-roundtrip`, `-manager`, `-legacy-migration`: 32 pass, 0 fail).
-  Note: a settings file with an *invalid* `updatedAt` (e.g. `"x"`) is rejected by
-  `StoredProviderSettingsSchema` (`z.string().datetime()`) and falls back to a clean
-  state, which legitimately drops fields — this is schema-invalid input, not a regression.
-- **CLI flags**: `--no-color --locale xx-XX doctor --json` produced clean JSON with no
-  ANSI bytes and `locale:"en-US"` (unknown locale kept the current locale per
-  `apps/cli/src/utils/locale.ts:15`); `--disallowed-tools`, repeatable `--attach` are
-  exercised in `docs/evidence/regenerated/cli-flags.log`.
-- **Secrets**: history-wide grep for `sk-*`, `AKIA*`, `ghp_*`, PEM keys found only the
-  synthetic `AKIAIOSFODNN7EXAMPLE` documented in `docs/recon/secrets-audit.md`.
-  `config.json` is untracked and gitignored (`.gitignore:55`); no `.env` (only
-  `.env.example`) is tracked. No credential rotation needed.
-- **Ctrl-C / crash handling**: no P0/P1 defect found in the interrupt paths I exercised;
-  the prior review's Ctrl-C and compaction checks were re-confirmed via the gate's
-  real two-turn compaction and PTY scenarios.
-
----
-
-## Bottom line
-
-**I found one P1 and one P2 in the security/governance surface.** The core hook-trust,
-plugin-hook non-runnability and flow-trust invariants hold under my own attacks: no
-untrusted, stale, revoked or corrupt-store hook ran, no community plugin hook executed,
-and no flow bypassed trust. The P1 is a false `VERIFIED` security claim caused by a
-security gate that can never fail on branding/endpoint findings. The P2s are a
-self-certified reserved marketplace id and a hardcoded real-endpoint agent step in
-flows. The P3s are latent/defense-in-depth.
-
-The completion condition as written in `.work/DECISIONS.md` ("zero open P0/P1 on the
-final HEAD") is **not met** because of the P1 above. I did not set STATUS to COMPLETE
-and did not modify any product file. The working tree is dirty only because
-`bash scripts/gate.sh` regenerates evidence/docs in place; I re-ran it exactly as
-prescribed by the brief.
+## Conclusion
+All prior review findings (P1 security false-assurance; P2 marketplace self-certification and flow provider/key/auto-approve hardcoding; P3 clearFields, symlink confinement, stray symlink) are **closed and independently re-verified**. Build, gate (17/17), matrix checks, and security fail-closed behavior all pass on `e1e51d3`. No open P0/P1. The only remaining note is a P3 test-coverage suggestion above; it does not gate completion.

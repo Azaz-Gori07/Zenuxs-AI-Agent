@@ -19,3 +19,10 @@
   the fake provider only; live verification is BLOCKED (no working endpoint).
 
 No P0/P1 feature work is pending.
+
+## P3 follow-up (non-blocking; does not gate completion)
+- Add a dedicated unit test asserting that naming an *unknown* field in `clearFields`
+  actually removes it in `mergePreservingUnknown`. The behavior was verified at runtime by
+  the independent reviewer at HEAD `e1e51d3`, and `provider-settings-roundtrip.test.ts`
+  already covers unknown-field preservation generally; this is regression-test hardening
+  only. Deferred deliberately so no product-source change follows the clean final review.

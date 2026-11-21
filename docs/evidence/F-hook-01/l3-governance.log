@@ -1,28 +1,28 @@
-=== TIMESTAMP: 2026-11-21T05:51:53Z ===
-=== SHA: ab928ec728b08d2ed509fa1e0fd08b353bd383b3 ===
-=== COMMAND: hooks review --workspace /tmp/zenuxs-governance-ab928ec728b08d2ed509fa1e0fd08b353bd383b3/ws ===
-{"workspace":"/tmp/zenuxs-governance-ab928ec728b08d2ed509fa1e0fd08b353bd383b3/ws","hooks":[{"declaration":{"id":"workspace:0","event":"PreToolUse","type":"process","command":"/bin/sh","args":["-c","printf ran > /tmp/zenuxs-governance-ab928ec728b08d2ed509fa1e0fd08b353bd383b3/ws/hook.marker"],"source":"/tmp/zenuxs-governance-ab928ec728b08d2ed509fa1e0fd08b353bd383b3/ws/.zenuxs/hooks.json"},"runnable":false,"state":"pending","reason":"no explicit grant for this workspace","digest":"2d8334fd488b32dd8036a8b7c7fe8eabcfb64b75e8604980cec0776b73538e14"}]}
+=== TIMESTAMP: 2026-11-21T05:57:02Z ===
+=== SHA: e1e51d36c1921a1d01466b9fb501cca29669fc24 ===
+=== COMMAND: hooks review --workspace /tmp/zenuxs-governance-e1e51d36c1921a1d01466b9fb501cca29669fc24/ws ===
+{"workspace":"/tmp/zenuxs-governance-e1e51d36c1921a1d01466b9fb501cca29669fc24/ws","hooks":[{"declaration":{"id":"workspace:0","event":"PreToolUse","type":"process","command":"/bin/sh","args":["-c","printf ran > /tmp/zenuxs-governance-e1e51d36c1921a1d01466b9fb501cca29669fc24/ws/hook.marker"],"source":"/tmp/zenuxs-governance-e1e51d36c1921a1d01466b9fb501cca29669fc24/ws/.zenuxs/hooks.json"},"runnable":false,"state":"pending","reason":"no explicit grant for this workspace","digest":"3be1502b4470b09c4ae630fd1cd141250e19bff0cd4e8fefdbbb607d4ef9525b"}]}
 === EXIT: 0 ===
 PASS: hook is pending and not runnable
-=== COMMAND: hooks run --workspace /tmp/zenuxs-governance-ab928ec728b08d2ed509fa1e0fd08b353bd383b3/ws --index 0 ===
-{"ran":false,"runnable":false,"state":"pending","reason":"no explicit grant for this workspace","digest":"2d8334fd488b32dd8036a8b7c7fe8eabcfb64b75e8604980cec0776b73538e14"}
+=== COMMAND: hooks run --workspace /tmp/zenuxs-governance-e1e51d36c1921a1d01466b9fb501cca29669fc24/ws --index 0 ===
+{"ran":false,"runnable":false,"state":"pending","reason":"no explicit grant for this workspace","digest":"3be1502b4470b09c4ae630fd1cd141250e19bff0cd4e8fefdbbb607d4ef9525b"}
 === EXIT: 1 ===
 PASS: untrusted hook did not run
 PASS: untrusted hook wrote no marker
-=== COMMAND: hooks grant --workspace /tmp/zenuxs-governance-ab928ec728b08d2ed509fa1e0fd08b353bd383b3/ws --digest 2d8334fd488b32dd8036a8b7c7fe8eabcfb64b75e8604980cec0776b73538e14 ===
+=== COMMAND: hooks grant --workspace /tmp/zenuxs-governance-e1e51d36c1921a1d01466b9fb501cca29669fc24/ws --digest 3be1502b4470b09c4ae630fd1cd141250e19bff0cd4e8fefdbbb607d4ef9525b ===
 {"granted":1}
 === EXIT: 0 ===
 PASS: grant recorded for reviewed digest
-=== COMMAND: hooks run --workspace /tmp/zenuxs-governance-ab928ec728b08d2ed509fa1e0fd08b353bd383b3/ws --index 0 ===
-{"ran":true,"runnable":true,"state":"trusted","reason":"explicit user grant on record","digest":"2d8334fd488b32dd8036a8b7c7fe8eabcfb64b75e8604980cec0776b73538e14","grantedBy":"user","exitCode":0,"stdout":"","stderr":""}
+=== COMMAND: hooks run --workspace /tmp/zenuxs-governance-e1e51d36c1921a1d01466b9fb501cca29669fc24/ws --index 0 ===
+{"ran":true,"runnable":true,"state":"trusted","reason":"explicit user grant on record","digest":"3be1502b4470b09c4ae630fd1cd141250e19bff0cd4e8fefdbbb607d4ef9525b","grantedBy":"user","exitCode":0,"stdout":"","stderr":""}
 === EXIT: 0 ===
 PASS: granted hook ran
 PASS: granted hook wrote marker
-=== COMMAND: hooks revoke --workspace /tmp/zenuxs-governance-ab928ec728b08d2ed509fa1e0fd08b353bd383b3/ws --digest 2d8334fd488b32dd8036a8b7c7fe8eabcfb64b75e8604980cec0776b73538e14 ===
+=== COMMAND: hooks revoke --workspace /tmp/zenuxs-governance-e1e51d36c1921a1d01466b9fb501cca29669fc24/ws --digest 3be1502b4470b09c4ae630fd1cd141250e19bff0cd4e8fefdbbb607d4ef9525b ===
 {"revoked":1}
 === EXIT: 0 ===
-=== COMMAND: hooks run --workspace /tmp/zenuxs-governance-ab928ec728b08d2ed509fa1e0fd08b353bd383b3/ws --index 0 ===
-{"ran":false,"runnable":false,"state":"revoked","reason":"grant was revoked","digest":"2d8334fd488b32dd8036a8b7c7fe8eabcfb64b75e8604980cec0776b73538e14"}
+=== COMMAND: hooks run --workspace /tmp/zenuxs-governance-e1e51d36c1921a1d01466b9fb501cca29669fc24/ws --index 0 ===
+{"ran":false,"runnable":false,"state":"revoked","reason":"grant was revoked","digest":"3be1502b4470b09c4ae630fd1cd141250e19bff0cd4e8fefdbbb607d4ef9525b"}
 === EXIT: 1 ===
 PASS: revoked hook did not run
 PASS: revoked hook wrote no marker
