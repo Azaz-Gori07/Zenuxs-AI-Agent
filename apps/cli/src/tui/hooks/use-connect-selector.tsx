@@ -8,6 +8,7 @@ import {
 import type { ChoiceContext } from "@opentui-ui/dialog";
 import type { DialogActions } from "@opentui-ui/dialog/react";
 import { useCallback } from "react";
+import { logConnectionFailure } from "../../utils/connect-error-log";
 import {
 	ProviderManagerContent,
 	ProviderConfigInputContent,
@@ -119,6 +120,7 @@ export function useConnectSelector(opts: {
 					} catch (error) {
 						// Validation failed! We must clean up settings and mark as not saved.
 						const msg = error instanceof Error ? error.message : String(error);
+						logConnectionFailure(providerId, error);
 						showToast(`Connection failed: ${msg}`, "error");
 
 						const state = manager.read();
@@ -226,6 +228,7 @@ export function useConnectSelector(opts: {
 				);
 			} catch (error) {
 				const msg = error instanceof Error ? error.message : String(error);
+				logConnectionFailure(providerId, error);
 				showToast(`Connection failed: ${msg}`, "error");
 			}
 		},
