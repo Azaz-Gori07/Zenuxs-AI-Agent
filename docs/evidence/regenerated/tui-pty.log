@@ -1,8 +1,8 @@
 === COMMAND: node scripts/tui-pty-test.mjs ===
-=== SHA: d148b4863ec4a2fc6184629d8569335fd4eb8b22 ===
-=== TIMESTAMP: 2026-11-21T06:28:09Z ===
+=== SHA: 5238b9ea151141c89e92806b195b035538a496a4 ===
+=== TIMESTAMP: 2026-11-21T06:42:12Z ===
 === COMMAND: node scripts/tui-pty-test.mjs ===
-=== TIMESTAMP: 2026-11-21T06:29:02.976Z ===
+=== TIMESTAMP: 2026-11-21T06:43:07.860Z ===
 === TERM: xterm-256color ===
 === EXIT: harness completed ===
 /help
