@@ -50,7 +50,9 @@ retry_probe() {
 	local label="$1"; shift
 	local delay="$INITIAL_DELAY" attempt output code
 	for ((attempt = 1; attempt <= MAX_ATTEMPTS; attempt++)); do
-		output="$(timeout "$((TIMEOUT_SECONDS + 30))" "$@" 2>&1)"
+		# The probe helpers are shell functions; `timeout` cannot exec them.
+		# Each helper already caps its own network wait with curl --max-time.
+		output="$("$@" 2>&1)"
 		code=$?
 		log "--- $label attempt $attempt exit=$code ---"
 		log "${output:0:2000}"
@@ -112,7 +114,7 @@ LIVE_OK=0
 if run_live "F-prov streaming" "Reply with exactly LIVE_OK and nothing else." '"type":"run_result"'; then
 	LIVE_OK=$((LIVE_OK + 1))
 fi
-if run_live "F-toolrobust tool call" "Read package.json with the file tool, then report the package name." '"type":"tool_call"'; then
+if run_live "F-toolrobust tool call" "Read package.json with the file tool, then report the package name." '"contentType":"tool"'; then
 	LIVE_OK=$((LIVE_OK + 1))
 fi
 
