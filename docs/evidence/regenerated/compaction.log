@@ -1,9 +1,9 @@
 === COMMAND: real CLI compaction two-turn ===
-=== SHA: df8a1fa90ccb3c6738628634225cb66687d20f6c ===
+=== SHA: de73ca7c242adf40a44c95fb2ad4825d4925674a ===
 === BASE_URL_OVERRIDE: http://127.0.0.1:4344/v1 ===
-{"ts":"2026-11-21T05:18:35.702Z","type":"compaction","reason":"auto_compaction","message":"auto-compacting"}
-{"ts":"2026-11-21T05:18:36.470Z","type":"compaction","reason":"auto_compaction","message":"auto-compacting"}
-{"ts":"2026-11-21T05:18:36.524Z","type":"run_result","finishReason":"completed","iterations":1,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":61,"text":"Mode check OK.","model":{"id":"fake-model","provider":"openai-compatible"}}
+{"ts":"2026-11-21T05:23:51.865Z","type":"compaction","reason":"auto_compaction","message":"auto-compacting"}
+{"ts":"2026-11-21T05:23:52.639Z","type":"compaction","reason":"auto_compaction","message":"auto-compacting"}
+{"ts":"2026-11-21T05:23:52.696Z","type":"run_result","finishReason":"completed","iterations":1,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":64,"text":"Mode check OK.","model":{"id":"fake-model","provider":"openai-compatible"}}
 sessions=1
 === EXIT: 0 ===
 guard: fakeRequests=2, no external host
