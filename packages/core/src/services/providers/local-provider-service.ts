@@ -585,29 +585,46 @@ export async function updateLocalProvider(
 		baseUrl,
 		model: defaultModelId,
 	};
+	const clearedFields: string[] = [];
 	if (protocol) nextSettings.protocol = protocol;
-	else delete nextSettings.protocol;
+	else {
+		delete nextSettings.protocol;
+		clearedFields.push("protocol");
+	}
 	if (client) nextSettings.client = client;
-	else delete nextSettings.client;
+	else {
+		delete nextSettings.client;
+		clearedFields.push("client");
+	}
 	if (request.apiKey !== undefined) {
 		const apiKey = request.apiKey?.trim() ?? "";
 		if (apiKey) nextSettings.apiKey = apiKey;
-		else delete nextSettings.apiKey;
+		else {
+			delete nextSettings.apiKey;
+			clearedFields.push("apiKey");
+		}
 	}
 	if (request.headers !== undefined) {
 		const normalizedHeaders = normalizeHeaders(request.headers);
 		if (normalizedHeaders) nextSettings.headers = normalizedHeaders;
-		else delete nextSettings.headers;
+		else {
+			delete nextSettings.headers;
+			clearedFields.push("headers");
+		}
 	}
 	if (request.timeoutMs !== undefined) {
 		if (typeof request.timeoutMs === "number") {
 			nextSettings.timeout = request.timeoutMs;
 		} else {
 			delete nextSettings.timeout;
+			clearedFields.push("timeout");
 		}
 	}
 
-	manager.saveProviderSettings(nextSettings, { setLastUsed: false });
+	manager.saveProviderSettings(nextSettings, {
+		setLastUsed: false,
+		clearFields: clearedFields,
+	});
 
 	modelsState.providers[providerId] = {
 		provider: {
@@ -816,14 +833,17 @@ export function saveLocalProviderSettings(
 	};
 
 	// String fields that should be cleared when empty
+	const clearedFields: string[] = [];
 	for (const key of ["apiKey", "baseUrl", "model", "region"] as const) {
 		if (Object.hasOwn(request, key) && typeof request[key] === "string") {
 			const raw = request[key] as string;
 			const value =
 				key === "baseUrl" ? normalizeProviderBaseUrl(providerId, raw) : raw;
 			const val = value?.trim() ?? "";
-			if (val.length === 0) delete next[key];
-			else next[key] = value;
+			if (val.length === 0) {
+				delete next[key];
+				clearedFields.push(key);
+			} else next[key] = value;
 		}
 	}
 
@@ -855,11 +875,14 @@ export function saveLocalProviderSettings(
 		if (Object.hasOwn(request, key) && request[key] != null) {
 			const merged = applySettingsObjectPatch(next[key], request[key]);
 			if (merged) next[key] = merged;
-			else delete next[key];
+			else {
+				delete next[key];
+				clearedFields.push(key);
+			}
 		}
 	}
 
-	manager.saveProviderSettings(next, { setLastUsed });
+	manager.saveProviderSettings(next, { setLastUsed, clearFields: clearedFields });
 	return { providerId, enabled: true, settingsPath: manager.getFilePath() };
 }
 

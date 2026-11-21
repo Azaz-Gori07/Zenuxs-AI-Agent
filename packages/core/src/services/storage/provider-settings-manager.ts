@@ -9,6 +9,7 @@ import { basename, dirname } from "node:path";
 import { resolveProviderSettingsPath } from "@cline/shared/storage";
 import { getLiveModelsCatalog } from "../..";
 import { getProviderAuthHandler } from "../../auth/provider-auth-registry";
+import { ProviderSettingsSchema as KnownProviderSettingsSchema } from "../llms/provider-settings";
 import {
 	emptyStoredProviderSettings,
 	type ProviderConfig,
@@ -38,6 +39,10 @@ function readRawSettings(filePath: string): RawState {
   }
 }
 
+const KNOWN_SETTING_KEYS = new Set(
+  Object.keys(KnownProviderSettingsSchema.shape),
+);
+
 function mergePreservingUnknown(
   normalized: StoredProviderSettings,
   raw: RawState,
@@ -46,8 +51,14 @@ function mergePreservingUnknown(
   for (const [id, entry] of Object.entries(providers)) {
     const rawSettings = raw.providers?.[id]?.settings;
     if (rawSettings) {
+      // Only re-inject fields the schema does not know about. Known fields
+      // that were deliberately cleared must stay cleared (e.g. apiKey="").
+      const unknown: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(rawSettings)) {
+        if (!KNOWN_SETTING_KEYS.has(key)) unknown[key] = value;
+      }
       (entry as { settings: Record<string, unknown> }).settings = {
-        ...rawSettings,
+        ...unknown,
         ...(entry.settings as Record<string, unknown>),
       };
     }
@@ -85,6 +96,8 @@ export interface ProviderSettingsManagerOptions {
 export interface SaveProviderSettingsOptions {
 	setLastUsed?: boolean;
 	tokenSource?: ProviderTokenSource;
+	/** Known fields the caller explicitly cleared and must not be re-merged. */
+	clearFields?: string[];
 }
 
 export interface ResolveLastUsedProviderSettingsOptions {
@@ -194,15 +207,17 @@ export class ProviderSettingsManager {
 		const previousEntry = previous.providers[providerId];
 		const tokenSource =
 			options.tokenSource ?? previousEntry?.tokenSource ?? "manual";
+		const merged: Record<string, unknown> = {
+			...(previousEntry?.settings ?? {}),
+			...(validatedSettings as Record<string, unknown>),
+		};
+		for (const key of options.clearFields ?? []) delete merged[key];
 		const next: StoredProviderSettings = {
 			...previous,
 			providers: {
 				...previous.providers,
 				[providerId]: {
-					settings: {
-						...(previousEntry?.settings ?? {}),
-						...validatedSettings,
-					},
+					settings: merged as typeof validatedSettings,
 					updatedAt: nowIso(),
 					tokenSource,
 					favorites: previousEntry?.favorites,
