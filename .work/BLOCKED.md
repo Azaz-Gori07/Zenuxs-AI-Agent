@@ -1,5 +1,15 @@
 # BLOCKED (environment / human input required)
 
+## Promotion command (run when a working endpoint exists)
+```bash
+ZENUXS_TEST_BASE_URL=https://... ZENUXS_TEST_API_KEY=... \
+ZENUXS_TEST_MODEL=deepseek-v4.1-flash-free bash scripts/verify-live.sh
+```
+This is the only command allowed to flip F-prov/F-toolrobust to VERIFIED, and only with
+real successful CLI evidence (`=== LIVE_VERIFY: PASS ===`). 429s are retried with
+exponential backoff; live scenarios use a long timeout (`ZENUXS_LIVE_TIMEOUT_SECONDS`,
+default 300s). With no working endpoint it exits 2 and leaves the matrix unchanged.
+
 ## 2026-11-19 — Live provider verification (F-prov, F-toolrobust live paths, F-ctx live compaction)
 - **Exact error/condition**: `env | grep -iE 'API_KEY|TOKEN|...'` yields only `ZCODE_OFFICIAL_ENDPOINT_TOKEN`. No OpenAI/Anthropic/Gemini/OpenRouter/Ollama endpoint or key is available.
 - **Why blocked**: Mission rules forbid using ZCode branding, keys, endpoints or accounts in the target. No other provider credentials exist.

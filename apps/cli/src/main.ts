@@ -165,10 +165,10 @@ export async function runCli(): Promise<void> {
 		let current: typeof actionCommand | undefined = actionCommand;
 		while (current) {
 			if (["hooks", "plugins", "flow"].includes(current.name())) {
-				ctx.exitCode = process.exitCode ?? 0;
+				ctx.exitCode = Number(process.exitCode ?? 0);
 				return;
 			}
-			current = current.parent;
+			current = current.parent ?? undefined;
 		}
 	});
 
