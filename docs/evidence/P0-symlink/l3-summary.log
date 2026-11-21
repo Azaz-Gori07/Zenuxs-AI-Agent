@@ -1,12 +1,12 @@
 === P0 SYMLINK ESCAPE FIX — L3 verification on HEAD ===
-=== SHA: e1e51d36c1921a1d01466b9fb501cca29669fc24 ===
-=== TIMESTAMP: 2026-11-21T05:57:00Z ===
+=== SHA: d148b4863ec4a2fc6184629d8569335fd4eb8b22 ===
+=== TIMESTAMP: 2026-11-21T06:29:02Z ===
 === COMMAND: real CLI write through in-workspace symlink to outside ===
-{"ts":"2026-11-21T05:57:02.501Z","type":"agent_event","event":{"type":"iteration_start","iteration":1}}
-{"ts":"2026-11-21T05:57:02.535Z","type":"agent_event","event":{"type":"usage","inputTokens":0,"outputTokens":0,"totalInputTokens":0,"totalOutputTokens":0,"totalCost":0}}
-{"ts":"2026-11-21T05:57:02.538Z","type":"agent_event","event":{"type":"content_start","contentType":"tool","toolName":"write","toolCallId":"call_symlink_1","input":{"filePath":"escape/leak.txt","content":"SHOULD_NOT_WRITE"}}}
-{"ts":"2026-11-21T05:57:02.540Z","type":"agent_event","event":{"type":"content_end","contentType":"tool","toolName":"write","toolCallId":"call_symlink_1","output":{"error":"Path is outside the workspace: /tmp/zenuxs-symlink-e1e51d36c1921a1d01466b9fb501cca29669fc24/ws/escape/leak.txt (workspace: /tmp/zenuxs-symlink-e1e51d36c1921a1d01466b9fb501cca29669fc24/ws)"},"error":"{\"error\":\"Path is outside the workspace: /tmp/zenuxs-symlink-e1e51d36c1921a1d01466b9fb501cca29669fc24/ws/escape/leak.txt (workspace: /tmp/zenuxs-symlink-e1e51d36c1921a1d01466b9fb501cca29669fc24/ws)\"}","durationMs":2}}
-{"ts":"2026-11-21T05:57:02.541Z","type":"agent_event","event":{"type":"iteration_end","iteration":1,"hadToolCalls":true,"toolCallCount":1}}
+{"ts":"2026-11-21T06:29:04.778Z","type":"agent_event","event":{"type":"iteration_start","iteration":1}}
+{"ts":"2026-11-21T06:29:04.813Z","type":"agent_event","event":{"type":"usage","inputTokens":0,"outputTokens":0,"totalInputTokens":0,"totalOutputTokens":0,"totalCost":0}}
+{"ts":"2026-11-21T06:29:04.816Z","type":"agent_event","event":{"type":"content_start","contentType":"tool","toolName":"write","toolCallId":"call_symlink_1","input":{"filePath":"escape/leak.txt","content":"SHOULD_NOT_WRITE"}}}
+{"ts":"2026-11-21T06:29:04.819Z","type":"agent_event","event":{"type":"content_end","contentType":"tool","toolName":"write","toolCallId":"call_symlink_1","output":{"error":"Path is outside the workspace: /tmp/zenuxs-symlink-d148b4863ec4a2fc6184629d8569335fd4eb8b22/ws/escape/leak.txt (workspace: /tmp/zenuxs-symlink-d148b4863ec4a2fc6184629d8569335fd4eb8b22/ws)"},"error":"{\"error\":\"Path is outside the workspace: /tmp/zenuxs-symlink-d148b4863ec4a2fc6184629d8569335fd4eb8b22/ws/escape/leak.txt (workspace: /tmp/zenuxs-symlink-d148b4863ec4a2fc6184629d8569335fd4eb8b22/ws)\"}","durationMs":2}}
+{"ts":"2026-11-21T06:29:04.819Z","type":"agent_event","event":{"type":"iteration_end","iteration":1,"hadToolCalls":true,"toolCallCount":1}}
 === EXIT: 0 ===
 PASS: symlink write denied, no outside file
 === FAILURES: 0 ===
