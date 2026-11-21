@@ -1,7 +1,7 @@
 === COMMAND: real CLI --disallowed-tools --attach --no-color --locale ===
-=== SHA: c3af7a17b87d8da869c065e84b11b3aaf20d8bcb ===
+=== SHA: df8a1fa90ccb3c6738628634225cb66687d20f6c ===
 === BASE_URL_OVERRIDE: http://127.0.0.1:4344/v1 ===
-{"ts":"2026-11-21T05:14:18.041Z","type":"run_result","finishReason":"completed","iterations":1,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":67,"text":"Mode check OK.","model":{"id":"fake-model","provider":"openai-compatible"}}
+{"ts":"2026-11-21T05:18:45.669Z","type":"run_result","finishReason":"completed","iterations":1,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":60,"text":"Mode check OK.","model":{"id":"fake-model","provider":"openai-compatible"}}
 === DOCTOR LOCALE ===
 "locale":"zh-CN"
 === EXIT: 0 ===

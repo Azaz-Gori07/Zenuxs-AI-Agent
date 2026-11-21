@@ -1,6 +1,6 @@
 {
-  "sha": "c3af7a17b87d8da869c065e84b11b3aaf20d8bcb",
-  "timestamp": "2026-11-21T05:14:41.956Z",
+  "sha": "df8a1fa90ccb3c6738628634225cb66687d20f6c",
+  "timestamp": "2026-11-21T05:19:07.537Z",
   "checks": [
     {
       "name": "open chat view",
@@ -35,7 +35,7 @@
     {
       "name": "fresh session after reconnect",
       "ok": true,
-      "detail": "1795238099270_mv1ws"
+      "detail": "1795238364810_buubf"
     },
     {
       "name": "fake provider served both phases",
@@ -49,7 +49,7 @@
   "phases": {
     "baseline": {
       "sessionIds": [
-        "1795238095561_8yj7v"
+        "1795238361042_58p30"
       ],
       "turnDone": 2
     },
@@ -59,7 +59,7 @@
     },
     "reconnected": {
       "sessionIds": [
-        "1795238099270_mv1ws"
+        "1795238364810_buubf"
       ],
       "turnDone": 2
     }
@@ -84,7 +84,7 @@
       "zenuxs.editFile",
       "zenuxs.runTerminalCommand"
     ],
-    "at": "2026-11-21T05:14:48.735Z"
+    "at": "2026-11-21T05:19:13.642Z"
   },
   "fakeProviderState": {
     "turn": 2,
@@ -93,11 +93,11 @@
   "transcript": [
     {
       "t": "session_started",
-      "sessionId": "1795238095561_8yj7v"
+      "sessionId": "1795238361042_58p30"
     },
     {
       "t": "checkpoint_list",
-      "sessionId": "1795238095561_8yj7v"
+      "sessionId": "1795238361042_58p30"
     },
     {
       "t": "status",
@@ -141,7 +141,7 @@
     },
     {
       "t": "session_hydrated",
-      "sessionId": "1795238095561_8yj7v"
+      "sessionId": "1795238361042_58p30"
     },
     {
       "t": "status",
@@ -170,11 +170,11 @@
     },
     {
       "t": "session_started",
-      "sessionId": "1795238099270_mv1ws"
+      "sessionId": "1795238364810_buubf"
     },
     {
       "t": "checkpoint_list",
-      "sessionId": "1795238099270_mv1ws"
+      "sessionId": "1795238364810_buubf"
     },
     {
       "t": "status",

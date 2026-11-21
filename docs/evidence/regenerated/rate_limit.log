@@ -1,8 +1,8 @@
 === COMMAND: real CLI L3 429 handling ===
-=== TIMESTAMP: 2026-11-21T05:13:34Z ===
-=== SHA: c3af7a17b87d8da869c065e84b11b3aaf20d8bcb ===
+=== TIMESTAMP: 2026-11-21T05:17:59Z ===
+=== SHA: df8a1fa90ccb3c6738628634225cb66687d20f6c ===
 === BASE_URL_OVERRIDE: http://127.0.0.1:4344/v1 ===
-{"ts":"2026-11-21T05:13:52.815Z","type":"agent_event","event":{"type":"content_end","contentType":"text","text":"Recovered after rate limit."}}
-{"ts":"2026-11-21T05:13:52.821Z","type":"run_result","finishReason":"completed","iterations":1,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":605,"text":"Recovered after rate limit.","model":{"id":"fake-model","provider":"openai-compatible"}}
+{"ts":"2026-11-21T05:18:20.796Z","type":"agent_event","event":{"type":"content_end","contentType":"text","text":"Recovered after rate limit."}}
+{"ts":"2026-11-21T05:18:20.801Z","type":"run_result","finishReason":"completed","iterations":1,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":467,"text":"Recovered after rate limit.","model":{"id":"fake-model","provider":"openai-compatible"}}
 === EXIT: 0 ===
 guard: fakeRequests=2, no external host
