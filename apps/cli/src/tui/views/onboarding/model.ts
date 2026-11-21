@@ -43,25 +43,25 @@ export const MAIN_MENU: MenuOption[] = [
 		label: "Sign in with Zenuxs",
 		value: "zenuxs",
 		detail: "Latest models with regular free promos",
-		icon: "\u263a",
+		icon: "[Z]",
 	},
 	{
 		label: "Sign in with ClinePass",
 		value: "cline-pass",
 		detail: "Low cost subscription for everyone",
-		icon: "\u2726",
+		icon: "[*]",
 	},
 	{
 		label: "Sign in with ChatGPT",
 		value: "openai-codex",
 		detail: "Use your ChatGPT Plus subscription",
-		icon: "\u2726",
+		icon: "[*]",
 	},
 	{
 		label: "Bring your own provider",
 		value: "byo",
 		detail: "API key or local server (e.g. Ollama)",
-		icon: "\u26b7",
+		icon: "[+]",
 	},
 ];
 

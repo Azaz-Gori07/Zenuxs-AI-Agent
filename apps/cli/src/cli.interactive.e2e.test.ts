@@ -151,7 +151,7 @@ describe("cli interactive e2e", () => {
 		]);
 		const output = outputOf(result);
 		expect(output).toContain("What can I do for you?");
-		expect(output).toContain("○ Plan ● Act (Tab)");
+		expect(output).toContain("[ ] Plan [*] Act (Tab)");
 		expect(output).toContain("Auto-approve all enabled (Shift+Tab)");
 	});
 
@@ -161,8 +161,8 @@ describe("cli interactive e2e", () => {
 			{ delaySeconds: POST_ACTION_SETTLE_SECONDS, input: "" },
 		]);
 		const output = outputOf(result);
-		expect(output).toContain("○ Plan ● Act (Tab)");
-		expect(output).toContain("● Plan ○ Act (Tab)");
+		expect(output).toContain("[ ] Plan [*] Act (Tab)");
+		expect(output).toContain("[*] Plan [ ] Act (Tab)");
 	});
 
 	it("toggles auto-approve-all with Shift+Tab", () => {

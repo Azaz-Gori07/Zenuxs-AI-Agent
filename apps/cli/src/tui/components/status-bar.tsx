@@ -29,9 +29,11 @@ export function createContextBar(
 					)
 			: 0;
 	const emptyCount = Math.max(0, normalizedWidth - filledCount);
+	// ASCII glyphs: terminals stuck in a single-byte charset render Unicode
+	// block/radio characters as mojibake, so keep the status bar portable.
 	return {
-		filled: "\u2588".repeat(filledCount),
-		empty: "\u2588".repeat(emptyCount),
+		filled: "#".repeat(filledCount),
+		empty: ".".repeat(emptyCount),
 	};
 }
 
@@ -233,10 +235,10 @@ export function StatusBar(props: StatusBarProps) {
 					onMouseDown={onToggleMode}
 				>
 					<text fg={uiMode === "plan" ? planAccent : "gray"}>
-						{uiMode === "plan" ? "●" : "○"} Plan
+						{uiMode === "plan" ? "[*]" : "[ ]"} Plan
 					</text>
 					<text fg={uiMode === "act" ? actAccent : "gray"}>
-						{uiMode === "act" ? "●" : "○"} Act
+						{uiMode === "act" ? "[*]" : "[ ]"} Act
 					</text>
 					<text fg="gray">(Tab)</text>
 				</box>
@@ -260,7 +262,7 @@ export function StatusBar(props: StatusBarProps) {
 			{autoApproveAll ? (
 				<text fg={defaultFg}>
 					<span fg={successColor}>
-						{"\u23f5\u23f5"} Auto-approve all enabled
+						{">>"} Auto-approve all enabled
 					</span>
 					<span fg="gray"> (Shift+Tab)</span>
 				</text>

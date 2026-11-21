@@ -11,34 +11,25 @@ vi.mock("@opentui/react", () => ({
 
 describe("createContextBar", () => {
 	it("keeps a stable width while changing segment lengths", () => {
-		expect(createContextBar(0, 100)).toEqual({
-			filled: "",
-			empty: "\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588",
-		});
-		expect(createContextBar(50, 100)).toEqual({
-			filled: "\u2588\u2588\u2588\u2588",
-			empty: "\u2588\u2588\u2588\u2588",
-		});
-		expect(createContextBar(100, 100)).toEqual({
-			filled: "\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588",
-			empty: "",
-		});
+		expect(createContextBar(0, 100)).toEqual({ filled: "", empty: "........" });
+		expect(createContextBar(50, 100)).toEqual({ filled: "####", empty: "...." });
+		expect(createContextBar(100, 100)).toEqual({ filled: "########", empty: "" });
 	});
 
 	it("shows a non-empty fill when usage is above zero", () => {
 		expect(createContextBar(7_000, 1_000_000)).toEqual({
-			filled: "\u2588",
-			empty: "\u2588\u2588\u2588\u2588\u2588\u2588\u2588",
+			filled: "#",
+			empty: ".......",
 		});
 	});
 
 	it("reserves the final segment for usage at or above the limit", () => {
 		expect(createContextBar(999_999, 1_000_000)).toEqual({
-			filled: "\u2588\u2588\u2588\u2588\u2588\u2588\u2588",
-			empty: "\u2588",
+			filled: "#######",
+			empty: ".",
 		});
 		expect(createContextBar(1_000_000, 1_000_000)).toEqual({
-			filled: "\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588",
+			filled: "########",
 			empty: "",
 		});
 	});
@@ -50,23 +41,23 @@ describe("createContextBar", () => {
 });
 
 describe("formatStatusBarUsageText", () => {
-	it("includes cost when usage cost is visible", () => {
+	it("includes cost when usage cost display is enabled", () => {
 		expect(
 			formatStatusBarUsageText({
-				totalTokens: 12_345,
-				totalCost: 0.123,
+				totalTokens: 1234,
+				totalCost: 0.5,
 				showCost: true,
 			}),
-		).toBe("(12,345) $0.12");
+		).toBe("(1,234) $0.50");
 	});
 
-	it("omits cost when usage cost is hidden", () => {
+	it("omits cost when usage cost display is disabled", () => {
 		expect(
 			formatStatusBarUsageText({
-				totalTokens: 12_345,
-				totalCost: 0.123,
+				totalTokens: 1234,
+				totalCost: 0.5,
 				showCost: false,
 			}),
-		).toBe("(12,345)");
+		).toBe("(1,234)");
 	});
 });
