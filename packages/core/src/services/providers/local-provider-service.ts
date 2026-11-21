@@ -318,13 +318,18 @@ async function resolveModelIds(params: {
 	explicitModels?: string[];
 	modelsSourceUrl?: string;
 	fallbackModelIds?: string[];
+	apiKey?: string;
 	shouldRecompute: boolean;
 }): Promise<string[]> {
 	if (!params.shouldRecompute) {
 		return params.fallbackModelIds ?? [];
 	}
 	const fetchedModels = params.modelsSourceUrl
-		? await fetchModelIdsFromSource(params.modelsSourceUrl, params.providerId)
+		? await fetchModelIdsFromSource(
+				params.modelsSourceUrl,
+				params.providerId,
+				params.apiKey,
+			)
 		: [];
 	return [...new Set([...(params.explicitModels ?? []), ...fetchedModels])];
 }
@@ -400,6 +405,7 @@ export async function addLocalProvider(
 		providerId,
 		explicitModels: typedModels,
 		modelsSourceUrl: sourceUrl,
+		apiKey: apiKey || undefined,
 		shouldRecompute: true,
 	});
 	if (modelIds.length === 0) {
@@ -561,6 +567,10 @@ export async function updateLocalProvider(
 		explicitModels,
 		modelsSourceUrl: nextModelsSourceUrl,
 		fallbackModelIds: existingModelIds,
+		apiKey:
+			request.apiKey === undefined
+				? manager.getProviderSettings(providerId)?.apiKey
+				: request.apiKey?.trim() || undefined,
 		shouldRecompute: shouldRecomputeModels,
 	});
 	if (modelIds.length === 0) {

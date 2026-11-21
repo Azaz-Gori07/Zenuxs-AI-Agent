@@ -1389,6 +1389,27 @@ describe("refreshProviderModelsFromSource", () => {
 
 	afterEach(() => cleanup());
 
+	it("sends the API key when refreshing model lists (z.ai key auth)", async () => {
+		const fetchMock = vi.fn().mockResolvedValue({
+			ok: true,
+			json: async () => ({ object: "list", data: [{ id: "glm-4.6" }] }),
+		});
+		vi.stubGlobal("fetch", fetchMock);
+		saveLocalProviderSettings(manager, {
+			providerId: "zai",
+			baseUrl: "https://api.z.ai/api/paas/v4",
+			apiKey: "zai-test-key",
+		});
+
+		const result = await refreshProviderModelsFromSource(manager, "zai");
+
+		expect(result).toMatchObject({ providerId: "zai", refreshed: true });
+		const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+		expect((init.headers as Record<string, string>).Authorization).toBe(
+			"Bearer zai-test-key",
+		);
+	});
+
 	(isWindows ? it.skip : it)("refreshes built-in Ollama models through modelsSourceUrl using the saved base URL", async () => {
 		const fetchMock = vi.fn().mockResolvedValue({
 			ok: true,
