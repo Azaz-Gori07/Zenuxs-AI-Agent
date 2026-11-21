@@ -120,7 +120,12 @@ export function useConnectSelector(opts: {
 					} catch (error) {
 						// Validation failed! We must clean up settings and mark as not saved.
 						const msg = error instanceof Error ? error.message : String(error);
-						logConnectionFailure(providerId, error);
+						logConnectionFailure(providerId, error, {
+							apiKeyPresent: Boolean(
+								manager.getProviderSettings(providerId)?.apiKey?.trim(),
+							),
+							baseUrl: manager.getProviderSettings(providerId)?.baseUrl,
+						});
 						showToast(`Connection failed: ${msg}`, "error");
 
 						const state = manager.read();
@@ -228,7 +233,12 @@ export function useConnectSelector(opts: {
 				);
 			} catch (error) {
 				const msg = error instanceof Error ? error.message : String(error);
-				logConnectionFailure(providerId, error);
+				logConnectionFailure(providerId, error, {
+				apiKeyPresent: Boolean(
+					manager.getProviderSettings(providerId)?.apiKey?.trim(),
+				),
+				baseUrl: manager.getProviderSettings(providerId)?.baseUrl,
+			});
 				showToast(`Connection failed: ${msg}`, "error");
 			}
 		},
