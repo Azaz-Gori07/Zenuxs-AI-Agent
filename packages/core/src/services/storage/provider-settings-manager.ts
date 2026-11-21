@@ -46,6 +46,7 @@ const KNOWN_SETTING_KEYS = new Set(
 function mergePreservingUnknown(
   normalized: StoredProviderSettings,
   raw: RawState,
+  clearFields: string[] = [],
 ): StoredProviderSettings {
   const providers = { ...normalized.providers };
   for (const [id, entry] of Object.entries(providers)) {
@@ -55,7 +56,9 @@ function mergePreservingUnknown(
       // that were deliberately cleared must stay cleared (e.g. apiKey="").
       const unknown: Record<string, unknown> = {};
       for (const [key, value] of Object.entries(rawSettings)) {
-        if (!KNOWN_SETTING_KEYS.has(key)) unknown[key] = value;
+        if (!KNOWN_SETTING_KEYS.has(key) && !clearFields.includes(key)) {
+          unknown[key] = value;
+        }
       }
       (entry as { settings: Record<string, unknown> }).settings = {
         ...unknown,
@@ -66,7 +69,7 @@ function mergePreservingUnknown(
   return { ...normalized, providers };
 }
 
-export function migrateUnknownFields(filePath: string): number {
+export function migrateUnknownFields(filePath: string, clearFields: string[] = []): number {
   const raw = readRawSettings(filePath);
   let parsed: StoredProviderSettings;
   try {
@@ -75,7 +78,11 @@ export function migrateUnknownFields(filePath: string): number {
     return 0;
   }
   const original = JSON.stringify(parsed);
-  const merged = mergePreservingUnknown(JSON.parse(original) as StoredProviderSettings, raw);
+  const merged = mergePreservingUnknown(
+    JSON.parse(original) as StoredProviderSettings,
+    raw,
+    clearFields,
+  );
   const changed = JSON.stringify(merged) !== original;
   if (changed) {
     mkdirSync(dirname(filePath), { recursive: true, mode: 0o700 });
@@ -173,10 +180,11 @@ export class ProviderSettingsManager {
 		return emptyStoredProviderSettings();
 	}
 
-	write(state: StoredProviderSettings): void {
+	write(state: StoredProviderSettings, clearFields: string[] = []): void {
 		const normalized = mergePreservingUnknown(
 			StoredProviderSettingsSchema.parse(state),
 			readRawSettings(this.filePath),
+			clearFields,
 		);
 		const dir = dirname(this.filePath);
 		if (!existsSync(dir)) {
@@ -228,7 +236,7 @@ export class ProviderSettingsManager {
 				? providerId
 				: previous.lastUsedProvider,
 		};
-		this.write(next);
+		this.write(next, options.clearFields);
 		return next;
 	}
 

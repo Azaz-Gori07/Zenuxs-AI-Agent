@@ -3,6 +3,7 @@ import {
 	existsSync,
 	mkdirSync,
 	readFileSync,
+	realpathSync,
 	renameSync,
 	rmSync,
 	writeFileSync,
@@ -36,6 +37,11 @@ export interface MarketplaceSource {
 	descriptorPath: string;
 	publisherType: "official" | "community";
 	addedAt: string;
+}
+
+export interface AddMarketplaceOptions {
+	/** Only a trusted caller (never the CLI) may register an official source. */
+	trustedOfficial?: boolean;
 }
 
 export interface AvailablePlugin {
@@ -78,10 +84,19 @@ function readJson<T>(filePath: string): T | undefined {
 }
 
 function resolveInside(base: string, target: string): string {
-	const absolute = resolve(base, target);
-	const rel = relative(resolve(base), absolute);
-	if (rel.startsWith("..") || isAbsolute(rel)) {
+	const root = resolve(base);
+	const absolute = resolve(root, target);
+	const lexicalRel = relative(root, absolute);
+	if (lexicalRel.startsWith("..") || isAbsolute(lexicalRel)) {
 		throw new PluginExchangeError(`path escapes its root: ${target}`);
+	}
+	// Symlinks must not escape either. realpathSync resolves the on-disk target;
+	// fall back to the lexical path when it does not exist yet.
+	const realBase = existsSync(root) ? realpathSync(root) : root;
+	const realTarget = existsSync(absolute) ? realpathSync(absolute) : absolute;
+	const realRel = relative(realBase, realTarget);
+	if (realRel.startsWith("..") || isAbsolute(realRel)) {
+		throw new PluginExchangeError(`symlink escapes its root: ${target}`);
 	}
 	return absolute;
 }
@@ -156,7 +171,11 @@ export class PluginExchange {
 		return descriptor;
 	}
 
-	addMarketplace(descriptorPath: string, requestedId?: string): MarketplaceSource {
+	addMarketplace(
+		descriptorPath: string,
+		requestedId?: string,
+		options: AddMarketplaceOptions = {},
+	): MarketplaceSource {
 		const absolute = resolve(descriptorPath);
 		const descriptor = this.descriptorFor({
 			id: requestedId ?? "pending",
@@ -168,12 +187,21 @@ export class PluginExchange {
 			throw new PluginExchangeError("marketplace descriptor is invalid");
 		}
 		const id = requestedId ?? descriptor.name;
-		if (RESERVED_OFFICIAL_MARKETS.has(id) && descriptor.publisherType !== "official") {
+		// Provenance cannot be self-certified by an attacker-authored descriptor.
+		// Official registration requires a trusted caller, never the CLI.
+		const claimedOfficial = descriptor.publisherType === "official";
+		if (claimedOfficial && !options.trustedOfficial) {
+			throw new PluginExchangeError(
+				"official marketplaces can only be registered by a trusted installation source",
+			);
+		}
+		if (RESERVED_OFFICIAL_MARKETS.has(id) && !claimedOfficial) {
 			throw new PluginExchangeError(`marketplace id ${id} is reserved for official sources`);
 		}
-		if (descriptor.publisherType === "official" && !RESERVED_OFFICIAL_MARKETS.has(id)) {
+		if (claimedOfficial && !RESERVED_OFFICIAL_MARKETS.has(id)) {
 			throw new PluginExchangeError("official marketplaces must use a reserved official id");
 		}
+		const publisherType = claimedOfficial ? "official" : "community";
 		const sources = this.readSources();
 		const existing = sources.find((source) => source.id === id);
 		if (existing) {
@@ -182,7 +210,7 @@ export class PluginExchange {
 		const source: MarketplaceSource = {
 			id,
 			descriptorPath: absolute,
-			publisherType: descriptor.publisherType,
+			publisherType,
 			addedAt: new Date().toISOString(),
 		};
 		this.writeState(this.marketplacesFile, { sources: [...sources, source] });

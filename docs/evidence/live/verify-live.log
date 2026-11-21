@@ -1,0 +1,6 @@
+=== LIVE PROVIDER VERIFICATION ===
+=== TIMESTAMP: 2026-11-21T05:39:18Z ===
+=== SHA: 8e25f110dc61403588b2f536e499538b6f73e5a5 ===
+=== LIVE_VERIFY: BLOCKED ===
+ZENUXS_TEST_BASE_URL and ZENUXS_TEST_API_KEY must be exported in this shell.
+No matrix row was changed. Re-run this command when a working endpoint exists.

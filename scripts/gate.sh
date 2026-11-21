@@ -63,7 +63,7 @@ run_step "test:unit:schema" bun run --cwd packages/schema test
 run_step "fake-provider:smoke" node tests/fake-provider/smoke-test.mjs
 run_step "evidence:regenerate" bash scripts/regenerate-evidence.sh
 run_step "tui:pty" node scripts/tui-pty-test.mjs docs/evidence/F-tui/pty-transcript.log
-run_step "security:check" node scripts/security-check.mjs
+run_step "security:check" bash -c 'node scripts/security-check.mjs && node scripts/security-check.test.mjs'
 
 # Machine-readable gate result used by the evidence-derived matrix. Written
 # before matrix steps so their evidence is not self-referential.

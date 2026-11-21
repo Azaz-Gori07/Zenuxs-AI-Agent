@@ -30,6 +30,14 @@
 - **Why**: `/v1/models` on the live endpoint does not list `glm-5.3-flash-free`; a tiny completion returned `model_deprecated` ("has been retired upstream"). `mimo-v2.6-flash-free` is listed and answered `PONG`. The deepseek model was usable initially but later returned `FreeUsageLimitError` (per-model free quota exhausted).
 - **How to apply**: live scenarios are bounded with timeouts and retries; when a live request fails, replay on the fake provider first, then retry live up to 3 times; classify model-quality failures separately from product defects.
 
+## 2026-11-21 — Independent-review P1/P2/P3 fixes
+- **P1 (false security VERIFIED)**: `scripts/security-check.mjs` reported 19 violations but always exited 0. Root cause: overbroad patterns (`Z.AI` matches the legitimate GLM provider and its `api.z.ai` endpoint; `*.cline.bot` matches this fork's own Cline-lineage account backend retained per NOTICE.md) combined with an unconditional `exit(0)`. Fix: the check now targets only unambiguous reference-product markers (`ZCODE_OFFICIAL_ENDPOINT_TOKEN`, `zcode.cjs`, `zcode.bot`), real key shapes, tracked `config.json`/`.env`, and FAILS CLOSED (exit 1 on any problem). A fixed-count positive control and `scripts/security-check.test.mjs` prove that disabling the patterns makes the check fail. The gate runs both. No functional endpoints were changed (safest option for account/OAuth flows).
+- **P2 reserved marketplace self-certification**: `addMarketplace` no longer trusts a descriptor's `publisherType:"official"`; it requires `trustedOfficial: true`, which the CLI never passes. Added a regression test.
+- **P2 flow steps hardcoded provider/key/auto-approve**: agent steps now invoke the CLI with only `--json` and the prompt, inheriting the caller's configured provider and approval settings — a flow can no longer switch providers or bypass approval.
+- **P3**: `clearFields` now also removes unknown raw fields on write; plugin path confinement resolves symlinks with `realpathSync`; the stray tracked `escape -> /escape` symlink was removed.
+- **Why**: the fresh independent review's P1 made the F-sec-01 VERIFIED row false assurance; leaving it open would violate the completion rule.
+- **How to apply**: keep the security check strict; if a legitimate new provider name is flagged, scope the pattern rather than disabling the gate.
+
 ## 2026-11-21 — Settings merge regression (clearFields)
 - **Decision**: `ProviderSettingsManager.saveProviderSettings` merges previous known fields (baseUrl/protocol/client/timeout/…) and raw unknown fields on write, and accepts an explicit `clearFields` list for fields the caller deliberately deleted. `saveLocalProviderSettings`/`updateLocalProvider` pass that list.
 - **Why**: the first merge-based fix re-added `apiKey`/`headers`/`timeout` that callers had explicitly cleared, failing 2 existing `local-provider-service` tests. Preserving unknown fields must not defeat explicit clearing.

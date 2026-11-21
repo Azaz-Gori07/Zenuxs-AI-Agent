@@ -44,6 +44,23 @@ function fixture(publisherType: "official" | "community" = "community") {
 }
 
 describe("plugin exchange (security)", () => {
+	it("rejects a self-certified official marketplace", () => {
+		const { root, descriptor, exchange } = fixture("official");
+		try {
+			expect(() => exchange.addMarketplace(descriptor, "zenuxs-official")).toThrow(
+				/trusted installation source/,
+			);
+			expect(exchange.listMarketplaces()).toEqual([]);
+			// A trusted caller may register it with an explicit opt-in.
+			const source = exchange.addMarketplace(descriptor, "zenuxs-official", {
+				trustedOfficial: true,
+			});
+			expect(source.publisherType).toBe("official");
+		} finally {
+			rmSync(root, { recursive: true, force: true });
+		}
+	});
+
 	it("rejects a source claiming a reserved official id", () => {
 		const { root, descriptor, exchange } = fixture();
 		try {

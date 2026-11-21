@@ -19,26 +19,19 @@ function emit(io: Io, value: unknown): void {
 	io.writeln(JSON.stringify(value));
 }
 
-/** Agent steps really invoke the built CLI against the current provider env. */
+/**
+ * Agent steps invoke the built CLI using the caller's configured provider.
+ * No provider, model, key or auto-approval is hardcoded: a flow must never
+ * silently switch providers or bypass the user's approval settings.
+ */
 function runAgentStep(prompt: string): Promise<string> {
 	const entry = process.argv[1] ? resolve(process.argv[1]) : "";
-	const child = spawnSync(
-		process.execPath,
-		[
-			entry,
-			"-P",
-			"openai-compatible",
-			"-m",
-			"fake-model",
-			"-k",
-			"fake-key",
-			"--auto-approve",
-			"true",
-			"--json",
-			prompt,
-		],
-		{ encoding: "utf8", env: process.env, timeout: 90_000, cwd: process.cwd() },
-	);
+	const child = spawnSync(process.execPath, [entry, "--json", prompt], {
+		encoding: "utf8",
+		env: process.env,
+		timeout: 90_000,
+		cwd: process.cwd(),
+	});
 	const result = child.stdout
 		.split("\n")
 		.map((line) => {
