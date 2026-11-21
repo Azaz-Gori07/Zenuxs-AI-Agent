@@ -123,6 +123,20 @@ export function resolveConfigDirArg(argv: string[]): string | undefined {
 
 export async function runCli(): Promise<void> {
 	installStreamErrorGuards();
+	// Some terminals stay in a single-byte charset after a crash/resize, which
+	// makes every non-ASCII glyph render as mojibake (â•ž, aaaa...). ISO 2022
+	// ESC % G selects UTF-8. TTY only: never pollute --json / piped output.
+	if (
+		process.stdout.isTTY &&
+		!process.env.VITEST &&
+		!process.argv.includes("--json")
+	) {
+		try {
+			process.stdout.write("\x1b%G");
+		} catch {
+			// Unsupported terminals ignore the sequence.
+		}
+	}
 	profiler.markTimeline("cli.runCli.start", "startup");
 	autoUpdateOnStartup();
 
