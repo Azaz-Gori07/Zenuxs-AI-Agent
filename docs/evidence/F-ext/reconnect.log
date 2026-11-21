@@ -1,6 +1,6 @@
 === COMMAND: VS Code extension reconnect after core dispose ===
-=== SHA: de73ca7c242adf40a44c95fb2ad4825d4925674a ===
-=== TIMESTAMP: 2026-11-21T05:24:22Z ===
+=== SHA: ff041f8f65a5ec353b449d8eef592d1156237f8f ===
+=== TIMESTAMP: 2026-11-21T05:29:52Z ===
 === CDP_PORT: 9242 ===
 {
   "ok": true,

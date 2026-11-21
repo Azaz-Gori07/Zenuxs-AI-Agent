@@ -1,6 +1,6 @@
 === COMMAND: headless --id resume regression ===
-=== SHA: de73ca7c242adf40a44c95fb2ad4825d4925674a ===
-=== TIMESTAMP: 2026-11-21T05:23:18Z ===
-sessionCount=1 messageCount=4 sessionId=1795238634184_ob6jf
+=== SHA: ff041f8f65a5ec353b449d8eef592d1156237f8f ===
+=== TIMESTAMP: 2026-11-21T05:28:43Z ===
+sessionCount=1 messageCount=4 sessionId=1795238961926_t19q9
 === EXIT: 0 ===
 guard: fakeRequests=2, no external host

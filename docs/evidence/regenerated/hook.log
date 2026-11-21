@@ -1,7 +1,7 @@
 === COMMAND: real CLI PreToolUse hook ===
-=== SHA: de73ca7c242adf40a44c95fb2ad4825d4925674a ===
+=== SHA: ff041f8f65a5ec353b449d8eef592d1156237f8f ===
 === BASE_URL_OVERRIDE: http://127.0.0.1:4344/v1 ===
-{"ts":"2026-11-21T05:23:50.322Z","type":"run_result","finishReason":"completed","iterations":2,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":79,"text":"I read the file successfully.","model":{"id":"fake-model","provider":"openai-compatible"}}
+{"ts":"2026-11-21T05:29:17.633Z","type":"run_result","finishReason":"completed","iterations":2,"usage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"aggregateUsage":{"inputTokens":0,"outputTokens":0,"cacheReadTokens":0,"cacheWriteTokens":0,"totalCost":0},"durationMs":95,"text":"I read the file successfully.","model":{"id":"fake-model","provider":"openai-compatible"}}
 "hookName":"tool_call"
 === EXIT: 0 ===
 guard: fakeRequests=2, no external host
