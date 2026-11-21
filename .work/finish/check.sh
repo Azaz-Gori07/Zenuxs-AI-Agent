@@ -3,7 +3,7 @@
 LOG="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/run.log"
 printf '\n=== CHECK ===\n' >> "$LOG"
 printf 'TIMESTAMP: %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$LOG"
-printf 'COMMAND:'; printf ' %q' "$@" >> "$LOG"
+printf 'COMMAND:' >> "$LOG"; printf ' %q' "$@" >> "$LOG"
 printf '\n' >> "$LOG"
 "$@"
 CODE=$?
