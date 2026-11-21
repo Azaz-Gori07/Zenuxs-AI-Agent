@@ -122,8 +122,8 @@ describe("onboarding model helpers", () => {
 	});
 
 	it("formats OAuth provider labels for onboarding status views", () => {
-		expect(getOAuthProviderLabel("cline")).toBe("Zenuxs");
-		expect(getOAuthProviderLabel("cline-pass")).toBe("ZenuxsPass");
+		expect(getOAuthProviderLabel("cline")).toBe("Cline");
+		expect(getOAuthProviderLabel("cline-pass")).toBe("ClinePass");
 		expect(getOAuthProviderLabel("openai-codex")).toBe("ChatGPT");
 		expect(getOAuthProviderLabel("oca")).toBe("oca");
 	});

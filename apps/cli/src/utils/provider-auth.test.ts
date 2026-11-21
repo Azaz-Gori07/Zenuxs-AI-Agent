@@ -1,6 +1,23 @@
 import type { ProviderSettings } from "@cline/core";
 import { describe, expect, it } from "vitest";
-import { isProviderConfigured } from "./provider-auth";
+import { getAuthKind, isProviderConfigured } from "./provider-auth";
+
+describe("getAuthKind", () => {
+	it("keeps each account login distinct", () => {
+		expect(getAuthKind("zenuxs")).toBe("zenuxs");
+		expect(getAuthKind("openai-codex")).toBe("chatgpt");
+		expect(getAuthKind("codex")).toBe("chatgpt");
+		expect(getAuthKind("cline")).toBe("cline");
+		expect(getAuthKind("cline-pass")).toBe("cline-pass");
+		expect(getAuthKind("oca")).toBe("oca");
+	});
+
+	it("treats API-key and custom-model providers as a separate path", () => {
+		expect(getAuthKind("openai-compatible")).toBe("api-key");
+		expect(getAuthKind("zai")).toBe("api-key");
+		expect(getAuthKind("anthropic")).toBe("api-key");
+	});
+});
 
 describe("isProviderConfigured", () => {
 	it("returns false when settings is undefined", () => {

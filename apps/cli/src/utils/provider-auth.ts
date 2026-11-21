@@ -9,6 +9,37 @@ import {
 
 export type OAuthCredentials = ProviderOAuthCredentials;
 
+/**
+ * Distinct account identities. These logins are NOT interchangeable: each
+ * keeps its own credentials, and none of them is the API-key/custom-model
+ * path. Keeping this explicit prevents one login from silently borrowing
+ * another provider's token.
+ */
+export type AuthKind =
+	| "zenuxs"
+	| "chatgpt"
+	| "cline"
+	| "cline-pass"
+	| "oca"
+	| "api-key";
+
+export function getAuthKind(providerId: string): AuthKind {
+	switch (normalizeAuthProviderId(providerId)) {
+		case "zenuxs":
+			return "zenuxs";
+		case "openai-codex":
+			return "chatgpt";
+		case "cline":
+			return "cline";
+		case "cline-pass":
+			return "cline-pass";
+		case "oca":
+			return "oca";
+		default:
+			return "api-key";
+	}
+}
+
 export function normalizeProviderId(providerId: string): string {
 	return Llms.normalizeProviderId(providerId.trim());
 }

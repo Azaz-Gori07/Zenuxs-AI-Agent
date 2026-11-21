@@ -1192,6 +1192,15 @@ export async function runCli(): Promise<void> {
 				selectedProviderSettings?.apiKey &&
 				selectedProviderSettings?.baseUrl;
 			if (!zenuxsHasProxyConfig) {
+				// Zenuxs, ChatGPT and Cline are separate account logins. Never
+				// silently switch an explicitly requested Zenuxs run to Cline.
+				if (args.provider?.trim()) {
+					writeErr(
+						"--provider zenuxs has no Zenuxs login configured. Run `zenuxs auth zenuxs` to sign in to Zenuxs (this is separate from Cline and ChatGPT logins).",
+					);
+					process.exitCode = 1;
+					return;
+				}
 				const fallbackProvider =
 					lastUsedProviderSettings?.provider &&
 					lastUsedProviderSettings.provider !== "zenuxs"
@@ -1206,6 +1215,7 @@ export async function runCli(): Promise<void> {
 					undefined;
 			}
 		}
+
 
 		const isYoloMode = args.mode === "yolo";
 		const isZenMode = args.mode === "zen";

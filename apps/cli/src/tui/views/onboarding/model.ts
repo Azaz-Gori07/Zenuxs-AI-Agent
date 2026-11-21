@@ -151,9 +151,11 @@ export function toModelEntriesFromKnownModels(
 }
 
 export function getOAuthProviderLabel(providerId: string): string {
+	// Account logins stay visually distinct. An API key / custom model is not
+	// an account login and is shown under its own provider name.
 	switch (providerId) {
-		case "cline": return "Zenuxs";
-		case "cline-pass": return "ZenuxsPass";
+		case "cline": return "Cline";
+		case "cline-pass": return "ClinePass";
 		case "zenuxs": return "Zenuxs";
 		case "openai-codex": return "ChatGPT";
 		default: return providerId;
