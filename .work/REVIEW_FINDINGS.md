@@ -14,7 +14,7 @@
 5. `node scripts/security-check.mjs` → exit 0, `problems: []`. `node scripts/security-check.test.mjs` → exit 0. Combined `node scripts/security-check.mjs && node scripts/security-check.test.mjs` → exit 0.
 6. Security fail-closed repro (temp `ZENUXS_SECURITY_ROOT`, no product files touched):
    - leaked `ZCODE_OFFICIAL_ENDPOINT_TOKEN` in `apps/leak.ts` → exit 1 (`matches /ZCODE_OFFICIAL_ENDPOINT_TOKEN/`).
-   - `sk-abcdefghijklmnopqrstuv` in `apps/key.ts` → exit 1 (`matches live API key pattern`).
+   - `sk-REDACTED-EXAMPLE` in `apps/key.ts` → exit 1 (`matches live API key pattern`).
    - only `Z.AI api.z.ai` + `foo.cline.bot` in `apps/ok.ts` → exit 0 (prior false positives gone).
    - tampered copy with `const forbidden = []` → exit 1 (`security-check self-test failed: detection patterns are not active`).
 7. `git grep` over tracked `apps|packages|scripts` for reference markers / key shapes → only the intentional canary at `scripts/security-check.mjs:108`.

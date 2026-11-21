@@ -1,3 +1,3 @@
 round=1
-step=2
-status=RUNNING (live sweep launched)
+step=3
+status=PASS (exit 0, failures=0)
