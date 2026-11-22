@@ -18,7 +18,7 @@ let inlineStreamHasOutput = false;
 let shouldPrefixNextTextWithBlankLine = false;
 
 // Prefix for result rows
-const HOOK = "⎿ ";
+const HOOK = "| ";
 const TEAM_RUN_ACTIVE_SUFFIX = `${c.dim} ...${c.reset}`;
 
 export function resolveStatusNoticeLabel(
@@ -165,7 +165,7 @@ export function handleEvent(event: AgentEvent, config: Config): void {
 				const iterations = event.iterations;
 				const label = event.reason === "aborted" ? "aborted" : "finished";
 				write(
-					`\n${c.dim}── ${label} (${iterations} iterations) ──${c.reset}\n`,
+					`\n${c.dim}-- ${label} (${iterations} iterations) --${c.reset}\n`,
 				);
 			}
 			activeInlineStream = undefined;

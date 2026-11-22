@@ -196,7 +196,7 @@ export function ZenuxsModelSelectorContent(
 			</box>
 
 			<text fg="gray">
-				↑/↓ navigate, Enter to select, Esc to go back
+				up/down navigate, Enter to select, Esc to go back
 			</text>
 		</box>
 	);

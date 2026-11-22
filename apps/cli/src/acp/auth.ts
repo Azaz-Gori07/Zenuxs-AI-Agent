@@ -92,7 +92,7 @@ export async function authenticateAcpProvider(
 	}
 
 	// Perform a fresh OAuth login.
-	writeDiagnostic(`[acp/auth] Starting OAuth login for ${methodId}…`);
+	writeDiagnostic(`[acp/auth] Starting OAuth login for ${methodId}...`);
 	const apiKey = await performOAuthLogin({
 		providerId: methodId,
 		providerSettingsManager,

@@ -105,7 +105,7 @@ describe("config detail dialog helpers", () => {
 		if (rows[2]?.kind === "field") {
 			expect(rows[2].label).toBe("Description");
 			expect(rows[2].value).toHaveLength(13);
-			expect(rows[2].value.at(-1)).toContain("… truncated");
+			expect(rows[2].value.at(-1)).toContain("... truncated");
 		}
 		expect(rows[3]).toEqual({ kind: "status", enabled: true });
 	});

@@ -296,7 +296,7 @@ async function ensureKanbanInstalled(
 		return false;
 	}
 
-	writeln(`${c.cyan}Installing kanban@latest…${c.reset}`);
+	writeln(`${c.cyan}Installing kanban@latest...${c.reset}`);
 	const installProcess = spawnKanbanInstallProcess(installCommand, {
 		env: process.env,
 		windowsHide: true,

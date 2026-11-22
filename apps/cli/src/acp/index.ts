@@ -7,7 +7,7 @@ export async function runAcpMode(): Promise<void> {
 	);
 	const { AcpAgent } = await import("./acpAgent");
 
-	writeDiagnostic("[acp] starting ACP mode over stdio…");
+	writeDiagnostic("[acp] starting ACP mode over stdio...");
 
 	const stream = ndJsonStream(
 		Writable.toWeb(process.stdout) as WritableStream<Uint8Array>,

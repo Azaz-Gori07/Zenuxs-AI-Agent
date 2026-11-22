@@ -463,7 +463,7 @@ export function ThinkingLevelContent(
 				))}
 			</box>
 
-			<text fg="gray">↑/↓ navigate, Enter to select, Esc to go back</text>
+			<text fg="gray">up/down navigate, Enter to select, Esc to go back</text>
 		</box>
 	);
 }
@@ -615,7 +615,7 @@ function ModelRow(props: {
 }) {
 	const { model, isSelected, isCurrent, isFavorite, providerName, onSelect } = props;
 	const bg = isSelected ? palette.selection : undefined;
-	const favStar = isFavorite ? "★ " : "  ";
+	const favStar = isFavorite ? "* " : "  ";
 	return (
 		<box
 			paddingX={1}

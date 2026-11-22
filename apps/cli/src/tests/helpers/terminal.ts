@@ -71,7 +71,7 @@ export async function expectExitCode(
  * Assert that one or more text strings/regexes are **not** visible on screen.
  *
  * @example
- *   await expectNotVisible(terminal, "Loading…");
+ *   await expectNotVisible(terminal, "Loading...");
  *   await expectNotVisible(terminal, ["/secret", /error/i], { timeout: 5000 });
  */
 export async function expectNotVisible(

@@ -11,7 +11,7 @@ export function ProviderRow({
 	return (
 		<box flexDirection="row" paddingX={1} gap={1}>
 			<text fg={focused ? palette.selection : "gray"} flexShrink={0}>
-				{focused ? "❯" : " "}
+				{focused ? ">" : " "}
 			</text>
 			<text fg={focused ? palette.selection : "cyan"} flexShrink={0}>
 				Provider:

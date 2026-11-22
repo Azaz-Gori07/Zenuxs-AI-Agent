@@ -8,9 +8,9 @@
 //   - /history view
 //   - /skills view
 //   - Plan/Act mode toggle (Tab)
-//   - Plan task → toggle to Act → task executes
-//   - Act task → file edit permission prompt → Save / Reject
-//   - Task completed → Start New Task / Exit buttons
+//   - Plan task -> toggle to Act -> task executes
+//   - Act task -> file edit permission prompt -> Save / Reject
+//   - Task completed -> Start New Task / Exit buttons
 //   - Auto-approve settings
 //   - Subagents
 //   - Web tools

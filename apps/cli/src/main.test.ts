@@ -282,7 +282,7 @@ describe("runCli lightweight command dispatch", () => {
 		telemetryMocks.disposeCliTelemetryService.mockReset();
 		telemetryMocks.disposeCliTelemetryService.mockResolvedValue(undefined);
 		// CI: fd 0 is often a pipe with no EOF. If routing ever falls through to agent bootstrap,
-		// `main` can block forever in `for await (process.stdin)` (see `!process.stdin.isTTY && …`).
+		// `main` can block forever in `for await (process.stdin)` (see `!process.stdin.isTTY && ...`).
 		// Mark stdin as a TTY so that path is skipped in unit tests (real piped-input behavior is
 		// covered elsewhere). `forcePromptModeInput()` in agent tests still tightens fstat on fd 0.
 		Object.defineProperty(process.stdin, "isTTY", {

@@ -465,7 +465,7 @@ export function AccountDialogContent(
 					))}
 				</box>
 
-				<text fg="gray">↑/↓ navigate, Enter to select, Esc to close</text>
+				<text fg="gray">up/down navigate, Enter to select, Esc to close</text>
 			</box>
 		);
 	}
@@ -489,7 +489,7 @@ export function AccountDialogContent(
 						/>
 					))}
 				</box>
-				<text fg="gray">↑/↓ navigate, Enter to select, Esc to go back</text>
+				<text fg="gray">up/down navigate, Enter to select, Esc to go back</text>
 			</box>
 		);
 	}
@@ -559,7 +559,7 @@ export function AccountDialogContent(
 				))}
 			</box>
 
-			<text fg="gray">↑/↓ navigate, Enter to select, Esc to close</text>
+			<text fg="gray">up/down navigate, Enter to select, Esc to close</text>
 		</box>
 	);
 }

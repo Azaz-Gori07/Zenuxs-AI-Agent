@@ -135,7 +135,7 @@ export function AskQuestionContent(
 				<em>
 					{typing
 						? "Enter to submit, Esc to go back"
-						: `↑/↓ navigate, Enter to select, 1-${options.length} to pick`}
+						: `up/down navigate, Enter to select, 1-${options.length} to pick`}
 				</em>
 			</text>
 		</box>

@@ -199,9 +199,9 @@ describe("cli interactive e2e", () => {
 		]);
 		const output = outputOf(result);
 		expect(output).toContain(
-			"Config mode: Tab tabs · ↑/↓ navigate · Esc close",
+			"Config mode: Tab tabs - up/down navigate - Esc close",
 		);
-		expect(output).toContain("/ for commands · @ for files");
+		expect(output).toContain("/ for commands - @ for files");
 	});
 
 	it("resumes a history-picked session and survives Ctrl+C without a native crash", {

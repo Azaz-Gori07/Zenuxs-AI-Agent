@@ -314,7 +314,7 @@ export function commanderToParsedArgs(program: Command): ParsedArgs {
 	else if (opts.apiKey !== undefined) result.key = opts.apiKey;
 	if (opts.id !== undefined) result.id = opts.id;
 
-	// Positional args → prompt; --prompt takes precedence when supplied.
+	// Positional args -> prompt; --prompt takes precedence when supplied.
 	const positional = program.args;
 	if (positional.length > 0) {
 		result.prompt = positional.join(" ");

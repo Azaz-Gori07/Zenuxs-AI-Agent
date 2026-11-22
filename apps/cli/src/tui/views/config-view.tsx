@@ -829,7 +829,7 @@ export function ConfigPanelContent(props: ConfigPanelProps) {
 
 			{aboveCount > 0 && (
 				<text fg="gray">
-					{"▲ "}
+					{"^ "}
 					{aboveCount} more
 				</text>
 			)}
@@ -837,7 +837,7 @@ export function ConfigPanelContent(props: ConfigPanelProps) {
 			{win.items.map((row, i) => {
 				const absIdx = win.startIndex + i;
 				const isSel = absIdx === selectedRowIdx;
-				const pfx = isSel ? "▸ " : "  ";
+				const pfx = isSel ? "> " : "  ";
 
 				switch (row.kind) {
 					case "spacer":
@@ -900,16 +900,16 @@ export function ConfigPanelContent(props: ConfigPanelProps) {
 							value = mode === "plan" ? "Plan" : "Act";
 							valueColor = getModeAccent(mode);
 						} else if (row.id === "auto-approve") {
-							value = autoApprove ? "● on" : "○ off";
+							value = autoApprove ? "[*] on" : "[ ] off";
 							valueColor = autoApprove ? palette.success : "gray";
 						} else if (row.id === "auto-update") {
-							value = autoUpdateEnabled ? "● on" : "○ off";
+							value = autoUpdateEnabled ? "[*] on" : "[ ] off";
 							valueColor = autoUpdateEnabled ? palette.success : "gray";
 						} else if (row.id === "compaction") {
 							value = formatCliCompactionMode(compactionMode);
 							valueColor = COMPACTION_MODE_COLORS[compactionMode];
 						} else {
-							value = verbose ? "● on" : "○ off";
+							value = verbose ? "[*] on" : "[ ] off";
 							valueColor = verbose ? palette.success : "gray";
 						}
 						return (
@@ -936,10 +936,10 @@ export function ConfigPanelContent(props: ConfigPanelProps) {
 								? isPending
 									? "~ "
 									: enabledState === "partial"
-										? "◐ "
+										? "[~] "
 										: row.enabled
-											? "● "
-											: "○ "
+											? "[*] "
+											: "[ ] "
 								: "";
 						const rightLabel = row.rightLabel ?? "";
 						const toggleable = isToggleableConfigItem(row.item);
@@ -982,7 +982,7 @@ export function ConfigPanelContent(props: ConfigPanelProps) {
 
 			{belowCount > 0 && (
 				<text fg="gray">
-					{"▼ "}
+					{"v "}
 					{belowCount} more
 				</text>
 			)}

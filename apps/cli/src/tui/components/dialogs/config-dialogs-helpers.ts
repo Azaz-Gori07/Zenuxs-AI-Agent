@@ -37,7 +37,7 @@ function truncateDescription(description: string): string[] {
 	}
 	return [
 		...lines.slice(0, MAX_DESCRIPTION_LINES),
-		`… truncated ${lines.length - MAX_DESCRIPTION_LINES} lines`,
+		`... truncated ${lines.length - MAX_DESCRIPTION_LINES} lines`,
 	];
 }
 

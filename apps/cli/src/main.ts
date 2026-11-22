@@ -1417,7 +1417,7 @@ export async function runCli(): Promise<void> {
 					if (balance?.deepseek && balance.deepseek.remaining < balance.deepseek.limit * 0.1) {
 						const pct = Math.round((balance.deepseek.totalUsed / balance.deepseek.limit) * 100);
 						writeln(
-							`${c.yellow}⚠  DeepSeek tokens: ${pct}% used (${balance.deepseek.remaining.toLocaleString()} / ${balance.deepseek.limit.toLocaleString()} remaining, resets every ${balance.deepseek.windowDays} days)${c.reset}`,
+							`${c.yellow}[!]  DeepSeek tokens: ${pct}% used (${balance.deepseek.remaining.toLocaleString()} / ${balance.deepseek.limit.toLocaleString()} remaining, resets every ${balance.deepseek.windowDays} days)${c.reset}`,
 						);
 					}
 				})

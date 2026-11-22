@@ -381,11 +381,11 @@ export class GoalTracker {
     const failedTasks = memoryManager.getFailedTasks();
 
     if (pendingTasks.length > 0) {
-      console.error(`[GoalTracker] ⚠ ${pendingTasks.length} tasks still pending`);
+      console.error(`[GoalTracker] [!] ${pendingTasks.length} tasks still pending`);
     }
 
     if (failedTasks.length > 0) {
-      console.error(`[GoalTracker] ⚠ ${failedTasks.length} tasks failed`);
+      console.error(`[GoalTracker] [!] ${failedTasks.length} tasks failed`);
     }
 
     // Print progress summary

@@ -27,7 +27,7 @@ describe("runAcpMode", () => {
 		await runAcpMode();
 
 		expect(stderrWrite).toHaveBeenCalledWith(
-			"[acp] starting ACP mode over stdio…\n",
+			"[acp] starting ACP mode over stdio...\n",
 		);
 		expect(stderrWrite).not.toHaveBeenCalledWith(
 			expect.stringContaining("error:"),

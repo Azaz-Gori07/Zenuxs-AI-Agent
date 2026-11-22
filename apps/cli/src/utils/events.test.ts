@@ -16,7 +16,7 @@ describe("handleEvent text formatting", () => {
 		});
 	});
 
-	it("adds a ⎿ before text that follows a tool block", () => {
+	it("adds a | before text that follows a tool block", () => {
 		handleEvent(
 			{
 				type: "content_start",
@@ -47,7 +47,7 @@ describe("handleEvent text formatting", () => {
 		expect(output).toContain(
 			`\x1b[36m[read_files]\x1b[0m {"path":"/tmp/demo.txt"}`,
 		);
-		expect(output).toMatch(/⎿.*ok/s);
+		expect(output).toMatch(/|.*ok/s);
 	});
 
 	it("prints adjacent tool starts on separate lines", () => {
@@ -118,7 +118,7 @@ describe("handleEvent text formatting", () => {
 				contentType: "tool",
 				toolName: "team_task",
 				error:
-					'✖ Field "status" is not allowed when action=create\n  → at status',
+					'[X] Field "status" is not allowed when action=create\n  -> at status',
 			} as unknown as AgentEvent,
 			{} as Config,
 		);
@@ -128,7 +128,7 @@ describe("handleEvent text formatting", () => {
 		expect(output).toContain(
 			'Field "status" is not allowed when action=create',
 		);
-		expect(output).toContain("→ at status");
+		expect(output).toContain("-> at status");
 	});
 
 	it("prints completed done events as finished in verbose mode", () => {
@@ -142,8 +142,8 @@ describe("handleEvent text formatting", () => {
 			{ verbose: true } as Config,
 		);
 
-		expect(output).toContain("── finished (5 iterations) ──");
-		expect(output).not.toContain("── aborted (5 iterations) ──");
+		expect(output).toContain("-- finished (5 iterations) --");
+		expect(output).not.toContain("-- aborted (5 iterations) --");
 	});
 
 	it("prints aborted done events as aborted in verbose mode", () => {
@@ -157,7 +157,7 @@ describe("handleEvent text formatting", () => {
 			{ verbose: true } as Config,
 		);
 
-		expect(output).toContain("── aborted (2 iterations) ──");
+		expect(output).toContain("-- aborted (2 iterations) --");
 	});
 
 	it("suppresses heartbeat-only team progress messages", () => {

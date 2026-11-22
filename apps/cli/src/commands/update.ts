@@ -312,7 +312,7 @@ async function restartHubServerIfRunning(): Promise<void> {
 	if (!discovery || !health?.url) return;
 
 	const pid = discovery?.pid;
-	writeln(`${c.dim}[hub] restarting server…${c.reset}`);
+	writeln(`${c.dim}[hub] restarting server...${c.reset}`);
 
 	let stopped = await stopLocalHubServerGracefully(owner).catch(() => false);
 	if (!stopped && pid) {
@@ -338,7 +338,7 @@ async function restartHubServerIfRunning(): Promise<void> {
 	// Re-ensure a fresh hub instance is spawned.
 	try {
 		await ensureCliHubServer(process.cwd()); // return value intentionally unused here
-		writeln(`${c.green}✓${c.reset} ${c.dim}[hub] server restarted${c.reset}`);
+		writeln(`${c.green}[OK]${c.reset} ${c.dim}[hub] server restarted${c.reset}`);
 	} catch (err) {
 		writeErr(
 			`[hub] failed to restart server: ${err instanceof Error ? err.message : String(err)}`,
@@ -404,7 +404,7 @@ export async function checkForUpdates(
 	const currentVersion = version;
 	const includeKanban = options.includeKanban ?? true;
 	writeln(
-		`${c.cyan}Checking for updates${includeKanban ? " to Zenuxs CLI and kanban" : ""}…${c.reset}`,
+		`${c.cyan}Checking for updates${includeKanban ? " to Zenuxs CLI and kanban" : ""}...${c.reset}`,
 	);
 
 	const { packageName, updateCommand, packageManager } =
@@ -468,11 +468,11 @@ export async function checkForUpdates(
 		if (!cliUpdateAvailable && !shouldUpdateKanban) {
 			if (cliIsUpToDate && installedKanbanVersion && latestKanbanVersion) {
 				writeln(
-					`${c.green}✓${c.reset} Already on the latest versions ${c.bold}${packageName}@${currentVersion}${c.reset} and ${c.bold}kanban@${installedKanbanVersion}${c.reset}`,
+					`${c.green}[OK]${c.reset} Already on the latest versions ${c.bold}${packageName}@${currentVersion}${c.reset} and ${c.bold}kanban@${installedKanbanVersion}${c.reset}`,
 				);
 			} else if (cliIsUpToDate) {
 				writeln(
-					`${c.green}✓${c.reset} Already on the latest version ${c.bold}${currentVersion}${c.reset}`,
+					`${c.green}[OK]${c.reset} Already on the latest version ${c.bold}${currentVersion}${c.reset}`,
 				);
 			}
 			return 0;
@@ -499,7 +499,7 @@ export async function checkForUpdates(
 					packageManager,
 				);
 				writeln(
-					`${c.cyan}Installing ${packageName}@${latestVersion}…${c.reset}`,
+					`${c.cyan}Installing ${packageName}@${latestVersion}...${c.reset}`,
 				);
 				try {
 					const exitCode = await runCliUpdate(manualUpdateCommand);
@@ -524,7 +524,7 @@ export async function checkForUpdates(
 		}
 
 		if (shouldUpdateKanban && kanbanInstallCommand && latestKanbanVersion) {
-			writeln(`${c.cyan}Installing kanban@${latestKanbanVersion}…${c.reset}`);
+			writeln(`${c.cyan}Installing kanban@${latestKanbanVersion}...${c.reset}`);
 			try {
 				const exitCode = await runKanbanUpdate(kanbanInstallCommand);
 				if (exitCode === 0) {
@@ -550,7 +550,7 @@ export async function checkForUpdates(
 					? "Installed update for"
 					: "Installed updates for";
 			writeln(
-				`${c.green}✓${c.reset} ${label} ${formatUpdateSummaryTargets(installedUpdates)}`,
+				`${c.green}[OK]${c.reset} ${label} ${formatUpdateSummaryTargets(installedUpdates)}`,
 			);
 		}
 

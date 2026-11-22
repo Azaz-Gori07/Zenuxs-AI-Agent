@@ -220,7 +220,7 @@ export function getConfigFooterText({
 	canToggle?: boolean;
 	canDelete?: boolean;
 } = {}): string {
-	const actions = ["←/→ switch tabs", "↑/↓ navigate", "Tab/Enter select"];
+	const actions = ["<-/-> switch tabs", "up/down navigate", "Tab/Enter select"];
 	if (canToggle) {
 		actions.push("Space toggle");
 	}

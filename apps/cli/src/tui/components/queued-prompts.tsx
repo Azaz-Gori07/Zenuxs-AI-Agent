@@ -32,10 +32,10 @@ export function QueuedPrompts(props: {
 			? "Enter confirm, Esc cancel"
 			: selected.steer
 				? session.isRunning
-					? "Waiting. ↑/↓ navigate, Tab edit, Esc cancels turn"
-					: `Steered next. ↑/↓ navigate, Tab edit, ${escapeHint}`
-				: `↑/↓ navigate, Enter steer, Tab edit, ${escapeHint}`
-		: "↑ steer or edit messages";
+					? "Waiting. up/down navigate, Tab edit, Esc cancels turn"
+					: `Steered next. up/down navigate, Tab edit, ${escapeHint}`
+				: `up/down navigate, Enter steer, Tab edit, ${escapeHint}`
+		: "up steer or edit messages";
 
 	return (
 		<box
@@ -97,7 +97,7 @@ function QueuedPromptRow(props: {
 				/>
 			) : (
 				<text fg={selected ? palette.textOnSelection : "gray"} flexShrink={0}>
-					{selected ? "❯" : " "}
+					{selected ? ">" : " "}
 				</text>
 			)}
 			{editing ? (

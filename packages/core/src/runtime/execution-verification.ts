@@ -123,25 +123,25 @@ export function verifyExecution(
   const warnings: string[] = [];
 
   if (missingFiles.length > 0) {
-    warnings.push(`⚠ CLAIMED FILES NOT FOUND: ${missingFiles.join(", ")}`);
+    warnings.push(`[!] CLAIMED FILES NOT FOUND: ${missingFiles.join(", ")}`);
     warnings.push("  These files were mentioned but don't exist in the workspace.");
     warnings.push("  This suggests simulation rather than real execution.");
   }
 
   if (missingCommands.length > 0) {
-    warnings.push(`⚠ CLAIMED COMMANDS NOT EXECUTED: ${missingCommands.join(", ")}`);
+    warnings.push(`[!] CLAIMED COMMANDS NOT EXECUTED: ${missingCommands.join(", ")}`);
     warnings.push("  These commands were claimed but don't appear in execution history.");
     warnings.push("  Shell commands must actually run to be valid.");
   }
 
   if (missingDependencies.length > 0) {
-    warnings.push(`⚠ CLAIMED DEPENDENCIES NOT INSTALLED: ${missingDependencies.join(", ")}`);
+    warnings.push(`[!] CLAIMED DEPENDENCIES NOT INSTALLED: ${missingDependencies.join(", ")}`);
     warnings.push("  These packages were claimed installed but weren't tracked.");
     warnings.push("  Dependencies must be installed via package manager commands.");
   }
 
   if (evidence.claimedBuildSuccess && !evidence.actualBuildSuccess) {
-    warnings.push("⚠ BUILD SUCCESS CLAIMED BUT NOT VERIFIED");
+    warnings.push("[!] BUILD SUCCESS CLAIMED BUT NOT VERIFIED");
     warnings.push("  Build must actually succeed before claiming project completion.");
   }
 
@@ -209,7 +209,7 @@ function checkForPlaceholders(
           if (pattern.test(line)) {
             // Skip legitimate comments in non-generated files
             if (line.trim().startsWith("//") || line.trim().startsWith("/*") || line.trim().startsWith("*")) {
-              warnings.push(`⚠ PLACEHOLDER in ${filePath}:${i + 1}: ${line.trim()}`);
+              warnings.push(`[!] PLACEHOLDER in ${filePath}:${i + 1}: ${line.trim()}`);
             }
             break;
           }

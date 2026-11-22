@@ -85,7 +85,7 @@ export function CheckpointConfirmContent(
 								fg={isSel ? palette.textOnSelection : "gray"}
 								flexShrink={0}
 							>
-								{isSel ? "❯" : " "}
+								{isSel ? ">" : " "}
 							</text>
 							<box flexDirection="column">
 								<text fg={isSel ? palette.textOnSelection : undefined}>
@@ -107,7 +107,7 @@ export function CheckpointConfirmContent(
 			)}
 
 			<text fg="gray">
-				<em>{"↑/↓ navigate, Enter to confirm, Esc to cancel"}</em>
+				<em>{"up/down navigate, Enter to confirm, Esc to cancel"}</em>
 			</text>
 		</box>
 	);

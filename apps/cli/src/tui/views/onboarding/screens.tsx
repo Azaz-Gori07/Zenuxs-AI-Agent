@@ -527,7 +527,7 @@ export function OnboardingProviderPickerScreen(props: {
 
 			<text fg="gray" paddingX={1}>
 				<em>
-					Type to search, ↑/↓ navigate, Enter to select, Esc to go back, Ctrl+C
+					Type to search, up/down navigate, Enter to select, Esc to go back, Ctrl+C
 					to exit
 				</em>
 			</text>
@@ -566,7 +566,7 @@ export function OnboardingClineModelScreen(props: {
 			/>
 
 			<text fg="gray" paddingX={1}>
-				<em>↑/↓ navigate, Enter to select, Esc to go back, Ctrl+C to exit</em>
+				<em>up/down navigate, Enter to select, Esc to go back, Ctrl+C to exit</em>
 			</text>
 		</OnboardingFrame>
 	);
@@ -613,7 +613,7 @@ export function OnboardingModelPickerScreen(props: {
 
 			<text fg="gray" paddingX={1}>
 				<em>
-					Type to search, ↑/↓ navigate, Enter to select, Esc to go back, Ctrl+C
+					Type to search, up/down navigate, Enter to select, Esc to go back, Ctrl+C
 					to exit
 				</em>
 			</text>
@@ -729,7 +729,7 @@ export function OnboardingThinkingLevelScreen(props: {
 			</box>
 
 			<text fg="gray" paddingX={1}>
-				<em>↑/↓ navigate, Enter to select, Esc to go back, Ctrl+C to exit</em>
+				<em>up/down navigate, Enter to select, Esc to go back, Ctrl+C to exit</em>
 			</text>
 		</OnboardingFrame>
 	);
@@ -807,7 +807,7 @@ export function OnboardingMainMenuScreen(props: {
 			</box>
 
 			<text fg="gray" marginTop={1}>
-				<em>↑/↓ navigate, Enter to select, Ctrl+C to exit</em>
+				<em>up/down navigate, Enter to select, Ctrl+C to exit</em>
 			</text>
 		</box>
 	);

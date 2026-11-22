@@ -1,3 +1,7 @@
 round=2
-step=1
-status=START (round 1 step 5 failed; root cause fixed in 94adba4)
+step=2
+status=RUNNING (429 quota on CLI calls; backoff sweep active)
+step1=PASS
+step3=PASS
+step4=PASS
+step5=PASS (fresh clone gate exit 0, 17/17)

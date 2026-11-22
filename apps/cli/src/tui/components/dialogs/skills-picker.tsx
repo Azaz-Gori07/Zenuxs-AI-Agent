@@ -143,7 +143,7 @@ export function SkillsPickerContent(props: SkillsPickerContentProps) {
 									height={1}
 								>
 									<text fg={isSelected ? palette.textOnSelection : "cyan"}>
-										{isSelected ? "❯ " : "  "}
+										{isSelected ? "> " : "  "}
 										Browse more skills at {SKILLS_MARKETPLACE_URL}
 									</text>
 								</box>
@@ -184,7 +184,7 @@ export function SkillsPickerContent(props: SkillsPickerContentProps) {
 
 			<text fg="gray">
 				<em>
-					Type to filter, ↑/↓ navigate
+					Type to filter, up/down navigate
 					{enterAction ? `, Enter to ${enterAction}` : ""}, Esc to close
 				</em>
 			</text>

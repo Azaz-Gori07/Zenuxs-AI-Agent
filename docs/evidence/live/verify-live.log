@@ -1,10 +1,10 @@
 === LIVE PROVIDER VERIFICATION ===
-=== TIMESTAMP: 2026-11-21T06:38:21Z ===
-=== SHA: 0ce1a85e3932936c220a73138c75f79bf880436c ===
-=== MODEL: big-pickle ===
+=== TIMESTAMP: 2026-11-21T10:36:20Z ===
+=== SHA: 077c0b7cc1904717d1377c35b490fe6f31ae6604 ===
+=== MODEL: flint-40b-free ===
 === API_BASE: http://127.0.0.1:20129/v1 ===
 === TIMEOUT_SECONDS: 300 ===
 --- models attempt 1 exit=0 ---
 {"object":"list","data":[{"id":"big-pickle","object":"model","owned_by":"opencode"},{"id":"mimo-v2.6-flash-free","object":"model","owned_by":"opencode"},{"id":"deepseek-v4.1-flash-free","object":"model","owned_by":"opencode"},{"id":"longcat-2.5-free","object":"model","owned_by":"opencode"},{"id":"iceman-free","object":"model","owned_by":"opencode"},{"id":"beam-free","object":"model","owned_by":"opencode"},{"id":"flint-40b-free","object":"model","owned_by":"opencode"},{"id":"nemotron-3.5-super-vl-free","object":"model","owned_by":"opencode"},{"id":"nemotron-3.5-lightning-free","object":"model","owned_by":"opencode"},{"id":"hy4-flash-free","object":"model","owned_by":"opencode"},{"id":"tidepool-alpha-free","object":"model","owned_by":"opencode"}]}
 --- tiny completion attempt 1 exit=0 ---
-{"id":"chatcmpl-115e6db5a8ed8eaff4a9a74e","object":"chat.completion","created":1795243117,"model":"big-pickle","choices":[{"index":0,"message":{"role":"assistant","content":"PONG","reasoning_content":"The user says \"Reply with exactly PONG\". Need comply exactly, no extra text."},"finish_reason":"stop"}],"usage":{"prompt_tokens":459,"completion_tokens":22,"total_tokens":481}}
+{"id":"chatcmpl-039823fafbcb8cecdddb350f","object":"chat.completion","created":1795257382,"model":"flint-40b-free","choices":[{"index":0,"message":{"role":"assistant","content":"PONG","reasoning_content":"The user asked me to reply with exactly PONG. This is a simple request. I should just reply with \"PONG\" exactly, no extra text."},"finish_reason":"stop"}],"usage":{"prompt_tokens":586,"completion_tokens":37,"total_tokens":623}}

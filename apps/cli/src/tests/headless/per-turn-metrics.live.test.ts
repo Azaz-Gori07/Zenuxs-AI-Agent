@@ -3,8 +3,8 @@
 //
 // Verifies that each assistant message in messages.json carries its own
 // per-turn token usage rather than the session total. This exercises the
-// full path: real Agent class → real stream parsing → metrics stamped on
-// each assistant message at append time → persisted to messages.json.
+// full path: real Agent class -> real stream parsing -> metrics stamped on
+// each assistant message at append time -> persisted to messages.json.
 //
 // The cassette has two API calls:
 //   Turn 1: tool call (run_commands)     — usage: 1000 in / 25 out / 50 cacheWrite / 200 cacheRead

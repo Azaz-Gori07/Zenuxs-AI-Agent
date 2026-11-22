@@ -150,7 +150,7 @@ export function McpManagerContent(
 						const enabled =
 							typeof srv.enabled === "boolean" ? srv.enabled : true;
 						const enabledIcon =
-							typeof srv.enabled === "boolean" ? (enabled ? "● " : "○ ") : "";
+							typeof srv.enabled === "boolean" ? (enabled ? "[*] " : "[ ] ") : "";
 						const status = getMcpManagerEntryStatus(srv);
 						let rowColor = isSel ? "cyan" : "gray";
 						if (enabled && typeof srv.enabled === "boolean") {

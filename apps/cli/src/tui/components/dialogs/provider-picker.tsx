@@ -250,7 +250,7 @@ export function ProviderPickerContent(
 			)}
 
 			<text fg="gray">
-				Type to search, ↑/↓ navigate, Enter to select, Esc to go back
+				Type to search, up/down navigate, Enter to select, Esc to go back
 			</text>
 		</box>
 	);
@@ -311,7 +311,7 @@ export function UseExistingOrReconfigureContent(
 							fg={i === selected ? palette.textOnSelection : "gray"}
 							flexShrink={0}
 						>
-							{i === selected ? "❯" : " "}
+							{i === selected ? ">" : " "}
 						</text>
 						<text fg={i === selected ? palette.textOnSelection : undefined}>
 							{opt.label}
@@ -320,7 +320,7 @@ export function UseExistingOrReconfigureContent(
 				))}
 			</box>
 
-			<text fg="gray">↑/↓ navigate, Enter to select, Esc to go back</text>
+			<text fg="gray">up/down navigate, Enter to select, Esc to go back</text>
 		</box>
 	);
 }
@@ -377,7 +377,7 @@ export function DisconnectActiveProviderConfirmContent(
 							fg={i === selected ? palette.textOnSelection : "gray"}
 							flexShrink={0}
 						>
-							{i === selected ? "❯" : " "}
+							{i === selected ? ">" : " "}
 						</text>
 						<text fg={i === selected ? palette.textOnSelection : undefined}>
 							{opt.label}
@@ -386,7 +386,7 @@ export function DisconnectActiveProviderConfirmContent(
 				))}
 			</box>
 
-			<text fg="gray">↑/↓ navigate, Enter to select, Esc to cancel</text>
+			<text fg="gray">up/down navigate, Enter to select, Esc to cancel</text>
 		</box>
 	);
 }
@@ -1154,7 +1154,7 @@ export function ProviderManagerContent(
 			)}
 
 			<text fg="gray">
-				↑/↓ navigate | Enter set active | E configure | D disconnect | T test | Esc back
+				up/down navigate | Enter set active | E configure | D disconnect | T test | Esc back
 			</text>
 		</box>
 	);
