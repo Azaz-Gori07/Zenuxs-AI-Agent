@@ -56,3 +56,6 @@ config.json
 
 # VS Code E2E downloaded runtime
 .vscode-test/
+
+# Untracked local desktop experiment (not part of recovery branch)
+apps/desktop/
