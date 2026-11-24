@@ -1,20 +1,20 @@
 === ZENUXS GATE ===
-=== TIMESTAMP: 2026-11-21T05:53:29Z ===
-=== SHA: e1e51d36c1921a1d01466b9fb501cca29669fc24 ===
+=== TIMESTAMP: 2026-11-24T13:45:42Z ===
+=== SHA: 25651eedeb669d56bf7aac3561628aad047ca15a ===
 === BRANCH: fix/zenuxs-recovery ===
 
 === STEP: install ===
 === COMMAND: bun install --frozen-lockfile ===
-=== TIMESTAMP: 2026-11-21T05:53:29Z ===
+=== TIMESTAMP: 2026-11-24T13:45:42Z ===
 bun install v1.4.4 (38afee6c8)
 
-Checked 1300 installs across 1379 packages (no changes) [23.00ms]
+Checked 1420 installs across 1534 packages (no changes) [89.00ms]
 === EXIT: 0 ===
 PASS: install
 
 === STEP: build ===
 === COMMAND: bun run build ===
-=== TIMESTAMP: 2026-11-21T05:53:29Z ===
+=== TIMESTAMP: 2026-11-24T13:45:42Z ===
 $ bun run build:sdk && bun -F zenuxs-code build
 $ bun --production -F './packages/*' build
 @zenuxs/schema build: Exited with code 0
@@ -33,33 +33,33 @@ PASS: build
 
 === STEP: typecheck:cli ===
 === COMMAND: bun run --cwd apps/cli typecheck ===
-=== TIMESTAMP: 2026-11-21T05:53:41Z ===
+=== TIMESTAMP: 2026-11-24T13:45:55Z ===
 $ tsc --noEmit
 === EXIT: 0 ===
 PASS: typecheck:cli
 
 === STEP: typecheck:schema ===
 === COMMAND: bun run --cwd packages/schema typecheck ===
-=== TIMESTAMP: 2026-11-21T05:53:52Z ===
+=== TIMESTAMP: 2026-11-24T13:46:06Z ===
 $ tsc --noEmit
 === EXIT: 0 ===
 PASS: typecheck:schema
 
 === STEP: typecheck:engine ===
 === COMMAND: bun run --cwd packages/engine typecheck ===
-=== TIMESTAMP: 2026-11-21T05:53:53Z ===
+=== TIMESTAMP: 2026-11-24T13:46:07Z ===
 $ tsc --noEmit
 === EXIT: 0 ===
 PASS: typecheck:engine
 
 === STEP: build:extension ===
 === COMMAND: bun run build:extension ===
-=== TIMESTAMP: 2026-11-21T05:53:54Z ===
+=== TIMESTAMP: 2026-11-24T13:46:08Z ===
 $ bun run build:sdk && bun --cwd apps/vscode-extension build
 $ bun --production -F './packages/*' build
 @zenuxs/schema build: Exited with code 0
-@zenuxs/lsp build: Exited with code 0
 @zenuxs/providers build: Exited with code 0
+@zenuxs/lsp build: Exited with code 0
 @cline/shared build: Exited with code 0
 @zenuxs/engine build: Exited with code 0
 @zenuxs/plugin-sdk build: Exited with code 0
@@ -69,30 +69,30 @@ $ bun --production -F './packages/*' build
 @cline/core build: Exited with code 0
 $ bun run build:webview && bun run build:extension
 $ bun build --production ./src/webview/index.tsx --outfile ./dist/webview.js --target browser --format esm
-Bundled 26 modules in 22ms
+Bundled 26 modules in 21ms
 
   webview.js  0.32 MB  (entry point)
 
 $ bun build ./src/extension.ts --outfile ./dist/extension.js --target node --format esm --external vscode --source-map=external
-Bundled 1199 modules in 393ms
+Bundled 1212 modules in 358ms
 
-  extension.js  20.28 MB  (entry point)
+  extension.js  20.35 MB  (entry point)
 === EXIT: 0 ===
 PASS: build:extension
 
 === STEP: vsix:build-install ===
 === COMMAND: bash scripts/package-extension.sh ===
-=== TIMESTAMP: 2026-11-21T05:54:09Z ===
+=== TIMESTAMP: 2026-11-24T13:46:21Z ===
 $ bun run build:webview && bun run build:extension
 $ bun build --production ./src/webview/index.tsx --outfile ./dist/webview.js --target browser --format esm
-Bundled 26 modules in 20ms
+Bundled 26 modules in 22ms
 
   webview.js  0.32 MB  (entry point)
 
 $ bun build ./src/extension.ts --outfile ./dist/extension.js --target node --format esm --external vscode --source-map=external
-Bundled 1199 modules in 408ms
+Bundled 1212 modules in 342ms
 
-  extension.js  20.28 MB  (entry point)
+  extension.js  20.35 MB  (entry point)
 
 npm notice run @zenuxs/workspace@0.0.0 npx
 npm notice run 'vsce' package --no-dependencies --out /tmp/zenuxs-code.vsix
@@ -102,7 +102,7 @@ zenuxs-code.vsix
 ├─ extension.vsixmanifest 
 └─ extension/
    ├─ LICENSE.txt [1.04 KB]
-   ├─ developer-logs-1785226425098.json [5.7 KB]
+   ├─ developer-logs-1785226425098.json [5.67 KB]
    ├─ package.json [11.08 KB]
    ├─ readme.md 
    ├─ assets/
@@ -111,15 +111,15 @@ zenuxs-code.vsix
    │  ├─ ChatGPT-2.png [97.48 KB]
    │  └─ ChatGPT-3.png [53.61 KB]
    └─ dist/
-      ├─ extension.js [19.34 MB]
-      └─ webview.js [311.47 KB]
+      ├─ extension.js [19.41 MB]
+      └─ webview.js [311.36 KB]
 
-The file extension/dist/extension.js is large (19.34 MB)
+The file extension/dist/extension.js is large (19.41 MB)
 
- DONE  Packaged: /tmp/zenuxs-code.vsix (12 files, 4.25 MB)
+ DONE  Packaged: /tmp/zenuxs-code.vsix (12 files, 4.27 MB)
 Installing extensions...
 Extension 'zenuxs-code.vsix' was successfully installed.
-(node:169574) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(node:145128) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
 (Use `code --trace-deprecation ...` to show where the warning was created)
 VSIX_READY=/tmp/zenuxs-code.vsix
 === EXIT: 0 ===
@@ -127,7 +127,7 @@ PASS: vsix:build-install
 
 === STEP: test:unit:cli ===
 === COMMAND: bun run --cwd apps/cli test:unit ===
-=== TIMESTAMP: 2026-11-21T05:54:17Z ===
+=== TIMESTAMP: 2026-11-24T13:46:31Z ===
 $ vitest run --config vitest.config.ts
 
  RUN  v4.1.9 /home/azaz/Projects/Zenuxs-AI-Agent/apps/cli
@@ -135,34 +135,34 @@ $ vitest run --config vitest.config.ts
 Created worktree at /tmp/cline-worktree
 Created worktree at /tmp/cline-worktree
 Created worktree at /tmp/cline-worktree
-[36mChecking for updates…[0m
-[32m✓[0m Already on the latest version [1m3.0.29[0m
+[36mChecking for updates...[0m
+[32m[OK][0m Already on the latest version [1m3.0.29[0m
 
  Test Files  107 passed (107)
-      Tests  760 passed (760)
-   Start at  11:24:17
-   Duration  95.04s (transform 3.67s, setup 0ms, import 33.61s, tests 49.95s, environment 10ms)
+      Tests  765 passed (765)
+   Start at  19:16:31
+   Duration  67.70s (transform 3.43s, setup 0ms, import 34.60s, tests 20.92s, environment 10ms)
 === EXIT: 0 ===
 PASS: test:unit:cli
 
 === STEP: test:unit:core ===
 === COMMAND: bun run --cwd packages/core test:unit ===
-=== TIMESTAMP: 2026-11-21T05:55:53Z ===
+=== TIMESTAMP: 2026-11-24T13:47:39Z ===
 $ vitest run --config vitest.config.ts
 
  RUN  v4.1.9 /home/azaz/Projects/Zenuxs-AI-Agent/packages/core
 
 
  Test Files  138 passed | 1 skipped (139)
-      Tests  1315 passed | 4 skipped (1319)
-   Start at  11:25:53
-   Duration  14.35s (transform 22.89s, setup 0ms, import 96.45s, tests 66.00s, environment 29ms)
+      Tests  1316 passed | 4 skipped (1320)
+   Start at  19:17:39
+   Duration  16.65s (transform 26.61s, setup 0ms, import 109.68s, tests 80.38s, environment 47ms)
 === EXIT: 0 ===
 PASS: test:unit:core
 
 === STEP: test:unit:engine ===
 === COMMAND: bun run --cwd packages/engine test ===
-=== TIMESTAMP: 2026-11-21T05:56:07Z ===
+=== TIMESTAMP: 2026-11-24T13:47:56Z ===
 $ vitest run
 
  RUN  v4.1.9 /home/azaz/Projects/Zenuxs-AI-Agent/packages/engine
@@ -170,14 +170,14 @@ $ vitest run
 
  Test Files  3 passed (3)
       Tests  16 passed (16)
-   Start at  11:26:08
-   Duration  281ms (transform 350ms, setup 0ms, import 474ms, tests 19ms, environment 0ms)
+   Start at  19:17:56
+   Duration  307ms (transform 363ms, setup 0ms, import 505ms, tests 20ms, environment 0ms)
 === EXIT: 0 ===
 PASS: test:unit:engine
 
 === STEP: test:unit:schema ===
 === COMMAND: bun run --cwd packages/schema test ===
-=== TIMESTAMP: 2026-11-21T05:56:08Z ===
+=== TIMESTAMP: 2026-11-24T13:47:57Z ===
 $ vitest run
 
  RUN  v4.1.9 /home/azaz/Projects/Zenuxs-AI-Agent/packages/schema
@@ -185,21 +185,21 @@ $ vitest run
 
  Test Files  1 passed (1)
       Tests  4 passed (4)
-   Start at  11:26:08
-   Duration  205ms (transform 43ms, setup 0ms, import 97ms, tests 6ms, environment 0ms)
+   Start at  19:17:57
+   Duration  243ms (transform 52ms, setup 0ms, import 114ms, tests 6ms, environment 0ms)
 === EXIT: 0 ===
 PASS: test:unit:schema
 
 === STEP: fake-provider:smoke ===
 === COMMAND: node tests/fake-provider/smoke-test.mjs ===
-=== TIMESTAMP: 2026-11-21T05:56:08Z ===
+=== TIMESTAMP: 2026-11-24T13:47:57Z ===
 {"ok":true,"turns":5}
 === EXIT: 0 ===
 PASS: fake-provider:smoke
 
 === STEP: evidence:regenerate ===
 === COMMAND: bash scripts/regenerate-evidence.sh ===
-=== TIMESTAMP: 2026-11-21T05:56:09Z ===
+=== TIMESTAMP: 2026-11-24T13:47:57Z ===
 headless: exit=0 guard=PASS
 multitool: exit=0 guard=PASS
 mode_act: exit=0 guard=PASS
@@ -231,14 +231,14 @@ PASS: evidence:regenerate
 
 === STEP: tui:pty ===
 === COMMAND: node scripts/tui-pty-test.mjs docs/evidence/F-tui/pty-transcript.log ===
-=== TIMESTAMP: 2026-11-21T05:57:35Z ===
-{"ok":true,"transcriptBytes":9874,"out":"docs/evidence/F-tui/pty-transcript.log"}
+=== TIMESTAMP: 2026-11-24T13:49:23Z ===
+{"ok":true,"transcriptBytes":11278,"out":"docs/evidence/F-tui/pty-transcript.log"}
 === EXIT: 0 ===
 PASS: tui:pty
 
 === STEP: security:check ===
 === COMMAND: bash -c node scripts/security-check.mjs && node scripts/security-check.test.mjs ===
-=== TIMESTAMP: 2026-11-21T05:57:40Z ===
+=== TIMESTAMP: 2026-11-24T13:49:29Z ===
 {
   "problems": []
 }
@@ -248,9 +248,9 @@ PASS: security:check
 
 === STEP: matrix:reconcile ===
 === COMMAND: node scripts/reconcile-matrix.mjs ===
-=== TIMESTAMP: 2026-11-21T05:57:41Z ===
+=== TIMESTAMP: 2026-11-24T13:49:29Z ===
 {
-  "sha": "e1e51d36c1921a1d01466b9fb501cca29669fc24",
+  "sha": "25651eedeb669d56bf7aac3561628aad047ca15a",
   "rows": 37,
   "counts": {
     "VERIFIED": 35,
@@ -262,7 +262,7 @@ PASS: matrix:reconcile
 
 === STEP: matrix:check ===
 === COMMAND: node scripts/check-matrix.mjs ===
-=== TIMESTAMP: 2026-11-21T05:57:41Z ===
+=== TIMESTAMP: 2026-11-24T13:49:29Z ===
     "F-core": "VERIFIED",
     "F-prov": "BLOCKED",
     "F-mode": "VERIFIED",

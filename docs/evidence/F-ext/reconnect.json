@@ -1,6 +1,6 @@
 {
-  "sha": "5238b9ea151141c89e92806b195b035538a496a4",
-  "timestamp": "2026-11-21T06:43:38.385Z",
+  "sha": "25651eedeb669d56bf7aac3561628aad047ca15a",
+  "timestamp": "2026-11-24T13:49:07.435Z",
   "checks": [
     {
       "name": "open chat view",
@@ -35,7 +35,7 @@
     {
       "name": "fresh session after reconnect",
       "ok": true,
-      "detail": "1795243438691_qe6q4"
+      "detail": "1795528163238_kx0ld"
     },
     {
       "name": "fake provider served both phases",
@@ -49,7 +49,7 @@
   "phases": {
     "baseline": {
       "sessionIds": [
-        "1795243434966_re0g0"
+        "1795528161002_utsj1"
       ],
       "turnDone": 2
     },
@@ -59,7 +59,7 @@
     },
     "reconnected": {
       "sessionIds": [
-        "1795243438691_qe6q4"
+        "1795528163238_kx0ld"
       ],
       "turnDone": 2
     }
@@ -84,7 +84,7 @@
       "zenuxs.editFile",
       "zenuxs.runTerminalCommand"
     ],
-    "at": "2026-11-21T06:43:47.716Z"
+    "at": "2026-11-24T13:49:14.382Z"
   },
   "fakeProviderState": {
     "turn": 2,
@@ -93,11 +93,11 @@
   "transcript": [
     {
       "t": "session_started",
-      "sessionId": "1795243434966_re0g0"
+      "sessionId": "1795528161002_utsj1"
     },
     {
       "t": "checkpoint_list",
-      "sessionId": "1795243434966_re0g0"
+      "sessionId": "1795528161002_utsj1"
     },
     {
       "t": "status",
@@ -166,11 +166,11 @@
     },
     {
       "t": "session_started",
-      "sessionId": "1795243438691_qe6q4"
+      "sessionId": "1795528163238_kx0ld"
     },
     {
       "t": "checkpoint_list",
-      "sessionId": "1795243438691_qe6q4"
+      "sessionId": "1795528163238_kx0ld"
     },
     {
       "t": "status",
@@ -210,5 +210,5 @@
       "t": "turn_done"
     }
   ],
-  "webviewText": "CONTEXT WINDOW\n0 / 128,000\n⏱️\n\nReconnect after core kill\n\nZenuxs AI\n\nMode check OK.\n\nOpenAI / fake-model ▾\n|\nAct ▾\nAttach File Context\n0 / 128,000 | $0.0000"
+  "webviewText": "CONTEXT WINDOW\n0 / 128,000\n[TIMER]\n\nReconnect after core kill\n\nZenuxs AI\n\nMode check OK.\n\nOpenAI / fake-model v\n|\nAct v\nAttach File Context\n0 / 128,000 | $0.0000"
 }
