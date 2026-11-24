@@ -135,7 +135,7 @@ const ACTION_ITEMS: Array<{
 	{
 		action: "rewind",
 		label: "Revert to Checkpoint",
-		shortcut: "",
+		shortcut: "Opt+O",
 		description: "Revert the session and workspace to an earlier checkpoint",
 		keywords: ["rewind", "revert", "undo", "checkpoint"],
 	},

@@ -576,7 +576,7 @@ export function SettingsView() {
 		<div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
 			<div style={{ padding: "12px 16px", flexShrink: 0 }}>
 				<button className="btn secondary sm" onClick={() => switchTab("chat")}>
-					<- Back to Chat
+					{"<- Back to Chat"}
 				</button>
 			</div>
 
