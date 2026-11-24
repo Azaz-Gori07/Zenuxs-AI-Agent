@@ -1207,7 +1207,7 @@ export function getWebviewHtml(
 			0% { background-position: 200% 0; }
 			100% { background-position: -200% 0; }
 		}
-		/* Live reasoning streaming — glowing left border + animated header */
+		/* Live reasoning streaming - glowing left border + animated header */
 		.reasoning-live {
 			border-left: 2px solid var(--accent);
 			padding-left: 12px;
@@ -1373,7 +1373,7 @@ export function getWebviewHtml(
 				vscode.postMessage({
 					type: 'webview_log',
 					level: 'info',
-					message: '[' + component + '] ' + func + ' — ' + (status || 'SUCCESS') + (duration && duration !== 'N/A' ? ' (' + duration + ')' : ''),
+					message: '[' + component + '] ' + func + ' - ' + (status || 'SUCCESS') + (duration && duration !== 'N/A' ? ' (' + duration + ')' : ''),
 					logParams: {
 						workerId: workerId,
 						sessionId: sessionId || 'None',

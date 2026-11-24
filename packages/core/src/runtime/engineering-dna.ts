@@ -1,23 +1,23 @@
 /**
- * Engineering DNA — Permanent Behavior, Decision Making & Quality Standard
+ * Engineering DNA - Permanent Behavior, Decision Making & Quality Standard
  *
  * This system permanently embeds engineering principles into Zenuxs' runtime,
  * ensuring every decision, implementation, and improvement reinforces
  * Zenuxs' identity as a production-grade autonomous engineering platform.
  *
  * Core Principles:
- * 1. Engineering Before Tokens — Optimize for correct execution, not quick replies
- * 2. Root Cause First — Solve problems permanently, never patch symptoms
- * 3. Systems Thinking — Improve systems, not isolated files
- * 4. Search Before Create — Reuse existing implementations
- * 5. Reuse Before Rewrite — Never replace working code unnecessarily
- * 6. No Duplication — Always integrate, never duplicate
- * 7. Zero Placeholders — Everything production-ready
- * 8. Validation First — Never trust generated code, always verify
- * 9. Self Repair — Failures expected, stopping is not
- * 10. Tool First — If a tool can do it, use the tool
- * 11. Automatic Improvement — Leave every subsystem better
- * 12. Long Term Thinking — Will this be good in one year?
+ * 1. Engineering Before Tokens - Optimize for correct execution, not quick replies
+ * 2. Root Cause First - Solve problems permanently, never patch symptoms
+ * 3. Systems Thinking - Improve systems, not isolated files
+ * 4. Search Before Create - Reuse existing implementations
+ * 5. Reuse Before Rewrite - Never replace working code unnecessarily
+ * 6. No Duplication - Always integrate, never duplicate
+ * 7. Zero Placeholders - Everything production-ready
+ * 8. Validation First - Never trust generated code, always verify
+ * 9. Self Repair - Failures expected, stopping is not
+ * 10. Tool First - If a tool can do it, use the tool
+ * 11. Automatic Improvement - Leave every subsystem better
+ * 12. Long Term Thinking - Will this be good in one year?
  *
  * Enforcement:
  * - Quality gate validators (block low-quality implementations)
@@ -240,13 +240,13 @@ export class EngineeringDNA {
 
     // Identify root cause patterns
     const rootCauses: Record<string, string> = {
-      enoent: "File or directory does not exist — workspace structure mismatch",
-      eacces: "Permission denied — incorrect file permissions or ownership",
-      econnrefused: "Connection refused — service not running or wrong port",
-      "not found": "Dependency or command not installed — environment setup incomplete",
-      "type error": "Type mismatch — weak type definitions or incorrect usage",
-      "missing import": "Import not found — module path incorrect or dependency missing",
-      "build failed": "Build configuration error — webpack/vite/tsconfig misconfigured",
+      enoent: "File or directory does not exist - workspace structure mismatch",
+      eacces: "Permission denied - incorrect file permissions or ownership",
+      econnrefused: "Connection refused - service not running or wrong port",
+      "not found": "Dependency or command not installed - environment setup incomplete",
+      "type error": "Type mismatch - weak type definitions or incorrect usage",
+      "missing import": "Import not found - module path incorrect or dependency missing",
+      "build failed": "Build configuration error - webpack/vite/tsconfig misconfigured",
     };
 
     let rootCause = "Unknown root cause";
@@ -297,7 +297,7 @@ export class EngineeringDNA {
         severity: "warning",
         type: "file_level_thinking",
         file: "",
-        description: "Changes affect files but not subsystems — consider system-level impact",
+        description: "Changes affect files but not subsystems - consider system-level impact",
         fix: "Analyze which subsystems are affected and improve the system architecture",
       });
     }
@@ -605,25 +605,25 @@ export class EngineeringDNA {
 
     // Check compatibility impact
     if (decision.compatibilityImpact === "breaking") {
-      concerns.push("Breaking change — ensure migration path exists");
+      concerns.push("Breaking change - ensure migration path exists");
       recommendations.push("Provide backward compatibility layer or migration guide");
     }
 
     // Check reliability impact
     if (decision.reliabilityImpact === "degrades") {
-      concerns.push("Reliability degradation — reconsider implementation");
+      concerns.push("Reliability degradation - reconsider implementation");
       recommendations.push("Find alternative that preserves or improves reliability");
     }
 
     // Check complexity impact
     if (decision.complexityImpact === "increases") {
-      concerns.push("Increased complexity — justify with significant benefits");
+      concerns.push("Increased complexity - justify with significant benefits");
       recommendations.push("Ensure complexity increase is justified by functionality gains");
     }
 
     // Check extensibility impact
     if (decision.extensibilityImpact === "degrades") {
-      concerns.push("Reduced extensibility — may limit future growth");
+      concerns.push("Reduced extensibility - may limit future growth");
       recommendations.push("Design for future extensibility even if not needed now");
     }
 
@@ -712,42 +712,42 @@ export class EngineeringDNA {
   }
 
   private runBuildCheck(workspaceRoot: string): { success: boolean; error?: string } {
-    // Placeholder — would integrate with actual build system
+    // Placeholder - would integrate with actual build system
     return { success: true };
   }
 
   private runTypeCheck(workspaceRoot: string): { success: boolean; error?: string } {
-    // Placeholder — would integrate with TypeScript compiler
+    // Placeholder - would integrate with TypeScript compiler
     return { success: true };
   }
 
   private runLintCheck(workspaceRoot: string): { success: boolean; error?: string } {
-    // Placeholder — would integrate with ESLint
+    // Placeholder - would integrate with ESLint
     return { success: true };
   }
 
   private getSubsystemFiles(subsystem: string, workspaceRoot: string): string[] {
-    // Placeholder — would map subsystems to file paths
+    // Placeholder - would map subsystems to file paths
     return [];
   }
 
   private detectDeadCode(workspaceRoot: string): TechnicalDebt[] {
-    // Placeholder — would use AST analysis
+    // Placeholder - would use AST analysis
     return [];
   }
 
   private detectWeakTyping(workspaceRoot: string): TechnicalDebt[] {
-    // Placeholder — would detect 'any' types
+    // Placeholder - would detect 'any' types
     return [];
   }
 
   private detectMagicValues(workspaceRoot: string): TechnicalDebt[] {
-    // Placeholder — would detect hardcoded numbers/strings
+    // Placeholder - would detect hardcoded numbers/strings
     return [];
   }
 
   private detectUnusedImports(workspaceRoot: string): TechnicalDebt[] {
-    // Placeholder — would detect unused imports
+    // Placeholder - would detect unused imports
     return [];
   }
 }

@@ -147,7 +147,7 @@ export class McpLayer {
 		return this.connectionManager.getConnectedServers();
 	}
 
-	// ── Planner Integration ──
+	// ?? Planner Integration ??
 
 	getCapabilitiesForTask(taskDescription: string): McpServerMeta[] {
 		const task = taskDescription.toLowerCase();
@@ -245,7 +245,7 @@ export class McpLayer {
 
 		// Find servers matching the needs
 		const candidates = this.registry.listActive().filter((server) => {
-			if (needs.tags.length === 0) return true; // no specific needs — return all
+			if (needs.tags.length === 0) return true; // no specific needs - return all
 			return needs.tags.some((tag) => server.tags.includes(tag));
 		});
 
@@ -257,7 +257,7 @@ export class McpLayer {
 		return this.userMcpManager.execute(command);
 	}
 
-	// ── Helpers ──
+	// ?? Helpers ??
 
 	private builtInConfigToMeta(config: McpServerConfig): McpServerMeta {
 		return {

@@ -1,5 +1,5 @@
 /**
- * Zenuxs Runtime Profiler — Markdown Report Generator
+ * Zenuxs Runtime Profiler - Markdown Report Generator
  *
  * Produces ZENUXS_RUNTIME_PROFILE.md with:
  * - Runtime timeline
@@ -74,11 +74,11 @@ function renderTimeline(data: ProfileData): string {
 	for (const span of data.spans) {
 		events.push({
 			timeMs: span.startMs,
-			text: `${span.startMs.toFixed(0).padStart(6)}ms  ▶ ${span.name}`,
+			text: `${span.startMs.toFixed(0).padStart(6)}ms  > ${span.name}`,
 		});
 		events.push({
 			timeMs: span.endMs,
-			text: `${span.endMs.toFixed(0).padStart(6)}ms  ◀ ${span.name} (${span.durationMs.toFixed(1)}ms)`,
+			text: `${span.endMs.toFixed(0).padStart(6)}ms  < ${span.name} (${span.durationMs.toFixed(1)}ms)`,
 		});
 	}
 

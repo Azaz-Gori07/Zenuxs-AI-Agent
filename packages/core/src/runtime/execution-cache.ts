@@ -1,5 +1,5 @@
 /**
- * Execution Cache System — Smart Caching for Performance
+ * Execution Cache System - Smart Caching for Performance
  *
  * Caches expensive operations to avoid redundant work:
  * - Workspace analysis

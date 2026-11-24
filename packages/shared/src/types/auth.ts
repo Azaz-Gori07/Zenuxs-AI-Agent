@@ -1,5 +1,5 @@
 /**
- * Error‑message sub-strings that indicate an auth / credential failure.
+ * Error?message sub-strings that indicate an auth / credential failure.
  * Used with provider auth handlers to decide whether a failed API call should
  * trigger an OAuth refresh.
  */

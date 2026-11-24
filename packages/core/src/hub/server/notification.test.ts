@@ -13,7 +13,7 @@ describe("truncateNotificationBody", () => {
 	});
 
 	it("applies the same truncation budget to multibyte text", () => {
-		const body = "🙂".repeat(40);
+		const body = "[SMILE]".repeat(40);
 		const truncated = truncateNotificationBody(body);
 		expect(Buffer.byteLength(truncated, "utf8")).toBeLessThanOrEqual(120);
 		expect(truncated.endsWith("...")).toBe(true);

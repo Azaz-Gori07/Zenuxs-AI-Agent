@@ -1,5 +1,5 @@
 /**
- * Execution Modes — Architecture Migration Component
+ * Execution Modes - Architecture Migration Component
  *
  * Defines execution modes that control how the agent behaves:
  * - CHAT MODE: For explanations and questions (returns text)
@@ -127,8 +127,8 @@ export const BUILD_MODE_POLICY: ModePolicy = {
     "  6. Run build/lint/typecheck to validate",
     "  7. Fix any build errors automatically",
     "  8. Report final progress summary",
-    "Chat output format: ONLY show progress checkmarks (✔) and summaries.",
-    "Example: '✔ Created 15 files | ✔ Installed dependencies | ✔ Build successful'",
+    "Chat output format: ONLY show progress checkmarks ([OK]) and summaries.",
+    "Example: '[OK] Created 15 files | [OK] Installed dependencies | [OK] Build successful'",
     "NEVER show source code unless user explicitly requests a specific file.",
     "If build fails, read error messages, locate affected files, fix them, and retry.",
     "Maximum 5 build-repair iterations before reporting unresolved issues.",
@@ -162,7 +162,7 @@ export const AUTOMATION_MODE_POLICY: ModePolicy = {
     "Report progress after each step completion.",
     "If a command fails, analyze the error and retry or report the issue.",
     "NEVER output command results in full unless explicitly requested.",
-    "Summarize outcomes: '✔ Git commit created | ✔ Branch pushed to remote'",
+    "Summarize outcomes: '[OK] Git commit created | [OK] Branch pushed to remote'",
   ],
   requiredTools: ["run_commands"],
   forbiddenActions: ["output_full_command_logs"],
@@ -221,7 +221,7 @@ export const DEBUG_MODE_POLICY: ModePolicy = {
     "  6. Run tests to verify fix",
     "  7. If tests fail, analyze failures and iterate",
     "Use shell tools to run tests, check logs, and validate fixes.",
-    "Report debugging progress: '✔ Identified root cause | ✔ Applied fix | ✔ Tests passing'",
+    "Report debugging progress: '[OK] Identified root cause | [OK] Applied fix | [OK] Tests passing'",
     "Maximum 5 debug-repair iterations before escalating.",
   ],
   requiredTools: ["read_files", "run_commands", "editor", "grep"],

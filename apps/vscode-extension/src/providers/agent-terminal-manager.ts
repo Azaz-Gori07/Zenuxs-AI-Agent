@@ -95,7 +95,7 @@ export class AgentTerminalService {
 		}
 
 		const terminal = vscode.window.createTerminal({
-			name: `${this.taskNamePrefix} • Task #${taskId}`,
+			name: `${this.taskNamePrefix} * Task #${taskId}`,
 			cwd,
 			env: {
 				ZENUXS_ACTIVE: "true",

@@ -1,5 +1,5 @@
 /**
- * Workspace Analyzer — Builder Mode Enhancement
+ * Workspace Analyzer - Builder Mode Enhancement
  *
  * Scans the workspace to detect:
  * - Existing project type (React, Next.js, Node, etc.)

@@ -1,5 +1,5 @@
 /**
- * Observation System Integration — Runtime Hooks
+ * Observation System Integration - Runtime Hooks
  *
  * Integrates the observation system into the agent runtime to automatically:
  * 1. Capture tool execution results
@@ -173,7 +173,7 @@ export function createObservationHooks(config: ObservationConfig): Partial<Agent
         // The goal tracker will automatically trigger the next task
         // after the current one completes
         if (logObservations) {
-          console.log(`[Observation] 🔄 Autonomous execution active - continuing automatically`);
+          console.log(`[Observation] [REFRESH] Autonomous execution active - continuing automatically`);
           console.log(`[Observation] ${goalTracker.getStatus()}`);
         }
       }

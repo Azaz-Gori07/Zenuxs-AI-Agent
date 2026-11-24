@@ -1,5 +1,5 @@
 /**
- * Observation System — Execution Engine Enhancement
+ * Observation System - Execution Engine Enhancement
  *
  * Captures structured observations after every tool execution:
  * - stdout/stderr output
@@ -254,7 +254,7 @@ export function generateExecutionSummary(
 
   // Generate recent activity summary
   const recentActivity = state.observations.slice(-5).map((obs) => {
-    const status = obs.status === "success" ? "✓" : "✗";
+    const status = obs.status === "success" ? "[OK]" : "[X]";
     return `${status} ${obs.toolName} (${obs.durationMs ?? 0}ms)`;
   });
 

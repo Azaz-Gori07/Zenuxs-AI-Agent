@@ -5,30 +5,30 @@
  * `@cline/shared/src/agents/types.ts`) consumed by today's
  * `Agent.subscribeEvents` callback.
  *
- * @see PLAN.md §3.1  — new file introduced alongside the core runtime port.
- * @see PLAN.md §3.3.2 — variant-by-variant OLD → NEW mapping.
- * @see PLAN.md §3.2.4 — called from `Agent.subscribeEvents` inside the
+ * @see PLAN.md S3.1  - new file introduced alongside the core runtime port.
+ * @see PLAN.md S3.3.2 - variant-by-variant OLD -> NEW mapping.
+ * @see PLAN.md S3.2.4 - called from `Agent.subscribeEvents` inside the
  *                       legacy-agent facade.
  *
- * --- IMPLEMENTATION NOTE — PLAN §3.3.2 text/reasoning-delta rows ----------
+ * --- IMPLEMENTATION NOTE - PLAN S3.3.2 text/reasoning-delta rows ----------
  *
- * PLAN.md §3.3.2 describes `assistant-text-delta` as "first delta →
- * content_start, subsequent → content_update". The **actual** legacy
+ * PLAN.md S3.3.2 describes `assistant-text-delta` as "first delta ->
+ * content_start, subsequent -> content_update". The **actual** legacy
  * shape forbids this: `AgentContentUpdateEvent.contentType` is
  * hard-typed as `"tool"` in
  * `packages/shared/src/agents/types.ts:87`, and the legacy
  * turn-processor
  * (`packages/agents/src/runtime/turn-processor.ts:82-87,113-118`)
  * emits a `content_start` event for **every** text delta and for
- * **every** reasoning delta — not just the first. This adapter
+ * **every** reasoning delta - not just the first. This adapter
  * preserves that observable behavior (what every legacy consumer
- * relies on today) over the description in §3.3.2.
+ * relies on today) over the description in S3.3.2.
  *
- *   text deltas      → content_start { contentType:"text", text,
+ *   text deltas      -> content_start { contentType:"text", text,
  *                        accumulated } (per delta)
- *   reasoning deltas → content_start { contentType:"reasoning",
+ *   reasoning deltas -> content_start { contentType:"reasoning",
  *                        reasoning, redacted } (per delta)
- *   assistant-message → one content_end { contentType:"text", text }
+ *   assistant-message -> one content_end { contentType:"text", text }
  *                        if any text parts; one
  *                        content_end { contentType:"reasoning", reasoning }
  *                        if any reasoning parts
@@ -151,7 +151,7 @@ function deriveToolError(
  * `translate(event)` returns zero, one, or two `AgentEvent`s. An
  * array is needed because a single `assistant-message` may yield both
  * a text `content_end` and a reasoning `content_end`. Empty array
- * means the event is intentionally suppressed (§3.3.2 rows
+ * means the event is intentionally suppressed (S3.3.2 rows
  * `run-started`, `message-added`).
  */
 export class RuntimeEventAdapter {
@@ -396,11 +396,11 @@ export class RuntimeEventAdapter {
  * Stateless translator. Works correctly for every variant except
  * those that require bookkeeping:
  *
- *  - `usage-updated` — deltas cannot be computed without a prior
+ *  - `usage-updated` - deltas cannot be computed without a prior
  *    snapshot; this function treats the prior snapshot as zero (so
  *    delta == accumulated). Adequate for a single event, incorrect
  *    across multiple.
- *  - `tool-finished` — `durationMs` is reported as `undefined`
+ *  - `tool-finished` - `durationMs` is reported as `undefined`
  *    because the corresponding `tool-started` was never observed by
  *    this one-shot adapter.
  *

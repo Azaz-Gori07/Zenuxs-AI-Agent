@@ -249,7 +249,7 @@ describe("SessionRuntime construction", () => {
 });
 
 // ---------------------------------------------------------------------------
-// getExtensionRegistry — real contribution-registry snapshot
+// getExtensionRegistry - real contribution-registry snapshot
 // ---------------------------------------------------------------------------
 
 describe("SessionRuntime.getExtensionRegistry", () => {
@@ -279,7 +279,7 @@ describe("SessionRuntime.getExtensionRegistry", () => {
 		const { deps } = withFakeRuntime();
 		const session = new SessionRuntime(
 			makeAgentConfig({
-				// @ts-expect-error — AgentExtension interface validates at runtime;
+				// @ts-expect-error - AgentExtension interface validates at runtime;
 				// this fixture supplies only the fields ContributionRegistry needs.
 				extensions: [extension],
 			}),
@@ -470,7 +470,7 @@ describe("SessionRuntime.getExtensionRegistry", () => {
 		const session = new SessionRuntime(
 			makeAgentConfig({
 				tools: [configTool],
-				// @ts-expect-error — minimal fixture, see note above.
+				// @ts-expect-error - minimal fixture, see note above.
 				extensions: [extension],
 			}),
 			{
@@ -1457,7 +1457,7 @@ describe("SessionRuntime.subscribeEvents", () => {
 });
 
 // ===========================================================================
-// P1 defect regression suites (#1, #2, #3) — added by impl-session-fixer.
+// P1 defect regression suites (#1, #2, #3) - added by impl-session-fixer.
 // ===========================================================================
 
 /**
@@ -1525,7 +1525,7 @@ function makeRecordingRuntimeFactory(
 // [#1] initialMessages seeding (P1 defect #1)
 // ---------------------------------------------------------------------------
 
-describe("SessionRuntime.run — initialMessages seeding (P1 #1)", () => {
+describe("SessionRuntime.run - initialMessages seeding (P1 #1)", () => {
 	it("seeds prior transcript into every subsequent run's runtime config", async () => {
 		const { deps, configs } = makeRecordingRuntimeFactory((call) => {
 			if (call === 1) {
@@ -1802,7 +1802,7 @@ function failedStructuredToolTurnEvents(): AgentRuntimeEvent[] {
 	];
 }
 
-describe("SessionRuntime.run — tracker wiring (P1 #3)", () => {
+describe("SessionRuntime.run - tracker wiring (P1 #3)", () => {
 	it("aborts after maxConsecutiveMistakes failed-tool turns", async () => {
 		const { deps, abortCalls } = makeScriptedRuntime({
 			events: failedToolTurnEvents(),
@@ -1812,10 +1812,10 @@ describe("SessionRuntime.run — tracker wiring (P1 #3)", () => {
 			deps,
 		);
 		await session.run("one");
-		// First failed turn — counter 1 < 2, no abort yet.
+		// First failed turn - counter 1 < 2, no abort yet.
 		expect(abortCalls).toHaveLength(0);
 		await session.continue("two");
-		// Second failed turn — counter reaches 2, tracker calls abort.
+		// Second failed turn - counter reaches 2, tracker calls abort.
 		expect(abortCalls.length).toBeGreaterThanOrEqual(1);
 	});
 

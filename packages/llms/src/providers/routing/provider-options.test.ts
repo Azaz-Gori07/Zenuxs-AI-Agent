@@ -637,7 +637,7 @@ describe("composeAiSdkProviderOptions: family/provider thinking patches", () => 
 				},
 			],
 		},
-		// GLM/Z.AI routed reasoning — enabled
+		// GLM/Z.AI routed reasoning - enabled
 		{
 			name: "openrouter GLM thinking-enabled -> routed reasoning, no thinking leak",
 			request: {
@@ -719,7 +719,7 @@ describe("composeAiSdkProviderOptions: family/provider thinking patches", () => 
 				{ bucket: "openaiCompatible", lacks: ["thinking"] },
 			],
 		},
-		// GLM/Z.AI routed reasoning — disabled
+		// GLM/Z.AI routed reasoning - disabled
 		{
 			name: "openrouter GLM thinking-disabled -> reasoning.exclude in provider+compatible",
 			request: {
@@ -1164,7 +1164,7 @@ describe("composeAiSdkProviderOptions: family/provider thinking patches", () => 
 				{ bucket: "openaiCompatible", lacks: ["thinking"] },
 			],
 		},
-		// DeepSeek family — direct provider id and openai-compatible via family
+		// DeepSeek family - direct provider id and openai-compatible via family
 		{
 			name: "direct deepseek reasoning disable -> thinking.type=disabled",
 			request: {

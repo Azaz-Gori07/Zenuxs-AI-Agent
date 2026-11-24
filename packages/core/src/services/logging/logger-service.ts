@@ -1,5 +1,5 @@
 /**
- * Developer Logs — centralized logging system for the entire application.
+ * Developer Logs - centralized logging system for the entire application.
  *
  * The {@link LoggerService} is the single funnel through which every module
  * (authentication, providers, LLM requests, API keys, storage, UI, agents,

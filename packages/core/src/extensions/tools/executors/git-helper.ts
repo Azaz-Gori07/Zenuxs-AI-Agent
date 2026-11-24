@@ -4,7 +4,7 @@
  * Provides safe git operations with pre-flight checks for dirty working trees,
  * merge conflicts, and detached HEAD states.
  *
- * This is a helper utility (T9), not a standalone tool — it wraps the bash
+ * This is a helper utility (T9), not a standalone tool - it wraps the bash
  * executor to provide safe git operations.
  */
 
@@ -195,7 +195,7 @@ export function createGitHelper(bashExecutor: BashExecutor) {
 	}
 
 	/**
-	 * Safely create a commit — checks for dirty tree and no conflicts first.
+	 * Safely create a commit - checks for dirty tree and no conflicts first.
 	 */
 	async function safeCommit(
 		cwd: string,
@@ -234,7 +234,7 @@ export function createGitHelper(bashExecutor: BashExecutor) {
 	}
 
 	/**
-	 * Safely create a branch — checks for dirty tree state.
+	 * Safely create a branch - checks for dirty tree state.
 	 */
 	async function safeBranch(
 		cwd: string,
@@ -249,7 +249,7 @@ export function createGitHelper(bashExecutor: BashExecutor) {
 	}
 
 	/**
-	 * Safely rollback the last commit (soft reset) — preserves changes.
+	 * Safely rollback the last commit (soft reset) - preserves changes.
 	 */
 	async function safeRollback(
 		cwd: string,

@@ -388,7 +388,7 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 			{ setLastUsed: true },
 		);
 
-		// Skip model picker — go straight to done
+		// Skip model picker - go straight to done
 		setActiveProviderId(providerId);
 		setActiveProviderName("Zenuxs AI");
 		setSelectedModelId(model.id);

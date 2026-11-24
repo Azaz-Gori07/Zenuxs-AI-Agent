@@ -1,5 +1,5 @@
 /**
- * JsonView — A simple interactive JSON viewer for inspecting log details.
+ * JsonView - A simple interactive JSON viewer for inspecting log details.
  * Supports expand/collapse, syntax highlighting, and copy-to-clipboard.
  */
 
@@ -70,7 +70,7 @@ function JsonNode({ name, value, depth, maxDepth }: { name?: string; value: unkn
 			>
 				{isExpandable && (
 					<span style={{ color: "var(--muted, #888)", width: 12, display: "inline-block", flexShrink: 0 }}>
-						{expanded ? "▼" : "▶"}
+						{expanded ? "v" : ">"}
 					</span>
 				)}
 				{!isExpandable && <span style={{ width: 12, flexShrink: 0 }} />}
@@ -99,7 +99,7 @@ function JsonNode({ name, value, depth, maxDepth }: { name?: string; value: unkn
 								}}
 								title="Copy"
 							>
-								📋
+								[CLIPBOARD]
 							</button>
 						)}
 					</>

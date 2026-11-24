@@ -151,7 +151,7 @@ export class ProviderSettingsManager {
 			try {
 				chmodSync(this.filePath, 0o600);
 			} catch {
-				// Ignore — Windows does not support POSIX chmod.
+				// Ignore - Windows does not support POSIX chmod.
 			}
 		}
 	}
@@ -199,7 +199,7 @@ export class ProviderSettingsManager {
 		try {
 			chmodSync(this.filePath, 0o600);
 		} catch {
-			// Ignore — Windows does not support POSIX chmod.
+			// Ignore - Windows does not support POSIX chmod.
 		}
 		registerConfiguredProvidersFromSettings(normalized);
 	}

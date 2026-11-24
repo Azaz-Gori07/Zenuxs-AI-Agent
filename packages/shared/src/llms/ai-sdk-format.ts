@@ -448,7 +448,7 @@ export function toAiSdkToolResultOutput(
 	// results) must be forwarded as AI SDK `content` parts so providers
 	// translate them into real multimodal inputs. Without this, the array
 	// falls through to the `json` branch below and the base64 image data
-	// is sent to the model as a JSON string — the model cannot see it and
+	// is sent to the model as a JSON string - the model cannot see it and
 	// will hallucinate the image's contents.
 	if (!isError && isAiSdkContentBlockArray(output)) {
 		return {

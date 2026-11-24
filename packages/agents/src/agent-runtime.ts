@@ -507,12 +507,12 @@ export class AgentRuntime {
 	};
 	private initialization?: Promise<void>;
 	private abortController?: AbortController;
-	/** OPT-02: Cached system prompt — computed once, reused every iteration. */
+	/** OPT-02: Cached system prompt - computed once, reused every iteration. */
 	private _cachedSystemPrompt?: string | undefined;
 	private _systemPromptCached = false;
-	/** OPT-03: Cached tool definition array — computed once after init. */
+	/** OPT-03: Cached tool definition array - computed once after init. */
 	private _cachedToolDefinitions?: AgentToolDefinition[];
-	/** OPT-01: Cached snapshot — invalidated when messages change. */
+	/** OPT-01: Cached snapshot - invalidated when messages change. */
 	private _cachedSnapshot?: AgentRuntimeStateSnapshot;
 
 	constructor(config: AgentRuntimeConfig) {
@@ -728,7 +728,7 @@ export class AgentRuntime {
 			(textContent.match(/```[\s\S]*?```/g)?.some((block) => block.split("\n").length > 8) ?? false);
 
 		if (isCodeDump) {
-			return `[SYSTEM ENFORCEMENT] Builder Architecture Violation Detected: You outputted raw source code directly into chat instead of writing files to disk. In Builder Mode, NEVER output source code in chat text. You MUST use filesystem tools (write_file, edit) to write all files directly to the workspace filesystem, and output ONLY progress status (e.g. "✔ Creating portfolio.html...") in chat. Execute write_file tools now.`;
+			return `[SYSTEM ENFORCEMENT] Builder Architecture Violation Detected: You outputted raw source code directly into chat instead of writing files to disk. In Builder Mode, NEVER output source code in chat text. You MUST use filesystem tools (write_file, edit) to write all files directly to the workspace filesystem, and output ONLY progress status (e.g. "[OK] Creating portfolio.html...") in chat. Execute write_file tools now.`;
 		}
 
 		return undefined;
@@ -1620,7 +1620,7 @@ export class AgentRuntime {
 						rawInput = parsed;
 					}
 				} catch {
-					// Not valid JSON — fall through to existing heuristics
+					// Not valid JSON - fall through to existing heuristics
 				}
 			}
 		}
@@ -1712,10 +1712,10 @@ export class AgentRuntime {
 	 * 3. Try JSON.parse on each candidate.
 	 * 4. Map the parsed fields to a registered tool name via heuristics:
 	 *    - If the object has an explicit `tool`/`toolName`/`name` field, use it.
-	 *    - If it has `filePath` + `content`/`code` → `write_file`.
-	 *    - If it has `filePath` + edit-related fields → `edit`.
-	 *    - If it has `command`/`commands` → `bash`.
-	 *    - If it has `filePath`/`path` only → `read_file`.
+	 *    - If it has `filePath` + `content`/`code` -> `write_file`.
+	 *    - If it has `filePath` + edit-related fields -> `edit`.
+	 *    - If it has `command`/`commands` -> `bash`.
+	 *    - If it has `filePath`/`path` only -> `read_file`.
 	 * 5. Verify the tool name resolves via getTool().
 	 * 6. Create AgentToolCallPart objects for each match.
 	 */
@@ -2347,7 +2347,7 @@ export function parseToolArguments(
 		return { ok: true, value: {} };
 	}
 
-	// OPT-12: Fast path — if input starts with { or [, try direct JSON.parse first.
+	// OPT-12: Fast path - if input starts with { or [, try direct JSON.parse first.
 	if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
 		try {
 			const result = { ok: true as const, value: JSON.parse(trimmed) };

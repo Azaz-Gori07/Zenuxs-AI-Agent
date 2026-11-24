@@ -453,7 +453,7 @@ describe("plugin-sandbox", () => {
 		);
 		try {
 			const pluginPath = join(envDir, "plugin-import-hang.mjs");
-			// Top-level await that never resolves — module import never
+			// Top-level await that never resolves - module import never
 			// completes, so the initialize call must hit the timeout.
 			await writeFile(
 				pluginPath,

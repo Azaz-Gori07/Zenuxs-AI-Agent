@@ -48,7 +48,7 @@ function tryNFDVariant(filePath: string): string {
 
 function tryCurlyApostropheVariant(filePath: string): string {
 	// macOS uses U+2019 (right single quotation mark) in localized
-	// screenshot names like "Capture d'écran". Users typically type U+0027.
+	// screenshot names like "Capture d'ecran". Users typically type U+0027.
 	return filePath.replace(/'/g, "\u2019");
 }
 

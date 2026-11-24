@@ -62,7 +62,7 @@ export const handler: ToolHandler = {
 
       return boundToolOutput({
         title: dryRun ? `Preview patch: ${path}` : `Patched: ${path}`,
-        output: `${summary}\n- Succeeded: ${succeeded}\n- Failed: ${failed}\n- Net lines: ${linesAdded >= 0 ? "+" : ""}${linesAdded}\n\nDetails:\n${applied.map((a) => `  Op ${a.operation}: ${a.success ? "✓" : "✗"}${a.error ? ` - ${a.error}` : ""}`).join("\n")}`,
+        output: `${summary}\n- Succeeded: ${succeeded}\n- Failed: ${failed}\n- Net lines: ${linesAdded >= 0 ? "+" : ""}${linesAdded}\n\nDetails:\n${applied.map((a) => `  Op ${a.operation}: ${a.success ? "[OK]" : "[X]"}${a.error ? ` - ${a.error}` : ""}`).join("\n")}`,
         metadata: {
           path,
           totalOperations: operations.length,

@@ -1,5 +1,5 @@
 /**
- * Workspace Indexer — Smart Context Loading & Incremental Indexing
+ * Workspace Indexer - Smart Context Loading & Incremental Indexing
  *
  * Maintains an internal workspace index for fast file discovery,
  * avoiding full repository scans on every operation.

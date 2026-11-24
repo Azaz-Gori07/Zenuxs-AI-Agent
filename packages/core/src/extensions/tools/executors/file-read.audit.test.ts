@@ -29,7 +29,7 @@ describe("file-read audit - T3 edge cases", () => {
 	it("does not crash on a non-UTF8 file", async () => {
 		const dir = await fs.mkdtemp(path.join(os.tmpdir(), "agents-file-read-encoding-"));
 		const filePath = path.join(dir, "latin1.txt");
-		// Latin-1 "café" followed by an invalid standalone UTF-8 continuation byte.
+		// Latin-1 "cafe" followed by an invalid standalone UTF-8 continuation byte.
 		await fs.writeFile(filePath, Buffer.from([0x63, 0x61, 0x66, 0xe9, 0x80]));
 
 		try {

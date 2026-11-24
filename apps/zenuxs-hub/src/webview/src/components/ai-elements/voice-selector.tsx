@@ -291,123 +291,123 @@ export const VoiceSelectorAccent = ({
 
 	switch (value) {
 		case "american": {
-			emoji = "🇺🇸";
+			emoji = "";
 			break;
 		}
 		case "british": {
-			emoji = "🇬🇧";
+			emoji = "";
 			break;
 		}
 		case "australian": {
-			emoji = "🇦🇺";
+			emoji = "";
 			break;
 		}
 		case "canadian": {
-			emoji = "🇨🇦";
+			emoji = "";
 			break;
 		}
 		case "irish": {
-			emoji = "🇮🇪";
+			emoji = "";
 			break;
 		}
 		case "scottish": {
-			emoji = "🏴󠁧󠁢󠁳󠁣󠁴󠁿";
+			emoji = "[FLAG]";
 			break;
 		}
 		case "indian": {
-			emoji = "🇮🇳";
+			emoji = "";
 			break;
 		}
 		case "south-african": {
-			emoji = "🇿🇦";
+			emoji = "";
 			break;
 		}
 		case "new-zealand": {
-			emoji = "🇳🇿";
+			emoji = "";
 			break;
 		}
 		case "spanish": {
-			emoji = "🇪🇸";
+			emoji = "";
 			break;
 		}
 		case "french": {
-			emoji = "🇫🇷";
+			emoji = "";
 			break;
 		}
 		case "german": {
-			emoji = "🇩🇪";
+			emoji = "";
 			break;
 		}
 		case "italian": {
-			emoji = "🇮🇹";
+			emoji = "";
 			break;
 		}
 		case "portuguese": {
-			emoji = "🇵🇹";
+			emoji = "";
 			break;
 		}
 		case "brazilian": {
-			emoji = "🇧🇷";
+			emoji = "";
 			break;
 		}
 		case "mexican": {
-			emoji = "🇲🇽";
+			emoji = "";
 			break;
 		}
 		case "argentinian": {
-			emoji = "🇦🇷";
+			emoji = "";
 			break;
 		}
 		case "japanese": {
-			emoji = "🇯🇵";
+			emoji = "";
 			break;
 		}
 		case "chinese": {
-			emoji = "🇨🇳";
+			emoji = "";
 			break;
 		}
 		case "korean": {
-			emoji = "🇰🇷";
+			emoji = "";
 			break;
 		}
 		case "russian": {
-			emoji = "🇷🇺";
+			emoji = "";
 			break;
 		}
 		case "arabic": {
-			emoji = "🇸🇦";
+			emoji = "";
 			break;
 		}
 		case "dutch": {
-			emoji = "🇳🇱";
+			emoji = "";
 			break;
 		}
 		case "swedish": {
-			emoji = "🇸🇪";
+			emoji = "";
 			break;
 		}
 		case "norwegian": {
-			emoji = "🇳🇴";
+			emoji = "";
 			break;
 		}
 		case "danish": {
-			emoji = "🇩🇰";
+			emoji = "";
 			break;
 		}
 		case "finnish": {
-			emoji = "🇫🇮";
+			emoji = "";
 			break;
 		}
 		case "polish": {
-			emoji = "🇵🇱";
+			emoji = "";
 			break;
 		}
 		case "turkish": {
-			emoji = "🇹🇷";
+			emoji = "";
 			break;
 		}
 		case "greek": {
-			emoji = "🇬🇷";
+			emoji = "";
 			break;
 		}
 		default: {

@@ -1,5 +1,5 @@
 /**
- * Intent Router Integration — Architecture Migration Component
+ * Intent Router Integration - Architecture Migration Component
  *
  * Hooks into the agent runtime to:
  * 1. Classify user intent before LLM processing
@@ -90,7 +90,7 @@ export function createIntentRouterHooks(config: IntentRouterConfig): Partial<Age
       });
 
       if (logClassifications) {
-        console.log(`[IntentRouter] Classified: ${intent.intent} → ${intent.mode} (confidence: ${intent.confidence.toFixed(2)})`);
+        console.log(`[IntentRouter] Classified: ${intent.intent} -> ${intent.mode} (confidence: ${intent.confidence.toFixed(2)})`);
         console.log(`[IntentRouter] Rationale: ${intent.rationale}`);
         if (intent.technologyHints.length > 0) {
           console.log(`[IntentRouter] Technologies: ${intent.technologyHints.join(', ')}`);

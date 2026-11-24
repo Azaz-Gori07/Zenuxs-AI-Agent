@@ -93,7 +93,7 @@ export function createCreateFileTool(options: { cwd: string }): any {
 
       return {
         title: `Created ${path.basename(fullPath)}`,
-        output: `✔ Verified: Created file at ${fullPath}`,
+        output: `[OK] Verified: Created file at ${fullPath}`,
         metadata: { filePath: fullPath, size: content.length, verified: true },
       };
     },
@@ -137,7 +137,7 @@ export function createDeleteFileTool(options: { cwd: string }): any {
 
       return {
         title: `Deleted ${path.basename(fullPath)}`,
-        output: `✔ Deleted ${fullPath}`,
+        output: `[OK] Deleted ${fullPath}`,
         metadata: { filePath: fullPath, deleted: true },
       };
     },
@@ -189,7 +189,7 @@ export function createMoveFileTool(options: { cwd: string }): any {
 
       return {
         title: `Moved ${path.basename(fullSrc)} to ${path.basename(fullDest)}`,
-        output: `✔ Moved ${fullSrc} -> ${fullDest}`,
+        output: `[OK] Moved ${fullSrc} -> ${fullDest}`,
         metadata: { source: fullSrc, destination: fullDest },
       };
     },
@@ -245,7 +245,7 @@ export function createCopyFileTool(options: { cwd: string }): any {
 
       return {
         title: `Copied ${path.basename(fullSrc)} to ${path.basename(fullDest)}`,
-        output: `✔ Copied ${fullSrc} -> ${fullDest}`,
+        output: `[OK] Copied ${fullSrc} -> ${fullDest}`,
         metadata: { source: fullSrc, destination: fullDest },
       };
     },

@@ -12,6 +12,7 @@ export type CommandPaletteAction =
 	| "skills"
 	| "fork"
 	| "undo"
+	| "rewind"
 	| "clear"
 	| "history"
 	| "help"
@@ -130,6 +131,13 @@ const ACTION_ITEMS: Array<{
 		shortcut: "Opt+U",
 		description: "Return to an earlier checkpoint",
 		keywords: ["undo", "checkpoint", "restore"],
+	},
+	{
+		action: "rewind",
+		label: "Revert to Checkpoint",
+		shortcut: "",
+		description: "Revert the session and workspace to an earlier checkpoint",
+		keywords: ["rewind", "revert", "undo", "checkpoint"],
 	},
 	{
 		action: "clear",

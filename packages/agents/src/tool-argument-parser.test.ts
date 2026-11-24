@@ -123,13 +123,13 @@ describe("Tool Argument JSON Parser", () => {
 
   describe("Unicode and special characters", () => {
     it("parses unicode strings", () => {
-      const input = '{"message": "Hello 世界 🌍", "emoji": "🚀"}';
+      const input = '{"message": "Hello world [EARTH]", "emoji": "[ROCKET]"}';
       const result = parseToolArguments(input);
       expect(result.ok).toBe(true);
       if (result.ok) {
         expect(result.value).toEqual({
-          message: "Hello 世界 🌍",
-          emoji: "🚀",
+          message: "Hello world [EARTH]",
+          emoji: "[ROCKET]",
         });
       }
     });

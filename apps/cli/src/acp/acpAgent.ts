@@ -55,7 +55,7 @@ interface SessionState {
 	id: string;
 	cwd: string;
 	mcpServers: NewSessionRequest["mcpServers"];
-	/** Current agent mode — "plan" (read-only) or "act" (full). */
+	/** Current agent mode - "plan" (read-only) or "act" (full). */
 	currentMode: "plan" | "act";
 	/** Current provider id for the session. */
 	currentProviderId: string;
@@ -251,7 +251,7 @@ export class AcpAgent implements Agent {
 			return;
 		}
 
-		// Abort the controller — this handles all stages of prompt():
+		// Abort the controller - this handles all stages of prompt():
 		// - If prompt() hasn't started the agent yet, the signal check will
 		//   short-circuit and resolve with stopReason: 'cancelled'.
 		// - If the agent is running, the "abort" event listener on the signal

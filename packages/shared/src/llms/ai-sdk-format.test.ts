@@ -1066,13 +1066,13 @@ describe("sanitizeSurrogates", () => {
 	});
 
 	it("preserves valid surrogate pairs (emoji)", () => {
-		const valid = "🚀";
+		const valid = "[ROCKET]";
 		expect(sanitizeSurrogates(valid)).toBe(valid);
 	});
 
 	it("replaces lone surrogates but preserves valid ones in mixed text", () => {
 		const lone = "\uD83D";
-		const valid = "🚀";
+		const valid = "[ROCKET]";
 		const text = `text ${lone} and ${valid}`;
 		const expected = `text \uFFFD and ${valid}`;
 		expect(sanitizeSurrogates(text)).toBe(expected);
@@ -1082,7 +1082,7 @@ describe("sanitizeSurrogates", () => {
 describe("formatMessagesForAiSdk - surrogate sanitization", () => {
 	it("sanitizes system content with lone surrogates", () => {
 		const lone = "\uD83D";
-		const valid = "🚀";
+		const valid = "[ROCKET]";
 		const system = `system ${lone}`;
 		const expectedSystem = `system \uFFFD`;
 

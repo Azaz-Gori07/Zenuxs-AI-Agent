@@ -1,5 +1,5 @@
 /**
- * DeveloperLogsView — The full Developer Settings page for the extension.
+ * DeveloperLogsView - The full Developer Settings page for the extension.
  *
  * Displays every important event occurring inside the extension in real time,
  * making it possible to debug providers, authentication, LLM requests,
@@ -600,13 +600,13 @@ export function DeveloperLogsView() {
 					<DetailField label="Timestamp" value={e.iso} />
 					<DetailField label="Level" value={e.level} color={LOG_LEVEL_COLORS[e.level as LogLevel]} />
 					<DetailField label="Category" value={CATEGORY_LABELS[e.category] || e.category} />
-					<DetailField label="Source" value={e.source || "—"} />
-					<DetailField label="Provider" value={e.provider || "—"} />
-					<DetailField label="Model" value={e.model || "—"} />
-					<DetailField label="Session ID" value={e.sessionId || "—"} />
-					<DetailField label="Conversation ID" value={e.conversationId || "—"} />
-					<DetailField label="Request ID" value={e.requestId || "—"} />
-					<DetailField label="Parent ID" value={e.parentId || "—"} />
+					<DetailField label="Source" value={e.source || "-"} />
+					<DetailField label="Provider" value={e.provider || "-"} />
+					<DetailField label="Model" value={e.model || "-"} />
+					<DetailField label="Session ID" value={e.sessionId || "-"} />
+					<DetailField label="Conversation ID" value={e.conversationId || "-"} />
+					<DetailField label="Request ID" value={e.requestId || "-"} />
+					<DetailField label="Parent ID" value={e.parentId || "-"} />
 					{e.childIds && e.childIds.length > 0 && (
 						<DetailField label="Child IDs" value={e.childIds.join(", ")} />
 					)}
@@ -700,23 +700,23 @@ export function DeveloperLogsView() {
 					{showFilters ? "Hide Filters" : "Filters"}
 				</button>
 				<button className="btn secondary sm" onClick={handlePause} title={paused ? "Resume" : "Pause"}>
-					{paused ? "▶ Resume" : "⏸ Pause"}
+					{paused ? "> Resume" : "[PAUSE] Pause"}
 				</button>
 				<button className="btn secondary sm" onClick={() => setAutoScroll((a) => !a)} title="Toggle auto-scroll">
-					{autoScroll ? "🔽 Auto" : "⏹ Manual"}
+					{autoScroll ? "[DOWN] Auto" : "[STOP] Manual"}
 				</button>
 				<button className="btn secondary sm" onClick={handleClear} title="Clear all logs">
-					🗑 Clear
+					[TRASH] Clear
 				</button>
 				<button className="btn secondary sm" onClick={handleCopyFullDetails} title="Copy all visible logs with full JSON details">
-					📋 Copy Details
+					[CLIPBOARD] Copy Details
 				</button>
 				<button className="btn secondary sm" onClick={handleCopy} title="Copy all visible logs (summary)">
-					📋 Copy
+					[CLIPBOARD] Copy
 				</button>
 				<div style={{ position: "relative" }}>
 					<button className="btn secondary sm" onClick={() => setShowExportMenu((s) => !s)} title="Export logs">
-						📥 Export
+						[INBOX] Export
 					</button>
 					{showExportMenu && (
 						<div

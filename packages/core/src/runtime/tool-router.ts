@@ -221,7 +221,7 @@ export class ToolRouter {
     // Step 2: Extract path from input
     const targetPath = this.extractPath(input);
 
-    // Step 3: Analyze path (if applicable) — uses TTL cache
+    // Step 3: Analyze path (if applicable) - uses TTL cache
     let pathAnalysis: PathAnalysis | null = null;
     if (targetPath) {
       pathAnalysis = await this.cachedAnalyzePath(targetPath);

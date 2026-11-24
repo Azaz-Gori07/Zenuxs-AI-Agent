@@ -3,11 +3,11 @@
  *
  * Covers every one of the 13 `AgentRuntimeEvent` variants enumerated
  * in `@cline/shared/src/agent.ts:390-468`. For each variant the
- * test asserts the mapping described in PLAN.md §3.3.2 (with the
+ * test asserts the mapping described in PLAN.md S3.3.2 (with the
  * text/reasoning-delta correction documented at the top of
  * `runtime-event-adapter.ts`).
  *
- * @see PLAN.md §3.3.2 — variant-by-variant OLD → NEW mapping.
+ * @see PLAN.md S3.3.2 - variant-by-variant OLD -> NEW mapping.
  * @see packages/core/src/runtime/runtime-event-adapter.ts
  *
  * Landed with PLAN.md Step 8a.
@@ -105,19 +105,19 @@ function makeResult(overrides: Partial<AgentRunResult> = {}): AgentRunResult {
 // Suppressed events
 // ---------------------------------------------------------------------------
 
-describe("RuntimeEventAdapter — suppressed events", () => {
+describe("RuntimeEventAdapter - suppressed events", () => {
 	let adapter: RuntimeEventAdapter;
 	beforeEach(() => {
 		adapter = new RuntimeEventAdapter();
 	});
 
-	it("suppresses run-started (§3.3.2 row 1)", () => {
+	it("suppresses run-started (S3.3.2 row 1)", () => {
 		expect(
 			adapter.translate({ type: "run-started", snapshot: makeSnapshot() }),
 		).toEqual([]);
 	});
 
-	it("suppresses message-added (§3.3.2 final note)", () => {
+	it("suppresses message-added (S3.3.2 final note)", () => {
 		expect(
 			adapter.translate({
 				type: "message-added",
@@ -132,13 +132,13 @@ describe("RuntimeEventAdapter — suppressed events", () => {
 // Iteration lifecycle
 // ---------------------------------------------------------------------------
 
-describe("RuntimeEventAdapter — iteration lifecycle", () => {
+describe("RuntimeEventAdapter - iteration lifecycle", () => {
 	let adapter: RuntimeEventAdapter;
 	beforeEach(() => {
 		adapter = new RuntimeEventAdapter();
 	});
 
-	it("maps turn-started → iteration_start { iteration }", () => {
+	it("maps turn-started -> iteration_start { iteration }", () => {
 		const out = adapter.translate({
 			type: "turn-started",
 			snapshot: makeSnapshot({ iteration: 3 }),
@@ -147,7 +147,7 @@ describe("RuntimeEventAdapter — iteration lifecycle", () => {
 		expect(out).toEqual([{ type: "iteration_start", iteration: 3 }]);
 	});
 
-	it("maps turn-finished → iteration_end with hadToolCalls=true when tools fired", () => {
+	it("maps turn-finished -> iteration_end with hadToolCalls=true when tools fired", () => {
 		const out = adapter.translate({
 			type: "turn-finished",
 			snapshot: makeSnapshot({ iteration: 2 }),
@@ -164,7 +164,7 @@ describe("RuntimeEventAdapter — iteration lifecycle", () => {
 		]);
 	});
 
-	it("maps turn-finished with zero tool calls → hadToolCalls:false", () => {
+	it("maps turn-finished with zero tool calls -> hadToolCalls:false", () => {
 		const out = adapter.translate({
 			type: "turn-finished",
 			snapshot: makeSnapshot({ iteration: 1 }),
@@ -186,20 +186,20 @@ describe("RuntimeEventAdapter — iteration lifecycle", () => {
 // Streaming content deltas
 // ---------------------------------------------------------------------------
 //
-// PLAN §3.3.2 suggested "first delta → content_start, subsequent →
-// content_update". The legacy-emitter shape makes that impossible —
+// PLAN S3.3.2 suggested "first delta -> content_start, subsequent ->
+// content_update". The legacy-emitter shape makes that impossible -
 // AgentContentUpdateEvent.contentType is strictly "tool"
 // (shared/agents/types.ts:87). The adapter preserves the legacy
 // per-delta content_start behavior
 // (turn-processor.ts:82-87,113-118).
 
-describe("RuntimeEventAdapter — streaming content deltas", () => {
+describe("RuntimeEventAdapter - streaming content deltas", () => {
 	let adapter: RuntimeEventAdapter;
 	beforeEach(() => {
 		adapter = new RuntimeEventAdapter();
 	});
 
-	it("maps every assistant-text-delta → content_start(text)", () => {
+	it("maps every assistant-text-delta -> content_start(text)", () => {
 		const first = adapter.translate({
 			type: "assistant-text-delta",
 			snapshot: makeSnapshot(),
@@ -232,7 +232,7 @@ describe("RuntimeEventAdapter — streaming content deltas", () => {
 		]);
 	});
 
-	it("maps assistant-reasoning-delta → content_start(reasoning) with redacted:true", () => {
+	it("maps assistant-reasoning-delta -> content_start(reasoning) with redacted:true", () => {
 		const out = adapter.translate({
 			type: "assistant-reasoning-delta",
 			snapshot: makeSnapshot(),
@@ -268,10 +268,10 @@ describe("RuntimeEventAdapter — streaming content deltas", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Assistant-message → content_end synthesis
+// Assistant-message -> content_end synthesis
 // ---------------------------------------------------------------------------
 
-describe("RuntimeEventAdapter — assistant-message → content_end", () => {
+describe("RuntimeEventAdapter - assistant-message -> content_end", () => {
 	let adapter: RuntimeEventAdapter;
 	beforeEach(() => {
 		adapter = new RuntimeEventAdapter();
@@ -372,13 +372,13 @@ describe("RuntimeEventAdapter — assistant-message → content_end", () => {
 // Tool lifecycle + durationMs bookkeeping
 // ---------------------------------------------------------------------------
 
-describe("RuntimeEventAdapter — tool lifecycle", () => {
+describe("RuntimeEventAdapter - tool lifecycle", () => {
 	let adapter: RuntimeEventAdapter;
 	beforeEach(() => {
 		adapter = new RuntimeEventAdapter();
 	});
 
-	it("maps tool-started → content_start(tool) with toolName/toolCallId/input", () => {
+	it("maps tool-started -> content_start(tool) with toolName/toolCallId/input", () => {
 		const toolCall = makeToolCall({
 			toolCallId: "call_abc",
 			toolName: "read_file",
@@ -401,7 +401,7 @@ describe("RuntimeEventAdapter — tool lifecycle", () => {
 		]);
 	});
 
-	it("maps tool-updated → content_update(tool) with update", () => {
+	it("maps tool-updated -> content_update(tool) with update", () => {
 		const toolCall = makeToolCall({ toolCallId: "call_abc" });
 		const out = adapter.translate({
 			type: "tool-updated",
@@ -421,7 +421,7 @@ describe("RuntimeEventAdapter — tool lifecycle", () => {
 		]);
 	});
 
-	it("maps tool-finished with tracked timing → content_end(tool) with durationMs", () => {
+	it("maps tool-finished with tracked timing -> content_end(tool) with durationMs", () => {
 		vi.useFakeTimers();
 		try {
 			vi.setSystemTime(new Date(1_700_000_000_000));
@@ -532,7 +532,7 @@ describe("RuntimeEventAdapter — tool lifecycle", () => {
 // Usage rolling totals
 // ---------------------------------------------------------------------------
 
-describe("RuntimeEventAdapter — usage rolling totals", () => {
+describe("RuntimeEventAdapter - usage rolling totals", () => {
 	let adapter: RuntimeEventAdapter;
 	beforeEach(() => {
 		adapter = new RuntimeEventAdapter();
@@ -590,7 +590,7 @@ describe("RuntimeEventAdapter — usage rolling totals", () => {
 			totalOutputTokens: 60,
 			totalCost: 0.03,
 		});
-		// Floating-point-safe: 0.03 - 0.01 ≠ exactly 0.02 in IEEE-754.
+		// Floating-point-safe: 0.03 - 0.01 ? exactly 0.02 in IEEE-754.
 		expect((out[0] as { cost?: number }).cost).toBeCloseTo(0.02, 10);
 	});
 
@@ -647,13 +647,13 @@ describe("RuntimeEventAdapter — usage rolling totals", () => {
 // Run lifecycle
 // ---------------------------------------------------------------------------
 
-describe("RuntimeEventAdapter — run lifecycle", () => {
+describe("RuntimeEventAdapter - run lifecycle", () => {
 	let adapter: RuntimeEventAdapter;
 	beforeEach(() => {
 		adapter = new RuntimeEventAdapter();
 	});
 
-	it("maps run-finished { status:completed } → done { reason:completed }", () => {
+	it("maps run-finished { status:completed } -> done { reason:completed }", () => {
 		const out = adapter.translate({
 			type: "run-finished",
 			snapshot: makeSnapshot(),
@@ -683,7 +683,7 @@ describe("RuntimeEventAdapter — run lifecycle", () => {
 		});
 	});
 
-	it("maps run-finished { status:aborted } → done { reason:aborted }", () => {
+	it("maps run-finished { status:aborted } -> done { reason:aborted }", () => {
 		const out = adapter.translate({
 			type: "run-finished",
 			snapshot: makeSnapshot(),
@@ -692,7 +692,7 @@ describe("RuntimeEventAdapter — run lifecycle", () => {
 		expect(out[0]).toMatchObject({ type: "done", reason: "aborted" });
 	});
 
-	it("maps run-finished { status:failed } → done { reason:error }", () => {
+	it("maps run-finished { status:failed } -> done { reason:error }", () => {
 		const out = adapter.translate({
 			type: "run-finished",
 			snapshot: makeSnapshot(),
@@ -701,7 +701,7 @@ describe("RuntimeEventAdapter — run lifecycle", () => {
 		expect(out[0]).toMatchObject({ type: "done", reason: "error" });
 	});
 
-	it("maps run-failed → error { recoverable:false, iteration }", () => {
+	it("maps run-failed -> error { recoverable:false, iteration }", () => {
 		const err = new Error("boom");
 		const out = adapter.translate({
 			type: "run-failed",
@@ -721,7 +721,7 @@ describe("RuntimeEventAdapter — run lifecycle", () => {
 // Stateless helper
 // ---------------------------------------------------------------------------
 
-describe("toLegacyAgentEvent — stateless helper", () => {
+describe("toLegacyAgentEvent - stateless helper", () => {
 	it("returns undefined for suppressed events", () => {
 		expect(
 			toLegacyAgentEvent({ type: "run-started", snapshot: makeSnapshot() }),
@@ -804,10 +804,10 @@ describe("toLegacyAgentEvent — stateless helper", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Exhaustiveness — all 13 AgentRuntimeEvent variants
+// Exhaustiveness - all 13 AgentRuntimeEvent variants
 // ---------------------------------------------------------------------------
 
-describe("RuntimeEventAdapter — exhaustiveness", () => {
+describe("RuntimeEventAdapter - exhaustiveness", () => {
 	it("handles every one of the 13 AgentRuntimeEvent variants without throwing", () => {
 		const adapter = new RuntimeEventAdapter();
 		const variants: AgentRuntimeEvent[] = [

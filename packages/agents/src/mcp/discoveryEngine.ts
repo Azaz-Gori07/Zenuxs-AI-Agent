@@ -72,7 +72,7 @@ export class DiscoveryEngine {
 				(e) => e.name,
 			);
 		} catch {
-			// Directory doesn't exist yet — that's OK
+			// Directory doesn't exist yet - that's OK
 			return [];
 		}
 
@@ -90,7 +90,7 @@ export class DiscoveryEngine {
 			// Look for package.json or .mcp.json manifest
 			const manifest = this.readManifest(serverPath);
 			if (!manifest) {
-				// No manifest — skip (not a valid MCP server dir)
+				// No manifest - skip (not a valid MCP server dir)
 				continue;
 			}
 

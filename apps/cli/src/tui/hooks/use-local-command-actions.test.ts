@@ -92,6 +92,15 @@ describe("runLocalSlashCommandAction", () => {
 		expect(settled).toBe(true);
 	});
 
+	it("routes /rewind to the same checkpoint restore as /undo", async () => {
+		const runUndo = vi.fn(async () => {});
+		const actions = makeActions({ runUndo });
+		expect(
+			await runLocalSlashCommandAction({ name: "rewind", ...actions }),
+		).toBe(true);
+		expect(runUndo).toHaveBeenCalledOnce();
+	});
+
 	it("waits for undo to finish restoring", async () => {
 		let resolveUndo: (() => void) | undefined;
 		const runUndo = vi.fn(

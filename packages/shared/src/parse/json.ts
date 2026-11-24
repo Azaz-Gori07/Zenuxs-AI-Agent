@@ -32,7 +32,7 @@ function repairBareObjectValue(
 	return JSON.parse(`{"${key}":${JSON.stringify(value)}}`);
 }
 
-/** Parse strategies applied in order — first success wins. */
+/** Parse strategies applied in order - first success wins. */
 const strategies: Array<(text: string) => unknown> = [
 	(text) => JSON.parse(text),
 	(text) => JSON.parse(jsonrepair(text)),
@@ -50,7 +50,7 @@ export function parseJsonStream(input: unknown): unknown {
 			const result = strategy(text);
 			if (result !== undefined) return result;
 		} catch {
-			// strategy failed — try next
+			// strategy failed - try next
 		}
 	}
 	return input;

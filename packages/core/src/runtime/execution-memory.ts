@@ -1,5 +1,5 @@
 /**
- * Execution Memory System — Session Persistence & Resume
+ * Execution Memory System - Session Persistence & Resume
  *
  * Tracks execution state across session interruptions:
  * - Current task and goal
@@ -428,10 +428,10 @@ export class ExecutionMemoryManager {
       `  State: ${this.memory.state}`,
       `  Goal: ${this.memory.goal}`,
       `  Tasks: ${completed}/${this.memory.tasks.length} completed`,
-      `    ✓ Completed: ${completed}`,
-      `    ✗ Failed: ${failed}`,
-      `    ⟳ In Progress: ${inProgress}`,
-      `    ○ Pending: ${pending}`,
+      `    [OK] Completed: ${completed}`,
+      `    [X] Failed: ${failed}`,
+      `    [~] In Progress: ${inProgress}`,
+      `    [ ] Pending: ${pending}`,
       `  Files Created: ${this.memory.filesCreated.length}`,
       `  Files Modified: ${this.memory.filesModified.length}`,
       `  Commands Executed: ${this.memory.commandsExecuted.length}`,

@@ -28,7 +28,7 @@ export interface SafePathOptions {
 export interface SafePath {
   /** Lexically normalised input path (for display). */
   inputPath: string
-  /** Fully resolved real path — use this for all I/O. */
+  /** Fully resolved real path - use this for all I/O. */
   realPath: string
   stats?: fsSync.Stats
 }

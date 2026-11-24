@@ -4,7 +4,7 @@
  * Implements dynamic, context-aware tool selection hierarchy:
  * Priority Order:
  * 1. Native Zenuxs tools (default preference weight = 1.0)
- * 2. Recommended MCP tools (Serena, Playwright, Context7, Git) with a ~60–70% preference bias
+ * 2. Recommended MCP tools (Serena, Playwright, Context7, Git) with a ~60-70% preference bias
  *    when user task intent explicitly matches MCP domain capability.
  * 3. Normal LLM fallback reasoning.
  */

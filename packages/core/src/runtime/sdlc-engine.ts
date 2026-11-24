@@ -1,21 +1,21 @@
 /**
- * SDLC Engine — Complete Software Development Lifecycle
+ * SDLC Engine - Complete Software Development Lifecycle
  *
  * Transforms Zenuxs from a coding agent into a complete engineering delivery platform.
  * Owns the entire process from requirements understanding through deployment preparation.
  *
  * SDLC Phases:
- * 1. Requirement Analysis — Understand business goal, users, platform, constraints
- * 2. Architecture Planning — Choose frontend, backend, database, auth, deployment
- * 3. Project Breakdown — Decompose into milestones, tasks, subtasks, dependencies
- * 4. Implementation — Execute foundation → core → secondary → integrations
- * 5. Testing — Unit, integration, E2E, validation, regression
- * 6. Debugging — Fix failures, optimize performance, resolve issues
- * 7. Validation — Build, lint, test, typecheck, security, performance
- * 8. Optimization — Improve architecture, code quality, DX, performance
- * 9. Documentation — API docs, setup guides, deployment guides
- * 10. Deployment Preparation — Env vars, configs, health checks, security
- * 11. Maintenance — Monitoring, logging, error tracking, updates
+ * 1. Requirement Analysis - Understand business goal, users, platform, constraints
+ * 2. Architecture Planning - Choose frontend, backend, database, auth, deployment
+ * 3. Project Breakdown - Decompose into milestones, tasks, subtasks, dependencies
+ * 4. Implementation - Execute foundation -> core -> secondary -> integrations
+ * 5. Testing - Unit, integration, E2E, validation, regression
+ * 6. Debugging - Fix failures, optimize performance, resolve issues
+ * 7. Validation - Build, lint, test, typecheck, security, performance
+ * 8. Optimization - Improve architecture, code quality, DX, performance
+ * 9. Documentation - API docs, setup guides, deployment guides
+ * 10. Deployment Preparation - Env vars, configs, health checks, security
+ * 11. Maintenance - Monitoring, logging, error tracking, updates
  *
  * Benefits:
  * - Product thinking (not just code generation)

@@ -185,7 +185,7 @@ export function toTxt(entries: DeveloperLog[]): string {
 export function toMarkdown(entries: DeveloperLog[]): string {
 	const lines = ["# Developer Logs", "", `Total entries: ${entries.length}`, ""];
 	for (const e of entries) {
-		lines.push(`- **${e.level}** \`${e.category}\` _${e.iso}_ — ${e.message}`);
+		lines.push(`- **${e.level}** \`${e.category}\` _${e.iso}_ - ${e.message}`);
 		if (e.data && Object.keys(e.data).length > 0) {
 			lines.push("  ```json");
 			lines.push(safeStringify(applySecretMasking(e.data)));

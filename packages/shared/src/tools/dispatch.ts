@@ -1,5 +1,5 @@
 /**
- * Tool execution dispatch — ported from OpenCode's ToolRuntime.
+ * Tool execution dispatch - ported from OpenCode's ToolRuntime.
  *
  * Handles one canonical tool-call at a time:
  *  - Looks up the named tool

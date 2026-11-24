@@ -159,7 +159,7 @@ function createBuiltinToolsList(
 	};
 
 	// 1. Create enhanced tools (read, write, edit, glob, grep, bash, webfetch,
-	//    todowrite, websearch, plan_exit) — these replace the default executors
+	//    todowrite, websearch, plan_exit) - these replace the default executors
 	const enhancedMode: CreateAllEnhancedToolsOptions["mode"] =
 		mode === "plan" ? "plan" : "act";
 	const disabledTools: string[] = [];

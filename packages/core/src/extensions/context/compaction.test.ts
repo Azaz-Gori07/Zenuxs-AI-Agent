@@ -1419,7 +1419,7 @@ describe("createContextCompactionPrepareTurn", () => {
 	});
 
 	// ------------------------------------------------------------------
-	// Telemetry coverage — task.compaction_executed / task.compaction_skipped
+	// Telemetry coverage - task.compaction_executed / task.compaction_skipped
 	// ------------------------------------------------------------------
 
 	it("emits task.compaction_executed telemetry after a successful basic compaction", async () => {

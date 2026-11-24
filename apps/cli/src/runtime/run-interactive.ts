@@ -637,7 +637,7 @@ export async function runInteractive(
 			}
 
 			// Rebuild system prompt to include latest Zenuxs AI memory.
-			// This is needed after onboarding links a Zenuxs account — the
+			// This is needed after onboarding links a Zenuxs account - the
 			// initial prompt was built before the token was saved.
 			const zenuxsSettings =
 				providerSettingsManager.getProviderSettings("zenuxs")

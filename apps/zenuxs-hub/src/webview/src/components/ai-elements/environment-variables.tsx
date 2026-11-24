@@ -190,7 +190,7 @@ export const EnvironmentVariableValue = ({
 
 	const displayValue = showValues
 		? value
-		: "•".repeat(Math.min(value.length, 20));
+		: "*".repeat(Math.min(value.length, 20));
 
 	return (
 		<span

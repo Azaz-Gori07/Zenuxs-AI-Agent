@@ -103,7 +103,7 @@ export const CommitSeparator = ({
 	...props
 }: CommitSeparatorProps) => (
 	<span className={className} {...props}>
-		{children ?? "•"}
+		{children ?? "*"}
 	</span>
 );
 

@@ -6,7 +6,7 @@
  * or by calling `profiler.enable()`.
  *
  * When disabled (default), all instrumentation methods are no-ops with
- * a single boolean check — effectively zero overhead.
+ * a single boolean check - effectively zero overhead.
  *
  * Usage:
  *   import { profiler } from "@cline/shared";
@@ -160,7 +160,7 @@ class RuntimeProfiler {
 	}
 
 	// -----------------------------------------------------------------------
-	// Span tracking — start/end
+	// Span tracking - start/end
 	// -----------------------------------------------------------------------
 
 	start(name: string, category: SpanCategory, meta?: Record<string, unknown>): number {
@@ -177,7 +177,7 @@ class RuntimeProfiler {
 			this._spanStack.shift();
 		}
 
-		// Store start info temporarily — end() will create the full span
+		// Store start info temporarily - end() will create the full span
 		(this as any)._pendingSpans = (this as any)._pendingSpans ?? new Map<number, { name: string; category: SpanCategory; startMs: number; parentId: number | null; meta?: Record<string, unknown> }>();
 		(this as any)._pendingSpans.set(id, { name, category, startMs: now, parentId, meta });
 
@@ -216,7 +216,7 @@ class RuntimeProfiler {
 	}
 
 	// -----------------------------------------------------------------------
-	// Span tracking — wrap (convenience for sync/async functions)
+	// Span tracking - wrap (convenience for sync/async functions)
 	// -----------------------------------------------------------------------
 
 	wrap<T>(name: string, category: SpanCategory, fn: () => T, meta?: Record<string, unknown>): T {
@@ -336,7 +336,7 @@ class RuntimeProfiler {
 	}
 
 	// -----------------------------------------------------------------------
-	// Finish — generate output files
+	// Finish - generate output files
 	// -----------------------------------------------------------------------
 
 	async finish(outputDir?: string): Promise<void> {

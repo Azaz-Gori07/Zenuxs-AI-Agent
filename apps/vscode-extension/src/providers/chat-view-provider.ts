@@ -368,7 +368,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				});
 				continue;
 			}
-			// Internal system/context messages are for the model only — never show them in chat
+			// Internal system/context messages are for the model only - never show them in chat
 			if (m.role === "system") continue;
 
 			let role: "user" | "assistant" | "error" | "meta" | "completion" = "user";
@@ -990,7 +990,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 					}
 				}
 			} catch {
-				// models remain empty — will be fetched lazily on provider change
+				// models remain empty - will be fetched lazily on provider change
 			}
 
 			// Use core bridge's listSessions() matching CLI's listSessions()
@@ -1020,7 +1020,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				if (raw) autoApprovals = JSON.parse(raw);
 			} catch { /* ignore */ }
 
-			// Never send the stored API key to the webview — the frontend
+			// Never send the stored API key to the webview - the frontend
 			// only needs to know whether a key exists (via hasApiKey on each
 			// provider in the providers array).
 			const isAuthenticated = AuthService.getInstance().authenticated;
@@ -1621,7 +1621,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				if (!isOAuthProvider(providerId) && !resolvedApiKey) {
 					const message =
 						`Cannot start chat: the "${providerId}" provider has no API key configured. ` +
-						`Open VS Code Settings → Zenuxs → Provider, select "${providerId}", ` +
+						`Open VS Code Settings -> Zenuxs -> Provider, select "${providerId}", ` +
 						`and paste your API key (for OpenRouter, create one at https://openrouter.ai/keys).`;
 					this.postToWebview({ type: "error", text: message });
 					loggerService.log({ level: LogLevel.ERROR, category: LogCategory.CONVERSATION, message: `Provider not ready: ${message}`, source: "session" });
@@ -1969,7 +1969,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 					resolve();
 				}
 				// The core may not emit an explicit "ended" event for successful
-				// single-turn sessions — it transitions to "idle" instead. Treat
+				// single-turn sessions - it transitions to "idle" instead. Treat
 				// idle as terminal so the promise doesn't hang indefinitely.
 				if (
 					event.type === "status" &&
@@ -1983,7 +1983,7 @@ export class ZenuxsChatViewProvider implements vscode.WebviewViewProvider {
 				// Provider/auth failures (403 gate, bad key) surface as a
 				// non-recoverable run error that never transitions the session
 				// to idle or emits an explicit "ended" event. Without this the
-				// tagged progress holder hangs on "Thinking…" forever even
+				// tagged progress holder hangs on "Thinking..." forever even
 				// though the error was already posted to the webview.
 				if (
 					event.type === "agent_event" &&

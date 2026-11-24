@@ -60,7 +60,7 @@ export function runLocalSlashCommandAction(
 		input.runFork();
 		return true;
 	}
-	if (normalized === "undo") {
+	if (normalized === "undo" || normalized === "rewind") {
 		return input.runUndo().then(() => true);
 	}
 	if (normalized === "clear") {

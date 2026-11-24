@@ -818,12 +818,12 @@ function SessionsView({
 							<DropdownMenuContent align="end" sideOffset={6}>
 								<DropdownMenuItem onClick={() => setSortDirection("newest")}>
 									{sortDirection === "newest"
-										? "Newest first ✓"
+										? "Newest first [OK]"
 										: "Newest first"}
 								</DropdownMenuItem>
 								<DropdownMenuItem onClick={() => setSortDirection("oldest")}>
 									{sortDirection === "oldest"
-										? "Oldest first ✓"
+										? "Oldest first [OK]"
 										: "Oldest first"}
 								</DropdownMenuItem>
 							</DropdownMenuContent>

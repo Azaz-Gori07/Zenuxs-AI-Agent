@@ -1,8 +1,8 @@
 /**
  * API-safe message builder for provider payloads.
  *
- * @see PLAN.md §3.1 — moved from `packages/agents/src/context/message-builder.ts`.
- * @see PLAN.md §3.2.3 — public surface of `MessageBuilder`.
+ * @see PLAN.md S3.1 - moved from `packages/agents/src/context/message-builder.ts`.
+ * @see PLAN.md S3.2.3 - public surface of `MessageBuilder`.
  *
  * Walks the conversation to produce provider-ready messages, handling
  * tool-result truncation and outdated-file-content rewrite for compaction.
@@ -752,7 +752,7 @@ export class MessageBuilder {
 		}
 
 		// Two-pass over content array: first count outdated image entries embedded
-		// in text payloads (those need to convert image siblings → text). Second
+		// in text payloads (those need to convert image siblings -> text). Second
 		// pass rewrites entries.
 		let pendingImageReplacements = 0;
 		for (const entry of content) {
@@ -1409,7 +1409,7 @@ function cloneContentBlockForMutation(block: ContentBlock): ContentBlock {
 
 /**
  * True for tool_result content entries that are not the typed text/image/file
- * blocks — i.e. structured tool outputs such as `ToolOperationResult[]`
+ * blocks - i.e. structured tool outputs such as `ToolOperationResult[]`
  * entries that the runtime stores directly in the content array.
  */
 function isStructuredToolResultEntry(entry: unknown): boolean {

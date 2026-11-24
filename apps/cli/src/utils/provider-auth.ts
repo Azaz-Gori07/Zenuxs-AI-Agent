@@ -75,7 +75,7 @@ export function getPersistedProviderApiKey(
  *
  * Treats OAuth providers as configured when an access token is present; for
  * everything else, any persisted API key, base URL, or model id counts. We
- * don't enforce required fields here — the runtime no longer pre-flights
+ * don't enforce required fields here - the runtime no longer pre-flights
  * credentials, so a missing key only matters when the API call actually
  * runs and the provider's own auth error is surfaced.
  */

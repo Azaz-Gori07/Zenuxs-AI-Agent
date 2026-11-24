@@ -1,5 +1,5 @@
 /**
- * Execution Verification System — Zero Simulation Policy
+ * Execution Verification System - Zero Simulation Policy
  *
  * Ensures every claimed action was actually executed:
  * - Files mentioned must exist
@@ -263,7 +263,7 @@ export function selfAuditExecution(): VerificationResult | null {
 
   // Log audit results
   if (!verification.verified) {
-    console.error("[Self-Audit] ❌ VERIFICATION FAILED");
+    console.error("[Self-Audit] [X] VERIFICATION FAILED");
     console.error(`[Self-Audit] Missing files: ${verification.missingFiles.length}`);
     console.error(`[Self-Audit] Missing commands: ${verification.missingCommands.length}`);
     console.error(`[Self-Audit] Missing dependencies: ${verification.missingDependencies.length}`);
@@ -273,7 +273,7 @@ export function selfAuditExecution(): VerificationResult | null {
       console.error(`[Self-Audit] ${warning}`);
     }
   } else {
-    console.log("[Self-Audit] ✅ All execution verified");
+    console.log("[Self-Audit] [OK] All execution verified");
   }
 
   return verification;
@@ -315,7 +315,7 @@ export function enforceZeroSimulationPolicy(
 
   if (!verification.verified) {
     const reason = [
-      "❌ ZERO SIMULATION POLICY VIOLATION",
+      "[X] ZERO SIMULATION POLICY VIOLATION",
       "",
       "The following claims lack execution evidence:",
       "",

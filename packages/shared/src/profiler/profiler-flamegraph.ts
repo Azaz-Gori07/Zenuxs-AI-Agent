@@ -1,5 +1,5 @@
 /**
- * Zenuxs Runtime Profiler — Flamegraph Data Generator
+ * Zenuxs Runtime Profiler - Flamegraph Data Generator
  *
  * Produces ZENUXS_FLAMEGRAPH_DATA.json suitable for flamegraph visualization.
  * Builds a call tree from parent-child span relationships, computes self-time

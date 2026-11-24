@@ -1,7 +1,7 @@
 {
   "name": "@zenuxs/engine",
   "version": "0.1.0",
-  "description": "Zenuxs Code native runtime engine — orchestration, session management, agent execution",
+  "description": "Zenuxs Code native runtime engine - orchestration, session management, agent execution",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

@@ -18,7 +18,7 @@ export type JsonValue =
 // AgentToolDefinition, AgentMessagePart, AgentMessage, AgentModelRequest,
 // AgentModelFinishReason, AgentModelEvent, AgentModel, and AgentModelUsage
 // previously lived here with gateway-local shapes. They have been retired in
-// favor of the canonical AgentRuntime types in `../agent` (PLAN.md §3.6 Step 3,
+// favor of the canonical AgentRuntime types in `../agent` (PLAN.md S3.6 Step 3,
 // expanded). `AgentModelUsage` is superseded by `AgentUsage` (`AgentTokenUsage`
 // + optional `totalCost`); usage deltas on `AgentModelEvent` are now
 // `Partial<AgentUsage>`.

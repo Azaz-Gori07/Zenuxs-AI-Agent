@@ -22,7 +22,7 @@ import { createApplyPatchExecutor } from "./apply-patch";
 import { parseTestOutput, detectScripts } from "./test-runner-helper";
 import { parseGitStatus, parseDiffStat } from "./git-helper";
 
-describe("F1 — Edit fallback chain", () => {
+describe("F1 - Edit fallback chain", () => {
 	let tempDir: string;
 
 	beforeEach(async () => {
@@ -48,7 +48,7 @@ describe("F1 — Edit fallback chain", () => {
 		await expect(fs.readFile(filePath, "utf-8")).resolves.toBe("goodbye world");
 	});
 
-	it("T4→T5: when structured edit fails (no match), apply_patch can be used as fallback", async () => {
+	it("T4->T5: when structured edit fails (no match), apply_patch can be used as fallback", async () => {
 		const filePath = path.join(tempDir, "test.txt");
 		await fs.writeFile(filePath, "alpha\nbeta\ngamma", "utf-8");
 
@@ -84,7 +84,7 @@ describe("F1 — Edit fallback chain", () => {
 		await expect(fs.readFile(filePath, "utf-8")).resolves.toBe("alpha\ndelta\ngamma");
 	});
 
-	it("T5→T6: when patch fails (context mismatch), full rewrite with backup is the last resort", async () => {
+	it("T5->T6: when patch fails (context mismatch), full rewrite with backup is the last resort", async () => {
 		const filePath = path.join(tempDir, "test.txt");
 		await fs.writeFile(filePath, "original content", "utf-8");
 
@@ -122,11 +122,11 @@ describe("F1 — Edit fallback chain", () => {
 	});
 });
 
-describe("F1 — Test output parsing (T8)", () => {
+describe("F1 - Test output parsing (T8)", () => {
 	it("parses vitest output format", () => {
 		const output = `
- ✓ src/foo.test.ts (3 tests) 12ms
- ✓ src/bar.test.ts (2 tests) 8ms
+ [OK] src/foo.test.ts (3 tests) 12ms
+ [OK] src/bar.test.ts (2 tests) 8ms
 
  Test Files  2 passed (2)
       Tests  5 passed (5)
@@ -141,7 +141,7 @@ describe("F1 — Test output parsing (T8)", () => {
 	it("parses jest output format", () => {
 		const output = `
 PASS src/foo.test.js
-  ✓ does something (5ms)
+  [OK] does something (5ms)
 
 Tests: 3 passed, 1 failed, 2 skipped, 6 total
 `;
@@ -171,7 +171,7 @@ Tests: 3 passed, 1 failed, 2 skipped, 6 total
 	});
 });
 
-describe("F1 — Git status parsing (T9)", () => {
+describe("F1 - Git status parsing (T9)", () => {
 	it("parses clean working tree", () => {
 		const raw = "";
 		const result = parseGitStatus(raw);
@@ -207,7 +207,7 @@ describe("F1 — Git status parsing (T9)", () => {
 	});
 });
 
-describe("F1 — Execute fallback chain", () => {
+describe("F1 - Execute fallback chain", () => {
 	it("parses go-test output format", () => {
 		const output = `
 === RUN   TestFoo
@@ -245,7 +245,7 @@ FAIL	pkg/bar	0.456s
 	});
 });
 
-describe("F1 — External fallback chain (web-fetch protocol validation)", () => {
+describe("F1 - External fallback chain (web-fetch protocol validation)", () => {
 	it("rejects non-http/https protocols", async () => {
 		const { createWebFetchExecutor } = await import("./web-fetch");
 		const fetcher = createWebFetchExecutor();
@@ -265,7 +265,7 @@ describe("F1 — External fallback chain (web-fetch protocol validation)", () =>
 	});
 });
 
-describe("F1 — Verification fallback chain (test-runner-helper integration)", () => {
+describe("F1 - Verification fallback chain (test-runner-helper integration)", () => {
 	it("createTestRunnerHelper returns structured result on bash failure", async () => {
 		const { createTestRunnerHelper } = await import("./test-runner-helper");
 		// Mock bash executor that simulates test failure
@@ -314,7 +314,7 @@ describe("F1 — Verification fallback chain (test-runner-helper integration)", 
 	});
 });
 
-describe("F1 — T2 grep edge cases (search executor)", () => {
+describe("F1 - T2 grep edge cases (search executor)", () => {
 	it("handles special regex characters in search pattern", async () => {
 		const { createSearchExecutor } = await import("./search");
 		const search = createSearchExecutor({ contextLines: 0 });
@@ -325,7 +325,7 @@ describe("F1 — T2 grep edge cases (search executor)", () => {
 				"const x = foo.bar[0];\nconst y = foo(baz);\n",
 				"utf-8",
 			);
-			// Search for a literal dot — should not crash
+			// Search for a literal dot - should not crash
 			const result = await search("foo.bar", tempDir, { agentId: "a", conversationId: "c", iteration: 1 });
 			expect(result).toContain("code.ts");
 		} finally {
@@ -339,7 +339,7 @@ describe("F1 — T2 grep edge cases (search executor)", () => {
 		const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "f1-grep-empty-"));
 		try {
 			const result = await search("anything", tempDir, { agentId: "a", conversationId: "c", iteration: 1 });
-			// Empty dir should not crash — either "No results" or "Found 0"
+			// Empty dir should not crash - either "No results" or "Found 0"
 			expect(result).toMatch(/No results|Found 0/);
 		} finally {
 			await fs.rm(tempDir, { recursive: true, force: true });
@@ -347,7 +347,7 @@ describe("F1 — T2 grep edge cases (search executor)", () => {
 	});
 });
 
-describe("F1 — Script detection (T8)", () => {
+describe("F1 - Script detection (T8)", () => {
 	let tempDir: string;
 
 	beforeEach(async () => {

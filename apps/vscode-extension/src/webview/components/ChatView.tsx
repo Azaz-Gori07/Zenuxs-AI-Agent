@@ -44,15 +44,15 @@ const MODE_COLORS: Record<AgentMode, string> = {
 };
 
 const STATUS_EMOJIS = {
-	idle: "💤",
-	thinking: "🟢",
-	searching: "🔍",
-	reading: "📖",
-	writing: "✍️",
-	calling: "🔧",
-	testing: "🧪",
-	finished: "✅",
-	error: "❌",
+	idle: "[SLEEP]",
+	thinking: "[GREEN]",
+	searching: "[SEARCH]",
+	reading: "[BOOK]",
+	writing: "?",
+	calling: "[WRENCH]",
+	testing: "[TEST]",
+	finished: "[OK]",
+	error: "[X]",
 };
 
 const STATUS_LABELS = {
@@ -189,7 +189,7 @@ export function ChatView() {
 		return () => document.removeEventListener("click", handleDocumentClick);
 	}, [showModeMenu, showModelMenu]);
 
-	// Model context window lookup — updates ExecutionStore with real model capacity
+	// Model context window lookup - updates ExecutionStore with real model capacity
 	const getModelContextWindow = useCallback((providerId: string, modelId: string): number => {
 		const cleanId = modelId.split("/").pop() || modelId;
 		const known: Record<string, number> = {
@@ -882,7 +882,7 @@ export function ChatView() {
 					/>
 				)}
 
-				{/* Approval & Error panels — always visible */}
+				{/* Approval & Error panels - always visible */}
 				{toolExecutionState.pendingApproval && (
 					<EnhancedApprovalCard 
 						request={toolExecutionState.pendingApproval} 
@@ -898,7 +898,7 @@ export function ChatView() {
 
 				{showScrollBottomBtn && (
 					<button className="scroll-to-bottom-btn" onClick={() => scrollToBottom()} title="Scroll to bottom" aria-label="Scroll to bottom">
-						↓ Scroll to bottom
+						down Scroll to bottom
 					</button>
 				)}
 
@@ -944,7 +944,7 @@ export function ChatView() {
 								title={`${getProviderLabel(providerId)} / ${activeModel.split("/").pop() || "Model"}`}
 								aria-label="Select model"
 							>
-								{getProviderLabel(providerId)} / {activeModel.split("/").pop() || "Model"} ▾
+								{getProviderLabel(providerId)} / {activeModel.split("/").pop() || "Model"} v
 							</button>
 							{showModelMenu && (
 								<div className="model-dropdown enhanced">
@@ -1002,7 +1002,7 @@ export function ChatView() {
 								title="Select Agent Mode"
 								aria-label="Select agent mode"
 							>
-								{MODE_LABELS[mode] || "Mode"} ▾
+								{MODE_LABELS[mode] || "Mode"} v
 							</button>
 							{showModeMenu && (
 								<div className="mode-dropdown">
@@ -1075,7 +1075,7 @@ function CheckpointDropdownComponent({ activeSessionId, checkpoints }: { activeS
 	return (
 		<div style={{ position: "relative" }}>
 			<button className="toolbar-icon-btn" onClick={() => setIsOpen(!isOpen)} title="Manage Checkpoints" aria-label="Manage checkpoints">
-				⏱️
+				[TIMER]
 			</button>
 			{isOpen && (
 				<div className="checkpoint-dropdown">
@@ -1093,10 +1093,10 @@ function CheckpointDropdownComponent({ activeSessionId, checkpoints }: { activeS
 								</div>
 								<div className="checkpoint-item-actions">
 									<button className="checkpoint-item-btn" onClick={() => { restoreCheckpoint(activeSessionId, c.ref); setIsOpen(false); }} title="Restore checkpoint" aria-label="Restore checkpoint">
-										🔄
+										[REFRESH]
 									</button>
 									<button className="checkpoint-item-btn delete" onClick={() => deleteCheckpoint(activeSessionId, c.ref)} title="Delete checkpoint" aria-label="Delete checkpoint">
-										🗑️
+										[TRASH]
 									</button>
 								</div>
 							</div>
@@ -1215,12 +1215,12 @@ function EnhancedApprovalCard({ request, approveTool }: { request: any; approveT
 	return (
 		<div className={`approval-card ${isDangerous || outOfWorkspace ? "dangerous" : ""}`} role="alertdialog" aria-label="Tool approval required">
 			<div style={{ fontWeight: 700, fontSize: "1.05em", color: isDangerous ? "var(--error)" : "#fff" }}>
-				🛡️ Manual Approval Required
+				[SHIELD] Manual Approval Required
 			</div>
 			
 			{isDangerous && (
 				<div className="warning-banner" style={{ marginBottom: 10 }}>
-					<span className="warning-banner-icon">⚠️</span>
+					<span className="warning-banner-icon">[WARN]</span>
 					<div>
 						<strong>Security Warning:</strong> Executing shell commands can modify your system, access network resources, or delete files. Review arguments carefully.
 					</div>
@@ -1229,7 +1229,7 @@ function EnhancedApprovalCard({ request, approveTool }: { request: any; approveT
 
 			{outOfWorkspace && (
 				<div className="warning-banner" style={{ marginBottom: 10, background: "rgba(239, 68, 68, 0.12)", borderColor: "rgba(239, 68, 68, 0.3)" }}>
-					<span className="warning-banner-icon">🚨</span>
+					<span className="warning-banner-icon">[ALERT]</span>
 					<div>
 						<strong>Directory Escaping Warning:</strong> This tool is requesting access to a file path outside the workspace root.
 					</div>
@@ -1325,7 +1325,7 @@ function ErrorRecoveryPanel({ error, onResolve }: { error: { toolName: string; m
 	return (
 		<div className="error-recovery-card">
 			<div className="error-recovery-title">
-				<span>⚠️ Tool Failure in '{error.toolName}'</span>
+				<span>[WARN] Tool Failure in '{error.toolName}'</span>
 			</div>
 			<div className="error-recovery-desc">
 				{error.message}
@@ -1393,7 +1393,7 @@ function TaskExecutionPanel({ task, onToggleCollapse, onStop }: {
 						<div className="exec-cancelled-block">
 							{isInterrupted ? (
 								<>
-									<div className="cancelled-title">⚠ Task Interrupted</div>
+									<div className="cancelled-title">[WARN] Task Interrupted</div>
 									<div className="cancelled-before">{task.interruptedReason || "VSCode Reloaded"}</div>
 								</>
 							) : (
@@ -1402,9 +1402,9 @@ function TaskExecutionPanel({ task, onToggleCollapse, onStop }: {
 						</div>
 					)}
 
-					{/* COMPLETED — simple indicator, no button */}
+					{/* COMPLETED - simple indicator, no button */}
 					{isCompleted && (
-						<div className="exec-completed-indicator">✓ Task Completed</div>
+						<div className="exec-completed-indicator">[OK] Task Completed</div>
 					)}
 				</div>
 			)}
@@ -1420,19 +1420,19 @@ function TaskHeader({ task, onToggleCollapse, onStop }: { task: TaskDataV2; onTo
 
 	return (
 		<div className="exec-header" onClick={onToggleCollapse}>
-			<span className="exec-toggle">{task.collapsed ? "▶" : "▼"}</span>
-			<span className="exec-task-id">Task #{task.taskId} • {task.title}</span>
+			<span className="exec-toggle">{task.collapsed ? ">" : "v"}</span>
+			<span className="exec-task-id">Task #{task.taskId} * {task.title}</span>
 			{task.collapsed && (
 				<span className="exec-live-status">
-					{isRunning && <span>Running • {completedEventsCount} / {totalEventsCount}</span>}
-					{task.state === "completed" && <span className="exec-status-done">Completed ✓</span>}
+					{isRunning && <span>Running * {completedEventsCount} / {totalEventsCount}</span>}
+					{task.state === "completed" && <span className="exec-status-done">Completed [OK]</span>}
 					{task.state === "cancelled" && <span className="exec-status-cancelled">Cancelled</span>}
-					{task.state === "interrupted" && <span className="exec-status-interrupted">⚠ Interrupted</span>}
+					{task.state === "interrupted" && <span className="exec-status-interrupted">[WARN] Interrupted</span>}
 				</span>
 			)}
 			{isRunning && (
 				<button className="exec-stop-btn" onClick={(e) => { e.stopPropagation(); onStop(); }} title="Stop execution" type="button">
-					🛑 Stop
+					[STOP] Stop
 				</button>
 			)}
 		</div>
@@ -1440,14 +1440,14 @@ function TaskHeader({ task, onToggleCollapse, onStop }: { task: TaskDataV2; onTo
 }
 
 const EVENT_ICONS: Record<string, string> = {
-	exploring: "🔍",
-	analyzing: "🧠",
-	reading: "📖",
-	editing: "✍️",
-	writing: "📝",
-	command: "🖥️",
-	testing: "🧪",
-	tool: "🔧",
+	exploring: "[SEARCH]",
+	analyzing: "[BRAIN]",
+	reading: "[BOOK]",
+	editing: "?",
+	writing: "[NOTE]",
+	command: "[SCREEN]",
+	testing: "[TEST]",
+	tool: "[WRENCH]",
 };
 
 function ExecEventRow({ event }: { event: TimelineEvent }) {
@@ -1455,7 +1455,7 @@ function ExecEventRow({ event }: { event: TimelineEvent }) {
 	const isRunning = event.status === "running";
 	const isCompleted = event.status === "completed";
 	const isFailed = event.status === "failed";
-	const categoryIcon = EVENT_ICONS[event.eventType] || "🔧";
+	const categoryIcon = EVENT_ICONS[event.eventType] || "[WRENCH]";
 
 	return (
 		<div className={`vertical-timeline-item ${event.status}`}>
@@ -1464,7 +1464,7 @@ function ExecEventRow({ event }: { event: TimelineEvent }) {
 					{categoryIcon}
 				</span>
 				<span className="step-icon">
-					{isRunning ? <span className="dot-pulse" /> : isCompleted ? <span style={{ color: "var(--success)" }}>✓</span> : isFailed ? <span style={{ color: "var(--error)" }}>✗</span> : "○"}
+					{isRunning ? <span className="dot-pulse" /> : isCompleted ? <span style={{ color: "var(--success)" }}>[OK]</span> : isFailed ? <span style={{ color: "var(--error)" }}>[X]</span> : "[ ]"}
 				</span>
 				<span style={{ fontSize: "0.85em", color: isFailed ? "var(--error)" : "var(--fg, #e2e8f0)", fontWeight: 500 }}>
 					{event.title}
@@ -1483,8 +1483,8 @@ function CommandCard({ metadata, status, durationMs }: { metadata?: TimelineEven
 	return (
 		<div className="command-card">
 			<div className="command-card-header">
-				<span className="command-card-cwd">📂 {metadata.cwd || "."}</span>
-				{durationStr && <span>⏱ {durationStr}</span>}
+				<span className="command-card-cwd">[FOLDER] {metadata.cwd || "."}</span>
+				{durationStr && <span>[TIMER] {durationStr}</span>}
 				{metadata.exitCode !== undefined && <span>Exit: {metadata.exitCode}</span>}
 			</div>
 			{metadata.command && (
@@ -1508,7 +1508,7 @@ function SummaryCard({ summary, taskId }: { summary: TaskSummaryV2; taskId: numb
 	return (
 		<div className="exec-summary">
 			<div className="summary-title-row">
-				<span className="summary-check">✓</span>
+				<span className="summary-check">[OK]</span>
 				<span className="summary-title-text">Task #{taskId} Completed</span>
 			</div>
 			<div className="summary-stats">
@@ -1547,7 +1547,7 @@ function ViewChangesPanel({ fileChanges }: { fileChanges: FileChangesV2 }) {
 	return (
 		<div className="exec-summary" style={{ marginTop: 4 }}>
 			<button className="summary-changes-btn" onClick={() => setShowChanges(!showChanges)}>
-				{showChanges ? "▾" : "▸"} View Changes
+				{showChanges ? "v" : ">"} View Changes
 			</button>
 			{showChanges && (
 				<div className="view-changes-panel">

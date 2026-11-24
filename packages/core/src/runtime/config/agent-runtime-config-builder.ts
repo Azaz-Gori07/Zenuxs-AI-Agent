@@ -9,7 +9,7 @@
  * Fields that do **not** round-trip into `AgentRuntimeConfig`
  * (e.g. `execution.maxConsecutiveMistakes`, `execution.loopDetection`) are
  * consumed by `SessionRuntime` / `MistakeTracker` /
- * `LoopDetectionTracker` — not passed through here.
+ * `LoopDetectionTracker` - not passed through here.
  */
 
 import {
@@ -69,7 +69,7 @@ export interface CreateAgentRuntimeConfigInput {
 	/** Seed messages (usually `session.conversation.getMessages()`). */
 	readonly initialMessages?: readonly AgentMessage[];
 	/**
-	 * Override for `AgentRuntimeConfig.systemPrompt` — useful when
+	 * Override for `AgentRuntimeConfig.systemPrompt` - useful when
 	 * the caller has composed additional guidance (e.g. via
 	 * `LocalRuntimeHost.composeSystemPrompt`). Defaults to
 	 * `agentConfig.systemPrompt`.
@@ -152,7 +152,7 @@ export function buildModelOptions(
 
 /**
  * Compose `messageModelInfo` from the provider-related fields per
- * §3.2.1: `{ id: modelId, provider: providerId, family:
+ * S3.2.1: `{ id: modelId, provider: providerId, family:
  * providerConfig?.family }`.
  */
 export function buildMessageModelInfo(
@@ -168,7 +168,7 @@ export function buildMessageModelInfo(
 }
 
 /**
- * `"parallel"` when `maxParallelToolCalls ≥ 2` or undefined (default),
+ * `"parallel"` when `maxParallelToolCalls ? 2` or undefined (default),
  * `"sequential"` when explicitly set to `1`.
  *
  * Changed from OpenCode parity: Parallel execution is now the default

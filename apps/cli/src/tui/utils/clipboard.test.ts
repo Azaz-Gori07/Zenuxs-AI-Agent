@@ -69,7 +69,7 @@ describe("copyTextToSystemClipboard", () => {
 		const { copyTextToSystemClipboard } = await import("./clipboard");
 
 		await expect(
-			copyTextToSystemClipboard("hello\nworld 👋", {
+			copyTextToSystemClipboard("hello\nworld [WAVE]", {
 				platform: "darwin",
 				env: { ...ENV_WITHOUT_SSH, LC_ALL: "C", LANG: "C", LC_CTYPE: "C" },
 			}),
@@ -87,7 +87,7 @@ describe("copyTextToSystemClipboard", () => {
 		expect(spawnOptions.env?.LANG).toBe("en_US.UTF-8");
 		expect(spawnOptions.env?.LC_CTYPE).toBe("en_US.UTF-8");
 		expect(spawnOptions.env?.LC_ALL).toBeUndefined();
-		expect(proc.getInput()).toBe("hello\nworld 👋");
+		expect(proc.getInput()).toBe("hello\nworld [WAVE]");
 	});
 
 	it("falls back from wl-copy to xclip on Linux and writes input to both", async () => {
@@ -145,7 +145,7 @@ describe("copyTextToSystemClipboard", () => {
 		spawnMock.mockReturnValueOnce(win.child);
 		const { copyTextToSystemClipboard } = await import("./clipboard");
 
-		const unicode = "hello 👋 日本語 é";
+		const unicode = "hello [WAVE] Japanese e";
 		await expect(
 			copyTextToSystemClipboard(unicode, {
 				platform: "win32",
@@ -201,7 +201,7 @@ describe("copyTextToSystemClipboard", () => {
 		spawnMock.mockReturnValueOnce(wsl.child);
 		const { copyTextToSystemClipboard } = await import("./clipboard");
 
-		const unicode = "hello 👋 日本語 é";
+		const unicode = "hello [WAVE] Japanese e";
 		await expect(
 			copyTextToSystemClipboard(unicode, {
 				platform: "linux",

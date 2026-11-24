@@ -669,11 +669,11 @@ export function DeveloperLogsView({ chrome = "content" }: { chrome?: "full" | "c
 					{filtered.length.toLocaleString()} / {entries.length.toLocaleString()} logs
 				</span>
 				{stats.errors > 0 && (
-					<span className="text-destructive">● {stats.errors} errors</span>
+					<span className="text-destructive">[*] {stats.errors} errors</span>
 				)}
 				{stats.warns > 0 && (
 					<span className="text-amber-600 dark:text-amber-400">
-						● {stats.warns} warnings
+						[*] {stats.warns} warnings
 					</span>
 				)}
 				<button

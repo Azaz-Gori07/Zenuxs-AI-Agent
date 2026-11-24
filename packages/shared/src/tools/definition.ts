@@ -1,11 +1,11 @@
 /**
- * Enhanced tool definition types and factory — ported from OpenCode's LLM tool model.
+ * Enhanced tool definition types and factory - ported from OpenCode's LLM tool model.
  *
  * Provides:
- *  - `ToolDefinition` — canonical description of a tool (name, description, JSON Schema)
- *  - `Tool.make()` — typed + dynamic tool construction
- *  - `Tool.toDefinitions()` — convert a tools record to definition arrays
- *  - `ToolRuntime.dispatch()` — execute a tool call against registered tools
+ *  - `ToolDefinition` - canonical description of a tool (name, description, JSON Schema)
+ *  - `Tool.make()` - typed + dynamic tool construction
+ *  - `Tool.toDefinitions()` - convert a tools record to definition arrays
+ *  - `ToolRuntime.dispatch()` - execute a tool call against registered tools
  */
 
 import type { AgentTool, AgentToolContext } from "../agent";
@@ -69,7 +69,7 @@ export interface DispatchResult extends ToolSettlement {
 }
 
 // =============================================================================
-// Tool interface — the enhanced shape that tools implement
+// Tool interface - the enhanced shape that tools implement
 // =============================================================================
 
 export interface EnhancedTool<TInput = unknown, TOutput = unknown> {
@@ -88,7 +88,7 @@ export type AnyEnhancedTool = EnhancedTool<any, any>;
 export type EnhancedTools = Record<string, AnyEnhancedTool>;
 
 // =============================================================================
-// Tool choice — control model tool selection behavior
+// Tool choice - control model tool selection behavior
 // =============================================================================
 
 export type ToolChoiceMode = "auto" | "none" | "required";

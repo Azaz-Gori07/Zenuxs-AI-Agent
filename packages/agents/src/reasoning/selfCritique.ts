@@ -13,7 +13,7 @@ Your responsibilities:
    - Code style and convention compliance
    - Missing error handling
    - Performance issues
-3. Assign a confidence score (0.0–1.0) where 1.0 means the output is perfect and ready to use
+3. Assign a confidence score (0.0-1.0) where 1.0 means the output is perfect and ready to use
 4. Output structured feedback
 
 Output your critique in this format:
@@ -29,9 +29,9 @@ const REFINER_SYSTEM_PROMPT = `You are a Code and Plan Refiner. Your role is to 
 Your responsibilities:
 1. Carefully consider each issue raised by the critic
 2. Fix every issue without introducing new problems
-3. Produce the complete improved output — not just the changed parts
+3. Produce the complete improved output - not just the changed parts
 4. Keep the same format and structure as the original
-5. Do NOT add commentary or explanations — the output itself is the improvement
+5. Do NOT add commentary or explanations - the output itself is the improvement
 
 Output ONLY the improved code or plan. No prefixes, no explanations, no markdown wrappers.`;
 

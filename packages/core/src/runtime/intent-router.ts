@@ -1,5 +1,5 @@
 /**
- * Intent Router — Architecture Migration Component
+ * Intent Router - Architecture Migration Component
  *
  * Routes every user request through an intent classification layer before
  * the LLM produces output. This prevents build/project creation requests
@@ -36,12 +36,12 @@ export type IntentCategory =
   | "automation";
 
 export type ExecutionMode =
-  | "chat"        // Explanations, questions → returns text
-  | "edit"        // Modifies existing files → uses filesystem tools
-  | "build"       // Creates complete projects → uses filesystem + shell + templates
-  | "automation"  // Runs workflows → uses automation engine
-  | "review"      // Reviews code → uses read/analysis tools
-  | "debug";      // Investigates bugs → uses read/shell/diagnostic tools
+  | "chat"        // Explanations, questions -> returns text
+  | "edit"        // Modifies existing files -> uses filesystem tools
+  | "build"       // Creates complete projects -> uses filesystem + shell + templates
+  | "automation"  // Runs workflows -> uses automation engine
+  | "review"      // Reviews code -> uses read/analysis tools
+  | "debug";      // Investigates bugs -> uses read/shell/diagnostic tools
 
 export interface IntentClassification {
   /** The classified intent category */

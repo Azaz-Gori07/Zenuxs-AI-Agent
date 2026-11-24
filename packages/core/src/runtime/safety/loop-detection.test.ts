@@ -54,10 +54,10 @@ describe("toolCallSignature", () => {
 });
 
 // =============================================================================
-// checkRepeatedToolCall — consecutive identical detection
+// checkRepeatedToolCall - consecutive identical detection
 // =============================================================================
 
-describe("checkRepeatedToolCall — consecutive identical", () => {
+describe("checkRepeatedToolCall - consecutive identical", () => {
 	const config = { softThreshold: 3, hardThreshold: 5 };
 
 	it("returns ok for first call", () => {
@@ -104,10 +104,10 @@ describe("checkRepeatedToolCall — consecutive identical", () => {
 });
 
 // =============================================================================
-// checkRepeatedToolCall — flip-flop detection
+// checkRepeatedToolCall - flip-flop detection
 // =============================================================================
 
-describe("checkRepeatedToolCall — flip-flop detection", () => {
+describe("checkRepeatedToolCall - flip-flop detection", () => {
 	const config = { softThreshold: 10, hardThreshold: 20 }; // high thresholds to isolate flip-flop
 
 	it("detects alternating between two tool calls", () => {

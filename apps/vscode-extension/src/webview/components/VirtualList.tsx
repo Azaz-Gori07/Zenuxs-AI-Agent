@@ -1,5 +1,5 @@
 /**
- * VirtualList — A performant virtualized list component for rendering massive
+ * VirtualList - A performant virtualized list component for rendering massive
  * log datasets without blocking the UI.
  *
  * It renders only the visible rows (plus a configurable overscan), recycling

@@ -27,7 +27,7 @@ import {
 	isAbortInProgress,
 } from "./runtime/active-runtime";
 import { writeErr } from "./utils/output";
-// OPT-09: Static import for main module — avoids dynamic import overhead (~30-50ms).
+// OPT-09: Static import for main module - avoids dynamic import overhead (~30-50ms).
 // The hub daemon path uses a separate dynamic import below.
 import { runCli } from "./main";
 

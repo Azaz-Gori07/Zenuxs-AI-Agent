@@ -320,7 +320,7 @@ export function SettingsView() {
 									</span>
 									{isOAuthAuthenticated && (
 										<span style={{ fontSize: 12, color: "#10b981", fontWeight: 600, display: "flex", alignItems: "center", gap: 4 }}>
-											✓ Connected
+											[OK] Connected
 										</span>
 									)}
 								</div>
@@ -349,7 +349,7 @@ export function SettingsView() {
 											alignItems: "center",
 											justifyContent: "space-between"
 										}}>
-											<span>✅ Login Success</span>
+											<span>[OK] Login Success</span>
 										</div>
 										<button
 											className="btn secondary"
@@ -576,7 +576,7 @@ export function SettingsView() {
 		<div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
 			<div style={{ padding: "12px 16px", flexShrink: 0 }}>
 				<button className="btn secondary sm" onClick={() => switchTab("chat")}>
-					← Back to Chat
+					<- Back to Chat
 				</button>
 			</div>
 

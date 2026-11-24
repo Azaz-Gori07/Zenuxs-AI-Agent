@@ -22,6 +22,7 @@ export type LocalSlashCommandName =
 	| "skills"
 	| "fork"
 	| "undo"
+	| "rewind"
 	| "clear"
 	| "logout"
 	| "cleardata"
@@ -99,6 +100,10 @@ const TUI_LOCAL_COMMANDS: Array<{
 		description: "Restore to a previous checkpoint",
 	},
 	{
+		name: "rewind",
+		description: "Revert to a previous checkpoint (alias for /undo)",
+	},
+	{
 		name: "clear",
 		description: "Start a new session",
 	},
@@ -135,6 +140,7 @@ const SYSTEM_COMMAND_ORDER = [
 	"skills",
 	"fork",
 	"undo",
+	"rewind",
 	"clear",
 	"logout",
 	"cleardata",

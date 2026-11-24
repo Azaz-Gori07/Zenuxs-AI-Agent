@@ -36,7 +36,7 @@ export interface EditorEditResult {
 }
 
 /**
- * VsCodeEditorTool — Performs live file editing inside VS Code.
+ * VsCodeEditorTool - Performs live file editing inside VS Code.
  * Inspired by Cline's VscodeDiffViewProvider.ts and showTextDocument.ts.
  */
 export class VsCodeEditorTool {

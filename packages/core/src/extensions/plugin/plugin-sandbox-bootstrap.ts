@@ -23,7 +23,7 @@ import {
 } from "./plugin-targeting";
 
 // ---------------------------------------------------------------------------
-// Types (intentionally minimal – mirrors only what the RPC protocol needs)
+// Types (intentionally minimal - mirrors only what the RPC protocol needs)
 // ---------------------------------------------------------------------------
 
 interface PluginTool {
@@ -315,7 +315,7 @@ function emitEvent(name: string, payload?: unknown): void {
 (globalThis as Record<string, unknown>).__clinePluginHost = { emitEvent };
 
 /**
- * Session workspace env — populated by `initialize()` and available to any
+ * Session workspace env - populated by `initialize()` and available to any
  * plugin code that executes before the setup hook, or cannot use hook context.
  * Prefer using PluginSetupCtx from the setup function when possible.
  */
@@ -609,7 +609,7 @@ async function initialize(args: {
 		try {
 			process.chdir(args.cwd);
 		} catch {
-			// Ignore — best-effort; path may not exist in unusual environments.
+			// Ignore - best-effort; path may not exist in unusual environments.
 		}
 	}
 

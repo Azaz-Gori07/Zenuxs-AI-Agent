@@ -272,7 +272,7 @@ export function captureAuthRefreshSoftFailure(
  *
  * Unlike the OAuth/device-code `captureAuth*` events, the configure step is a
  * synchronous local credential save with no network roundtrip, so there is no
- * start/fail counterpart — the credential is validated lazily on the first
+ * start/fail counterpart - the credential is validated lazily on the first
  * subsequent API call. Mirrors the `{ provider }` payload shape of
  * {@link captureAuthSucceeded} for funnel consistency.
  */
@@ -621,11 +621,11 @@ export function captureHookDiscovery(
  * Identifies which compaction implementation produced a
  * `task.compaction_executed` / `task.compaction_skipped` event.
  *
- * - `basic`   — built-in token-budget truncation
+ * - `basic`   - built-in token-budget truncation
  *   (see `extensions/context/basic-compaction.ts`).
- * - `agentic` — built-in LLM-powered summarization
+ * - `agentic` - built-in LLM-powered summarization
  *   (see `extensions/context/agentic-compaction.ts`).
- * - `custom`  — user-supplied `compaction.compact()` callback on
+ * - `custom`  - user-supplied `compaction.compact()` callback on
  *   `CoreSessionConfig`.
  */
 export type TelemetryCompactionStrategy = "basic" | "agentic" | "custom";
@@ -633,9 +633,9 @@ export type TelemetryCompactionStrategy = "basic" | "agentic" | "custom";
 /**
  * Trigger mode for a compaction attempt.
  *
- * - `auto`   — fired automatically by `createContextCompactionPrepareTurn`
+ * - `auto`   - fired automatically by `createContextCompactionPrepareTurn`
  *   when input tokens exceed the configured threshold.
- * - `manual` — user-initiated (e.g. CLI `/compact`).
+ * - `manual` - user-initiated (e.g. CLI `/compact`).
  */
 export type TelemetryCompactionMode = "auto" | "manual";
 
@@ -654,7 +654,7 @@ export interface CaptureCompactionExecutedProperties {
 	thresholdRatio: number;
 	durationMs: number;
 	// Name matches the rest of the TASK-namespace capture functions
-	// (`captureTaskCompleted`, `captureToolUsage`, etc.) — using `provider`,
+	// (`captureTaskCompleted`, `captureToolUsage`, etc.) - using `provider`,
 	// not `providerId`, keeps downstream PostHog joins consistent.
 	provider?: string;
 	modelId?: string;
@@ -678,7 +678,7 @@ export interface CaptureCompactionSkippedProperties {
 	/**
 	 * Why the strategy decided not to compact. Currently only one value is
 	 * emitted by the wrapper:
-	 * - `no_result` — strategy returned `undefined` (e.g. there was nothing
+	 * - `no_result` - strategy returned `undefined` (e.g. there was nothing
 	 *   safe to remove). Strategy *exceptions* propagate up instead of
 	 *   firing telemetry, so no `strategy_error` value is emitted today.
 	 * The field is kept loosely typed (`string`) so additional reasons can

@@ -157,7 +157,7 @@ describe("models registry parsing", () => {
 // extractModelIdsFromPayload is tested indirectly via addLocalProvider
 // ===========================================================================
 
-describe("addLocalProvider – model ID parsing via modelsSourceUrl", () => {
+describe("addLocalProvider - model ID parsing via modelsSourceUrl", () => {
 	let manager: ProviderSettingsManager;
 	let cleanup: () => void;
 
@@ -294,7 +294,7 @@ describe("addLocalProvider – model ID parsing via modelsSourceUrl", () => {
 			modelsSourceUrl: "https://example.invalid/models",
 		});
 
-		// manual-1, manual-2, fetched-1, fetched-2, manual-1 → Set → 4
+		// manual-1, manual-2, fetched-1, fetched-2, manual-1 -> Set -> 4
 		expect(result.modelsCount).toBe(4);
 		const { models } = await getLocalProviderModels("merged-provider");
 		const ids = models.map((m) => m.id).sort();
@@ -365,10 +365,10 @@ describe("addLocalProvider – model ID parsing via modelsSourceUrl", () => {
 });
 
 // ===========================================================================
-// addLocalProvider – validation guards
+// addLocalProvider - validation guards
 // ===========================================================================
 
-describe("addLocalProvider – validation", () => {
+describe("addLocalProvider - validation", () => {
 	let manager: ProviderSettingsManager;
 	let cleanup: () => void;
 
@@ -444,10 +444,10 @@ describe("addLocalProvider – validation", () => {
 });
 
 // ===========================================================================
-// addLocalProvider – delete compatibility path
+// addLocalProvider - delete compatibility path
 // ===========================================================================
 
-describe("addLocalProvider – delete compatibility", () => {
+describe("addLocalProvider - delete compatibility", () => {
 	let manager: ProviderSettingsManager;
 	let cleanup: () => void;
 
@@ -509,10 +509,10 @@ describe("addLocalProvider – delete compatibility", () => {
 });
 
 // ===========================================================================
-// addLocalProvider – defaultModelId selection
+// addLocalProvider - defaultModelId selection
 // ===========================================================================
 
-describe("addLocalProvider – defaultModelId selection", () => {
+describe("addLocalProvider - defaultModelId selection", () => {
 	let manager: ProviderSettingsManager;
 	let cleanup: () => void;
 
@@ -550,10 +550,10 @@ describe("addLocalProvider – defaultModelId selection", () => {
 });
 
 // ===========================================================================
-// addLocalProvider – capabilities → vision / reasoning flags
+// addLocalProvider - capabilities -> vision / reasoning flags
 // ===========================================================================
 
-describe("addLocalProvider – capabilities", () => {
+describe("addLocalProvider - capabilities", () => {
 	let manager: ProviderSettingsManager;
 	let cleanup: () => void;
 
@@ -651,7 +651,7 @@ describe("addLocalProvider – capabilities", () => {
 });
 
 // ===========================================================================
-// models.json – built-in provider model overlays
+// models.json - built-in provider model overlays
 // ===========================================================================
 
 describe("models.json model overlays", () => {

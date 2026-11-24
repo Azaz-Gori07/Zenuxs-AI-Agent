@@ -7,7 +7,7 @@ import { HealthMonitor } from "./healthMonitor";
 import { McpLayer } from "./mcpClient";
 import { McpToolRegistry } from "./toolRegistry";
 
-// ── CapabilityRegistry ──
+// ?? CapabilityRegistry ??
 
 describe("CapabilityRegistry", () => {
 	let registry: CapabilityRegistry;
@@ -165,7 +165,7 @@ describe("CapabilityRegistry", () => {
 	});
 });
 
-// ── PermissionManager ──
+// ?? PermissionManager ??
 
 describe("PermissionManager", () => {
 	let registry: CapabilityRegistry;
@@ -228,7 +228,7 @@ describe("PermissionManager", () => {
 	});
 });
 
-// ── SessionManager ──
+// ?? SessionManager ??
 
 describe("SessionManager", () => {
 	let sm: SessionManager;
@@ -279,7 +279,7 @@ describe("SessionManager", () => {
 	});
 });
 
-// ── McpLayer (integration) ──
+// ?? McpLayer (integration) ??
 
 describe("McpLayer", () => {
 	it("should create layer with all sub-components", () => {
@@ -401,7 +401,7 @@ describe("McpLayer", () => {
 	});
 });
 
-// ── HealthMonitor ──
+// ?? HealthMonitor ??
 
 describe("HealthMonitor", () => {
 	it("should start and stop without error", () => {
@@ -425,7 +425,7 @@ describe("HealthMonitor", () => {
 	});
 });
 
-// ── Helpers ──
+// ?? Helpers ??
 
 function makeMeta(id: string, name: string, category: any) {
 	return {

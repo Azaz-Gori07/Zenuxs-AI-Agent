@@ -46,12 +46,12 @@ export interface BashExecutorOptions {
 	 * middle-truncated: the head and tail are preserved and the middle is
 	 * elided, since build and test failures usually live at the end of the
 	 * output.
-	 * @default 48_000 — see MAX_COMMAND_OUTPUT_CHARS in output-limits.ts
+	 * @default 48_000 - see MAX_COMMAND_OUTPUT_CHARS in output-limits.ts
 	 */
 	maxOutputChars?: number;
 
 	/**
-	 * @deprecated Misnamed — the limit was always enforced in characters,
+	 * @deprecated Misnamed - the limit was always enforced in characters,
 	 * not bytes. Use {@link maxOutputChars}; this alias is honored when
 	 * maxOutputChars is not set.
 	 */

@@ -127,7 +127,7 @@ describe("hub UI events", () => {
 			monitor.subscribeUI({ onClientRegistered: resolve }),
 		);
 
-		// Second client connects — should trigger registration event
+		// Second client connects - should trigger registration event
 		const newClient = new HubUIClient({
 			address: server.url,
 			authToken: server.authToken,

@@ -138,7 +138,7 @@ export class HealthMonitor {
 		}
 	}
 
-	// @ts-expect-error – internal helper, configs are stored in the connection manager
+	// @ts-expect-error - internal helper, configs are stored in the connection manager
 	private getConfigForServer(serverName: string): any {
 		// Configs are stored in ConnectionManager's internal configs map
 		// This is a best-effort check via reconnection

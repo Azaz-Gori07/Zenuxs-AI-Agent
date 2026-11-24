@@ -1,10 +1,10 @@
 /**
- * System part types and utilities — ported from OpenCode's LLM prompt model.
+ * System part types and utilities - ported from OpenCode's LLM prompt model.
  *
  * Supports:
  *  - Initial privileged system prompt (single part)
  *  - Chronological system updates (inserted in conversation history)
- *  - Stable escaped fallback for non‑native routes (`<system-update>`)
+ *  - Stable escaped fallback for non?native routes (`<system-update>`)
  */
 
 import type { SystemPart } from "../agent";
@@ -22,7 +22,7 @@ export interface SystemUpdateContent {
 }
 
 // =============================================================================
-// Escaping helpers (stable representation for non‑native routes)
+// Escaping helpers (stable representation for non?native routes)
 // =============================================================================
 
 const ESCAPE_RE = /[<>&"']/g;
@@ -48,7 +48,7 @@ function unescapeXml(str: string): string {
 }
 
 // =============================================================================
-// System update wrapper — stable text representation
+// System update wrapper - stable text representation
 // =============================================================================
 
 const SYSTEM_UPDATE_TAG = "system-update";

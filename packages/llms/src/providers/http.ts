@@ -32,7 +32,7 @@ async function getOrCreateAgent(): Promise<unknown> {
  * connections aggressively (e.g. free-tier model endpoints).
  *
  * Falls back to the original fetch if undici is unavailable or if a
- * custom fetch implementation (non-native) is provided — the
+ * custom fetch implementation (non-native) is provided - the
  * `dispatcher` option is only meaningful for undici-based fetch.
  */
 export function wrapFetchWithAgent(baseFetch?: typeof fetch): typeof fetch {

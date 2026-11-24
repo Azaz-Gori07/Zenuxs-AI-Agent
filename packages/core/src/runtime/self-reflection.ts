@@ -1,5 +1,5 @@
 /**
- * Self-Reflection System — Execution Engine Enhancement
+ * Self-Reflection System - Execution Engine Enhancement
  *
  * Before every model call, the reflection system:
  * 1. Analyzes recent tool executions
@@ -209,10 +209,10 @@ function buildReflectionPrompt(context: {
   parts.push("## Decision Guidance");
   parts.push("");
   if (context.hasIssues) {
-    parts.push("❌ DO NOT: Continue with new features or tasks");
-    parts.push("✅ DO: Fix the failures first, then validate, then continue");
+    parts.push("[X] DO NOT: Continue with new features or tasks");
+    parts.push("[OK] DO: Fix the failures first, then validate, then continue");
   } else {
-    parts.push("✅ Recent executions successful. Continue with the task plan.");
+    parts.push("[OK] Recent executions successful. Continue with the task plan.");
   }
   parts.push("");
 

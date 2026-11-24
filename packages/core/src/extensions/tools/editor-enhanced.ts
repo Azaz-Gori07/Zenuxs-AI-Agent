@@ -700,7 +700,7 @@ export function createEnhancedWriteTool(options: CreateEnhancedWriterOptions): a
       // Step 11: Report success after verification
       return {
         title: `Wrote ${path.basename(filePath)}`,
-        output: `✔ Verified: Wrote ${input.content.length} bytes to ${filePath} and confirmed content on disk`,
+        output: `[OK] Verified: Wrote ${input.content.length} bytes to ${filePath} and confirmed content on disk`,
         metadata: {
           filePath,
           size: input.content.length,

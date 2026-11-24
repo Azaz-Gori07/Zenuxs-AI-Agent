@@ -159,7 +159,7 @@ function buildOpenAICodexHeaders(input: {
  * Gateway providers (cline / cline-pass / zenuxs style routes served by the
  * Zenuxs API backend) can reject requests that do not identify themselves as
  * a Cline-client: the backend returns a 403 like
- * "… is only available via Cline product surfaces. If you are using an old
+ * "... is only available via Cline product surfaces. If you are using an old
  * version of Cline, please update to the latest version". Mirror the identity
  * headers the openai-codex route builds so those gateway routes are
  * recognized, while never overriding explicit user-configured headers.

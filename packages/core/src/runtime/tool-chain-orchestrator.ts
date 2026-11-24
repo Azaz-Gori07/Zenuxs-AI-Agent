@@ -1,8 +1,8 @@
 /**
- * Tool Chain Orchestrator — Execution Engine Enhancement
+ * Tool Chain Orchestrator - Execution Engine Enhancement
  *
  * Enables automatic tool chaining:
- *   Tool A → Tool B → Tool C → Validation → Repair → Complete
+ *   Tool A -> Tool B -> Tool C -> Validation -> Repair -> Complete
  *
  * Instead of LLM manually simulating tool behavior, the orchestrator:
  * 1. Executes tools in sequence
@@ -187,7 +187,7 @@ export async function executeToolChain(
  */
 
 /**
- * File modification chain: Search → Read → Edit → Write → Validate
+ * File modification chain: Search -> Read -> Edit -> Write -> Validate
  */
 export function createFileModificationChain(
   config: ToolChainConfig,
@@ -231,7 +231,7 @@ export function createFileModificationChain(
 }
 
 /**
- * Build validation chain: Install → Build → Lint → Typecheck
+ * Build validation chain: Install -> Build -> Lint -> Typecheck
  */
 export function createBuildValidationChain(
   config: ToolChainConfig,
@@ -272,7 +272,7 @@ export function createBuildValidationChain(
 }
 
 /**
- * Project generation chain: Create → Install → Build → Validate
+ * Project generation chain: Create -> Install -> Build -> Validate
  */
 export function createProjectGenerationChain(
   config: ToolChainConfig,

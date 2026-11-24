@@ -227,7 +227,7 @@ function mapAgentEvent(event: AgentEvent): WebviewOutboundMessage[] {
 		}
 
 		case "content_end": {
-			// Don't emit assistant_delta for text/reasoning here — the
+			// Don't emit assistant_delta for text/reasoning here - the
 			// content was already streamed incrementally via content_start.
 			// Only tool results need to be finalized at content_end.
 			if (event.contentType === "tool") {

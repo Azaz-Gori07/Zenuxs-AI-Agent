@@ -1,0 +1,64 @@
+{
+  "name": "zenuxs-desktop",
+  "version": "1.0.0",
+  "description": "Zenuxs AI Agent - Desktop Application",
+  "main": "dist/main/index.js",
+  "scripts": {
+    "dev": "bun run build:renderer && electron .",
+    "build:renderer": "bun run --cwd ../cli build",
+    "build": "bun run build:renderer && tsc -p tsconfig.json",
+    "start": "electron .",
+    "package": "electron-builder"
+  },
+  "dependencies": {
+    "@opentui/core": "^0.9.9",
+    "@opentui/react": "^0.9.9",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "electron": "^45.4.1",
+    "electron-builder": "^24.9.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^7.0.2"
+  },
+  "build": {
+    "appId": "com.zenuxs.desktop",
+    "productName": "Zenuxs",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb",
+        "rpm"
+      ],
+      "icon": "resources/icons/icon.png"
+    },
+    "macOS": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "resources/icons/icon.png"
+    },
+    "win32": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "resources/icons/icon.png"
+    }
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "bun": ">=1.0.0"
+  }
+}

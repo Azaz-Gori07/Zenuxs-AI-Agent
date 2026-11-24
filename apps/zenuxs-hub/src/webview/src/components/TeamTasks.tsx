@@ -173,7 +173,7 @@ function describeTeamTool(event: TeamToolEvent): string | undefined {
 				typeof tasks === "number" ? `${tasks} tasks` : undefined,
 				typeof runs === "number" ? `${runs} runs` : undefined,
 			].filter(Boolean);
-			return parts.join(" • ") || undefined;
+			return parts.join(" * ") || undefined;
 		}
 		case "team_list_runs": {
 			const runs = Array.isArray(event.output) ? event.output : undefined;

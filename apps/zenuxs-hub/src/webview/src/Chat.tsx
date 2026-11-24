@@ -668,7 +668,7 @@ function finalizeAssistantTurn(
 		...current,
 		createMessage(
 			"meta",
-			`Done (${finishReason}) • iterations=${iterations} • input=${usage?.inputTokens ?? 0} output=${usage?.outputTokens ?? 0}`,
+			`Done (${finishReason}) * iterations=${iterations} * input=${usage?.inputTokens ?? 0} output=${usage?.outputTokens ?? 0}`,
 		),
 	];
 }
@@ -678,7 +678,7 @@ function formatSessionLabel(session: WebviewSessionSummary): string {
 	const workspaceName = session.workspaceRoot?.trim()
 		? session.workspaceRoot.trim().split("/").pop()
 		: undefined;
-	return [title, workspaceName].filter(Boolean).join(" • ");
+	return [title, workspaceName].filter(Boolean).join(" * ");
 }
 
 function formatCheckpointTime(createdAt: number): string {
@@ -1041,7 +1041,7 @@ export default function Chat({
 				case "fork_done":
 					setForking(false);
 					setForkError(null);
-					setStatus(`Forked → new session ${message.newSessionId}`);
+					setStatus(`Forked -> new session ${message.newSessionId}`);
 					return;
 				case "fork_error":
 					setForking(false);
@@ -1306,7 +1306,7 @@ export default function Chat({
 														postToHost({ type: "forkSession" });
 													}}
 													size="sm"
-													title="Fork session — copy full message history into a new session"
+													title="Fork session - copy full message history into a new session"
 													type="button"
 													variant="ghost"
 												>

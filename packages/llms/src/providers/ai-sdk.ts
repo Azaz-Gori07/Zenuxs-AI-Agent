@@ -101,7 +101,7 @@ function toAiSdkMessages(
 				continue;
 			}
 
-			// Chronological system update — wrap in stable text representation
+			// Chronological system update - wrap in stable text representation
 			// for providers that do not natively support mid-conversation
 			// system messages. Ported from OpenCode's `<system-update>` protocol.
 			if (part.type === "system-update") {

@@ -4,7 +4,7 @@ export function sanitizeFileName(value: string): string {
 
 export function truncateStr(str: string, maxLen: number): string {
 	if (str.length <= maxLen) return str;
-	return `${str.slice(0, maxLen - 1)}…`;
+	return `${str.slice(0, maxLen - 1)}...`;
 }
 
 export function truncateSplit(
@@ -18,7 +18,7 @@ export function truncateSplit(
 		?.shift()
 		?.trim()
 		?.slice(0, maxLen - 1);
-	return prefix ? `${prefix}…` : truncateStr(str, maxLen);
+	return prefix ? `${prefix}...` : truncateStr(str, maxLen);
 }
 
 export function maskSecret(value: string): string {

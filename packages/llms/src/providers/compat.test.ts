@@ -247,7 +247,7 @@ describe("createGatewayApiHandler.getMessages", () => {
 		};
 
 		// The compat layer no longer detaches images into sibling user
-		// messages — that responsibility moved into
+		// messages - that responsibility moved into
 		// `toAiSdkToolResultOutput`, which extracts every nested `image`
 		// content block into native `image-data` content parts. The
 		// gateway request therefore contains the original
@@ -563,7 +563,7 @@ describe("createGatewayApiHandler.createMessage", () => {
 });
 
 /**
- * Tests for compat.ts message conversion (LlmsProviders.Message → AgentMessage).
+ * Tests for compat.ts message conversion (LlmsProviders.Message -> AgentMessage).
  *
  * Specifically guards the read_file image-passing path: the orchestrator's
  * `tool_result` block carries an array of {text, image} content blocks, and we
@@ -573,7 +573,7 @@ describe("createGatewayApiHandler.createMessage", () => {
  * collapse the array to a string here the image bytes are dropped and the
  * model hallucinates.
  */
-describe("toGatewayRequestMessages — tool_result with images", () => {
+describe("toGatewayRequestMessages - tool_result with images", () => {
 	it("forwards text+image content arrays as the tool-result output", () => {
 		const messages: Message[] = [
 			{
@@ -618,8 +618,8 @@ describe("toGatewayRequestMessages — tool_result with images", () => {
 		expect(toolResult.toolName).toBe("read_file");
 		expect(toolResult.isError).toBe(false);
 
-		// `output` must be the full structured content-block array — including
-		// the image — so toAiSdkToolResultOutput can emit `{type:"content"}`.
+		// `output` must be the full structured content-block array - including
+		// the image - so toAiSdkToolResultOutput can emit `{type:"content"}`.
 		const output = toolResult.output as Array<Record<string, unknown>>;
 		expect(Array.isArray(output)).toBe(true);
 		expect(output).toHaveLength(2);
@@ -636,7 +636,7 @@ describe("toGatewayRequestMessages — tool_result with images", () => {
 
 	it("forwards text-only tool_result content unchanged for downstream normalisation", () => {
 		// The compat layer no longer collapses `[{type:'text', text}]` into
-		// a bare string — the AI SDK formatter accepts the content-block
+		// a bare string - the AI SDK formatter accepts the content-block
 		// array directly and emits it as a `{type:'content'}` tool-result
 		// output. (`toAiSdkToolResultOutput` then forwards the text part
 		// through unchanged.)

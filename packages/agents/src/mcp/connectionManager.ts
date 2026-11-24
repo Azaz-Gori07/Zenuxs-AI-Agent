@@ -42,7 +42,7 @@ export class ConnectionManager {
 	async connect(serverConfig: McpServerConfig): Promise<void> {
 		const existing = this.connections.get(serverConfig.name);
 		if (existing) {
-			// Already connected — update config and maybe reconnect
+			// Already connected - update config and maybe reconnect
 			this.configs.set(serverConfig.name, serverConfig);
 			return;
 		}

@@ -76,7 +76,7 @@ function flushAsync(): Promise<void> {
 // onListening
 // ---------------------------------------------------------------------------
 
-describe("auth/server startLocalOAuthServer — onListening", () => {
+describe("auth/server startLocalOAuthServer - onListening", () => {
 	socketIt(
 		"is called with host, port, and callbackUrl when the server binds",
 		async () => {
@@ -162,7 +162,7 @@ describe("auth/server startLocalOAuthServer — onListening", () => {
 // onClose
 // ---------------------------------------------------------------------------
 
-describe("auth/server startLocalOAuthServer — onClose", () => {
+describe("auth/server startLocalOAuthServer - onClose", () => {
 	socketIt("is called with host and port when close() is invoked", async () => {
 		const port = await getFreePort();
 		const onClose = vi.fn();
@@ -260,7 +260,7 @@ describe("auth/server startLocalOAuthServer — onClose", () => {
 // onListening + onClose ordering
 // ---------------------------------------------------------------------------
 
-describe("auth/server startLocalOAuthServer — onListening + onClose together", () => {
+describe("auth/server startLocalOAuthServer - onListening + onClose together", () => {
 	afterEach(() => {
 		vi.restoreAllMocks();
 	});

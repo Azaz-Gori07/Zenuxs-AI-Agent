@@ -27,9 +27,9 @@ import type { CoreSessionConfig } from "../../types/config";
  * {@link BuiltRuntime.registerLeadAgent} hands off to
  * `runtime-builder.ts`. Narrowed to only the `.addTools()` surface the
  * callback exercises; avoids depending on `@cline/agents`' `Agent`
- * class during the PLAN.md §3.6 Step 5 type-only migration. When
+ * class during the PLAN.md S3.6 Step 5 type-only migration. When
  * SessionRuntime is rebuilt in Step 6, this field is expected to be
- * dropped entirely per §3.5 row #2.
+ * dropped entirely per S3.5 row #2.
  */
 type LeadAgentHandle = {
 	addTools(tools: AgentTool[]): unknown;

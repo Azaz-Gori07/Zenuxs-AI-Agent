@@ -1,17 +1,17 @@
 /**
  * Per-session consecutive-mistake tracker.
  *
- * @see PLAN.md §3.1 — wrapped around `recordMistake` moved from
- *                    `packages/agents/src/api/error-handling.ts` lines 147–311.
- * @see PLAN.md §3.2.3 — public surface of `MistakeTracker`.
+ * @see PLAN.md S3.1 - wrapped around `recordMistake` moved from
+ *                    `packages/agents/src/api/error-handling.ts` lines 147-311.
+ * @see PLAN.md S3.2.3 - public surface of `MistakeTracker`.
  *
  * The pure procedural `recordMistake(input, deps)` becomes `record(input)`
  * on the class; `consecutiveMistakes` is internal state. Other deps flow
  * through the constructor instead.
  *
- * NOTE: the §3.2.3 constructor shape omits some fields (agentId,
+ * NOTE: the S3.2.3 constructor shape omits some fields (agentId,
  * conversationId/runId getters, appendRecoveryNotice). They are retained
- * here for log + notice parity per PLAN.md §3.4.3/§3.4.5. Step 8
+ * here for log + notice parity per PLAN.md S3.4.3/S3.4.5. Step 8
  * (`impl-runtime-porter`) may refactor once SessionRuntime is wired up.
  */
 
@@ -24,7 +24,7 @@ import type {
 
 /**
  * Legacy-agents-style leveled log function. The sdk-re `BasicLogger`
- * does not carry a level argument (§shared/logging/logger.ts); callers
+ * does not carry a level argument (Sshared/logging/logger.ts); callers
  * are expected to bridge via `metadata.severity` or dispatch to
  * `debug`/`log`/`error`. `MistakeTracker` accepts a leveled callable
  * here so Step 8 can plug in whichever bridging shape `SessionRuntime`
@@ -147,7 +147,7 @@ export class MistakeTracker {
 
 	reset(): void {
 		this.consecutiveMistakes = 0;
-		// Note: cumulativeMistakes is NOT reset — it tracks the entire session
+		// Note: cumulativeMistakes is NOT reset - it tracks the entire session
 	}
 
 	get value(): number {
@@ -161,7 +161,7 @@ export class MistakeTracker {
 }
 
 // =============================================================================
-// Mistake Limit Stop Message (pure helper — ported verbatim)
+// Mistake Limit Stop Message (pure helper - ported verbatim)
 // =============================================================================
 
 export function buildMistakeLimitStopMessage(input: {
@@ -194,7 +194,7 @@ export function buildMistakeLimitStopMessage(input: {
 }
 
 // =============================================================================
-// Consecutive Mistake Decision Resolution (pure helper — ported verbatim)
+// Consecutive Mistake Decision Resolution (pure helper - ported verbatim)
 // =============================================================================
 
 async function resolveConsecutiveMistakeDecision(
@@ -227,5 +227,5 @@ async function resolveConsecutiveMistakeDecision(
 // TODO(PLAN.md Step 8): The `emit` channel currently accepts legacy `AgentEvent`
 // so the "recoverable error" event shape is preserved verbatim. When
 // `SessionRuntime` wires this up in Step 8, consider whether this should
-// emit an `AgentRuntimeEvent` (per the §3.2.3 signature proposal) and let
+// emit an `AgentRuntimeEvent` (per the S3.2.3 signature proposal) and let
 // the bridge translate, or keep the direct legacy channel for notice parity.

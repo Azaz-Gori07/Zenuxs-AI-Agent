@@ -209,7 +209,7 @@ export interface AgentModelRequest {
 }
 
 /**
- * A structured system prompt part — ported from OpenCode's LLM prompt model.
+ * A structured system prompt part - ported from OpenCode's LLM prompt model.
  *
  * Supports text parts with optional cache hints and metadata for
  * provider-native system prompt handling.

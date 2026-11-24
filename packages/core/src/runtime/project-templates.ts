@@ -1,5 +1,5 @@
 /**
- * Template System — Architecture Migration Component
+ * Template System - Architecture Migration Component
  *
  * Provides reusable project templates for common architectures:
  * - React (Vite + TypeScript)

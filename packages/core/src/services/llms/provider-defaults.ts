@@ -858,7 +858,7 @@ export async function resolveProviderConfig(
 				? await getPrivateProviderModels(providerId, modelCatalog, config)
 				: {};
 		// Public (keyless) live model sources run whenever `modelsSourceUrl` is
-		// registered for the provider — even if the caller didn't pass a
+		// registered for the provider - even if the caller didn't pass a
 		// `config`. Falls back to the spec's default base URL so a fresh install
 		// still hits the default local model endpoint. Failures are swallowed
 		// below, so an unreachable server just leaves the picker on the bundled

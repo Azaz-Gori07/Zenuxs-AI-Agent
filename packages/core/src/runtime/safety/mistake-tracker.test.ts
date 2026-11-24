@@ -30,10 +30,10 @@ function createMockOptions(
 }
 
 // =============================================================================
-// MistakeTracker — consecutive counting
+// MistakeTracker - consecutive counting
 // =============================================================================
 
-describe("MistakeTracker — consecutive counting", () => {
+describe("MistakeTracker - consecutive counting", () => {
 	it("starts at zero", () => {
 		const tracker = new MistakeTracker(createMockOptions());
 		expect(tracker.value).toBe(0);
@@ -66,10 +66,10 @@ describe("MistakeTracker — consecutive counting", () => {
 });
 
 // =============================================================================
-// MistakeTracker — cumulative tracking (Phase 4 feature)
+// MistakeTracker - cumulative tracking (Phase 4 feature)
 // =============================================================================
 
-describe("MistakeTracker — cumulative budget", () => {
+describe("MistakeTracker - cumulative budget", () => {
 	it("cumulative survives reset (tracks entire session)", async () => {
 		const tracker = new MistakeTracker(createMockOptions({ maxConsecutiveMistakes: 10 }));
 		await tracker.record({ iteration: 1, reason: "api_error" });
@@ -113,10 +113,10 @@ describe("MistakeTracker — cumulative budget", () => {
 });
 
 // =============================================================================
-// MistakeTracker — stop at limit
+// MistakeTracker - stop at limit
 // =============================================================================
 
-describe("MistakeTracker — stop at limit", () => {
+describe("MistakeTracker - stop at limit", () => {
 	it("returns 'stop' when consecutive reaches max (no callback)", async () => {
 		const tracker = new MistakeTracker(createMockOptions({ maxConsecutiveMistakes: 2 }));
 		await tracker.record({ iteration: 1, reason: "api_error" });

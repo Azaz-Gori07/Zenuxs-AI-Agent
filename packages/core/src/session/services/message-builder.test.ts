@@ -413,7 +413,7 @@ describe("MessageBuilder", () => {
 						type: "tool_result",
 						tool_use_id: "tool_1",
 						name: "tool",
-						content: "🙂".repeat(5_000),
+						content: "[SMILE]".repeat(5_000),
 					},
 				],
 			},

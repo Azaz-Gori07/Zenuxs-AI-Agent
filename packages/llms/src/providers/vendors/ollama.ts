@@ -21,7 +21,7 @@ import { ensureFetch, resolveApiKey } from "../http";
 import { splitToolImagesMiddleware } from "../middleware/split-tool-images";
 import type { ProviderFactoryResult } from "./types";
 
-/** See {@link OLLAMA_DEFAULT_CONTEXT_WINDOW} — re-exported under the wire-format name. */
+/** See {@link OLLAMA_DEFAULT_CONTEXT_WINDOW} - re-exported under the wire-format name. */
 export const OLLAMA_DEFAULT_NUM_CTX = OLLAMA_DEFAULT_CONTEXT_WINDOW;
 
 /**
@@ -82,7 +82,7 @@ export function readOllamaTimeoutMs(
 
 /**
  * Wrap a fetch so the *response* must start within `timeoutMs`. Once headers
- * arrive the timer is cleared — streaming the body is never interrupted.
+ * arrive the timer is cleared - streaming the body is never interrupted.
  * Mirrors the legacy handler, which raced the chat call (stream start)
  * against a timeout rather than bounding the whole generation.
  */
@@ -103,7 +103,7 @@ export function withOllamaResponseTimeout(
 		);
 		// AbortSignal.any keeps upstream cancellation live for the entire
 		// request (including body streaming after the timer is cleared) and
-		// cleans up its own listeners — no manual listener management.
+		// cleans up its own listeners - no manual listener management.
 		const upstreamSignal = init?.signal;
 		const signal = upstreamSignal
 		? AbortSignal.any([upstreamSignal, timeoutController.signal])

@@ -4,7 +4,7 @@
  * Auto-detects test/lint/typecheck scripts from package.json and provides
  * structured output parsing for pass/fail counts.
  *
- * This is a helper utility (T8), not a standalone tool — it wraps the bash
+ * This is a helper utility (T8), not a standalone tool - it wraps the bash
  * executor to provide intelligent test/lint/typecheck detection.
  */
 
@@ -53,7 +53,7 @@ export async function detectScripts(cwd: string): Promise<DetectedScripts> {
 		result.typecheck =
 			scripts.typecheck ?? scripts["type-check"] ?? scripts["tsc"] ?? null;
 	} catch {
-		// No package.json or malformed — return nulls
+		// No package.json or malformed - return nulls
 	}
 
 	return result;

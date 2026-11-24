@@ -38,7 +38,7 @@ type RecordedEvent = {
 /**
  * Minimal capturing stub used by the smoke harness. Intentionally **not**
  * declared `implements ITelemetryService` because this file is a CLI smoke
- * harness — its purpose is to record `capture()` / `captureRequired()`
+ * harness - its purpose is to record `capture()` / `captureRequired()`
  * payloads for human inspection, not to track every method that lands on
  * the production telemetry interface (e.g. `setMetadata`,
  * `setCommonProperties`, the `recordCounter` overload). Casting the
@@ -102,7 +102,7 @@ function rawPathLeakCheck(events: RecordedEvent[], rawPath: string) {
 		}
 	}
 	console.log(
-		`✓ no raw workspace path "${rawPath}" leaked into ${events.length} captured event(s).`,
+		`[OK] no raw workspace path "${rawPath}" leaked into ${events.length} captured event(s).`,
 	);
 }
 
@@ -129,7 +129,7 @@ function assertSmoke(
 	expected: number | string | boolean,
 ): void {
 	const ok = actual === expected;
-	const marker = ok ? "✓" : "!!";
+	const marker = ok ? "[OK]" : "!!";
 	console.log(`${marker} ${label}: actual=${actual} expected=${expected}`);
 	if (!ok) {
 		process.exitCode = 1;
@@ -373,7 +373,7 @@ async function main() {
 	}
 
 	header(
-		"task lifecycle in order: created → conversation_turn × 2 → completed (single capturing telemetry)",
+		"task lifecycle in order: created -> conversation_turn x 2 -> completed (single capturing telemetry)",
 	);
 	{
 		const t = new CapturingTelemetry();

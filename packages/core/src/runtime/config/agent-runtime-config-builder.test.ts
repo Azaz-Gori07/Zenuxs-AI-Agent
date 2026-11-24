@@ -126,7 +126,7 @@ describe("resolveToolExecution", () => {
 // ---------------------------------------------------------------------------
 
 describe("createAgentRuntimeConfig", () => {
-	it("produces a config with the PLAN §3.2.1 field mapping", () => {
+	it("produces a config with the PLAN S3.2.1 field mapping", () => {
 		const agentConfig = makeAgentConfig({
 			systemPrompt: "sp",
 			providerId: "openai",

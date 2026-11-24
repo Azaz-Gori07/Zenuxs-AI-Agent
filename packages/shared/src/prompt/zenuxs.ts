@@ -59,14 +59,14 @@ export interface ZenuxsSystemPromptOptions
 	extends Omit<WorkspaceContext, "rootPath"> {
 	/**
 	 * Workspace root path. Accepts either `rootPath` (from WorkspaceContext/WorkspaceInfo)
-	 * or `workspaceRoot` (legacy alias) — whichever is provided will be used.
+	 * or `workspaceRoot` (legacy alias) - whichever is provided will be used.
 	 */
 	rootPath?: string;
-	/** Alias for rootPath — kept for backwards compatibility with existing call sites */
+	/** Alias for rootPath - kept for backwards compatibility with existing call sites */
 	workspaceRoot?: string;
 	/** Per-request system prompt override */
 	overridePrompt?: string;
-	/** Provider ID — used to gate Zenuxs-specific metadata injection */
+	/** Provider ID - used to gate Zenuxs-specific metadata injection */
 	providerId?: string;
 	/**
 	 * Additional system parts composed after the base prompt.

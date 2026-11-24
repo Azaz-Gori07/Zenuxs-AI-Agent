@@ -1831,7 +1831,7 @@ describe("AgentRuntime", () => {
 				const lastMsg = request.messages.at(-1) as AgentMessage;
 				expect((lastMsg.content[0] as any).text).toContain("[SYSTEM ENFORCEMENT] Builder Architecture Violation Detected");
 				return [
-					{ type: "text-delta", text: "✔ portfolio.html created" },
+					{ type: "text-delta", text: "[OK] portfolio.html created" },
 					{ type: "finish", reason: "stop" },
 				];
 			},
@@ -1842,6 +1842,6 @@ describe("AgentRuntime", () => {
 
 		expect(result.status).toBe("completed");
 		expect(turns).toBe(2);
-		expect(result.outputText).toBe("✔ portfolio.html created");
+		expect(result.outputText).toBe("[OK] portfolio.html created");
 	});
 });

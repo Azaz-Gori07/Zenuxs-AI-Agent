@@ -124,7 +124,7 @@ export function resolveConfigDirArg(argv: string[]): string | undefined {
 export async function runCli(): Promise<void> {
 	installStreamErrorGuards();
 	// Some terminals stay in a single-byte charset after a crash/resize, which
-	// makes every non-ASCII glyph render as mojibake (â•ž, aaaa...). ISO 2022
+	// makes every non-ASCII glyph render as mojibake (?*?, aaaa...). ISO 2022
 	// ESC % G selects UTF-8. TTY only: never pollute --json / piped output.
 	if (
 		process.stdout.isTTY &&
@@ -1140,7 +1140,7 @@ export async function runCli(): Promise<void> {
 	// in provider resolution, config services, and session startup wiring that
 	// should only load when the CLI is actually starting an agent session.
 	// OPT-08: Parallelize createProviderSettingsManager with loadCliRuntimeModules.
-	// These are independent — provider settings don't feed into module loading.
+	// These are independent - provider settings don't feed into module loading.
 	const providerSettingsManagerId = profiler.start("cli.createProviderSettingsManager", "startup");
 	const providerSettingsManagerPromise = createProviderSettingsManager();
 	const loadModulesId = profiler.start("cli.loadCliRuntimeModules", "startup");

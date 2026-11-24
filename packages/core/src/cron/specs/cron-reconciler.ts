@@ -66,7 +66,7 @@ function walk(dir: string): string[] {
 		for (const entry of entries) {
 			const full = `${current}/${entry.name}`;
 			if (entry.isDirectory()) {
-				// Skip the generated reports subdirectory — not spec sources.
+				// Skip the generated reports subdirectory - not spec sources.
 				if (entry.name === "reports") continue;
 				stack.push(full);
 				continue;
@@ -234,7 +234,7 @@ export class CronReconciler {
 				this.store.updateSpecNextRunAt(spec.specId, nextIso);
 			}
 		} catch {
-			// Invalid cron pattern — leave next_run_at as is; the upsert's
+			// Invalid cron pattern - leave next_run_at as is; the upsert's
 			// parse_status already reflects the spec correctness.
 		}
 	}

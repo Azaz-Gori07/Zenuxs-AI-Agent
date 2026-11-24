@@ -22,7 +22,7 @@ node tests/fake-provider/server.mjs "$WORK/scenario.json" "$PORT" > "$WORK/fake.
 FP=$!; sleep 1
 
 {
-  echo "=== P0 SYMLINK ESCAPE FIX — L3 verification on HEAD ==="
+  echo "=== P0 SYMLINK ESCAPE FIX - L3 verification on HEAD ==="
   echo "=== SHA: $SHA ==="
   echo "=== TIMESTAMP: $STAMP ==="
   echo "=== COMMAND: real CLI write through in-workspace symlink to outside ==="

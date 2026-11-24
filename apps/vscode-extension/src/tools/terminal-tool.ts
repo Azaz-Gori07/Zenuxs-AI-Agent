@@ -27,7 +27,7 @@ export interface TerminalCommandResult {
 const TERMINAL_NAME = "Zenuxs Agent Terminal";
 
 /**
- * VsCodeTerminalTool — Manages dedicated agent terminals and streams output chunks.
+ * VsCodeTerminalTool - Manages dedicated agent terminals and streams output chunks.
  * Inspired by Cline's VscodeTerminalProcess.ts and VscodeTerminalManager.ts.
  */
 export class VsCodeTerminalTool extends EventEmitter {

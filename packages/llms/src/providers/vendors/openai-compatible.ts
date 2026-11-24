@@ -60,7 +60,7 @@ function createAuthFetch(
 			}
 			return response;
 		}
-		// All keys exhausted — wrap the last response body with the
+		// All keys exhausted - wrap the last response body with the
 		// selected provider name so the error is attributed correctly.
 		try {
 			const body = await lastResponse!.clone().text();
@@ -211,7 +211,7 @@ export async function createOpenAICompatibleProviderModule(
 		// `JSON.stringify`s the parts array, losing image bytes). The
 		// middleware operates on the typed `LanguageModelV3Prompt` BEFORE
 		// the converter runs, so the converter sees only text-only tool
-		// messages with adjacent multimodal user messages — the wire
+		// messages with adjacent multimodal user messages - the wire
 		// pattern that classic Cline used in production for years (see
 		// `convertToOpenAiMessages` in `src/core/api/transform/openai-format.ts`
 		// on origin/main).

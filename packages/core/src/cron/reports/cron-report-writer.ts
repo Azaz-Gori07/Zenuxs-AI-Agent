@@ -14,7 +14,7 @@ import type {
  * Writes a markdown report for a completed or failed cron run.
  * Reports live under `<cron-specs-dir>/reports/<run-id>.md`.
  * By default that is `~/.cline/cron/reports/<run-id>.md`.
- * and are derived artifacts — the database is still the operational source
+ * and are derived artifacts - the database is still the operational source
  * of truth.
  */
 

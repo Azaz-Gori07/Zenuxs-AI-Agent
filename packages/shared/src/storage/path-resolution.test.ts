@@ -21,7 +21,7 @@ describe("resolveExistingFilePath", () => {
 	it("resolves macOS screenshot paths with narrow no-break space before PM", () => {
 		// macOS Sonoma+ embeds U+202F before AM/PM. Callers often hand us a
 		// path with a regular space because clipboards / terminals collapse
-		// U+202F → U+0020 in transit.
+		// U+202F -> U+0020 in transit.
 		const dir = mkdtempSync(join(tmpdir(), "path-resolution-nnbsp-pm-"));
 		const onDisk = "Screenshot 2026-05-12 at 4.42.48\u202FPM.png";
 		const requested = join(dir, "Screenshot 2026-05-12 at 4.42.48 PM.png");

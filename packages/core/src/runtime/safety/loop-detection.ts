@@ -1,14 +1,14 @@
 /**
  * Repeated tool-call loop detection.
  *
- * @see PLAN.md §3.1 — helpers moved from `packages/agents/src/context/loop-detection.ts`.
- * @see PLAN.md §3.2.3 — public surface of `LoopDetectionTracker`.
+ * @see PLAN.md S3.1 - helpers moved from `packages/agents/src/context/loop-detection.ts`.
+ * @see PLAN.md S3.2.3 - public surface of `LoopDetectionTracker`.
  *
  * The pure helpers (`createLoopDetectionState`, `resetLoopDetectionState`,
  * `toolCallSignature`, `checkRepeatedToolCall`) are ported verbatim. The
  * `LoopDetectionTracker` class is a thin wrapper that owns a
  * `LoopDetectionState` and exposes the `inspect()` / `reset()` surface that
- * `SessionRuntime` installs as a `beforeTool` hook per §3.2.3.
+ * `SessionRuntime` installs as a `beforeTool` hook per S3.2.3.
  */
 
 import type { LoopDetectionConfig } from "@cline/shared";
@@ -90,10 +90,10 @@ export function checkRepeatedToolCall(
 	if (isSameAsPrevious && !isSameAsLast && state.previousToolName !== undefined) {
 		state.flipFlopCount++;
 	} else if (isSameAsLast) {
-		// Same as last call — not a flip-flop, reset
+		// Same as last call - not a flip-flop, reset
 		state.flipFlopCount = 0;
 	} else {
-		// Completely new call — reset
+		// Completely new call - reset
 		state.flipFlopCount = 0;
 	}
 
@@ -127,16 +127,16 @@ export function checkRepeatedToolCall(
 }
 
 // =============================================================================
-// Class wrapper (new — per PLAN.md §3.2.3)
+// Class wrapper (new - per PLAN.md S3.2.3)
 // =============================================================================
 
 /**
  * Verdict returned by {@link LoopDetectionTracker.inspect}.
  *
- * - `"ok"`   — no repeated call detected.
- * - `"soft"` — soft-warning threshold reached; SessionRuntime may surface a
+ * - `"ok"`   - no repeated call detected.
+ * - `"soft"` - soft-warning threshold reached; SessionRuntime may surface a
  *              recovery notice but should not block the call.
- * - `"hard"` — hard-escalation threshold reached; SessionRuntime should
+ * - `"hard"` - hard-escalation threshold reached; SessionRuntime should
  *              stop the run with the provided `message`.
  */
 export interface LoopDetectionVerdict {

@@ -1,12 +1,12 @@
 /**
- * Goal Tracker System — Autonomous Execution Until Completion
+ * Goal Tracker System - Autonomous Execution Until Completion
  *
  * Transforms Zenuxs from a single-response assistant into an autonomous
  * engineering agent that works continuously until the goal is achieved.
  *
  * Key Capabilities:
  * - Goal decomposition into milestones and tasks
- * - Automatic task chaining (one completes → next starts)
+ * - Automatic task chaining (one completes -> next starts)
  * - Proactive issue detection and fixing
  * - Iteration engine supporting hundreds of steps
  * - Smart dependency resolution
@@ -119,9 +119,9 @@ export class GoalTracker {
     const memoryManager = getExecutionMemoryManager();
     memoryManager.initialize(goalId, decomposition.goal);
 
-    console.log(`[GoalTracker] 🎯 Goal created: ${decomposition.goal}`);
-    console.log(`[GoalTracker] 📋 Milestones: ${this.currentGoal.milestones.length}`);
-    console.log(`[GoalTracker] 🔄 Autonomous execution enabled`);
+    console.log(`[GoalTracker] [TARGET] Goal created: ${decomposition.goal}`);
+    console.log(`[GoalTracker] [CLIPBOARD] Milestones: ${this.currentGoal.milestones.length}`);
+    console.log(`[GoalTracker] [REFRESH] Autonomous execution enabled`);
 
     return goalId;
   }
@@ -144,7 +144,7 @@ export class GoalTracker {
     this.currentGoal.status = "executing";
     this.isAutonomous = true;
 
-    console.log(`[GoalTracker] 🚀 Starting autonomous execution`);
+    console.log(`[GoalTracker] [ROCKET] Starting autonomous execution`);
     console.log(`[GoalTracker] Current goal: ${this.currentGoal.goal}`);
 
     // Execute first milestone
@@ -179,7 +179,7 @@ export class GoalTracker {
       );
 
       if (blockedMilestones.length > 0) {
-        console.error(`[GoalTracker] ❌ ${blockedMilestones.length} milestones blocked`);
+        console.error(`[GoalTracker] [X] ${blockedMilestones.length} milestones blocked`);
         // Attempt to unblock
         this.attemptUnblockMilestones();
       }
@@ -191,7 +191,7 @@ export class GoalTracker {
     nextMilestone.status = "in_progress";
     this.currentGoal.currentMilestoneId = nextMilestone.id;
 
-    console.log(`[GoalTracker] 📍 Starting milestone: ${nextMilestone.description}`);
+    console.log(`[GoalTracker] [PIN] Starting milestone: ${nextMilestone.description}`);
     console.log(`[GoalTracker] Tasks: ${nextMilestone.tasks.length}`);
     console.log(`[GoalTracker] Validation: ${nextMilestone.validationCriteria.join(", ")}`);
 
@@ -216,13 +216,13 @@ export class GoalTracker {
   private executeMilestoneTasks(milestone: GoalMilestone): void {
     if (!this.currentGoal) return;
 
-    console.log(`[GoalTracker] 🔧 Executing ${milestone.tasks.length} tasks for milestone`);
+    console.log(`[GoalTracker] [WRENCH] Executing ${milestone.tasks.length} tasks for milestone`);
 
     // Tasks are executed through the existing execution engine
     // The autonomous loop is maintained by:
-    // 1. After task completion → trigger next task
-    // 2. After all tasks → validate milestone
-    // 3. After validation → next milestone
+    // 1. After task completion -> trigger next task
+    // 2. After all tasks -> validate milestone
+    // 3. After validation -> next milestone
     // 4. Repeat until goal complete
 
     // This is integrated with the runtime hooks in observation-integration.ts
@@ -257,16 +257,16 @@ export class GoalTracker {
     milestone.status = success ? "completed" : "failed";
     if (success) {
       milestone.completedAt = new Date();
-      console.log(`[GoalTracker] ✅ Milestone completed: ${milestone.description}`);
+      console.log(`[GoalTracker] [OK] Milestone completed: ${milestone.description}`);
 
       // Move to next milestone automatically
       this.executeNextMilestone();
     } else {
-      console.error(`[GoalTracker] ❌ Milestone failed: ${milestone.description}`);
+      console.error(`[GoalTracker] [X] Milestone failed: ${milestone.description}`);
 
       // Attempt repair
       if (this.currentGoal.autoRetry) {
-        console.log(`[GoalTracker] 🔧 Attempting automatic repair...`);
+        console.log(`[GoalTracker] [WRENCH] Attempting automatic repair...`);
         this.attemptMilestoneRepair(milestone);
       }
     }
@@ -289,13 +289,13 @@ export class GoalTracker {
     ).length;
 
     if (repairAttempts >= this.currentGoal.maxRetriesPerTask) {
-      console.error(`[GoalTracker] ⛔ Max retries reached for milestone: ${milestone.description}`);
+      console.error(`[GoalTracker] [STOP] Max retries reached for milestone: ${milestone.description}`);
       milestone.status = "failed";
       return;
     }
 
     // Perform repair
-    console.log(`[GoalTracker] 🔧 Repair attempt ${repairAttempts + 1}/${this.currentGoal.maxRetriesPerTask}`);
+    console.log(`[GoalTracker] [WRENCH] Repair attempt ${repairAttempts + 1}/${this.currentGoal.maxRetriesPerTask}`);
 
     // Track repair attempt
     memoryManager.trackRepairAttempt(
@@ -316,7 +316,7 @@ export class GoalTracker {
   private attemptUnblockMilestones(): void {
     if (!this.currentGoal) return;
 
-    console.log(`[GoalTracker] 🔓 Attempting to unblock milestones...`);
+    console.log(`[GoalTracker] [UNLOCK] Attempting to unblock milestones...`);
 
     for (const milestone of this.currentGoal.milestones) {
       if (milestone.status === "blocked") {
@@ -325,9 +325,9 @@ export class GoalTracker {
 
         if (depsMet) {
           milestone.status = "pending";
-          console.log(`[GoalTracker] ✅ Unblocked: ${milestone.description}`);
+          console.log(`[GoalTracker] [OK] Unblocked: ${milestone.description}`);
         } else {
-          console.log(`[GoalTracker] ⏸ Still blocked: ${milestone.description}`);
+          console.log(`[GoalTracker] [PAUSE] Still blocked: ${milestone.description}`);
         }
       }
     }
@@ -348,7 +348,7 @@ export class GoalTracker {
       : 0;
     const durationMinutes = Math.round(duration / 60000);
 
-    console.log(`[GoalTracker] 🎉 GOAL COMPLETED!`);
+    console.log(`[GoalTracker] [PARTY] GOAL COMPLETED!`);
     console.log(`[GoalTracker] Goal: ${this.currentGoal.goal}`);
     console.log(`[GoalTracker] Duration: ${durationMinutes} minutes`);
     console.log(`[GoalTracker] Iterations: ${this.currentGoal.totalIterations}`);
@@ -365,14 +365,14 @@ export class GoalTracker {
   private performFinalValidation(): void {
     if (!this.currentGoal) return;
 
-    console.log(`[GoalTracker] 🔍 Performing final validation...`);
+    console.log(`[GoalTracker] [SEARCH] Performing final validation...`);
 
     // Get execution memory
     const memoryManager = getExecutionMemoryManager();
     const memory = memoryManager.getMemory();
 
     if (!memory) {
-      console.error(`[GoalTracker] ❌ No execution memory found`);
+      console.error(`[GoalTracker] [X] No execution memory found`);
       return;
     }
 
@@ -392,8 +392,8 @@ export class GoalTracker {
     console.log(memoryManager.getProgressSummary());
 
     // Verification passed if we reached here
-    console.log(`[GoalTracker] ✅ Final validation passed`);
-    console.log(`[GoalTracker] 🏁 Autonomous execution complete`);
+    console.log(`[GoalTracker] [OK] Final validation passed`);
+    console.log(`[GoalTracker] [END] Autonomous execution complete`);
   }
 
   /**
@@ -406,7 +406,7 @@ export class GoalTracker {
     this.currentGoal.interruptedAt = new Date();
     this.isAutonomous = false;
 
-    console.log(`[GoalTracker] ⏸ Execution interrupted`);
+    console.log(`[GoalTracker] [PAUSE] Execution interrupted`);
     if (reason) {
       console.log(`[GoalTracker] Reason: ${reason}`);
     }
@@ -427,7 +427,7 @@ export class GoalTracker {
     this.currentGoal.interruptedAt = undefined;
     this.isAutonomous = true;
 
-    console.log(`[GoalTracker] ▶ Resuming autonomous execution`);
+    console.log(`[GoalTracker] > Resuming autonomous execution`);
     console.log(`[GoalTracker] Current milestone: ${this.currentGoal.currentMilestoneId || "None"}`);
 
     // Resume execution memory
@@ -466,7 +466,7 @@ export class GoalTracker {
 
     // Check iteration limit
     if (this.currentGoal.totalIterations >= this.currentGoal.maxIterations) {
-      console.error(`[GoalTracker] ⛔ Max iterations reached (${this.currentGoal.maxIterations})`);
+      console.error(`[GoalTracker] [STOP] Max iterations reached (${this.currentGoal.maxIterations})`);
       this.interrupt("Max iterations exceeded");
     }
   }

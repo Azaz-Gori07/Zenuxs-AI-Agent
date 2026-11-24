@@ -103,26 +103,26 @@ export function buildAgentGraph(
 
 	const plannerNode = async (state: typeof AgentStateAnnotation.State) => {
 		try {
-			// @ts-expect-error – graph closure accesses runtime state
+			// @ts-expect-error - graph closure accesses runtime state
 			runtime.throwIfAborted();
-			// @ts-expect-error – maxIterations not on public config type
+			// @ts-expect-error - maxIterations not on public config type
 			const maxIterations = runtime.config.maxIterations;
 			if (maxIterations !== undefined && state.iteration_count >= maxIterations) {
 				throw new Error(`Agent runtime exceeded maxIterations (${maxIterations})`);
 			}
 			const nextIteration = state.iteration_count + 1;
-			// @ts-expect-error – graph closure mutates runtime state
+			// @ts-expect-error - graph closure mutates runtime state
 			runtime.state.iteration = nextIteration;
 
-			// @ts-expect-error – emit/snapshot not on public API
+			// @ts-expect-error - emit/snapshot not on public API
 			await runtime.emit({
 				type: "turn-started",
-				// @ts-expect-error – snapshot() not on public API
+				// @ts-expect-error - snapshot() not on public API
 				snapshot: runtime.snapshot(),
 				iteration: nextIteration,
 			});
 
-			// @ts-expect-error – systemPrompt not on public config type
+			// @ts-expect-error - systemPrompt not on public config type
 			const originalSystemPrompt = runtime.config.systemPrompt;
 			const contextBlocks: string[] = [];
 			if (state.retrieved_context && state.retrieved_context.length > 0) {
@@ -161,41 +161,41 @@ export function buildAgentGraph(
 			}
 
 			if (contextBlocks.length > 0) {
-				// @ts-expect-error – systemPrompt not on public config type
+				// @ts-expect-error - systemPrompt not on public config type
 				runtime.config.systemPrompt =
 					originalSystemPrompt + "\n\n" + contextBlocks.join("\n\n");
 			}
 
-			// @ts-expect-error – generateAssistantMessage not on public API
+			// @ts-expect-error - generateAssistantMessage not on public API
 			let assistantRes;
 			try {
 				assistantRes = await runtime.generateAssistantMessage();
 			} finally {
-				// @ts-expect-error – systemPrompt not on public config type
+				// @ts-expect-error - systemPrompt not on public config type
 				runtime.config.systemPrompt = originalSystemPrompt;
 			}
 
 			const { message, finishReason } = assistantRes;
-			// @ts-expect-error – graph closure mutates runtime state
+			// @ts-expect-error - graph closure mutates runtime state
 			runtime.state.messages.push(message);
-			// @ts-expect-error – emit not on public API
+			// @ts-expect-error - emit not on public API
 			await runtime.emit({
 				type: "message-added",
-				// @ts-expect-error – snapshot() not on public API
+				// @ts-expect-error - snapshot() not on public API
 				snapshot: runtime.snapshot(),
 				message,
 			});
-			// @ts-expect-error – emit not on public API
+			// @ts-expect-error - emit not on public API
 			await runtime.emit({
 				type: "assistant-message",
-				// @ts-expect-error – snapshot() not on public API
+				// @ts-expect-error - snapshot() not on public API
 				snapshot: runtime.snapshot(),
 				iteration: nextIteration,
 				message,
 				finishReason,
 			});
 
-			// @ts-expect-error – normalizeAbortError not on public API
+			// @ts-expect-error - normalizeAbortError not on public API
 			if (finishReason === "aborted") {
 				throw runtime.normalizeAbortError();
 			}
@@ -204,41 +204,41 @@ export function buildAgentGraph(
 				(part: AgentMessagePart): part is AgentToolCallPart => part.type === "tool-call",
 			);
 			if (finishReason === "error" && toolCalls.length === 0) {
-				// @ts-expect-error – lastError not on public state type
+				// @ts-expect-error - lastError not on public state type
 				throw new Error(runtime.state.lastError ?? "Model stream failed");
 			}
 
-			// @ts-expect-error – pendingToolCalls not on public state type
+			// @ts-expect-error - pendingToolCalls not on public state type
 			runtime.state.pendingToolCalls = toolCalls.map((part) => part.toolCallId);
 
 			if (toolCalls.length === 0) {
-				// @ts-expect-error – emit not on public API
+				// @ts-expect-error - emit not on public API
 				await runtime.emit({
 					type: "turn-finished",
-					// @ts-expect-error – snapshot() not on public API
+					// @ts-expect-error - snapshot() not on public API
 					snapshot: runtime.snapshot(),
 					iteration: nextIteration,
 					toolCallCount: 0,
 				});
-				// @ts-expect-error – getCompletionReminderMessages not on public API
+				// @ts-expect-error - getCompletionReminderMessages not on public API
 				const completionReminderMessages = runtime.getCompletionReminderMessages();
 				if (completionReminderMessages.length > 0) {
 					for (const reminderMessage of completionReminderMessages) {
-						// @ts-expect-error – addUserReminderMessage not on public API
+						// @ts-expect-error - addUserReminderMessage not on public API
 						await runtime.addUserReminderMessage(reminderMessage);
 					}
 					return {
 						iteration_count: nextIteration,
-						// @ts-expect-error – messages not on public state type
+						// @ts-expect-error - messages not on public state type
 						messages: [...runtime.state.messages],
 						error: null,
 					};
 				}
-				// @ts-expect-error – finishRun not on public API
+				// @ts-expect-error - finishRun not on public API
 				const result = runtime.finishRun("completed", message);
 				return {
 					iteration_count: nextIteration,
-					// @ts-expect-error – messages not on public state type
+					// @ts-expect-error - messages not on public state type
 					messages: [...runtime.state.messages],
 					result,
 					error: null,
@@ -247,9 +247,9 @@ export function buildAgentGraph(
 
 			return {
 				iteration_count: nextIteration,
-				// @ts-expect-error – messages not on public state type
+				// @ts-expect-error - messages not on public state type
 				messages: [...runtime.state.messages],
-				// @ts-expect-error – pendingToolCalls not on public state type
+				// @ts-expect-error - pendingToolCalls not on public state type
 				pending_tool_calls: toolCalls,
 				error: null,
 			};
@@ -285,7 +285,7 @@ export function buildAgentGraph(
 
 	const crewDispatcherNode = async (state: typeof AgentStateAnnotation.State) => {
 		try {
-			// @ts-expect-error – graph closure accesses runtime state
+			// @ts-expect-error - graph closure accesses runtime state
 			runtime.throwIfAborted();
 
 			const task = state.current_task || "";
@@ -298,7 +298,7 @@ export function buildAgentGraph(
 			// If a handoff already has a result, check if another agent is needed
 			if (lastHandoff && lastHandoff.result) {
 				const currentRole = lastHandoff.to || lastHandoff.from;
-				// Simple sequencing: planner → researcher → coder → reviewer
+				// Simple sequencing: planner -> researcher -> coder -> reviewer
 				const SEQUENCE: AgentRole[] = ["planner", "researcher", "coder", "reviewer"];
 				const currentIdx = SEQUENCE.indexOf(currentRole as AgentRole);
 				const nextRole = currentIdx >= 0 && currentIdx < SEQUENCE.length - 1
@@ -325,7 +325,7 @@ export function buildAgentGraph(
 			const planText = planMessages.join(" ").toLowerCase();
 			const planSummary = planMessages.join("\n").substring(0, 1000);
 
-			// Browser tasks — detect before researcher since "search" may mean web search
+			// Browser tasks - detect before researcher since "search" may mean web search
 			const browserPhrases = [
 				"go to", "open website", "open url", "navigate to", "browse",
 				"fill form", "submit form", "enter details",
@@ -394,11 +394,11 @@ export function buildAgentGraph(
 
 	const reasoningNode = async (state: typeof AgentStateAnnotation.State) => {
 		try {
-			// @ts-expect-error – graph closure accesses runtime state
+			// @ts-expect-error - graph closure accesses runtime state
 			runtime.throwIfAborted();
 
 			const role = state.agent_role;
-			// Only run self-critique for coder and planner — skip researcher and reviewer
+			// Only run self-critique for coder and planner - skip researcher and reviewer
 			if (role !== "coder" && role !== "planner") {
 				return {};
 			}
@@ -469,7 +469,7 @@ export function buildAgentGraph(
 
 	const toolSelectorNode = async (state: typeof AgentStateAnnotation.State) => {
 		try {
-			// @ts-expect-error – graph closure accesses runtime state
+			// @ts-expect-error - graph closure accesses runtime state
 			runtime.throwIfAborted();
 			const toolCalls = state.pending_tool_calls;
 			if (!toolCalls || toolCalls.length === 0) {
@@ -506,7 +506,7 @@ export function buildAgentGraph(
 
 	const toolExecutorNode = async (state: typeof AgentStateAnnotation.State) => {
 		try {
-			// @ts-expect-error – graph closure accesses runtime state
+			// @ts-expect-error - graph closure accesses runtime state
 			runtime.throwIfAborted();
 			const mcpCalls = state.mcp_tool_calls;
 			if (!mcpCalls || mcpCalls.length === 0) {
@@ -565,7 +565,7 @@ export function buildAgentGraph(
 					createdAt: Date.now(),
 				};
 				toolMessages.push(toolMessage);
-				// @ts-expect-error – graph closure mutates runtime state
+				// @ts-expect-error - graph closure mutates runtime state
 				runtime.state.messages.push(toolMessage);
 			}
 
@@ -586,23 +586,23 @@ export function buildAgentGraph(
 
 	const executorNode = async (state: typeof AgentStateAnnotation.State) => {
 		try {
-			// @ts-expect-error – graph closure accesses runtime state
+			// @ts-expect-error - graph closure accesses runtime state
 			runtime.throwIfAborted();
-			// @ts-expect-error – pendingToolCalls not on public state type
+			// @ts-expect-error - pendingToolCalls not on public state type
 			const toolCalls = state.pending_tool_calls;
-			// @ts-expect-error – executeToolCalls not on public API
+			// @ts-expect-error - executeToolCalls not on public API
 			const toolMessages = await runtime.executeToolCalls(toolCalls);
-			// @ts-expect-error – graph closure mutates runtime state
+			// @ts-expect-error - graph closure mutates runtime state
 			runtime.state.pendingToolCalls = [];
-			// @ts-expect-error – graph closure mutates runtime state
+			// @ts-expect-error - graph closure mutates runtime state
 			for (const toolMessage of toolMessages) {
 				runtime.state.messages.push(toolMessage);
-				// @ts-expect-error – emit not on public API
+				// @ts-expect-error - emit not on public API
 				await runtime.emit({
 					type: "message-added",
-					// @ts-expect-error – snapshot() not on public API
+					// @ts-expect-error - snapshot() not on public API
 					snapshot: runtime.snapshot(),
-					// @ts-expect-error – iteration not on public state type
+					// @ts-expect-error - iteration not on public state type
 					iteration: runtime.state.iteration,
 					message: toolMessage,
 				});
@@ -648,10 +648,10 @@ export function buildAgentGraph(
 					}
 				}
 			}
-			// @ts-expect-error – emit not on public API
+			// @ts-expect-error - emit not on public API
 			await runtime.emit({
 				type: "turn-finished",
-				// @ts-expect-error – iteration not on public state type
+				// @ts-expect-error - iteration not on public state type
 				snapshot: runtime.snapshot(),
 				iteration: runtime.state.iteration,
 				toolCallCount: toolCalls.length,
@@ -664,7 +664,7 @@ export function buildAgentGraph(
 				const result = runtime.finishRun(
 					"completed",
 					undefined,
-					// @ts-expect-error – textFromToolMessage is a package-private helper
+					// @ts-expect-error - textFromToolMessage is a package-private helper
 					textFromToolMessage(terminalToolMessage) || undefined,
 				);
 				return {
@@ -701,17 +701,17 @@ export function buildAgentGraph(
 			((runtime as any).abortController &&
 				(runtime as any).abortController.signal.aborted);
 		const consecutiveErrors = (state.consecutive_errors ?? 0) + 1;
-		// @ts-expect-error – execution.maxConsecutiveMistakes not on public config
+		// @ts-expect-error - execution.maxConsecutiveMistakes not on public config
 		const maxMistakes = (runtime.config as any).execution?.maxConsecutiveMistakes ?? 3;
 		if (isAbort || consecutiveErrors >= maxMistakes) {
 			const isControlled =
 				err instanceof ControlledStopError || err.name === "ControlledStopError";
 			const status = isAbort || isControlled ? "aborted" : "failed";
-			// @ts-expect-error – graph closure mutates runtime state
+			// @ts-expect-error - graph closure mutates runtime state
 			runtime.state.status = status;
-			// @ts-expect-error – graph closure mutates runtime state
+			// @ts-expect-error - graph closure mutates runtime state
 			runtime.state.lastError = err.message;
-			// @ts-expect-error – finishRun not on public API
+			// @ts-expect-error - finishRun not on public API
 			const result = runtime.finishRun(status, undefined, undefined);
 			if (status === "failed") {
 				result.error = err;
@@ -733,7 +733,7 @@ export function buildAgentGraph(
 	const doneNode = async (state: typeof AgentStateAnnotation.State) => {
 		const result =
 			state.result ||
-			// @ts-expect-error – finishRun not on public API
+			// @ts-expect-error - finishRun not on public API
 			runtime.finishRun(state.error ? "failed" : "completed");
 
 		await (runtime as any).callAfterRunHooks(result);
@@ -746,18 +746,18 @@ export function buildAgentGraph(
 		}
 
 		if (result.status === "failed") {
-			// @ts-expect-error – emit not on public API
+			// @ts-expect-error - emit not on public API
 			await runtime.emit({
 				type: "run-failed",
-				// @ts-expect-error – snapshot() not on public API
+				// @ts-expect-error - snapshot() not on public API
 				snapshot: runtime.snapshot(),
 				error: state.error || result.error || new Error("Run failed"),
 			});
 		} else {
-			// @ts-expect-error – emit not on public API
+			// @ts-expect-error - emit not on public API
 			await runtime.emit({
 				type: "run-finished",
-				// @ts-expect-error – snapshot() not on public API
+				// @ts-expect-error - snapshot() not on public API
 				snapshot: runtime.snapshot(),
 				result,
 			});
@@ -918,7 +918,7 @@ export function buildAgentGraph(
 		},
 	);
 
-	// Sub-agent conditional edges — all agents route through reasoning node for self-critique
+	// Sub-agent conditional edges - all agents route through reasoning node for self-critique
 	for (const [role] of Object.entries(SUB_AGENT_ROLES)) {
 		const nodeName = `agent_${role}`;
 		workflow.addConditionalEdges(
