@@ -931,7 +931,7 @@ export class AgentRuntime {
 			}
 
 			throw new Error(
-				`Agent runtime exceeded maxIterations (${this.config.maxIterations})`,
+				`Agent runtime exceeded maxIterations (${this.config.maxIterations}). The task needs more steps than the configured limit; re-run with a higher limit (CLI: --max-iterations <count>) or split it into smaller tasks.`,
 			);
 		} catch (error) {
 			const normalized =

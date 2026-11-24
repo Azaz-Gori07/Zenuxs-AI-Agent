@@ -1029,6 +1029,13 @@ export async function runCli(): Promise<void> {
 			`${c.dim}[warn] ignoring invalid --retries value "${args.invalidRetries}" (expected integer >= 1)${c.reset}`,
 		);
 	}
+	if (args.invalidMaxIterations !== undefined) {
+		writeErr(
+			`invalid --max-iterations value "${args.invalidMaxIterations}" (expected integer 1-10000)`,
+		);
+		process.exitCode = 1;
+		return;
+	}
 	if (args.invalidLocale) {
 		writeErr(
 			`invalid locale "${args.invalidLocale}" (expected "en-US", "zh-CN", or "auto")`,
@@ -1343,6 +1350,7 @@ export async function runCli(): Promise<void> {
 			execution: {
 				maxConsecutiveMistakes: args.retries ?? 3,
 			},
+			maxIterations: args.maxIterations,
 			checkpoint: CLI_DEFAULT_CHECKPOINT_CONFIG,
 			compaction: buildCliCompactionConfig(args.compactionMode, {
 				thresholdRatio: args.compactionThreshold,

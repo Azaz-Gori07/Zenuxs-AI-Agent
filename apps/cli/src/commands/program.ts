@@ -58,6 +58,10 @@ export function addRootOptions(cmd: Command): Command {
 				collectAttach,
 				[],
 			)
+			.option(
+				"--max-iterations <count>",
+				"Maximum agent iterations for this run (default: 50)",
+			)
 			.option("--no-color", "Disable ANSI colors in text output")
 			.option("--locale <locale>", "Output locale: en-US, zh-CN, or auto")
 			.option(
@@ -297,6 +301,16 @@ export function commanderToParsedArgs(program: Command): ParsedArgs {
 			result.retries = parsed;
 		} else if (raw) {
 			result.invalidRetries = raw;
+		}
+	}
+
+	if (opts.maxIterations !== undefined) {
+		const raw = String(opts.maxIterations).trim();
+		const parsed = Number.parseInt(raw, 10);
+		if (Number.isInteger(parsed) && parsed >= 1 && parsed <= 10_000) {
+			result.maxIterations = parsed;
+		} else {
+			result.invalidMaxIterations = raw;
 		}
 	}
 

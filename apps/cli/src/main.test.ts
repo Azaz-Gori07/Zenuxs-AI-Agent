@@ -459,6 +459,47 @@ describe("runCli lightweight command dispatch", () => {
 		);
 	});
 
+	it("applies --max-iterations to the runtime config", async () => {
+		forcePromptModeInput();
+		process.argv = [
+			"bun",
+			"src/index.ts",
+			"--max-iterations",
+			"200",
+			"do something",
+		];
+
+		const { runCli } = await import("./main");
+
+		await expect(runCli()).resolves.toBeUndefined();
+		expect(runtimeMocks.runAgent).toHaveBeenCalledWith(
+			expect.any(String),
+			expect.objectContaining({ maxIterations: 200 }),
+			expect.anything(),
+		);
+	});
+
+	it("rejects an invalid --max-iterations value", async () => {
+		const consoleError = vi
+			.spyOn(console, "error")
+			.mockImplementation(() => undefined);
+		forcePromptModeInput();
+		process.argv = [
+			"bun",
+			"src/index.ts",
+			"--max-iterations",
+			"0",
+			"do something",
+		];
+
+		const { runCli } = await import("./main");
+
+		await expect(runCli()).resolves.toBeUndefined();
+		expect(process.exitCode).toBe(1);
+		expect(consoleError).toHaveBeenCalled();
+		expect(runtimeMocks.runAgent).not.toHaveBeenCalled();
+	});
+
 	it("applies --disallowed-tools to runtime tool policies", async () => {
 		forcePromptModeInput();
 		process.argv = [
